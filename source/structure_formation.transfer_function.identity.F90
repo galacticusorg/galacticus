@@ -25,31 +25,58 @@
   type, extends(transferFunctionClass) :: transferFunctionIdentity
      !% A identity transfer function class.
      private
+     double precision :: time
    contains
      final     ::                          identityDestructor
      procedure :: value                 => identityValue
      procedure :: logarithmicDerivative => identityLogarithmicDerivative
      procedure :: halfModeMass          => identityHalfModeMass
+     procedure :: epochTime             => identityEpochTime
   end type transferFunctionIdentity
 
   interface transferFunctionIdentity
      !% Constructors for the identity transfer function class.
      module procedure identityConstructorParameters
+     module procedure identityConstructorInternal
   end interface transferFunctionIdentity
 
 contains
 
-  function identityConstructorParameters(parameters)
+  function identityConstructorParameters(parameters) result(self)
     !% Constructor for the identity transfer function class which takes a parameter set as input.
+    use Input_Parameters   , only : inputParameter    , inputParameters
+    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    implicit none
+    type            (transferFunctionIdentity)                :: self
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    double precision                                          :: redshift
+
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which the transfer function is defined.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=transferFunctionIdentity(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+  return
+  end function identityConstructorParameters
+
+  function identityConstructorInternal(time) result(self)
+    !% Internal constructor for the identity transfer function class.
     use Input_Parameters
     implicit none
-    type(transferFunctionIdentity)                :: identityConstructorParameters
-    type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type            (transferFunctionIdentity)                :: self
+    double precision                          , intent(in   ) :: time
+    !# <constructorAssign variables="time"/>
     
-    identityConstructorParameters=transferFunctionIdentity()
     return
-  end function identityConstructorParameters
+  end function identityConstructorInternal
 
   elemental subroutine identityDestructor(self)
     !% Destructor for the identity transfer function class.
@@ -100,3 +127,12 @@ contains
     end if
     return
   end function identityHalfModeMass
+
+  double precision function identityEpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionIdentity), intent(inout) :: self
+
+    identityEpochTime=self%time
+    return
+  end function identityEpochTime

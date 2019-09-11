@@ -184,14 +184,14 @@ contains
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
     ! Add Mercurial changeset information.
-    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.hg.patch")) then
-       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.hg.patch'))
-       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "hg diff" - gives the uncommitted source changeset')
+    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.git.patch")) then
+       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.git.patch'))
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "git diff" - gives the uncommitted source changeset')
        call changeSet(1)%destroy()
     end if
-    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.hg.bundle")) then
-       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.hg.bundle'))
-       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "hg bundle -t none" - gives the committed source changeset')
+    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.git.bundle")) then
+       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.git.bundle'))
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "git bundle HEAD ^origin" - gives changesets not in the remote repo')
        call changeSet(1)%destroy()
     end if
 

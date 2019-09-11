@@ -27,7 +27,8 @@ module Node_Component_Satellite_Very_Simple
   private
   public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create             , &
        &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute       , &
-       &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize
+       &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Very_Simple_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -68,10 +69,14 @@ module Node_Component_Satellite_Very_Simple
 
 contains
 
-  subroutine Node_Component_Satellite_Very_Simple_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Satellite_Very_Simple_Initialize(globalParameters_)
     !% Initializes the tree node satellite orbit methods module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
 
     ! Determine if satellite orbits are to be reset on halo formation events.
     !# <inputParameter>
@@ -79,7 +84,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -221,8 +226,6 @@ contains
 
     select type (satelliteComponent)
     class is (nodeComponentSatelliteVerySimple)
-       ! Ensure the module has been initialized.
-       call Node_Component_Satellite_Very_Simple_Initialize()
        ! Get an orbit for this satellite.
        if (thisNode%isSatellite()) then
           hostNode => thisNode%parent

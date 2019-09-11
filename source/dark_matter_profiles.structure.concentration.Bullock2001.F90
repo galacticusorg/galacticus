@@ -105,15 +105,24 @@ contains
   function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
     !% concentration class.
+    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
-    type            (darkMatterProfileConcentrationBullock2001)                        :: self
-    double precision                                           , intent(in   )         :: F                         , K
-    class           (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
-    class           (criticalOverdensityClass                 ), intent(in   ), target :: criticalOverdensity_     
-    class           (cosmologicalMassVarianceClass            ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (darkMatterProfileConcentrationBullock2001         )                        :: self
+    double precision                                                    , intent(in   )         :: F                              , K
+    class           (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
+    class           (criticalOverdensityClass                          ), intent(in   ), target :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="F,K,*cosmologyParameters_,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_"/>
-
+    
+    allocate(self%darkMatterProfileDMODefinition_ )
+    allocate(     darkMatterHaloScaleDefinition_  )
+    allocate(self%virialDensityContrastDefinition_)
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.                   ,self%cosmologyFunctions_                                      )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (                                                          darkMatterHaloScaleDefinition_)"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function bullock2001ConstructorInternal
 
@@ -170,15 +179,10 @@ contains
   function bullock2001DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of concentration in the
     !% \cite{bullock_profiles_2001} algorithm.
-    use Virial_Density_Contrast
     implicit none
     class(virialDensityContrastClass               ), pointer       :: bullock2001DensityContrastDefinition
     class(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
     
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)"/>
-    end if
     bullock2001DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function bullock2001DensityContrastDefinition
@@ -186,22 +190,10 @@ contains
   function bullock2001DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{bullock_profiles_2001} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: bullock2001DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationBullock2001         ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
-
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
+    class(darkMatterProfileDMOClass                ), pointer       :: bullock2001DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
+    
     bullock2001DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function bullock2001DarkMatterProfileDefinition

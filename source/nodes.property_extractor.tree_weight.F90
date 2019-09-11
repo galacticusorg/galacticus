@@ -56,7 +56,7 @@ contains
     !% Implement a last isolated redshift output analysis.
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout)           :: self
-    type (treeNode                       ), intent(inout)           :: node
+    type (treeNode                       ), intent(inout), target   :: node
     type (multiCounter                   ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance
     

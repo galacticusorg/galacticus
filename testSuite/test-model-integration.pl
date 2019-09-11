@@ -52,15 +52,14 @@ my @tests =
      },
     );
 
-# Get Mercurial revision.
-my $mercurialRevision = "Unknown";
-open(my $hgHndl,"hg tip|");
-while ( my $line = <$hgHndl> ) {
-    if ( $line =~ m/^changeset:\s+([\d:]+)/ ) {
-	$mercurialRevision = $1;
-    }
+# Get Git revision.
+my $gitRevision = "Unknown";
+open(my $gitHndl,"git rev-parse HEAD|");
+while ( my $line = <$gitHndl> ) {
+    $gitRevision = $line;
+    chomp($gitRevision);
 }
-close($hgHndl);
+close($gitHndl);
 
 # Choose a random seed.
 my $randomSeed = int(rand(1000));
@@ -75,11 +74,6 @@ while ( my $fileName = readdir($testSuite) ) {
     # Skip non-model integration files.
     next
 	unless ( $fileName =~ m/^test\-model\-integration\-([a-zA-Z0-9]+)\.xml$/ );
-
-    next
-	unless ( $fileName eq "test-model-integration-beta.xml" );
-
-
     my $modelName = $1;    
     # Iterate over realizations.
     my @pbsJobs;
@@ -125,7 +119,7 @@ while ( my $fileName = readdir($testSuite) ) {
 	    print "--> Testing model '".$modelName."' [realization: ".$i."] for model integration testing...\n";
 	    foreach my $test ( @tests ) {
 		print "   --> Test '".$test->{'name'}."'...\n";
-		(my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName.$i,$test->{'label'},$mercurialRevision);
+		(my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName.$i,$test->{'label'},$gitRevision);
 	    }
 	    print "<-- ...done\n";
 	}
@@ -133,7 +127,7 @@ while ( my $fileName = readdir($testSuite) ) {
 	    print "--> Calibrating test '".$test->{'name'}."'...\n";
 	    my $calibration;
 	    for(my $i=0;$i<$options{'calibrateCount'};++$i) {
-		(my $values) = rcols("outputs/test-model-integration/".$modelName.$i."/".$test->{'label'}."_r".$mercurialRevision.".txt",1);
+		(my $values) = rcols("outputs/test-model-integration/".$modelName.$i."/".$test->{'label'}."_".$gitRevision.".txt",1);
 		$calibration = pdl zeroes($options{'calibrateCount'},nelem($values))
 		    unless ( defined($calibration) );
 		$calibration->(($i),:) .= $values;
@@ -151,7 +145,7 @@ while ( my $fileName = readdir($testSuite) ) {
 		$calibrationHigh  ->(($i)) .= $interpolants->((2));
 	    }
 	    open(my $calibrationFile,">data/model-integration/".$test->{'label'}."_".$modelName.".txt");
-	    print $calibrationFile "# Model integration test: ".$test->{'name'}." [mercurial revision: ".$mercurialRevision."]\n";
+	    print $calibrationFile "# Model integration test: ".$test->{'name'}." [Git revision: ".$gitRevision."]\n";
 	    for(my $i=0;$i<nelem($calibrationLow);++$i) {
 		print $calibrationFile $i."\t".$calibrationLow->(($i))."\t".$calibrationMedian->(($i))."\t".$calibrationHigh->(($i))."\n";
 	    }
@@ -166,7 +160,7 @@ while ( my $fileName = readdir($testSuite) ) {
 	print "--> Testing model '".$modelName."' for model integration testing...\n";
 	foreach my $test ( @tests ) {
 	    print "   --> Test '".$test->{'name'}."'...\n";
-	    (my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName,$test->{'label'},$mercurialRevision);
+	    (my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName,$test->{'label'},$gitRevision);
 	    $failureTotal += $failureCount;
 	    $testTotal    += $testCount;
 	    print "   --> failure rate: ".$failureCount."/".$testCount."\n";
@@ -203,7 +197,7 @@ sub massFunctionHalo {
     my $modelName          = shift();
     my $modelDirectoryName = shift();
     my $label              = shift();
-    my $mercurialRevision  = shift();
+    my $gitRevision        = shift();
     # Create mass function bins.
     my $massHaloLogarithmicBins = pdl sequence(10)/2.0+9.0;
     # Create data structure to read the results.
@@ -222,8 +216,8 @@ sub massFunctionHalo {
     $massFunction      /= log(10.0);
     $massFunctionError /= log(10.0);
     # Output the mass function.
-    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
-    print $outputFile "# Model integration test: Halo mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$gitRevision.".txt");
+    print $outputFile "# Model integration test: Halo mass function at z=0.0 [git revision: ".$gitRevision."]\n";
     for(my $i=0;$i<nelem($massHaloLogarithmicBins);++$i) {
 	print $outputFile $i."\t".$massFunction->(($i))."\n";
     }
@@ -243,7 +237,7 @@ sub massFunctionStellar {
     my $modelName          = shift();
     my $modelDirectoryName = shift();
     my $label              = shift();
-    my $mercurialRevision  = shift();
+    my $gitRevision        = shift();
     # Create mass function bins.
     my $massStellarLogarithmicBins = pdl sequence(10)/2.0+8.0;
     # Create data structure to read the results.
@@ -262,8 +256,8 @@ sub massFunctionStellar {
     $massFunction      /= log(10.0);
     $massFunctionError /= log(10.0);
     # Output the mass function.
-    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
-    print $outputFile "# Model integration test: Stellar mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$gitRevision.".txt");
+    print $outputFile "# Model integration test: Stellar mass function at z=0.0 [git revision: ".$gitRevision."]\n";
     for(my $i=0;$i<nelem($massStellarLogarithmicBins);++$i) {
 	print $outputFile $i."\t".$massFunction->(($i))."\n";
     }
@@ -283,7 +277,7 @@ sub massFunctionISM {
     my $modelName          = shift();
     my $modelDirectoryName = shift();
     my $label              = shift();
-    my $mercurialRevision  = shift();
+    my $gitRevision        = shift();
     # Create mass function bins.
     my $massColdGasLogarithmicBins = pdl sequence(10)/2.0+6.0;
     # Create data structure to read the results.
@@ -302,8 +296,8 @@ sub massFunctionISM {
     $massFunction      /= log(10.0);
     $massFunctionError /= log(10.0);
     # Output the mass function.
-    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
-    print $outputFile "# Model integration test: ISM mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$gitRevision.".txt");
+    print $outputFile "# Model integration test: ISM mass function at z=0.0 [git revision: ".$gitRevision."]\n";
     for(my $i=0;$i<nelem($massColdGasLogarithmicBins);++$i) {
 	print $outputFile $i."\t".$massFunction->(($i))."\n";
     }
@@ -323,7 +317,7 @@ sub medianSizes {
     my $modelName          = shift();
     my $modelDirectoryName = shift();
     my $label              = shift();
-    my $mercurialRevision  = shift();
+    my $gitRevision        = shift();
     # Create mass function bins.
     my $massStellarLogarithmicBins = pdl sequence(10)/2.0+8.0;
     # Create data structure to read the results.
@@ -342,8 +336,8 @@ sub medianSizes {
     my $percentiles            = pdl [50.0];
     my $quantiles              = &Stats::Percentiles::BinnedPercentiles($massStellarLogarithmicBins,$massStellarLogarithmic,$size,$weight,$percentiles);
     # Output the size distribution.
-    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
-    print $outputFile "# Model integration test: Median disk sizes at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$gitRevision.".txt");
+    print $outputFile "# Model integration test: Median disk sizes at z=0.0 [git revision: ".$gitRevision."]\n";
     for(my $i=0;$i<nelem($massStellarLogarithmicBins);++$i) {
     	print $outputFile $i."\t".$quantiles->(($i),(0))."\n";
     }

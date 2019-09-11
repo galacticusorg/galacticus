@@ -267,7 +267,7 @@ contains
     end do
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_)
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                       )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar     (                                                       )"/>
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                       )"/>
@@ -331,7 +331,7 @@ contains
          &                                log10(masses)                                             , &
          &                                bufferCount                                               , &
          &                                outputWeight                                              , &
-         &                                nodePropertyExtractor_                          , &
+         &                                nodePropertyExtractor_                                    , &
          &                                outputAnalysisPropertyOperatorSequence_                   , &
          &                                outputAnalysisPropertyOperatorAntiLog10_                  , &
          &                                outputAnalysisWeightOperator_                             , &
@@ -343,6 +343,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                           , &
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
+         &                                .false.                                                   , &
          &                                var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
          &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
          &                                .true.                                                    , &

@@ -32,14 +32,15 @@
      !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
-     double precision                                    :: temperatureCMB27      , distanceSoundWave      , &
-          &                                                 neutrinoMassFraction  , neutrinoNumberEffective, &
-          &                                                 neutrinoFactor        , betaDarkMatter         , &
-          &                                                 neutrinoMassSummed    , shapeParameterEffective
-     double precision                                    :: C                     , L                      , &
-          &                                                 wavenumberEffective   , wavenumberNeutrino     , &
-          &                                                 wavenumberEffectivePow, wavenumberPrevious
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     double precision                                    :: temperatureCMB27              , distanceSoundWave      , &
+          &                                                 neutrinoMassFraction          , neutrinoNumberEffective, &
+          &                                                 neutrinoFactor                , betaDarkMatter         , &
+          &                                                 neutrinoMassSummed            , shapeParameterEffective
+     double precision                                    :: C                             , L                      , &
+          &                                                 wavenumberEffective           , wavenumberNeutrino     , &
+          &                                                 wavenumberEffectivePow        , wavenumberPrevious     , &
+          &                                                 time
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionEisensteinHu1999</object>
@@ -55,6 +56,7 @@
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
      procedure :: computeFactors        => eisensteinHu1999ComputeFactors
      procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
+     procedure :: epochTime             => eisensteinHu1999EpochTime
   end type transferFunctionEisensteinHu1999
 
   interface transferFunctionEisensteinHu1999
@@ -69,11 +71,13 @@ contains
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
     use Input_Parameters
+    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (darkMatterParticleClass         ), pointer       :: darkMatterParticle_
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
 
     ! Check and read parameters.
@@ -96,15 +100,17 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     ! Call the internal constructor.
-    self=transferFunctionEisensteinHu1999(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
+    self=transferFunctionEisensteinHu1999(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function eisensteinHu1999ConstructorParameters
 
-  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_) result(self)
+  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
     use Galacticus_Error
     use Dark_Matter_Particles
@@ -113,6 +119,7 @@ contains
     double precision                                  , intent(in   )         :: neutrinoNumberEffective     , neutrinoMassSummed
     class           (darkMatterParticleClass         ), intent(in   ), target :: darkMatterParticle_
     class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass         ), intent(inout)         :: cosmologyFunctions_
     double precision                                                          :: redshiftEquality            , redshiftComptonDrag   , &
          &                                                                       b1                          , b2                    , &
          &                                                                       massFractionBaryonic        , massFractionDarkMatter, &
@@ -128,6 +135,8 @@ contains
        class default
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
+    ! Compute the epoch - the transfer function is assumed to be for z=0.
+    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Present day CMB temperature [in units of 2.7K].
     self%temperatureCMB27       =+self%cosmologyParameters_%temperatureCMB(                  )    &
          &                                                       /2.7d0
@@ -522,3 +531,12 @@ contains
     end if
     return
   end function eisensteinHu1999HalfModeMass
+
+  double precision function eisensteinHu1999EpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionEisensteinHu1999), intent(inout) :: self
+
+    eisensteinHu1999EpochTime=self%time
+    return
+  end function eisensteinHu1999EpochTime

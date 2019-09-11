@@ -4,7 +4,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodDarkMatterProfile value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
   <satelliteMergingTimescalesMethod value="jiang2008">
     <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescalesMethod>

@@ -743,8 +743,8 @@ contains
     periodicRange(:,1)=+floor  (                                                                                      &
          &                      +(                                                                                    &
          &                        +origin                                                                             &
-         &                        +cos(0.5d0*self%angularsize)*    self%distanceMinimum(output)*self%unitVector(:,1)  &
-         &                        -sin(0.5d0*self%angularsize)                                                        &
+         &                        +cos(0.5d0*self%angularSize)*    self%distanceMinimum(output)*self%unitVector(:,1)  &
+         &                        -sin(0.5d0*self%angularSize)                                                        &
          &                        *(                                                                                  &
          &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
          &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &
@@ -757,7 +757,7 @@ contains
          &                      +(                                                                                    &
          &                        +origin                                                                             &
          &                        +                                self%distanceMaximum(output)*self%unitVector(:,1)  &
-         &                        +sin(0.5d0*self%angularsize)                                                        &
+         &                        +sin(0.5d0*self%angularSize)                                                        &
          &                        *(                                                                                  &
          &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
          &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &

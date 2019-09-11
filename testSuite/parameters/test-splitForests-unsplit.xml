@@ -235,6 +235,9 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  <outputSatelliteStatus value="true"/>
+  <nodePropertyExtractorMethod value="multi">
+    <nodePropertyExtractMethod value="nodeIndices"/>
+    <nodePropertyExtractMethod value="satelliteStatus"/>
+  </nodePropertyExtractorMethod>
   
 </parameters>

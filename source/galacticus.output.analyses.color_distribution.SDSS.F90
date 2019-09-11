@@ -253,6 +253,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                         , &
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
+         &                                .false.                                                 , &
          &                                var_str('$u-r$'                        )                , &
          &                                var_str('$\mathrm{d}p/\mathrm{d}(u-r)$')                , &
          &                                .false.                                                 , &

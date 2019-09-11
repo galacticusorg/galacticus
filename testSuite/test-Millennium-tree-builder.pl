@@ -9,12 +9,12 @@ use File::Which;
 # Andrew Benson (12-October-2012)
 
 # Create a file in Galacticus format.
-system("cd ..; Millennium_Merger_Tree_File_Maker.exe testSuite/data/mergerTrees/millenniumTestTrees.csv testSuite/data/mergerTrees/millenniumTestTreesParticles.csv testSuite/outputs/millenniumTestTreesGLC.hdf5 galacticus 1");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildMillennium.xml");
 die("FAILED: failed to make Galacticus-format merger tree file from Millennium database output")
     unless ( $? == 0 );
 
 # Create a file in IRATE format.
-system("cd ..; Millennium_Merger_Tree_File_Maker.exe testSuite/data/mergerTrees/millenniumTestTrees.csv testSuite/data/mergerTrees/millenniumTestTreesParticles.csv testSuite/outputs/millenniumTestTreesIRATE.hdf5 irate 1");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildMillenniumIRATE.xml");
 die("FAILED: failed to make IRATE-format merger tree file from Millennium database output")
     unless ( $? == 0 );
 

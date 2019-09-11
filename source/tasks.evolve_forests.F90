@@ -407,7 +407,7 @@ contains
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
     !# </include>
     implicit none
-    class           (taskEvolveForests            ), intent(inout)                   :: self
+    class           (taskEvolveForests            ), intent(inout), target           :: self
     integer                                        , intent(  out), optional         :: status             
     type            (mergerTree                   ), pointer                  , save :: tree
     logical                                                                   , save :: finished                                  , treeIsNew
@@ -775,11 +775,13 @@ contains
              singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! Evolve the tree to the computed time.
                 call evolveForestsMergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
-                if (present(status) .and. status /= errorStatusSuccess) then
-                   ! Tree evolution failed - abort further evolution and return the failure code.
-                   treeIsFinished=.true.
-                   finished      =.true.
-                   exit
+                if (present(status)) then
+                   if (status /= errorStatusSuccess) then
+                      ! Tree evolution failed - abort further evolution and return the failure code.
+                      treeIsFinished=.true.
+                      finished      =.true.
+                      exit
+                   end if
                 end if
                 !$omp critical (universeStatus)
                 ! Record that evolution of the universe of trees occurred if this tree evolved and was not suspended.

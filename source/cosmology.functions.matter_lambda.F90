@@ -104,6 +104,7 @@
      procedure :: exponentDarkEnergy            => matterLambdaExponentDarkEnergy
      procedure :: equalityEpochMatterDarkEnergy => matterLambdaEqualityEpochMatterDarkEnergy
      procedure :: equalityEpochMatterCurvature  => matterLambdaEqualityEpochMatterCurvature
+     procedure :: equalityEpochMatterRadiation  => matterLambdaEqualityEpochMatterRadiation
      procedure :: dominationEpochMatter         => matterLambdaDominationEpochMatter
      procedure :: temperatureCMBEpochal         => matterLambdaTemperatureCMBEpochal
      procedure :: distanceComoving              => matterLambdaDistanceComoving
@@ -875,6 +876,26 @@ contains
          & =self%cosmicTime(matterLambdaEqualityEpochMatterCurvature)
     return
   end function matterLambdaEqualityEpochMatterCurvature
+
+  double precision function matterLambdaEqualityEpochMatterRadiation(self,requestType)
+    !% Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
+    use Cosmology_Functions_Parameters
+    implicit none
+    class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    integer                                , intent(in   ), optional :: requestType
+    integer                                                          :: requestTypeActual
+
+    if (present(requestType)) then
+       requestTypeActual=requestType
+    else
+       requestTypeActual=requestTypeExpansionFactor
+    end if
+    matterLambdaEqualityEpochMatterRadiation=self%cosmologyParameters_%OmegaRadiation()/self%cosmologyParameters_%OmegaMatter()
+    if (requestTypeActual == requestTypeTime)                         &
+         &                  matterLambdaEqualityEpochMatterRadiation  &
+         & =self%cosmicTime(matterLambdaEqualityEpochMatterRadiation)
+    return
+  end function matterLambdaEqualityEpochMatterRadiation
 
   subroutine matterLambdaMakeExpansionFactorTable(self,time)
     !% Builds a table of expansion factor vs. time.

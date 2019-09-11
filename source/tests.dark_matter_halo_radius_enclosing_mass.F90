@@ -34,6 +34,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   use Dark_Matter_Profiles_DMO
   use Unit_Tests
   use Galacticus_Display
+  use Events_Hooks                    , only : eventsHooksInitialize
   implicit none
   type            (treeNode                                )               :: node
   class           (nodeComponentBasic                      ), pointer      :: basic
@@ -50,7 +51,6 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   double precision                                          , dimension(7) :: radiusOverVirialRadius                   =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0] 
   double precision                                          , dimension(7) :: radius                                           , radiusRoot
   double precision                                          , dimension(7) :: mass
-  logical                                                   , parameter    :: unimplementedIsFatal                     =.true.
   double precision                                          , parameter    :: radiusFractionalTruncateMinimum          = 2.00d00, radiusFractionalTruncateMaximum=8.0d0
   double precision                                          , parameter    :: time                                     =13.80d00
   double precision                                          , parameter    :: massVirial                               = 1.00d10, concentration                  =8.0d0
@@ -61,6 +61,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   type            (varying_string                          )               :: parameterFile
   type            (inputParameters                         )               :: parameters
   integer                                                                  :: i                                                , j
+  logical                                                                  :: limitToVirialRadius
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -70,6 +71,8 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   parameterFile='testSuite/parameters/darkMatterHaloRadiusEnclosingMass.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Initialize node components.
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
@@ -101,6 +104,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   ! Test different dark matter profiles.
   radius      =radiusOverVirialRadius*radiusVirial
   do i=1,5
+     limitToVirialRadius=.false.
      select case (i)
      case (1)
         call Unit_Tests_Begin_Group('NFW profile'                       )
@@ -114,13 +118,15 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
      case (4)
         call Unit_Tests_Begin_Group('Exponentially truncated profile'   )
         darkMatterProfileDMO_ => darkMatterProfileDMOTruncatedExponential_
+        limitToVirialRadius=.true.
      case default
         call Unit_Tests_Begin_Group('Heated profile'                    )
         darkMatterProfileDMO_ => darkMatterProfileDMOHeated_
      end select
      do j=1,7
         mass      (j)=darkMatterProfileDMO_%enclosedMass       (node, radius(j))
-        radiusRoot(j)=darkMatterProfileDMO_%radiusEnclosingMass(node, mass  (j)) 
+        radiusRoot(j)=darkMatterProfileDMO_%radiusEnclosingMass(node, mass  (j))
+        if (limitToVirialRadius .and. radiusOverVirialRadius(j) > 1.0d0) radiusRoot(j)=radius(j)
      end do
      call Assert('radius enclosing a given mass',radius,radiusRoot,relTol=1.0d-6)
      call Unit_Tests_End_Group()

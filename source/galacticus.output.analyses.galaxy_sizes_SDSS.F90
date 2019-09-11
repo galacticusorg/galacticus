@@ -99,8 +99,8 @@ contains
     class           (outputTimesClass                               ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
-    type            (nodePropertyExtractorHalfMassRadius  ), pointer                     :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassStellar     ), pointer                     :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorHalfMassRadius            ), pointer                     :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar               ), pointer                     :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorLog10            ), pointer                     :: outputAnalysisPropertyOperatorLog10_
@@ -110,7 +110,7 @@ contains
     type            (outputAnalysisDistributionNormalizerSequence   ), pointer                     :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisPropertyOperatorAntiLog10        ), pointer                     :: outputAnalysisPropertyOperatorAntiLog10_
     class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperator_
-    type            (surveyGeometryLiWhite2009SDSS                  )               , pointer      :: surveyGeometry_
+    type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
     type            (normalizerList                                 ), pointer                     :: normalizerSequence                              , normalizer_
     type            (propertyOperatorList                           ), pointer                     :: propertyOperatorSequence                        , weightPropertyOperatorSequence
     type            (galacticFilterStellarMass                      ), pointer                     :: galacticFilterMassStellarMinimum_               , galacticFilterMassStellarMaximum_
@@ -315,7 +315,7 @@ contains
          &                                log10(radii)                                          , &
          &                                0_c_size_t                                            , &
          &                                outputWeight                                          , &
-         &                                nodePropertyExtractor_                      , &
+         &                                nodePropertyExtractor_                                , &
          &                                outputAnalysisPropertyOperatorSequence_               , &
          &                                outputAnalysisPropertyOperatorAntiLog10_              , &
          &                                outputAnalysisWeightOperator_                         , &
@@ -327,6 +327,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                       , &
          &                                covarianceBinomialMassHaloMinimum                     , &
          &                                covarianceBinomialMassHaloMaximum                     , &
+         &                                .false.                                               , &
          &                                var_str('$r_{1/2}/\mathrm{kpc}$'                   )  , &
          &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$')  , &
          &                                .true.                                                , &
@@ -336,7 +337,7 @@ contains
          &                                functionCovarianceTarget                                &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />

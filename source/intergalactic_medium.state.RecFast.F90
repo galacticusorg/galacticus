@@ -48,21 +48,18 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass              ), pointer       :: linearGrowth_
 
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
-    self=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    self=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="linearGrowth_"       />
     return
   end function recFastConstructorParameters
 
-  function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
+  function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters            , only : hubbleUnitsStandard
     use System_Command
@@ -78,7 +75,6 @@ contains
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
     class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
-    class           (linearGrowthClass              ), intent(in   ), target       :: linearGrowth_
     double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
          &                                                                            hIonizedFraction    , heIonizedFraction, &
          &                                                                            matterTemperature
@@ -92,7 +88,7 @@ contains
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
@@ -112,7 +108,7 @@ contains
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     self%fileName=self%fileName//'.hdf5'
     ! Create directory for output.
-    call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium')
+    call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file
     call File_Lock_Initialize(self%fileLock)
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
@@ -174,11 +170,12 @@ contains
        call dataset   %writeAttribute(1.0d0              ,'unitsInSI'                                                               )
        call dataset   %close         (                                                                                              )
        ! Add description and provenance to output structure.
-       call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description')
-       call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat' )
+       call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
+       call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )
+       call outputFile%writeAttribute(1                                                    ,'extrapolationAllowed')
        provenance=outputFile%openGroup('provenance')
-       call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'       )
-       call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'     )
+       call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'                )
+       call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'              )
        recFastProvenance=provenance%openGroup('recFast'                                                                                            )
        call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
        call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )

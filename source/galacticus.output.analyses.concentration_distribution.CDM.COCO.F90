@@ -41,10 +41,12 @@ contains
     !% Constructor for the ``concentrationDistributionCDMCOCO'' output analysis class which takes a parameter set as input.
     use Input_Parameters
     use Statistics_NBody_Halo_Mass_Errors
+    use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
+    class           (cosmologyParametersClass                      ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_ 
@@ -65,18 +67,20 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+    !# <inputParametersValidate source="parameters" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="outputTimes_"        />
+    !# <objectDestructor name="nbodyHaloMassError_" />
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
-  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
+  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
     use ISO_Varying_String
     use Output_Times
@@ -84,6 +88,7 @@ contains
     use Output_Analysis_Utilities
     use Galacticus_Error
     use Statistics_NBody_Halo_Mass_Errors
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Galacticus_Paths
     use IO_HDF5
@@ -92,17 +97,18 @@ contains
     use Virial_Density_Contrast
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO  )                                :: self
+    class           (cosmologyParametersClass                        ), target     , intent(in   )    :: cosmologyParameters_
     class           (cosmologyFunctionsClass                         ), target     , intent(in   )    :: cosmologyFunctions_
     class           (outputTimesClass                                ), target     , intent(inout)    :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )    :: nbodyHaloMassError_ 
     integer                                                                        , intent(in   )    :: distributionNumber
     double precision                                                               , intent(in   )    :: formationTimeRecent
-    type            (nodePropertyExtractorConcentration    ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorConcentration              ), pointer                       :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10             ), pointer                       :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisWeightOperatorNbodyMass           ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (nodePropertyExtractorMassHalo         ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                   ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisDistributionNormalizerSequence    ), pointer                       :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisDistributionNormalizerUnitarity   ), pointer                       :: outputAnalysisDistributionNormalizerUnitarity_
@@ -219,6 +225,7 @@ contains
     !#   virialDensityContrastFixed                      (                                        &amp;
     !#      &amp;                                         haloDensityContrast                   , &amp;
     !#      &amp;                                         fixedDensityTypeCritical              , &amp;
+    !#      &amp;                                         cosmologyParameters_                  , &amp;
     !#      &amp;                                         cosmologyFunctions_                     &amp;
     !#      &amp;                                        )
     !#  </constructor>
@@ -293,7 +300,7 @@ contains
          &                                log10(concentrations)                                                                                                                      , &
          &                                bufferCount                                                                                                                                , &
          &                                outputWeight                                                                                                                               , &
-         &                                nodePropertyExtractor_                                                                                                           , &
+         &                                nodePropertyExtractor_                                                                                                                     , &
          &                                outputAnalysisPropertyOperator_                                                                                                            , &
          &                                outputAnalysisPropertyUnoperator_                                                                                                          , &
          &                                outputAnalysisWeightOperator_                                                                                                              , &
@@ -305,6 +312,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                                                                                                            , &
          &                                covarianceBinomialMassHaloMinimum                                                                                                          , &
          &                                covarianceBinomialMassHaloMaximum                                                                                                          , &
+         &                                .false.                                                                                                                                    , &
          &                                var_str('$c_\mathrm{200c}$'                                                                                                               ), &
          &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10}c_\mathrm{200c}$'                                                                                ), &
          &                                .true.                                                                                                                                     , &

@@ -94,6 +94,13 @@ module Dark_Matter_Profiles
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
+  !#  <method name="radialVelocityDispersion" >
+  !#   <description>Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
+  !#  </method>
   !#  <method name="potential" >
   !#   <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
@@ -122,8 +129,8 @@ module Dark_Matter_Profiles
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: wavenumber</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: wavenumber</argument>
   !#  </method>
   !#  <method name="freefallRadius" >
   !#   <description>Returns the freefall radius (in Mpc) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
@@ -146,13 +153,12 @@ module Dark_Matter_Profiles
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type             (treeNode), intent(inout), target :: node</argument>
   !#   <argument>double precision           , intent(in   )         :: mass</argument>
-  !#   <modules>Dark_Matter_Halo_Scales Root_Finder Kind_Numbers</modules>
+  !#   <modules>Root_Finder Kind_Numbers</modules>
   !#   <code>
-  !#    class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !#    double precision                                    :: radiusGuess
-  !#    type            (rootFinder              ), save    :: finder
-  !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
-  !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
+  !#    double precision                      :: radiusGuess
+  !#    type            (rootFinder), save    :: finder
+  !#    double precision            , save    :: radiusPrevious=-huge(0.0d0)
+  !#    integer         (kind_int8 ), save    :: uniqueIDPrevious=-1_kind_int8
   !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
   !#    if(mass &lt;= 0) then
   !#       darkMatterProfileRadiusEnclosingMass=0.0d0
@@ -171,11 +177,10 @@ module Dark_Matter_Profiles
   !#       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
   !#    end if
   !#    if (node%uniqueID()     == uniqueIDPrevious) then
-  !#       radiusGuess          =  radiusPrevious
+  !#       radiusGuess     =radiusPrevious
   !#    else
-  !#       darkMatterHaloScale_ => darkMatterHaloScale              (    )
-  !#       radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
-  !#       uniqueIDPrevious     =  node                %uniqueID    (    )
+  !#       radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+  !#       uniqueIDPrevious=node                     %uniqueID    (    )
   !#    end if
   !#    radiusPrevious=finder%find(rootGuess=radiusGuess)
   !#    darkMatterProfileRadiusEnclosingMass=radiusPrevious

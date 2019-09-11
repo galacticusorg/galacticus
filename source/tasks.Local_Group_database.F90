@@ -53,7 +53,7 @@ contains
     use Galacticus_Error        , only : errorStatusSuccess
     use Interface_Local_Group_DB, only : localGroupDB
     implicit none
-    class  (taskLocalGroupDatabase), intent(inout)           :: self
+    class  (taskLocalGroupDatabase), intent(inout), target   :: self
     integer                        , intent(  out), optional :: status
     type   (localGroupDB          )                          :: database
     !GCC$ attributes unused :: self

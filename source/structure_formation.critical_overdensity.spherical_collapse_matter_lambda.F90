@@ -34,6 +34,7 @@
      logical                                                :: tableInitialized    = .false.
      double precision                                       :: tableTimeMinimum             , tableTimeMaximum
      double precision                                       :: normalization
+     logical                                                :: tableStore
      class           (table1D                ), allocatable :: overdensityCritical
      class           (linearGrowthClass      ), pointer     :: linearGrowth_       => null()
      class           (darkMatterParticleClass), pointer     :: darkMatterParticle_ => null()
@@ -75,7 +76,8 @@ contains
     class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                         ), pointer       :: darkMatterParticle_
     double precision                                                                  :: normalization
-
+    logical                                                                           :: tableStore
+    
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
@@ -84,11 +86,19 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>tableStore</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
-    self=criticalOverdensitySphericalCollapseMatterLambda(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization)
+    self=criticalOverdensitySphericalCollapseMatterLambda(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="linearGrowth_"            />
     !# <objectDestructor name="cosmologyFunctions_"      />
@@ -97,7 +107,7 @@ contains
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization) result(self)
+  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class.
     use Dark_Matter_Particles
     use Galacticus_Error
@@ -107,9 +117,10 @@ contains
     class           (linearGrowthClass                               ), target  , intent(in   ) :: linearGrowth_    
     class           (cosmologicalMassVarianceClass                   ), target  , intent(in   ) :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                         ), target  , intent(in   ) :: darkMatterParticle_
+    logical                                                                     , intent(in   ) :: tableStore
     double precision                                                  , optional, intent(in   ) :: normalization
     !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, normalization"/>
+    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore, normalization"/>
     
     self%tableInitialized=.false.
     ! Require that the dark matter be cold dark matter.
@@ -153,7 +164,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
+       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%tableStore,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)
@@ -166,7 +177,7 @@ contains
     use Galacticus_Error
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
+    double precision                                                  , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
     type            (treeNode                                        ), intent(inout), optional :: node
@@ -177,7 +188,7 @@ contains
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
-    ! Interpolate to get the expansion factor.
+    ! Interpolate to get the critical overdensity.
     sphericalCollapseMatterLambdaValue=+self%overdensityCritical%interpolate(time_) &
          &                             *self%normalization
     return
@@ -188,7 +199,7 @@ contains
     !% cosmological constant universe.
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
+    double precision                                                  , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
     type            (treeNode                                        ), intent(inout), optional :: node

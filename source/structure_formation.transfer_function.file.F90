@@ -20,73 +20,12 @@
   !% Implements a file-based transfer function class.
   
   use Tables
-  use Cosmology_Parameters
+  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionFile">
   !#  <description>
-  !# Provides a transfer function from a tabulation given in an XML or HDF5 file. The XML file format for transfer functions looks like:
-  !# \begin{verbatim}
-  !#  <data>
-  !#   <column>k [Mpc^{-1}] - wavenumber</column>
-  !#   <column>T(k) - transfer function</column>
-  !#   <datum>1.111614e-05 0.218866E+08</datum>
-  !#   <datum>1.228521e-05 0.218866E+08</datum>
-  !#   <datum>1.357727e-05 0.218866E+08</datum>
-  !#   <datum>1.50052e-05 0.218866E+08</datum>
-  !#   <datum>1.658335e-05 0.218866E+08</datum>
-  !#   <datum>1.83274e-05 0.218865E+08</datum>
-  !#   .
-  !#   .
-  !#   .
-  !#   <description>Cold dark matter power spectrum created by CAMB.</description>
-  !#   <fileFormat>1</fileFormat>
-  !#   <parameter>
-  !#     <name>Omega_b</name>
-  !#     <value>0.0450</value>
-  !#   </parameter>
-  !#   <parameter>
-  !#     <name>Omega_Matter</name>
-  !#     <value>0.250</value>
-  !#   </parameter>
-  !#   <parameter>
-  !#     <name>Omega_DE</name>
-  !#     <value>0.750</value>
-  !#   </parameter>
-  !#   <parameter>
-  !#     <name>H_0</name>
-  !#     <value>70.0</value>
-  !#   </parameter>
-  !#   <parameter>
-  !#     <name>T_CMB</name>
-  !#     <value>2.780</value>
-  !#   </parameter>
-  !#   <parameter>
-  !#     <name>Y_He</name>
-  !#     <value>0.24</value>
-  !#   </parameter>
-  !#   <extrapolation>
-  !#     <wavenumber>
-  !#       <limit>low</limit>
-  !#       <method>extrapolate</method>
-  !#     </wavenumber>
-  !#     <wavenumber>
-  !#       <limit>high</limit>
-  !#       <method>extrapolate</method>
-  !#     </wavenumber>
-  !#   </extrapolation>
-  !# </data>
-  !# \end{verbatim}
-  !# The {\normalfont \ttfamily datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\normalfont
-  !# \ttfamily extrapolation} element defines how the tabulated function should be extrapolated to lower and higher
-  !# wavenumbers. The two options for the {\normalfont \ttfamily method} are ``fixed'', in which case the transfer function is
-  !# extrapolated assuming that it remains constant, and ``extrapolate'' in which case the extrapolation is performed (typically
-  !# this extrapolation is based on extending the cubic spline interpolation used to interpolate the transfer function in a
-  !# log-log space). The {\normalfont \ttfamily column}, {\normalfont \ttfamily description} and {\normalfont \ttfamily parameter}
-  !# elements are optional, but are encouraged to make the file easier to understand. Finally, the {\normalfont \ttfamily
-  !# fileFormat} element should currently always contain the value $1$---this may change in future if the format of this file is
-  !# modified.
-  !#
-  !# The HDF5 format is similar:
+  !# Provides a transfer function from a tabulation given in an HDF5 file with the following structure:
   !# \begin{verbatim}
   !# HDF5 "transferFunction.hdf5" {
   !# GROUP "/" {
@@ -100,6 +39,10 @@
   !#       DATASPACE  SCALAR
   !#    }
   !#    ATTRIBUTE "fileFormat" {
+  !#       DATATYPE  H5T_STD_I32LE
+  !#       DATASPACE  SCALAR
+  !#    }
+  !#    ATTRIBUTE "redshift" {
   !#       DATATYPE  H5T_STD_I32LE
   !#       DATASPACE  SCALAR
   !#    }
@@ -179,9 +122,11 @@
   type, extends(transferFunctionClass) :: transferFunctionFile
      !% A transfer function class which interpolates a transfer function given in a file.
      private
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     type (varying_string          )          :: fileName
-     type (table1DGeneric          )          :: transfer
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     type            (varying_string          )          :: fileName
+     type            (table1DGeneric          )          :: transfer
+     double precision                                    :: time                          , redshift
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionFile</object>
@@ -197,6 +142,7 @@
      procedure :: value                 => fileValue
      procedure :: logarithmicDerivative => fileLogarithmicDerivative
      procedure :: halfModeMass          => fileHalfModeMass
+     procedure :: epochTime             => fileEpochTime
   end type transferFunctionFile
 
   interface transferFunctionFile
@@ -205,8 +151,9 @@
      module procedure fileConstructorInternal
   end interface transferFunctionFile
 
-  ! Current file format version for transfer function files.
-  integer, parameter :: fileFormatVersionCurrent=1
+  ! Current file format version for transfer function files. Note that this file format matches that used by the CAMB interface
+  ! module.
+  integer, parameter :: fileFormatVersionCurrent=2
 
 contains
 
@@ -214,10 +161,12 @@ contains
     !% Constructor for the file transfer function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (transferFunctionFile    )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(cosmologyParametersClass), pointer       :: cosmologyParameters_
-    type (varying_string          )                :: fileName
+    type            (transferFunctionFile    )                :: self
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    type            (varying_string          )                :: fileName
+    double precision                                          :: redshift
 
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -226,21 +175,34 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift of the transfer function to read.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    self=transferFunctionFile(char(fileName),cosmologyParameters_)
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,cosmologyParameters_) result(self)
+  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the file transfer function class.
     implicit none
-    type     (transferFunctionFile    )                        :: self
-    character(len=*                   ), intent(in   )         :: fileName
-    class    (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="fileName, *cosmologyParameters_"/>
+    type            (transferFunctionFile    )                        :: self
+    character       (len=*                   ), intent(in   )         :: fileName
+    double precision                          , intent(in   )         :: redshift
+    class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_"/>
 
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
     return
   end function fileConstructorInternal
@@ -248,8 +210,6 @@ contains
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
     use Input_Parameters
-    use FoX_DOM
-    use IO_XML
     use IO_HDF5
     use Numerical_Comparison
     use Array_Utilities
@@ -261,41 +221,38 @@ contains
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
-    type            (Node                    ), pointer                   :: doc                             , extrapolation              , &
-         &                                                                   extrapolationElement            , formatElement              , &
-         &                                                                   parameters
-    type            (NodeList                ), pointer                   :: wavenumberExtrapolationList
-    double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
-         &                                                                   transferLogarithmic             , wavenumberLogarithmic
+    double precision                          , allocatable, dimension(:) :: transfer                       , wavenumber               , &
+         &                                                                   transferLogarithmic            , wavenumberLogarithmic
     class           (cosmologyParametersClass), pointer                   :: cosmologyParametersFile
-    double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
-    double precision                                                      :: HubbleConstant                  , OmegaBaryon                , &
-         &                                                                   OmegaMatter                     , OmegaDarkEnergy            , &
+    double precision                          , parameter                 :: toleranceUniformity     =1.0d-6
+    double precision                                                      :: HubbleConstant                 , OmegaBaryon              , &
+         &                                                                   OmegaMatter                    , OmegaDarkEnergy          , &
          &                                                                   temperatureCMB
-    type            (inputParameters         )                            :: transferFunctionCosmology
-    integer                                                               :: extrapolationMethod             , versionNumber              , &
-         &                                                                   iExtrapolation                  , ioError                    , &
-         &                                                                   extrapolateWavenumberLow        , extrapolateWavenumberHigh
-    character       (len=32                  )                            :: limitType
+    integer                                                               :: extrapolateWavenumberLow       , extrapolateWavenumberHigh, &
+         &                                                                   versionNumber
+    character       (len=32                  )                            :: datasetName
     type            (varying_string          )                            :: limitTypeVar
-    type            (hdf5Object              )                            :: fileObject                      , parametersObject           , &
-         &                                                                   extrapolationObject             , wavenumberObject
+    type            (hdf5Object              )                            :: fileObject                     , parametersObject         , &
+         &                                                                   extrapolationObject            , wavenumberObject         , &
+         &                                                                   darkMatterGroup
     
-    ! Determine type of file.
-    if (fileName(len_trim(fileName)-3:len_trim(fileName)) == ".xml") then
-       ! Open and read the XML data file.
-       !$omp critical (FoX_DOM_Access)
-       doc => parseFile(fileName,iostat=ioError)
-       if (ioError /= 0) call Galacticus_Error_Report('Unable to find transfer function file "'//trim(fileName)//'"'//{introspection:location})
-       ! Check that the file has the correct format version number.
-       formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-       call extractDataContent(formatElement,versionNumber)
-       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
-       ! Check that parameters match if any are present.
-       parameters => XML_Get_First_Element_By_Tag_Name(doc,"parameters")
-       !$omp end critical (FoX_DOM_Access)
-       transferFunctionCosmology=inputParameters(parameters)
-       cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
+    ! Open and read the HDF5 data file.
+    call hdf5Access%set()
+    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    ! Check that the file has the correct format version number.
+    call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
+    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+    ! Check that parameters match if any are present.
+    parametersObject=fileObject%openGroup('parameters')
+    allocate(cosmologyParametersSimple :: cosmologyParametersFile)
+    select type (cosmologyParametersFile)
+    type is (cosmologyParametersSimple)
+       call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
+       call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
+       call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
+       call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
+       call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
+       cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
        if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
             & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
@@ -306,84 +263,27 @@ contains
             & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
        if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
             & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
-       ! Get extrapolation methods.
-       !$omp critical (FoX_DOM_Access)
-       extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
-       wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
-       extrapolateWavenumberLow    =  extrapolationTypeExtrapolate
-       extrapolateWavenumberHigh   =  extrapolationTypeExtrapolate
-       do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
-          extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
-          call XML_Extrapolation_Element_Decode(                                                   &
-               &                                extrapolation                                    , &
-               &                                limitType                                        , &
-               &                                extrapolationMethod                              , &
-               &                                allowedMethods     =[                              &
-               &                                                     extrapolationTypeFix        , &
-               &                                                     extrapolationTypeExtrapolate  &
-               &                                                    ]                              &
-               &                               )
-          select case (trim(limitType))
-          case ('low' )
-             extrapolateWavenumberLow =extrapolationMethod
-          case ('high')
-             extrapolateWavenumberHigh=extrapolationMethod
-          case default
-             call Galacticus_Error_Report('unrecognized extrapolation limit'//{introspection:location})
-          end select
-       end do
-       ! Read the transfer function from file.
-       call XML_Array_Read(doc,"datum",wavenumber,transfer)
-       ! Destroy the document.
-       call destroy(doc)
-       !$omp end critical (FoX_DOM_Access)
-    else
-       ! Open and read the HDF5 data file.
-       call hdf5Access%set()
-       call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
-       ! Check that the file has the correct format version number.
-       call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
-       ! Check that parameters match if any are present.
-       parametersObject=fileObject%openGroup('parameters')
-       allocate(cosmologyParametersSimple :: cosmologyParametersFile)
-       select type (cosmologyParametersFile)
-       type is (cosmologyParametersSimple)
-          call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
-          call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
-          call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
-          call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
-          call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
-          cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
-          if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-               & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
-          if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-               & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
-          if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-               & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
-          if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-               & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
-          if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-               & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
-       end select
-       deallocate(cosmologyParametersFile)
-       call parametersObject%close()
-       ! Get extrapolation methods.
-       extrapolationObject=fileObject         %openGroup('extrapolation')
-       wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
-       call wavenumberObject%readAttribute('low' ,limitTypeVar)
-       extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-       call wavenumberObject%readAttribute('high',limitTypeVar)
-       extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-       call wavenumberObject   %close()
-       call extrapolationObject%close()
-       ! Read the transfer function from file.
-       call fileObject%readDataset('wavenumber'      ,wavenumber)
-       call fileObject%readDataset('transferFunction',transfer  )
-       ! Close the file.
-       call fileObject%close()
-       call hdf5Access%unset()
-    end if
+    end select
+    deallocate(cosmologyParametersFile)
+    call parametersObject%close()
+    ! Get extrapolation methods.
+    extrapolationObject=fileObject         %openGroup('extrapolation')
+    wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
+    call wavenumberObject%readAttribute('low' ,limitTypeVar)
+    extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+    call wavenumberObject%readAttribute('high',limitTypeVar)
+    extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+    call wavenumberObject   %close()
+    call extrapolationObject%close()
+    ! Read the transfer function from file.
+    darkMatterGroup=fileObject%openGroup('darkMatter')
+    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
+    write (datasetName,'(f9.4)') self%redshift
+    call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
+    call darkMatterGroup%close      (                                                          )
+    ! Close the file.
+    call fileObject%close()
+    call hdf5Access%unset()
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -410,6 +310,7 @@ contains
 
     call self%transfer%destroy()
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine fileDestructor
 
@@ -451,3 +352,12 @@ contains
     end if
     return
   end function fileHalfModeMass
+
+  double precision function fileEpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionFile), intent(inout) :: self
+
+    fileEpochTime=self%time
+    return
+  end function fileEpochTime

@@ -44,6 +44,7 @@ program Test_Stellar_Populations_Luminosities
   use Stellar_Population_Luminosities
   use Instruments_Filters
   use Galacticus_Output_Open
+  use Events_Hooks                               , only : eventsHooksInitialize
   implicit none
   type            (inputParameters                              ), target        :: parameters
   type            (stellarPopulationSpectraPostprocessorList    ), dimension( 2) :: stellarPopulationSpectraPostprocessorList_
@@ -74,6 +75,7 @@ program Test_Stellar_Populations_Luminosities
   
   parameters=inputParameters()
   call parameters%markGlobal()
+  call eventsHooksInitialize()
   call Galacticus_Verbosity_Level_Set(verbosityWorking)
   call Galacticus_Output_Open_File   (                )
   ! Ensure that we have the required stellar population spectra file.
@@ -205,6 +207,7 @@ program Test_Stellar_Populations_Luminosities
      call Unit_Tests_End_Group        ()
      call Unit_Tests_Finish           ()
   end if
+  call parameters%destroy()
   call Galacticus_Output_Close_File()
   
 end program Test_Stellar_Populations_Luminosities

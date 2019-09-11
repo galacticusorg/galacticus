@@ -34,15 +34,15 @@
      !% A linear transfer function class.
      private
      integer                                                                      :: wavenumberCount
-     double precision                                 , allocatable, dimension(:) :: powerSpectrumTable       , wavenumberTable
+     double precision                                 , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
      type            (fgsl_interp                    )                            :: interpolationObject
      type            (fgsl_interp_accel              )                            :: interpolationAccelerator
      logical                                                                      :: resetInterpolation
      double precision                                                             :: timePrevious
      type            (lockDescriptor                 )                            :: fileLock
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_ => null()
-     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_ => null()
-     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_ => null()
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_      => null()
+     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_  => null()
      class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_ => null()
    contains
      final     ::          cosmicEmuDestructor
@@ -170,7 +170,7 @@ contains
        self%timePrevious=time
        redshift         =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
        ! Generate parameters and a file name for this power spectrum.
-       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
+       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        parameterFile    =File_Name_Temporary("cosmicEmuParameters")
        parameters       =''
@@ -209,7 +209,7 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
+          call Directory_Make(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then    
              ! Check for presence of the source code.
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then

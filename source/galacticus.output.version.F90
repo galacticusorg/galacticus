@@ -30,18 +30,16 @@ module Galacticus_Versioning
 
 contains
   
-  subroutine Galacticus_Version(hgRevision_,hgHash_,hgBranch_,buildTime_)
+  subroutine Galacticus_Version(gitHash_,gitBranch_,buildTime_)
     !% Return version information
     use ISO_Varying_String
     implicit none
-    integer                  , intent(  out), optional :: hgRevision_
-    character(len=12        ), intent(  out), optional :: hgHash_
-    type     (varying_string), intent(  out), optional :: hgBranch_  , buildTime_
+    character(len=14        ), intent(  out), optional :: gitHash_
+    type     (varying_string), intent(  out), optional :: gitBranch_  , buildTime_
 
-    if (present(hgRevision_)) hgRevision_=     hgRevision
-    if (present(hgHash_    )) hgHash_    =     hgHash
-    if (present(hgBranch_  )) hgBranch_  =trim(hgBranch  )
-    if (present(buildTime_ )) buildTime_ =trim(buildTime )
+    if (present(gitHash_   )) gitHash_   =     gitHash
+    if (present(gitBranch_ )) gitBranch_ =trim(gitBranch)
+    if (present(buildTime_ )) buildTime_ =trim(buildTime)
     return
   end subroutine Galacticus_Version
   
@@ -52,7 +50,7 @@ contains
     implicit none
     type(varying_string) :: Galacticus_Version_String
 
-    Galacticus_Version_String=var_str("revision ")//hgRevision//":"//hgHash//" (branch: "//trim(hgBranch)//"; build time: "//trim(buildTime)//")"
+    Galacticus_Version_String=var_str("revision ")//gitHash//" (branch: "//trim(gitBranch)//"; build time: "//trim(buildTime)//")"
     return
   end function Galacticus_Version_String
 
@@ -84,11 +82,10 @@ contains
     ! Create a group for version information.
     runTime     =Formatted_Date_and_Time()
     versionGroup=galacticusOutputFile%openGroup('Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(     hgRevision ,'hgRevision'     )
-    call versionGroup%writeAttribute(     hgHash     ,'hgHash'         )
-    call versionGroup%writeAttribute(trim(hgBranch  ),'hgBranch'       )
-    call versionGroup%writeAttribute(trim(buildTime ),'buildTime'      )
-    call versionGroup%writeAttribute(     runTime    ,'runTime'        )
+    call versionGroup%writeAttribute(     gitHash   ,'gitHash'  )
+    call versionGroup%writeAttribute(trim(gitBranch),'gitBranch')
+    call versionGroup%writeAttribute(trim(buildTime),'buildTime')
+    call versionGroup%writeAttribute(     runTime   ,'runTime'  )
 
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then

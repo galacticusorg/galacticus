@@ -174,9 +174,9 @@ contains
        call Galacticus_Display_Message(message)
     end if
     ! Allow arbitrary functions to process the merger. (Note that the eventHook is after the old-style include directive here as
-    ! we want galactic structure solvers to be calledafter any node component functions. Once node component functions move to
-    ! hooking to the satelliteMergerTask event we will need to introduce a mechanism to specify dependencies in the event hook
-    ! call order.)    
+    ! we want galactic structure solvers and star formation history classes to be called after any node component functions. Once
+    ! node component functions move to hooking to the satelliteMergerTask event we will need to introduce a mechanism to specify
+    ! dependencies in the event hook call order.)
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'

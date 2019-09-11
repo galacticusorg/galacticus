@@ -30,14 +30,15 @@
      !% A dark matter halo profile class implementing exponentially truncated dark matter halos.
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                     :: radiusFractionalDecay          , alpha, &
-          &                                                  beta                           , gamma
+     double precision                                     :: radiusFractionalDecay                       , alpha                                                  , &
+          &                                                  beta                                        , gamma
      integer                                              :: nonAnalyticSolver
 
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )           :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                     :: enclosingMassRadiusPrevious, kappaPrevious
+     double precision                                     :: enclosingMassRadiusPrevious                 , kappaPrevious                                          , &
+          &                                                  radialVelocityDispersionVirialRadiusPrevious, radialVelocityDispersionVirialRadiusUntruncatedPrevious
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOTruncatedExponential</object>
@@ -66,6 +67,7 @@
      procedure :: potential                         => truncatedExponentialPotential
      procedure :: circularVelocity                  => truncatedExponentialCircularVelocity
      procedure :: circularVelocityMaximum           => truncatedExponentialCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => truncatedExponentialRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => truncatedExponentialRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedExponentialRotationNormalization
      procedure :: energy                            => truncatedExponentialEnergy
@@ -137,8 +139,8 @@ contains
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"  />
@@ -440,6 +442,41 @@ contains
     return
   end function truncatedExponentialCircularVelocityMaximum
 
+  double precision function truncatedExponentialRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    implicit none
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    double precision                                                          :: radiusVirial
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       truncatedExponentialRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    else
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+       if (radius >= radiusVirial) then
+          truncatedExponentialRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
+       else
+          if (self%radialVelocityDispersionVirialRadiusPrevious < 0.0d0 .or. self%radialVelocityDispersionVirialRadiusUntruncatedPrevious < 0.0d0) then
+             self%radialVelocityDispersionVirialRadiusPrevious           =self%radialVelocityDispersionNumerical             (node,radiusVirial)
+             self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radiusVirial)
+          end if
+          truncatedExponentialRadialVelocityDispersion=sqrt(                                                                             &
+               &                                            +self%darkMatterProfileDMO_%radialVelocityDispersion  (node,radius      )**2 &
+               &                                            +self%density                                         (node,radiusVirial)    &
+               &                                            /self%density                                         (node,radius      )    &
+               &                                            *(                                                                           &
+               &                                              +self%radialVelocityDispersionVirialRadiusPrevious                     **2 &
+               &                                              -self%radialVelocityDispersionVirialRadiusUntruncatedPrevious          **2 &
+               &                                             )                                                                           &
+               &                                           )
+       end if
+    end if
+    return
+  end function truncatedExponentialRadialVelocityDispersion
+
   double precision function truncatedExponentialRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
@@ -502,9 +539,9 @@ contains
     !% Returns the Fourier transform of the truncatedExponential density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
     implicit none
-    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
+    type            (treeNode                                ), intent(inout), target :: node
+    double precision                                          , intent(in   )         :: waveNumber
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
        truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

@@ -120,7 +120,7 @@ contains
   end function icmXRayLuminosityElementCount
 
   function icmXRayLuminosityExtract(self,node,time,instance)
-    !% Implement a last isolated redshift output analysis.
+    !% Implement an ICM X-ray properties extractor.
     use FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
     use Numerical_Integration       , only : Integrate                              , Integrate_Done
     use Galacticus_Nodes            , only : treeNode                               , nodeComponentHotHalo
@@ -130,8 +130,8 @@ contains
     use Numerical_Constants_Units   , only : electronVolt
     implicit none
     double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
-    class           (nodePropertyExtractorICMXRayLuminosity ), intent(inout)              :: self
-    type            (treeNode                               ), intent(inout)              :: node
+    class           (nodePropertyExtractorICMXRayLuminosity ), intent(inout), target      :: self
+    type            (treeNode                               ), intent(inout), target      :: node
     double precision                                         , intent(in   )              :: time
     type            (multiCounter                           ), intent(inout), optional    :: instance
     type            (radiationFieldCosmicMicrowaveBackground), pointer                    :: radiation_
@@ -255,7 +255,7 @@ contains
   end function icmXRayLuminosityExtract
 
   function icmXRayLuminosityNames(self,time)
-    !% Return the name of the last isolated redshift property.
+    !% Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
     implicit none
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
@@ -268,7 +268,7 @@ contains
   end function icmXRayLuminosityNames
 
   function icmXRayLuminosityDescriptions(self,time)
-    !% Return a description of the icmXRayLuminosity property.
+    !% Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
     implicit none
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
@@ -281,7 +281,7 @@ contains
   end function icmXRayLuminosityDescriptions
 
   function icmXRayLuminosityUnitsInSI(self,time)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !% Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
     use Numerical_Constants_Units   , only : ergs, electronVolt
     use Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -296,7 +296,7 @@ contains
   end function icmXRayLuminosityUnitsInSI
 
   integer function icmXRayLuminosityType(self)
-    !% Return the type of the last isolated redshift property.
+    !% Return the type of the {\normalfont \ttfamily icmXRayLuminosity} properties.
     use Output_Analyses_Options
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self

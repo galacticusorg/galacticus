@@ -19,6 +19,7 @@
 
   !% An implementation of fixed dark matter halo virial density contrasts.
 
+  use Cosmology_Parameters
   use Cosmology_Functions
 
   !# <virialDensityContrast name="virialDensityContrastFixed">
@@ -27,7 +28,8 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
      !% A dark matter halo virial density contrast class assuming fixed contrast.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      double precision                                    :: densityContrastValue
      integer                                             :: densityType
    contains
@@ -62,6 +64,7 @@ contains
     implicit none
     type            (virialDensityContrastFixed)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
+    class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     double precision                                            :: densityContrastValue
     type            (varying_string            )                :: densityType
@@ -82,22 +85,25 @@ contains
     !#  <type>string</type>
     !#  <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),cosmologyFunctions_)
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(densityContrastValue,densityType,cosmologyFunctions_) result(self)
+  function fixedConstructorInternal(densityContrastValue,densityType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
     use Galacticus_Error
     implicit none
     type            (virialDensityContrastFixed)                        :: self
     double precision                            , intent(in   )         :: densityContrastValue
     integer                                     , intent(in   )         :: densityType
+    class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="densityContrastValue, densityType, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="densityContrastValue, densityType, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
     return
@@ -108,7 +114,8 @@ contains
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine fixedDestructor
   
@@ -124,15 +131,24 @@ contains
     ! Set the density contrast.
     fixedDensityContrast=self%densityContrastValue
     ! If density contrast is specified relative to critical density, convert to mean density.
-    if (self%densityType == fixedDensityTypeCritical)                                           &
-         & fixedDensityContrast=+fixedDensityContrast                                           &
-            &                   /self%cosmologyFunctions_ %omegaMatterEpochal(                  &
-            &                     self%cosmologyFunctions_%epochTime          (                 &
-            &                                                                  time           , &
-            &                                                                  expansionFactor, &
-            &                                                                  collapsing       &
-            &                                                                 )                 &
-            &                                                                )
+    if (self%densityType == fixedDensityTypeCritical) then
+       select type (cosmologyFunctions_ => self%cosmologyFunctions_)
+       class is (cosmologyFunctionsStaticUniverse)
+          ! For a static universe, ``omegaMatterEpochal" is not well defined. So here we use the
+          ! value of ``OmegaMatter" speficifed in the parameter file when doing the conversion.
+          fixedDensityContrast=+fixedDensityContrast                                           &
+               &               /self%cosmologyParameters_%omegaMatter       ()
+       class default
+          fixedDensityContrast=+fixedDensityContrast                                           &
+               &               /self%cosmologyFunctions_ %omegaMatterEpochal(                  &
+               &                 self%cosmologyFunctions_%epochTime          (                 &
+               &                                                              time           , &
+               &                                                              expansionFactor, &
+               &                                                              collapsing       &
+               &                                                             )                 &
+               &                                                            )
+       end select
+    end if
     return
   end function fixedDensityContrast
 

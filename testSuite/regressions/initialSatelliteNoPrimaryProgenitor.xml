@@ -8,7 +8,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
-  <treeNodeMethodDarkMatterProfile value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
   <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.0"/>
     <exponentVelocityVirial value="0.0"/>
@@ -129,7 +129,6 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  <timePerTreeFitFileName value="projects/constraints2/verySimplisticToStellarMassFunction/data/treeTiming.xml"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/initialSatelliteNoPrimaryProgenitor.hdf5"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">

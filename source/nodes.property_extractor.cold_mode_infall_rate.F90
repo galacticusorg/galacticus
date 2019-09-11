@@ -84,7 +84,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout)           :: self
-    type (treeNode                               ), intent(inout)           :: node
+    type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
     !GCC$ attributes unused :: instance
     

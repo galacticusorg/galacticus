@@ -106,6 +106,7 @@
      procedure :: potential                         => adiabaticGnedin2004Potential
      procedure :: circularVelocity                  => adiabaticGnedin2004CircularVelocity
      procedure :: circularVelocityMaximum           => adiabaticGnedin2004CircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => adiabaticGnedin2004RadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => adiabaticGnedin2004RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => adiabaticGnedin2004RotationNormalization
      procedure :: energy                            => adiabaticGnedin2004Energy
@@ -407,6 +408,22 @@ contains
     return
   end function adiabaticGnedin2004CircularVelocityMaximum
 
+  double precision function adiabaticGnedin2004RadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    implicit none
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: radius
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       adiabaticGnedin2004RadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion         (node,radius)
+    else
+       adiabaticGnedin2004RadialVelocityDispersion=self                      %radialVelocityDispersionNumerical(node,radius)
+    end if
+    return
+  end function adiabaticGnedin2004RadialVelocityDispersion
+
   double precision function adiabaticGnedin2004RadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
@@ -469,9 +486,9 @@ contains
     !% Returns the Fourier transform of the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     implicit none
-    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: waveNumber
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    double precision                                      , intent(in   )         :: waveNumber
     
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004KSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

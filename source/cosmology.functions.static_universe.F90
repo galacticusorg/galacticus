@@ -48,6 +48,7 @@
      procedure :: exponentDarkEnergy            => staticUniverseExponentDarkEnergy
      procedure :: equalityEpochMatterDarkEnergy => staticUniverseEqualityEpochMatterDarkEnergy
      procedure :: equalityEpochMatterCurvature  => staticUniverseEqualityEpochMatterCurvature
+     procedure :: equalityEpochMatterRadiation  => staticUniverseEqualityEpochMatterRadiation
      procedure :: dominationEpochMatter         => staticUniverseDominationEpochMatter
      procedure :: temperatureCMBEpochal         => staticUniverseTemperatureCMBEpochal
      procedure :: distanceComoving              => staticUniverseDistanceComoving
@@ -227,15 +228,13 @@ contains
 
   double precision function staticUniverseMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
     !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
     
-    staticUniverseMatterDensityEpochal=0.0d0
-    call Galacticus_Error_Report('Omega_DarkEnergy is undefined in static universe'//{introspection:location})
+    staticUniverseMatterDensityEpochal=self%cosmologyParameters_%omegaMatter()*self%cosmologyParameters_%densityCritical()
     return
   end function staticUniverseMatterDensityEpochal
 
@@ -333,6 +332,19 @@ contains
     call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseEqualityEpochMatterCurvature
+
+  double precision function staticUniverseEqualityEpochMatterRadiation(self,requestType)
+    !% Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
+    use Galacticus_Error
+    implicit none
+    class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
+    integer                                  , intent(in   ), optional :: requestType
+    !GCC$ attributes unused :: self, requestType
+
+    staticUniverseEqualityEpochMatterRadiation=0.0d0
+    call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
+    return
+  end function staticUniverseEqualityEpochMatterRadiation
 
   double precision function staticUniverseTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
