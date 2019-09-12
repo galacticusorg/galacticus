@@ -96,8 +96,7 @@ contains
 
   function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName) result(self)
     !% Internal constructor for the conditional mass function merger tree operator class.
-    use File_Utilities
-    use System_Command
+    use File_Utilities, only : File_Exists, File_Remove
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
@@ -109,7 +108,7 @@ contains
     self%treeCount=0
     ! Remove any pre-existing file.
     call hdf5Access%set()
-    if (File_Exists(fileName)) call System_Command_Do("rm -f "//fileName)
+    if (File_Exists(fileName)) call File_Remove(fileName)
     call hdf5Access%unset()
     return
   end function outputRootMassesConstructorInternal

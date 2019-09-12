@@ -37,7 +37,8 @@
      private
      integer                                                                                   :: parameterCount                                    , stepsMaximum                      , & 
           &                                                                                       stateSwapCount                                    , acceptanceAverageCount            , &  
-          &                                                                                       logFlushCount                                     , reportCount
+          &                                                                                       logFlushCount                                     , reportCount                       , &
+          &                                                                                       recomputeCount
      double precision                                                                          :: logPosterior                                      , logPrior
      logical                                                                                   :: isConverged                                       , sampleOutliers                    , &
           &                                                                                       isInteractive                                     , appendLogs                        , &
@@ -140,7 +141,8 @@ contains
          &                                                                                  stateSwapCount                          , logFlushCount           , &
          &                                                                                  reportCount                             , activeParameterCount    , &
          &                                                                                  inactiveParameterCount                  , i                       , &
-         &                                                                                  iActive                                 , iInactive
+         &                                                                                  iActive                                 , iInactive               , &
+         &                                                                                  recomputeCount
     type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
          &                                                                                  message
     logical                                                                              :: sampleOutliers                          , appendLogs              , &
@@ -167,6 +169,14 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between state swap steps.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>recomputeCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-1</defaultValue>
+    !#   <description>The number of steps between forced recomputations of the likelihood.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
@@ -278,7 +288,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"              />
     !# <objectDestructor name="posteriorSampleConvergence_"             />
@@ -298,7 +308,7 @@ contains
     return
   end function differentialEvolutionConstructorParameters
 
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
     type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -312,12 +322,12 @@ contains
     class    (posteriorSampleDffrntlEvltnRandomJumpClass    ), intent(in   ), target       :: posteriorSampleDffrntlEvltnRandomJump_
     integer                                                  , intent(in   )               :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                    stateSwapCount                          , logFlushCount           , &
-         &                                                                                    reportCount
+         &                                                                                    reportCount                             , recomputeCount
     character(len=*                                         ), intent(in   )               :: logFileRoot                             , interactionRoot
     logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs              , &
          &                                                                                    loadBalance                             , ignoreChainNumberAdvice
     integer                                                                                :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -370,8 +380,7 @@ contains
     use String_Handling
     use Models_Likelihoods_Constants
     use Kind_Numbers
-    use File_Utilities
-    use System_Command
+    use File_Utilities              , only : File_Remove, File_Exists
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
     integer                                                         , dimension(                    2) :: chainPair
@@ -443,6 +452,8 @@ contains
          &    .and.                                                                                              &
          &     .not.self%posteriorSampleStoppingCriterion_%stop (self%posteriorSampleState_)                     &
          &   )
+       ! Initialize likelihood acceptance condition.
+       forceAcceptance=.false.
        ! Pick two random processes to use for proposal.
        chainPair(1)=self%chainSelect(randomNumberGenerator               )
        chainPair(2)=self%chainSelect(randomNumberGenerator,[chainPair(1)])
@@ -450,16 +461,15 @@ contains
        stateVector=self%posteriorSampleState_%get()
        statePair  =mpiSelf%requestData(chainPair,stateVector)
        ! Generate proposal.
-       stateVectorProposed= stateVector      &
-            &              +self%stepSize()  &
-            &              *(                &
-            &                +statePair(:,1) &
-            &                -statePair(:,2) &
+       stateVectorProposed= stateVector                    &
+            &              +self%stepSize(forceAcceptance) &
+            &              *(                              &
+            &                +statePair(:,1)               &
+            &                -statePair(:,2)               &
             &               )
        ! Add random perturbations to the proposal.
-       stateVectorProposed=stateVectorProposed+self%posteriorSampleDffrntlEvltnRandomJump_%sample(self%modelParametersActive_,self%posteriorSampleState_)
+       if (.not.forceAcceptance) stateVectorProposed=stateVectorProposed+self%posteriorSampleDffrntlEvltnRandomJump_%sample(self%modelParametersActive_,self%posteriorSampleState_)
        ! If simulation is interactive, check for any interaction file.
-       forceAcceptance=.false.
        if (self%isInteractive) then
           ! Check if an interaction file exists.
           interactionFileName=self%interactionRoot//"_"//mpiSelf%rankLabel()
@@ -494,11 +504,11 @@ contains
              end if
              close(interactionFile)
              ! Remove the interaction file.
-             call System_Command_Do("rm -f "//interactionFileName)
+             call File_Remove(interactionFileName)
           end if
        end if
        ! Store the proposed state vector.
-       call stateProposed%update(stateVectorProposed,.false.,.false.)
+       call stateProposed%update(stateVectorProposed,.true.,.false.)
        ! Evaluate likelihood.
        timeEvaluatePrevious=timeEvaluate
        timeEvaluate        =-1.0
@@ -794,12 +804,17 @@ contains
     return
   end subroutine differentialEvolutionPosterior
 
-  double precision function differentialEvolutionStepSize(self)
+  double precision function differentialEvolutionStepSize(self,forceAcceptance)
     !% Return the step size parameter, $\gamma$, for a differential evolution step.
     implicit none
-    class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    class  (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    logical                                                , intent(inout) :: forceAcceptance
 
-    if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0) then
+    if (self%recomputeCount > 0 .and. mod(self%posteriorSampleState_%count(),self%recomputeCount) == 0) then
+       ! Every self%recomputeCount steps, set gamma=0 and force likelihood to be recomputed in the current state.
+       differentialEvolutionStepSize=0.0d0
+       forceAcceptance              =.true.
+    else if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0) then
        ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
        differentialEvolutionStepSize=1.0d0
     else

@@ -17,20 +17,19 @@
 //    You should have received a copy of the GNU General Public License
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-//% Implements Fortran-callable wrappers around the Linux mkdir function.
+//% Implements Fortran-callable wrappers around the Linux unlink function.
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <unistd.h>
 #include <errno.h>
 
-int mkdir_C(const char *name) {
-  //% Fortran-callable wrapper around the mkdir() function to make a directory.
+int unlink_C(const char *name) {
+  //% Fortran-callable wrapper around the unlink() function to remove a file.
   int status;
-  status = mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  status = unlink(name);
   if ( status == -1 ) {
     int err = errno;
-    if ( err == EEXIST ) {
-      /* Path already exists - this is acceptable */
+    if ( err == ENOENT ) {
+      /* File does not exist - this is acceptable */
       return 0;
     } else {
       return err;

@@ -60,7 +60,10 @@
      procedure :: densityContrastDefinition       => jiang2014DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => jiang2014VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => jiang2014VelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => jiang2014AngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => jiang2014AngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => jiang2014VelocityTotalRootMeanSquared
+     procedure :: energyMean                      => jiang2014EnergyMean
      procedure :: parametersSelect                => jiang2014ParametersSelect
   end type virialOrbitJiang2014
 
@@ -604,6 +607,44 @@ contains
     return
   end function jiang2014VelocityTangentialVectorMean
 
+  double precision function jiang2014AngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitJiang2014), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node        , host
+    class           (nodeComponentBasic  ), pointer       :: basic       , hostBasic
+    double precision                                      :: massHost    , radiusHost, &
+         &                                                   velocityHost
+
+    basic                                 =>  node%basic()
+    hostBasic                             =>  host%basic()
+    massHost                              =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    jiang2014AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                                   *radiusHost                                      &
+         &                                   /(                                               & ! Account for reduced mass.
+         &                                     +1.0d0                                         &
+         &                                     +basic    %mass()                              &
+         &                                     /hostBasic%mass()                              &
+         &                                    )
+    return
+  end function jiang2014AngularMomentumMagnitudeMean
+
+  function jiang2014AngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use Galacticus_Error
+    implicit none
+    double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
+    class           (virialOrbitJiang2014), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    jiang2014AngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function jiang2014AngularMomentumVectorMean
+
   double precision function jiang2014VelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared total velocity.
     use Galacticus_Nodes                    , only : nodeComponentBasic
@@ -628,6 +669,34 @@ contains
          &                                *velocityHost
     return
   end function jiang2014VelocityTotalRootMeanSquared
+
+  double precision function jiang2014EnergyMean(self,node,host)
+    !% Return the mean energy of the orbits.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitJiang2014), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node        , host
+    class           (nodeComponentBasic  ), pointer       :: basic       , hostBasic
+    double precision                                      :: massHost    , radiusHost, &
+         &                                                   velocityHost
+
+    basic               =>  node%basic()
+    hostBasic           =>  host%basic()
+    massHost            =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    jiang2014EnergyMean =  +0.5d0                                           &
+         &                 *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &                 /(                                               & ! Account for reduced mass.
+         &                   +1.0d0                                         &
+         &                   +basic    %mass()                              &
+         &                   /hostBasic%mass()                              &
+         &                  )                                               & 
+         &                 -gravitationalConstantGalacticus                 &
+         &                 *massHost                                        &
+         &                 /radiusHost
+    return
+  end function jiang2014EnergyMean
 
   subroutine jiang2014ParametersSelect(self,massHost,massSatellite,i,j)
     !% Select the parameter set to use for this satellite/host pairing.

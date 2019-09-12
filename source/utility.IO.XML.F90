@@ -385,8 +385,11 @@ contains
     ! Process the document.
     allElements=.false.
     do while (stackCount > 0)
+       ! Check that file exists.
+       if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Galacticus_Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
        ! Parse the document.
        nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat)
+       if (present(iostat).and.iostat /= 0) return
        nodeParent   =>                          stack(stackCount)%nodeParent
        nodeXInclude =>                          stack(stackCount)%nodeXInclude
        if (stack(stackCount)%xPath == "") then
@@ -402,7 +405,6 @@ contains
              call Galacticus_Error_Report("XPath '"//stack(stackCount)%xPath//"' not found"//{introspection:location})
           end if
        end if
-       if (present(iostat).and.iostat /= 0) return
        ! We drop the entire stack after popping off just one element. This is because when we insert a new node into the document
        ! it will change all of the pointers, so we must rescan it to handle any additional xi:include elements.
        stackCount=0

@@ -20,7 +20,7 @@
 !% Contains a module which implements various file-related utilities.
 
 ! Specify an explicit dependence on the C interface files.
-!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o
+!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rename.o
 
 module File_Utilities
   !% Implements various file-related utilities.
@@ -29,7 +29,10 @@ module File_Utilities
   !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary, File_Remove, Directory_Make, File_Name_Expand
+  public :: Count_Lines_in_File, File_Exists    , File_Lock_Initialize, File_Lock       , &
+       &    File_Unlock        , Executable_Find, File_Path           , File_Name       , &
+       &    File_Name_Temporary, File_Remove    , Directory_Make      , File_Name_Expand, &
+       &    File_Rename
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -49,6 +52,12 @@ module File_Utilities
      module procedure File_Path_VarStr
   end interface File_Path
 
+  interface File_Remove
+     !% Generic interface for functions that remove a file.
+     module procedure File_Remove_Char
+     module procedure File_Remove_VarStr
+  end interface File_Remove
+
   interface Directory_Make
      !% Generic interface for functions that create a directory.
      module procedure Directory_Make_Char
@@ -62,6 +71,24 @@ module File_Utilities
        integer  (c_int ) :: mkdir_C
        character(c_char) :: name
      end function mkdir_C
+  end interface
+
+  interface
+     function unlink_C(name) bind(c,name='unlink_C')
+       !% Template for a C function that calls {\normalfont \ttfamily unlink()} to remove a file.
+       import
+       integer  (c_int ) :: unlink_C
+       character(c_char) :: name
+     end function unlink_C
+  end interface
+
+  interface
+     function rename_C(nameOld,nameNew) bind(c,name='rename_C')
+       !% Template for a C function that calls {\normalfont \ttfamily rename()} to rename a file.
+       import
+       integer  (c_int ) :: rename_C
+       character(c_char) :: nameOld , nameNew
+     end function rename_C
   end interface
 
   interface
@@ -269,12 +296,16 @@ contains
     do i=2,len(trim(pathName))
        if (pathName(i:i) == "/") then
           if (File_Exists(var_str(pathName(1:i-1)))) cycle
+          !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
           if (status /= 0) call Galacticus_Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
+          !$omp end critical(mkdir)
        end if
     end do
-    status=mkdir_C(trim(pathName))
+    !$omp critical(mkdir)
+    status=mkdir_C(trim(pathName)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
+    !$omp end critical(mkdir)
     return
   end subroutine Directory_Make_Char
   
@@ -345,15 +376,40 @@ contains
     return
   end function File_Name_Temporary
 
-  subroutine File_Remove(fileName)
+  subroutine File_Remove_VarStr(fileName)
     !% Remove a file.
-    use System_Command
+    implicit none
+    type(varying_string), intent(in   ) :: fileName
+
+    call File_Remove_Char(char(fileName))
+    return
+  end subroutine File_Remove_VarStr
+  
+  subroutine File_Remove_Char(fileName)
+    !% Remove a file.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   ) :: fileName
-
-    if (File_Exists(fileName)) call System_Command_Do("rm -f "//fileName)
+    integer  (c_int)                :: status
+    
+    if (File_Exists(fileName)) then
+       status=unlink_C(trim(fileName)//char(0))
+       if (status /= 0) call Galacticus_Error_Report('failed to remove file "'//trim(fileName)//'"'//{introspection:location})
+    end if
     return
-  end subroutine File_Remove
+  end subroutine File_Remove_Char
+
+  subroutine File_Rename(nameOld,nameNew)
+    !% Remove a file.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type   (varying_string), intent(in   ) :: nameOld, nameNew
+    integer(c_int         )                :: status
+    
+    status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
+    if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
+    return
+  end subroutine File_Rename
 
   function File_Name_Expand(fileNameIn) result(fileNameOut)
     !% Expands placeholders for Galacticus paths in file names.

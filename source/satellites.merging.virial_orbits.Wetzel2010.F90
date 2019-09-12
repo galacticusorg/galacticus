@@ -52,7 +52,10 @@
      procedure :: densityContrastDefinition       => wetzel2010DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => wetzel2010VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => wetzel2010VelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => wetzel2010AngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => wetzel2010AngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => wetzel2010VelocityTotalRootMeanSquared
+     procedure :: energyMean                      => wetzel2010EnergyMean
   end type virialOrbitWetzel2010
 
   interface virialOrbitWetzel2010
@@ -311,6 +314,44 @@ contains
     return
   end function wetzel2010VelocityTangentialVectorMean
 
+  double precision function wetzel2010AngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                                  =>  node%basic()
+    hostBasic                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    wetzel2010AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                                    *radiusHost                                      &
+         &                                    /(                                               & ! Account for reduced mass.
+         &                                      +1.0d0                                         &
+         &                                      +basic    %mass()                              &
+         &                                      /hostBasic%mass()                              &
+         &                                     )
+    return
+  end function wetzel2010AngularMomentumMagnitudeMean
+
+  function wetzel2010AngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use Galacticus_Error
+    implicit none
+    double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    wetzel2010AngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function wetzel2010AngularMomentumVectorMean
+
   double precision function wetzel2010VelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared total velocity.
     use Galacticus_Error, only : Galacticus_Error_Report
@@ -323,3 +364,31 @@ contains
     call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
     return
   end function wetzel2010VelocityTotalRootMeanSquared
+
+  double precision function wetzel2010EnergyMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                =>  node%basic()
+    hostBasic            =>  host%basic()
+    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    wetzel2010EnergyMean =  +0.5d0                                           &
+         &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &                  /(                                               & ! Account for reduced mass.
+         &                    +1.0d0                                         &
+         &                    +basic    %mass()                              &
+         &                    /hostBasic%mass()                              &
+         &                   )                                               & 
+         &                  -gravitationalConstantGalacticus                 &
+         &                  *massHost                                        &
+         &                  /radiusHost
+    return
+  end function wetzel2010EnergyMean

@@ -41,6 +41,7 @@ contains
     use IO_HDF5
     use String_Handling
     use System_Command
+    use File_Utilities    , only : File_Remove
     implicit none
     double precision                , intent(in   )                 :: metallicityMaximumLogarithmic
     type            (varying_string), intent(in   )                 :: fileNameCoolingFunction               , fileNameChemicalState
@@ -166,7 +167,7 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call System_Command_Do("rm -f "//fileNameTempCooling)
+          call File_Remove(fileNameTempCooling)
           ! Extract the electron and hydrogen density.
           open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempOverview),status='old')
           read (inputFile,*) ! Skip the header line.
@@ -175,7 +176,7 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call System_Command_Do("rm -f "//fileNameTempOverview)
+          call File_Remove(fileNameTempOverview)
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.

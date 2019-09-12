@@ -30,7 +30,7 @@ contains
     !% Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
-    use File_Utilities
+    use File_Utilities    , only : Directory_Make, File_Exists
     use System_Command
     use Galacticus_Display
     use Galacticus_Error
@@ -43,7 +43,7 @@ contains
     !# <optionalArgument name="static" defaultsTo=".false." />
     
     ! Set path.
-    recfastPath   =galacticusPath(pathTypeDataDynamic)//"RecFast/"
+    recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
        ! Patch the code if not already patched.
@@ -51,7 +51,8 @@ contains
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-             call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             call Directory_Make(recfastPath)
+             call System_Command_Do("wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
                   & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
           end if

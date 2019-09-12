@@ -33,12 +33,23 @@ my %options = (
     mpi        => 0
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
 # Parse the constraint config file.
 my $config = &Galacticus::Constraints::Parameters::parseConfig($parameterFile);
  
 # Extract MCMC directory.
 my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
 (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
+
+# Find number of steps taken.
+my $stepCount = &Galacticus::Constraints::Parameters::stepCount($config,\%options);
+
+# Add a parameter with the current step count.
+my @derivedParameters = &List::ExtraUtils::as_array($options{'derivedParameter'})
+    if ( exists($options{'derivedParameter'}) );
+push(@derivedParameters,"posteriorSimulationStep=".$stepCount);
+delete($options{'derivedParameter'});
+@{$options{'derivedParameter'}} = @derivedParameters;
 
 # Get maximum likelihood parameter vector.
 (my $maximumPosteriorParameters, my $maximumPosterior) = &Galacticus::Constraints::Parameters::maximumPosteriorParameterVector($config,\%options);

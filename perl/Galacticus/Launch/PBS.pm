@@ -328,8 +328,16 @@ sub SubmitJobs {
 		}
 		# Create the batch script.
 		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
-		my $ppn           = exists($newJob->{'ppn'          }) ? $newJob->{'ppn'          } : 1      ;
-		my $nodes         = exists($newJob->{'nodes'        }) ? $newJob->{'nodes'        } : 1      ;
+		my $nodes = 1;
+		my $ppn   = 1;
+		$ppn   = $arguments  {'ppn'  }
+		    if ( exists($arguments  {'ppn'  }) );
+		$nodes = $arguments  {'nodes'}
+		    if ( exists($arguments{'nodes'}) );
+		$ppn   = $newJob   ->{'ppn'  }
+		    if ( exists($newJob   ->{'ppn'  }) );
+		$nodes = $newJob   ->{'nodes'}
+		    if ( exists($newJob   ->{'nodes'}) );
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#PBS -N ".$newJob->{'label'}."\n";

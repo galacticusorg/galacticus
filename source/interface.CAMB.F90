@@ -122,7 +122,7 @@ contains
          &                                                        assignment(=)           , operator(==)
     use               :: IO_HDF5                         , only : hdf5Object              , hdf5Access
     use               :: File_Utilities                  , only : File_Lock_Initialize    , File_Lock          , File_Unlock   , File_Exists, &
-         &                                                        Count_Lines_In_File     , File_Path          , Directory_Make
+         &                                                        Count_Lines_In_File     , File_Path          , Directory_Make, File_Remove
     use               :: System_Command                  , only : System_Command_Do
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath          , pathTypeDataDynamic
@@ -437,11 +437,12 @@ contains
        command="rm -f "                    // &
             &   parameterFile         //" "// &
             &  "camb_params.ini"      //" "
+       call File_Remove(parameterFile    )
+       call File_Remove("camb_params.ini")
        do i=1,countRedshiftsUnique
-          command=command//' camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat'
-          command=command//' camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat'
+          call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
+          call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
        end do
-       call System_Command_Do(command)
        ! Convert from CAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)       

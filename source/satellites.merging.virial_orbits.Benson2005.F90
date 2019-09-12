@@ -43,7 +43,10 @@
      procedure :: densityContrastDefinition       => benson2005DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => benson2005VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => benson2005VelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => benson2005AngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => benson2005AngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => benson2005VelocityTotalRootMeanSquared
+     procedure :: energyMean                      => benson2005EnergyMean
   end type virialOrbitBenson2005
 
   interface virialOrbitBenson2005
@@ -219,6 +222,44 @@ contains
     return
   end function benson2005VelocityTangentialVectorMean
 
+  double precision function benson2005AngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                                  =>  node%basic()
+    hostBasic                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    benson2005AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                                    *radiusHost                                      &
+         &                                    /(                                               & ! Account for reduced mass.
+         &                                      +1.0d0                                         &
+         &                                      +basic    %mass()                              &
+         &                                      /hostBasic%mass()                              &
+         &                                     )
+    return
+  end function benson2005AngularMomentumMagnitudeMean
+
+  function benson2005AngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use Galacticus_Error
+    implicit none
+    double precision                       , dimension(3)  :: benson2005AngularMomentumVectorMean
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    benson2005AngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function benson2005AngularMomentumVectorMean
+
   double precision function benson2005VelocityTotalRootMeanSquared(self,node,host)
     !% Return the mean magnitude of the tangential velocity.
     use Galacticus_Nodes                    , only : nodeComponentBasic
@@ -239,3 +280,31 @@ contains
          &                                    *velocityHost
     return
   end function benson2005VelocityTotalRootMeanSquared
+
+  double precision function benson2005EnergyMean(self,node,host)
+    !% Return the mean energy of the orbits.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                =>  node%basic()
+    hostBasic            =>  host%basic()
+    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    benson2005EnergyMean =  +0.5d0                                           &
+         &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &                  /(                                               & ! Account for reduced mass.
+         &                    +1.0d0                                         &
+         &                    +basic    %mass()                              &
+         &                    /hostBasic%mass()                              &
+         &                   )                                               & 
+         &                  -gravitationalConstantGalacticus                 &
+         &                  *massHost                                        &
+         &                  /radiusHost
+    return
+  end function benson2005EnergyMean

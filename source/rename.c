@@ -17,25 +17,14 @@
 //    You should have received a copy of the GNU General Public License
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-//% Implements Fortran-callable wrappers around the Linux mkdir function.
+//% Implements Fortran-callable wrappers around the Linux rename() function.
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <stdio.h>
 #include <errno.h>
 
-int mkdir_C(const char *name) {
-  //% Fortran-callable wrapper around the mkdir() function to make a directory.
+int rename_C(const char *nameOld, const char *nameNew) {
+  //% Fortran-callable wrapper around the rename() function to rename a file.
   int status;
-  status = mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  if ( status == -1 ) {
-    int err = errno;
-    if ( err == EEXIST ) {
-      /* Path already exists - this is acceptable */
-      return 0;
-    } else {
-      return err;
-    }
-  } else {
-    return status;
-  }
+  status = rename(nameOld,nameNew);
+  return status;
 }
