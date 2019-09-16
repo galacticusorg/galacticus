@@ -24,6 +24,7 @@
   use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
   use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use File_Utilities            , only : lockDescriptor
 
   !# <linearGrowth name="linearGrowthBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
@@ -45,6 +46,7 @@
           &                                                      normalizationMatterDominated          , redshiftInitial       , &
           &                                                      redshiftInitialDelta
      type            (table2DLogLogLin             )          :: growthFactor
+     type            (varying_string               )          :: fileName
      class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_          => null()
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_    => null()
@@ -58,6 +60,22 @@
      !@     <arguments>\doublezero\ time\argin</arguments>
      !@     <description>Tabulate linear growth factor.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileWrite</method>
+     !@     <type>void</type>
+     !@     <description>Read the tabulated mass variance from file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileRead</method>
+     !@     <type>void</type>
+     !@     <description>Read the tabulated mass variance from file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>remakeTable</method>
+     !@     <type>\logicalzero</type>
+     !@     <description>Return true if the table must be remade.</description>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                         baryonsDarkMatterDestructor
      procedure :: value                                => baryonsDarkMatterValue
@@ -65,6 +83,9 @@
      procedure :: logarithmicDerivativeWavenumber      => baryonsDarkMatterLogarithmicDerivativeWavenumber
      procedure :: retabulate                           => baryonsDarkMatterRetabulate
      procedure :: isWavenumberDependent                => baryonsDarkMatterIsWavenumberDependent
+     procedure :: remakeTable                          => baryonsDarkMatterRemakeTable
+     procedure :: fileWrite                            => baryonsDarkMatterFileWrite
+     procedure :: fileRead                             => baryonsDarkMatterFileRead
   end type linearGrowthBaryonsDarkMatter
 
   interface linearGrowthBaryonsDarkMatter
@@ -74,16 +95,24 @@
   end interface linearGrowthBaryonsDarkMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision, parameter :: baryonsDarkMatterTimeToleranceRelative=1.0d-4
+  double precision                , parameter :: baryonsDarkMatterTimeToleranceRelative=1.0d-4
 
   ! Reference wavenumber used when no wavenumber is specified. Small enough that it should be into the regime where baryon
   ! suppression is negligible, but large enough to avoid the BAO region.
-  double precision, parameter :: baryonsDarkMatterWavenumberReference  =1.0d+0
+  double precision                , parameter :: baryonsDarkMatterWavenumberReference  =1.0d+0
   
   ! Indices of tables for baryons and dark matter.
-  integer         , parameter :: baryonsDarkMatterDarkMatter           =1
-  integer         , parameter :: baryonsDarkMatterBaryons              =2
+  integer                         , parameter :: baryonsDarkMatterDarkMatter           =1
+  integer                         , parameter :: baryonsDarkMatterBaryons              =2
   
+  ! Lock used for file access.
+  type            (lockDescriptor)            :: baryonsDarkMatterFileLock
+  logical                                     :: baryonsDarkMatterFileLockInitialized =.false.
+
+  class           (cosmologyFunctionsClass      ), pointer                 :: baryonsDarkMatterCosmologyFunctions_
+  class           (intergalacticMediumStateClass), pointer                 :: baryonsDarkMatterIntergalacticMediumState_
+  !$omp threadprivate(baryonsDarkMatterCosmologyFunctions_,baryonsDarkMatterIntergalacticMediumState_)
+
 contains
 
   function baryonsDarkMatterConstructorParameters(parameters) result(self)
@@ -127,6 +156,8 @@ contains
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
     use Galacticus_Error, only : Galacticus_Error_Report
+    use Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
+    use File_Utilities  , only : Directory_Make         , File_Path, File_Lock_Initialize
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                           :: self
     double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
@@ -161,6 +192,22 @@ contains
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthSimple_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthSimple_%value(timeNow                                   )
+    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+         &                      'largeScaleStructure/'                           // &
+         &                      self%objectType      (                          )// &
+         &                      '_'                                              // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                      '.hdf5'
+    call Directory_Make(File_Path(self%fileName))
+    ! Initialize file lock.    
+    if (.not.baryonsDarkMatterFileLockInitialized) then
+       !$omp critical(baryonsDarkMatterFileLockInitialize)
+       if (.not.baryonsDarkMatterFileLockInitialized) then
+          call File_Lock_Initialize(baryonsDarkMatterFileLock)
+          baryonsDarkMatterFileLockInitialized=.true.
+       end if
+       !$omp end critical(baryonsDarkMatterFileLockInitialize)
+    end if
     return
   end function baryonsDarkMatterConstructorInternal
 
@@ -187,6 +234,7 @@ contains
     use Tables          , only : table1DGeneric
     use Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
     use Galacticus_Error, only : Galacticus_Error_Report
+    use File_Utilities  , only : File_Lock                       , File_Unlock
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   )           :: time
@@ -195,7 +243,6 @@ contains
     integer                                        , parameter               :: growthTablePointsPerDecadeTime=1000      , growthTablePointsPerDecadeWavenumber=100
     double precision                               , dimension(4)            :: growthFactorODEVariables
     double precision                               , dimension(2)            :: redshiftsInitial                         , timesInitial
-    logical                                                                  :: remakeTable
     integer                                                                  :: i                                        , j
     double precision                                                         :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
          &                                                                      timeNow                                  , linearGrowthFactorPresent                    , &
@@ -207,15 +254,15 @@ contains
     logical                                                                  :: odeReset
     type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
-    
 
     ! Check if we need to recompute our table.
-    if (self%tableInitialized) then
-       remakeTable=time > self%tableTimeMaximum
-    else
-       remakeTable=.true.
+    if (self%remakeTable(time)) then
+       call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
+       call self%fileRead()
+       call File_Unlock(baryonsDarkMatterFileLock)
     end if
-    if (remakeTable) then
+    if (self%remakeTable(time)) then
+       call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.false.)
        ! Find the present-day epoch.
        timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
        ! Find the time corresponding to our CAMB starting redshift.
@@ -241,6 +288,8 @@ contains
           self%tableWavenumberMaximum=min(self%tableWavenumberMaximum,2.0d0*wavenumber)
        end if
        ! Get the initial conditions from CAMB.
+       call transferFunctionDarkMatter%destroy()
+       call transferFunctionBaryons   %destroy()
        call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,lockFileGlobally=.true.,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))       
@@ -250,6 +299,12 @@ contains
        countWavenumbers=int(dble(growthTablePointsPerDecadeWavenumber)*log10(self%tableWavenumberMaximum/self%tableWavenumberMinimum))+1
        call self%growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints,self%tableWavenumberMinimum,self%tableWavenumberMaximum,countWavenumbers,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
        ! Iterate over wavenumber.
+       !$omp parallel private(i,j,wavenumber_,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,odeReset,ode2Driver,ode2System,linearGrowthFactorPresent)
+       allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
+       allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
+       !# <deepCopy source="self%cosmologyFunctions_"       destination="baryonsDarkMatterCosmologyFunctions_"      />
+       !# <deepCopy source="self%intergalacticMediumState_" destination="baryonsDarkMatterIntergalacticMediumState_"/>
+       !$omp do
        do j=1,countWavenumbers
           wavenumber_          =self%growthFactor%y(j)
           wavenumberLogarithmic=log(wavenumber_)
@@ -283,6 +338,12 @@ contains
              growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
              growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
           end do
+       end do
+       !$omp end do
+       !# <objectDestructor name="baryonsDarkMatterCosmologyFunctions_"      />
+       !# <objectDestructor name="baryonsDarkMatterIntergalacticMediumState_"/>
+       !$omp do
+       do j=1,countWavenumbers
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
           do i=1,growthTableNumberPoints
@@ -290,7 +351,12 @@ contains
              call self%growthFactor%populate(self%growthFactor%z(i,j,table=baryonsDarkMatterBaryons   )/linearGrowthFactorPresent,i,j,table=baryonsDarkMatterBaryons   )
           end do
        end do
+       !$omp end do
+       !$omp end parallel
        self%tableInitialized=.true.
+       ! Store file.
+       call self%fileWrite()
+       call File_Unlock(baryonsDarkMatterFileLock)
     end if
     return
     
@@ -309,27 +375,28 @@ contains
       double precision                              :: perturbationDarkMatter             , perturbationBaryons             , &
            &                                           perturbationDarkMatterDerivative1st, perturbationBaryonsDerivative1st, &
            &                                           perturbationDarkMatterDerivative2nd, perturbationBaryonsDerivative2nd, &
-           &                                           expansionFactor                    , wavenumberJeans, massParticleMean,speedSound
+           &                                           expansionFactor                    , wavenumberJeans                 , &
+           &                                           massParticleMean                   , speedSound
 
       ! Get expansion factor.
-      expansionFactor                    =+                                 self%cosmologyFunctions_      %expansionFactor (time)
+      expansionFactor                    =+                                 baryonsDarkMatterCosmologyFunctions_      %expansionFactor (time)
       ! Compute the instantaneous Jeans wavenumber. Note that we want the comoving wavenumber here, so we multiply by the expansion factor.
-      massParticleMean                   =+(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
-           &                              /(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
-      speedSound                         =+sqrt(                                                         &
-           &                                    +boltzmannsConstant                                      &
-           &                                    *self%intergalacticMediumState_%temperature(time)        &
-           &                                    /massParticleMean                                        &
-           &                                   )                                                         &
+      massParticleMean                   =+(hydrogenByMassPrimordial*(1.0d0+baryonsDarkMatterIntergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
+           &                              /(hydrogenByMassPrimordial*(1.0d0+baryonsDarkMatterIntergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+      speedSound                         =+sqrt(                                                              &
+           &                                    +boltzmannsConstant                                           &
+           &                                    *baryonsDarkMatterIntergalacticMediumState_%temperature(time) &
+           &                                    /massParticleMean                                             &
+           &                                   )                                                              &
            &                              /kilo
       if (speedSound > 0.0d0) then
-         wavenumberJeans                 =+sqrt(                                                         &
-              &                                 +1.5d0                                                   &
-              &                                 *(                                                       &
-              &                                   +self%cosmologyFunctions_%hubbleParameterEpochal(time) &
-              &                                   /speedSound                                            &
-              &                                  )**2                                                    &
-              &                                )                                                         &
+         wavenumberJeans                 =+sqrt(                                                                     &
+              &                                 +1.5d0                                                               &
+              &                                 *(                                                                   &
+              &                                   +baryonsDarkMatterCosmologyFunctions_%hubbleParameterEpochal(time) &
+              &                                   /speedSound                                                        &
+              &                                  )**2                                                                &
+              &                                )                                                                     &
               &                           *expansionFactor
       else
          wavenumberJeans=huge(0.0d0)
@@ -339,34 +406,34 @@ contains
       perturbationDarkMatterDerivative1st=+    values(2)
       perturbationBaryons                =+    values(3)
       perturbationBaryonsDerivative1st   =+    values(4)
-      perturbationDarkMatterDerivative2nd=+    1.5d0                                                                           &
-           &                              *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
-           &                              *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
-           &                              *    (                                                                               &
-           &                                    +self%    fractionDarkMatter                                                   &
-           &                                    *     perturbationDarkMatter                                                   &
-           &                                    +self%    fractionBaryons                                                      &
-           &                                    *     perturbationBaryons                                                      &
-           &                                   )                                                                               &
-           &                              -    2.0d0                                                                           &
-           &                              *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
+      perturbationDarkMatterDerivative2nd=+    1.5d0                                                                                       &
+           &                              *    baryonsDarkMatterCosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &                              *    baryonsDarkMatterCosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &                              *    (                                                                                           &
+           &                                    +self%    fractionDarkMatter                                                               &
+           &                                    *     perturbationDarkMatter                                                               &
+           &                                    +self%    fractionBaryons                                                                  &
+           &                                    *     perturbationBaryons                                                                  &
+           &                                   )                                                                                           &
+           &                              -    2.0d0                                                                                       &
+           &                              *abs(baryonsDarkMatterCosmologyFunctions_%expansionRate     (                expansionFactor))   &
            &                              *    perturbationDarkMatterDerivative1st
-      perturbationBaryonsDerivative2nd   =+    1.5d0                                                                           &
-           &                              *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
-           &                              *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
-           &                              *    (                                                                               &
-           &                                    +self%    fractionDarkMatter                                                   &
-           &                                    *     perturbationDarkMatter                                                   &
-           &                                    +self%    fractionBaryons                                                      &
-           &                                    *     perturbationBaryons                                                      &
-           &                                    -(                                                                             &
-           &                                      +wavenumber_                                                                 &
-           &                                      /wavenumberJeans                                                             &
-           &                                     )**2                                                                          &
-           &                                    *     perturbationBaryons                                                      &
-           &                                   )                                                                               &
-           &                              -    2.0d0                                                                           &
-           &                              *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
+      perturbationBaryonsDerivative2nd   =+    1.5d0                                                                                       &
+           &                              *    baryonsDarkMatterCosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &                              *    baryonsDarkMatterCosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &                              *    (                                                                                           &
+           &                                    +self%    fractionDarkMatter                                                               &
+           &                                    *     perturbationDarkMatter                                                               &
+           &                                    +self%    fractionBaryons                                                                  &
+           &                                    *     perturbationBaryons                                                                  &
+           &                                    -(                                                                                         &
+           &                                      +wavenumber_                                                                             &
+           &                                      /wavenumberJeans                                                                         &
+           &                                     )**2                                                                                      &
+           &                                    *     perturbationBaryons                                                                  &
+           &                                   )                                                                                           &
+           &                              -    2.0d0                                                                                       &
+           &                              *abs(baryonsDarkMatterCosmologyFunctions_%expansionRate     (                expansionFactor))   &
            &                              *    perturbationBaryonsDerivative1st
       ! Set the derivatives in the ODE arrays.
       derivatives    (1)=perturbationDarkMatterDerivative1st
@@ -401,7 +468,7 @@ contains
        wavenumber_=baryonsDarkMatterWavenumberReference
     end if
     ! Interpolate to get the expansion factor.
-    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)
+    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)    
     ! Normalize.
     select case (normalize_)
     case (normalizeMatterDominated)
@@ -480,3 +547,73 @@ contains
     baryonsDarkMatterIsWavenumberDependent=.true.
     return
   end function baryonsDarkMatterIsWavenumberDependent
+
+  logical function baryonsDarkMatterRemakeTable(self,time)
+    !% Determine if the table should be remade.
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout) :: self
+    double precision                               , intent(in   ) :: time
+
+    if (self%tableInitialized) then
+       baryonsDarkMatterRemakeTable=time > self%tableTimeMaximum
+    else
+       baryonsDarkMatterRemakeTable=.true.
+    end if
+    return
+  end function baryonsDarkMatterRemakeTable
+
+  subroutine baryonsDarkMatterFileRead(self)
+    !% Read tabulated data on linear growth factor from file.
+    use IO_HDF5       , only : hdf5Object            , hdf5Access
+    use File_Utilities, only : File_Exists
+    use Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeFix
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
+    double precision                               , dimension(:,:), allocatable :: growthFactor
+    type            (hdf5Object                   )                              :: dataFile
+
+    ! Return immediately if the file does not exist.
+    if (.not.File_Exists(char(self%fileName))) return
+    if (self%tableInitialized) call self%growthFactor%destroy()
+    !$ call hdf5Access%set()
+    call dataFile%openFile     (char(self%fileName),overWrite=.false.                    )
+    call dataFile%readDataset  ('growthFactor'     ,                growthFactor         )
+    call dataFile%readAttribute('wavenumberMinimum',          self%tableWavenumberMinimum)
+    call dataFile%readAttribute('wavenumberMaximum',          self%tableWavenumberMaximum)
+    call dataFile%readAttribute('timeMinimum'      ,          self%tableTimeMinimum      )
+    call dataFile%readAttribute('timeMaximum'      ,          self%tableTimeMaximum      )
+    call dataFile%close        (                                                         )
+    !$ call hdf5Access%unset()
+    call self%growthFactor%create  (                                                                                                     &
+         &                                             self%tableTimeMinimum      ,self%tableTimeMaximum      ,size(growthFactor,dim=1), &
+         &                                             self%tableWavenumberMinimum,self%tableWavenumberMaximum,size(growthFactor,dim=2), &
+         &                          tableCount        =2                                                                               , &
+         &                          extrapolationTypeX=extrapolationTypeAbort                                                          , &
+         &                          extrapolationTypeY=extrapolationTypeFix                                                              &
+         &                         )
+    call self%growthFactor%populate(growthFactor)
+    deallocate(growthFactor)
+    self%tableInitialized=.true.
+    return
+  end subroutine baryonsDarkMatterFileRead
+  
+  subroutine baryonsDarkMatterFileWrite(self)
+    !% Write tabulated data on linear growth factor to file.
+    use HDF5   , only : hsize_t
+    use IO_HDF5, only : hdf5Object, hdf5Access
+    implicit none
+    class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
+    type (hdf5Object                   )                :: dataFile
+
+    ! Open the data file.
+    !$ call hdf5Access%set()
+    call dataFile%openFile      (char   (self%fileName                                                                                 ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (reshape(self%growthFactor          %zs(),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactor'                                 )
+    call dataFile%writeAttribute(        self%tableWavenumberMinimum                                                                    ,          'wavenumberMinimum'                            )
+    call dataFile%writeAttribute(        self%tableWavenumberMaximum                                                                    ,          'wavenumberMaximum'                            )
+    call dataFile%writeAttribute(        self%tableTimeMinimum                                                                          ,          'timeMinimum'                                  )
+    call dataFile%writeAttribute(        self%tableTimeMaximum                                                                          ,          'timeMaximum'                                  )
+    call dataFile%close         (                                                                                                                                                                 )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine baryonsDarkMatterFileWrite
