@@ -499,8 +499,9 @@ contains
     !% Tabulate the cosmological mass variance.
     use Numerical_Constants_Math
     use Galacticus_Error
-    use Numerical_Ranges        , only : Make_Range, rangeTypeLogarithmic
-    use File_Utilities          , only : File_Lock , File_Unlock
+    use Numerical_Ranges        , only : Make_Range                , rangeTypeLogarithmic
+    use File_Utilities          , only : File_Lock                 , File_Unlock
+    use Galacticus_Display      , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , intent(in   ), optional     :: mass                      , time
@@ -513,7 +514,8 @@ contains
          &                                                                                  massMinimum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
     type            (varying_string                       )                              :: message
-    character       (len=12                               )                              :: label
+    character       (len=12                               )                              :: label                     , labelLow               , &
+         &                                                                                  labelHigh                 , labelTarget
 
     if (self%remakeTable(mass,time)) then
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
@@ -593,7 +595,24 @@ contains
           allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(rootVarianceTimeCount))
        else
           allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
-       end if       
+       end if
+       call Galacticus_Display_Indent("retabulating σ(M)",verbosityWorking)
+       write    (labelLow   ,'(e9.2)') self%massMinimum
+       write    (labelHigh  ,'(e9.2)') self%massMaximum
+       if (present(mass)) then
+          write (labelTarget,'(e9.2)')      mass
+       else
+          labelTarget="unspecified"
+       end if
+       call Galacticus_Display_Message("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityWorking)
+       write    (labelLow   ,'(f9.4)') self%timeMinimum
+       write    (labelHigh  ,'(f9.4)') self%timeMaximum
+       if (present(time)) then
+          write (labelTarget,'(f9.4)')      time
+       else
+          labelTarget="unspecified"
+       end if
+       call Galacticus_Display_Message("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityWorking)
        do k=1,rootVarianceTimeCount
           call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
           allocate(rootVarianceIsUnique(rootVarianceTableCount))
@@ -638,6 +657,7 @@ contains
              call Galacticus_Warn(message)
           end if
        end do
+       call Galacticus_Display_Unindent("done",verbosityWorking)
        ! Table is now initialized.
        self%initialized=.true.
        ! Store file.
@@ -657,7 +677,8 @@ contains
       implicit none
       double precision                            , intent(in   ) :: time_
       logical                                     , intent(in   ) :: useTopHat
-      double precision                                            :: topHatRadius        , wavenumberMaximum, &
+      double precision                            , parameter     :: wavenumberBAO       =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+      double precision                                            :: topHatRadius              , wavenumberMaximum, &
            &                                                         wavenumberMinimum
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
@@ -674,34 +695,92 @@ contains
            &             /self%cosmologyParameters_%densityCritical() &
            &            )**(1.0d0/3.0d0)
       wavenumberMinimum=0.0d0
+      ! The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO features
+      ! are significant (unless the upper limit of the integral is already below that wavenumber). This allows the oscillatory
+      ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and
+      ! leads to an overall more accurate and robust determination of σ(M).
       if (useTopHat) then
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
-         rootVariance=+Integrate(                                              &
-              &                  wavenumberMinimum                           , &
-              &                  wavenumberMaximum                           , &
-              &                  varianceIntegrandTopHat                     , &
-              &                  integrandFunction                           , &
-              &                  integrationWorkspace                        , &
-              &                  toleranceAbsolute      =0.0d0               , &
-              &                  toleranceRelative      =self%toleranceTopHat, &
-              &                  integrationRule        =FGSL_Integ_Gauss15    &
-              &                 )                                              &
-              &       /2.0d0                                                   &
-              &       /Pi**2
+         if (wavenumberMaximum > wavenumberBAO) then
+            rootVariance=+(                                                         &
+                 &         +Integrate(                                              &
+                 &                    wavenumberMinimum                           , &
+                 &                    wavenumberBAO                               , &
+                 &                    varianceIntegrandTopHat                     , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &         +Integrate(                                              &
+                 &                    wavenumberBAO                               , &
+                 &                    wavenumberMaximum                           , &
+                 &                    varianceIntegrandTopHat                     , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &              )                                                   &
+                 &       /2.0d0                                                     &
+                 &       /Pi**2
+         else
+            rootVariance=+  Integrate(                                              &
+                 &                    wavenumberMinimum                           , &
+                 &                    wavenumberMaximum                           , &
+                 &                    varianceIntegrandTopHat                     , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &       /2.0d0                                                     &
+                 &       /Pi**2
+         end if
       else
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
-         rootVariance=+Integrate(                                              &
-              &                  wavenumberMinimum                           , &
-              &                  wavenumberMaximum                           , &
-              &                  varianceIntegrand                           , &
-              &                  integrandFunction                           , &
-              &                  integrationWorkspace                        , &
-              &                  toleranceAbsolute      =0.0d0               , &
-              &                  toleranceRelative      =self%tolerance      , &
-              &                  integrationRule        =FGSL_Integ_Gauss15    &
-              &                  )                                             &
-              &       /2.0d0                                                   &
-              &       /Pi**2
+         if (wavenumberMaximum > wavenumberBAO) then
+            rootVariance=+(                                                         &
+                 &         +Integrate(                                              &
+                 &                    wavenumberMinimum                           , &
+                 &                    wavenumberBAO                               , &
+                 &                    varianceIntegrand                           , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &         +Integrate(                                              &
+                 &                    wavenumberBAO                               , &
+                 &                    wavenumberMaximum                           , &
+                 &                    varianceIntegrand                           , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &           )                                                      &
+                 &       /2.0d0                                                     &
+                 &       /Pi**2
+         else
+            rootVariance=+  Integrate(                                              &
+                 &                    wavenumberMinimum                           , &
+                 &                    wavenumberMaximum                           , &
+                 &                    varianceIntegrand                           , &
+                 &                    integrandFunction                           , &
+                 &                    integrationWorkspace                        , &
+                 &                    toleranceAbsolute      =0.0d0               , &
+                 &                    toleranceRelative      =self%tolerance      , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15    &
+                 &                   )                                              &
+                 &       /2.0d0                                                     &
+                 &       /Pi**2
+         end if
       end if
       call Integrate_Done(integrandFunction,integrationWorkspace)
       rootVariance=sqrt(rootVariance)
@@ -773,8 +852,9 @@ contains
 
   subroutine filteredPowerFileRead(self)
     !% Read tabulated data on mass variance from file.
-    use IO_HDF5       , only : hdf5Object , hdf5Access
-    use File_Utilities, only : File_Exists
+    use IO_HDF5           , only : hdf5Object                , hdf5Access
+    use File_Utilities    , only : File_Exists
+    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -786,6 +866,7 @@ contains
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
+    call Galacticus_Display_Message('reading σ(M) data from: '//self%fileName,verbosityWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.)
     call dataFile%readDataset  ('times'                      ,     timesTmp                           )
@@ -807,8 +888,12 @@ contains
     if (allocated(self%rootVarianceTable      )) deallocate(self%rootVarianceTable      )
     if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
     allocate(self%times                  (size(timesTmp)))
-    allocate(self%rootVarianceTable      (size(timesTmp)))
     allocate(self%rootVarianceUniqueTable(size(timesTmp)))
+    if (self%monotonicInterpolation) then
+       allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(size(timesTmp)))
+    else
+       allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(size(timesTmp)))
+    end if
     self%times=timesTmp
     do i=1,size(self%times)
        allocate(self%rootVarianceUniqueTable(i)%rootVariance(uniqueSizeTmp(i)))
@@ -830,8 +915,9 @@ contains
   
   subroutine filteredPowerFileWrite(self)
     !% Write tabulated data on mass variance to file.
-    use HDF5   , only : hsize_t
-    use IO_HDF5, only : hdf5Object, hdf5Access
+    use HDF5              , only : hsize_t
+    use IO_HDF5           , only : hdf5Object                , hdf5Access
+    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp
@@ -841,6 +927,7 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i
 
+    call Galacticus_Display_Message('writing σ(M) data to: '//self%fileName,verbosityWorking)
     ! Prepare data.
     allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
     allocate(rootVarianceTmp      (self%rootVarianceTable(1)%size(),size(self%times)))
