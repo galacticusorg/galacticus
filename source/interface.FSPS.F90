@@ -21,8 +21,13 @@
 
 module Interfaces_FSPS
   !% Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+  use File_Utilities, only : lockDescriptor
   private
   public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
+
+  ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
+  type   (lockDescriptor) :: fspsLock
+  logical                 :: fspsLockInitialized=.false.
   
 contains
 
@@ -30,7 +35,8 @@ contains
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
-    use File_Utilities    , only : File_Remove, File_Exists
+    use File_Utilities    , only : File_Lock_Initialize, File_Lock, File_Unlock, File_Remove, &
+         &                         File_Exists
     use System_Command
     use Galacticus_Display
     use Galacticus_Error
@@ -45,6 +51,16 @@ contains
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
+     ! Get a lock.
+    if (.not.fspsLockInitialized) then
+       !$omp critical(fspsLockInitialize)
+       if (.not.fspsLockInitialized) then
+          call File_Lock_Initialize(fspsLock)
+          fspsLockInitialized=.true.
+       end if
+       !$omp end critical(fspsLockInitialize)
+    end if
+    call File_Lock(char(fspsPath//"/fsps.lock"),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Check out the code if not already done.
@@ -96,6 +112,7 @@ contains
     read (inputFile,'(a)') currentRevision
     close(inputFile)
     fspsVersion="v2.5; "//currentRevision
+    call File_Unlock(fspsLock)
     return
   end subroutine Interface_FSPS_Initialize
 
