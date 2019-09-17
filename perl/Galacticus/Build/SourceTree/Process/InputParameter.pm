@@ -11,6 +11,7 @@ use XML::Simple;
 use LaTeX::Encode;
 use List::ExtraUtils;
 use Fortran::Utils;
+use Digest::MD5 qw(md5 md5_hex md5_base64);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'inputParameters'} = \&Process_InputParameters;
@@ -90,7 +91,13 @@ sub Process_InputParameters {
 		}
 		$nameForDocumentation = latex_encode($node->{'directive'}->{'regEx'})
 		    if ( exists($node->{'directive'}->{'regEx'}) );
-	    }	    
+		# Add suffix to file name to avoid conflicts between parameters with identical names.
+		my $nodeFile = $node;
+		while ( $nodeFile->{'type'} ne "file" ) {
+		    $nodeFile = $nodeFile->{'parent'};
+		}
+		$nameForFile .= "_".substr(md5_hex($nodeFile->{'name'}),0,6);
+	    }
 	    $inputParameterSource .= "  ! End auto-generated input parameter\n\n";
 	    # Create a new node.
 	    my $newNode =
