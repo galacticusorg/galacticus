@@ -19,21 +19,29 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
-  use Tables
-  use Cosmology_Functions
+  use Tables                    , only : table1D
+  use Cosmology_Functions       , only : cosmologyFunctionsClass            , cosmologyFunctions
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterLambda">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </stateStorable>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseMatterLambda
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                :: tableInitialized      =  .false., turnaroundInitialized=.false.
-     double precision                                       :: tableTimeMinimum                , tableTimeMaximum             , &
-          &                                                    turnaroundTimeMinimum           , turnaroundTimeMaximum
-     logical                                                :: tableStore
-     class           (table1D                ), allocatable :: deltaVirial                     , turnaround
-     class           (cosmologyFunctionsClass), pointer     :: cosmologyFunctions_   => null()
+     logical                                                            :: tableInitialized        =  .false., turnaroundInitialized=.false.
+     double precision                                                   :: tableTimeMinimum                  , tableTimeMaximum             , &
+          &                                                                turnaroundTimeMinimum             , turnaroundTimeMaximum
+     logical                                                            :: tableStore
+     class           (table1D                            ), allocatable :: deltaVirial                       , turnaround
+     class           (cosmologyFunctionsClass            ), pointer     :: cosmologyFunctions_      => null()
+     class           (sphericalCollapseSolverMatterLambda), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !@ <objectMethods>
      !@   <object>virialDensityContrastSphericalCollapseMatterLambda</object>
@@ -93,6 +101,11 @@ contains
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
+    allocate(sphericalCollapseSolverMatterLambda :: self%sphericalCollapseSolver_)
+    select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
+    type is (sphericalCollapseSolverMatterLambda)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterLambda(self%cosmologyFunctions_)"/>
+    end select
     return
   end function sphericalCollapseMatterLambdaConstructorInternal
 
@@ -109,13 +122,13 @@ contains
        call self%turnaround%destroy()
        deallocate(self%turnaround)
     end if
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"     />
+    !# <objectDestructor name="self%sphericalCollapseSolver_"/>
     return
   end subroutine sphericalCollapseMatterLambdaDestructor
 
   subroutine sphericalCollapseMatterLambdaRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_Matter_Lambda
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
     double precision                                                    , intent(in   ) :: time
@@ -128,7 +141,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Delta_Virial_Tabulate(time,self%tableStore,self%deltaVirial,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolver_%virialDensityContrast(time,self%tableStore,self%deltaVirial)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)
@@ -216,48 +229,29 @@ contains
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     use Galacticus_Error
-    use Spherical_Collapse_Matter_Lambda
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time      , expansionFactor
+    double precision                                                    , intent(in   ), optional :: time       , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
-    logical                                                                                       :: remakeTable, collapsingActual
-    double precision                                                                              :: timeActual
+    logical                                                                                       :: remakeTable
+    double precision                                                                              :: time_
     !GCC$ attributes unused :: mass
 
-    ! Determine which type of input we have.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
-       else
-          timeActual=time
-       end if
-    else
-       if (present(expansionFactor)) then
-          if (present(collapsing)) then
-             collapsingActual=collapsing
-          else
-             collapsingActual=.false.
-          end if
-          timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
-       else
-          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
-       end if
-    end if
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Check if we need to recompute our table.
     if (self%turnaroundInitialized) then
-       remakeTable=(timeActual < self%turnaroundTimeMinimum .or. timeActual > self%turnaroundTimeMaximum)
+       remakeTable=(time_ < self%turnaroundTimeMinimum .or. time_ > self%turnaroundTimeMaximum)
     else
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Turnaround_Radius_Tabulate(timeActual,self%tableStore,self%turnaround,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolver_%radiusTurnaround(time_,self%tableStore,self%turnaround)
        self%turnaroundInitialized=.true.
        self%turnaroundTimeMinimum=self%turnaround%x(+1)
        self%turnaroundTimeMaximum=self%turnaround%x(-1)
     end if
     ! Interpolate to get the ratio.
-    sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=self%turnaround%interpolate(timeActual)
+    sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=self%turnaround%interpolate(time_)
     return
   end function sphericalCollapseMatterLambdaTurnAroundOverVirialRadii

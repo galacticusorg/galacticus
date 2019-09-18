@@ -21,7 +21,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !% Tests linear growth calculations.
   use Unit_Tests                           , only : Unit_Tests_Begin_Group                            , Unit_Tests_End_Group                           , Unit_Tests_Finish                    , Assert
   use Galacticus_Display                   , only : Galacticus_Verbosity_Level_Set                    , verbosityStandard
-  use Spherical_Collapse_Matter_Dark_Energy, only : darkEnergySphericalCollapseEnergyFixedAtTurnaround
+  use Spherical_Collapse_Solvers           , only : matterDarkEnergyFixedAtTurnaround
   use Linear_Growth                        , only : linearGrowthBaryonsDarkMatter                     , linearGrowthSimple                             , componentDarkMatter
   use Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda  
   use Cosmology_Parameters                 , only : cosmologyParametersSimple
@@ -88,105 +88,105 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
      fractionBaryons=fractionBaryonsMaximum*dble(j-1)/dble(countFractionBaryon-1)
      if (trim(outputFractions) /= "yes" .and. fractionBaryons > 0.0d0) exit
      ! Construct model.
-     darkMatterParticleCDM_                             =darkMatterParticleCDM                             (                                                                                        &
+     darkMatterParticleCDM_                             =darkMatterParticleCDM                             (                                                                                 &
           &                                                                                                )
-     cosmologyParametersDMO_                            =cosmologyParametersSimple                         (                                                                                        &
-          &                                                                                                 OmegaMatter                        = 0.2750d0                                         , &
-          &                                                                                                 OmegaBaryon                        = 0.2750d0*fractionBaryons                         , &
-          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                         , &
-          &                                                                                                 temperatureCMB                     = 2.7800d0                                         , &
-          &                                                                                                 HubbleConstant                     =70.2000d0                                           &
+     cosmologyParametersDMO_                            =cosmologyParametersSimple                         (                                                                                 &
+          &                                                                                                 OmegaMatter                        = 0.2750d0                                  , &
+          &                                                                                                 OmegaBaryon                        = 0.2750d0*fractionBaryons                  , &
+          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                  , &
+          &                                                                                                 temperatureCMB                     = 2.7800d0                                  , &
+          &                                                                                                 HubbleConstant                     =70.2000d0                                    &
           &                                                                                                )
-     cosmologyParametersBaryons_                        =cosmologyParametersSimple                         (                                                                                        &
-          &                                                                                                 OmegaMatter                        = 0.2750d0                                         , &
-          &                                                                                                 OmegaBaryon                        = 0.0458d0                                         , &
-          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                         , &
-          &                                                                                                 temperatureCMB                     = 2.7800d0                                         , &
-          &                                                                                                 HubbleConstant                     =70.2000d0                                           &
+     cosmologyParametersBaryons_                        =cosmologyParametersSimple                         (                                                                                 &
+          &                                                                                                 OmegaMatter                        = 0.2750d0                                  , &
+          &                                                                                                 OmegaBaryon                        = 0.0458d0                                  , &
+          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                  , &
+          &                                                                                                 temperatureCMB                     = 2.7800d0                                  , &
+          &                                                                                                 HubbleConstant                     =70.2000d0                                    &
           &                                                                                                )
-     cosmologyFunctionsMatterLambda_                    =cosmologyFunctionsMatterLambda                    (                                                                                        &
-          &                                                                                                 cosmologyParametersBaryons_                                                             &
+     cosmologyFunctionsMatterLambda_                    =cosmologyFunctionsMatterLambda                    (                                                                                 &
+          &                                                                                                 cosmologyParametersBaryons_                                                      &
           &                                                                                                )
-     intergalacticMediumState_                          =intergalacticMediumStateSimple                    (                                                                                        &
-          &                                                                                                 reionizationRedshift               = 8.00d0                                           , &
-          &                                                                                                 reionizationTemperature            = 1.00d4                                           , &
-          &                                                                                                 preReionizationTemperature         = 1.00d4                                           , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                         &
+     intergalacticMediumState_                          =intergalacticMediumStateSimple                    (                                                                                 &
+          &                                                                                                 reionizationRedshift               = 8.00d0                                    , &
+          &                                                                                                 reionizationTemperature            = 1.00d4                                    , &
+          &                                                                                                 preReionizationTemperature         = 1.00d4                                    , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                  &
           &                                                                                                )
-     linearGrowthBaryonsDarkMatter_                     =linearGrowthBaryonsDarkMatter                     (                                                                                        &
-          &                                                                                                 redshiftInitial                    =160.0d0                                           , &
-          &                                                                                                 redshiftInitialDelta               =  1.6d0                                           , &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                       , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 intergalacticMediumState_          =intergalacticMediumState_                           &
+     linearGrowthBaryonsDarkMatter_                     =linearGrowthBaryonsDarkMatter                     (                                                                                 &
+          &                                                                                                 redshiftInitial                    =160.0d0                                    , &
+          &                                                                                                 redshiftInitialDelta               =  1.6d0                                    , &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 intergalacticMediumState_          =intergalacticMediumState_                    &
           &                                                                                                )
-     linearGrowthSimple_                                =linearGrowthSimple                                (                                                                                        &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                       , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                     &
+     linearGrowthSimple_                                =linearGrowthSimple                                (                                                                                 &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_              &
           &                                                                                                )
-     powerSpectrumPrimordialPowerLaw_                   =powerSpectrumPrimordialPowerLaw                   (                                                                                        &
-          &                                                                                                 index                              =-1.0d0                                            , &
-          &                                                                                                 running                            =+0.0d0                                            , &
-          &                                                                                                 wavenumberReference                =+1.0d0                                              &
+     powerSpectrumPrimordialPowerLaw_                   =powerSpectrumPrimordialPowerLaw                   (                                                                                 &
+          &                                                                                                 index                              =-1.0d0                                     , &
+          &                                                                                                 running                            =+0.0d0                                     , &
+          &                                                                                                 wavenumberReference                =+1.0d0                                       &
           &                                                                                                )
-     transferFunctionIdentity_                          =transferFunctionIdentity                          (                                                                                        &
-          &                                                                                                 time                               =13.8d0                                              & 
+     transferFunctionIdentity_                          =transferFunctionIdentity                          (                                                                                 &
+          &                                                                                                 time                               =13.8d0                                       & 
           &                                                                                                )
-     powerSpectrumPrimordialTransferredSimple_          =powerSpectrumPrimordialTransferredSimple          (                                                                                        &
-          &                                                                                                 powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_                  , &
-          &                                                                                                 transferFunction_                  =transferFunctionIdentity_                         , &
-          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_                      &
+     powerSpectrumPrimordialTransferredSimple_          =powerSpectrumPrimordialTransferredSimple          (                                                                                 &
+          &                                                                                                 powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_           , &
+          &                                                                                                 transferFunction_                  =transferFunctionIdentity_                  , &
+          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_               &
           &                                                                                                )
-     powerSpectrumWindowFunctionSharpKSpace_            =powerSpectrumWindowFunctionSharpKSpace            (                                                                                        &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                       , &
-          &                                                                                                 normalization                      =0.0d0                                               &
-          &                                                                                                )
-
-     cosmologicalMassVarianceFilteredPower_             =cosmologicalMassVarianceFilteredPower             (                                                                                        &
-          &                                                                                                 sigma8                             =1.0d+0                                            , &
-          &                                                                                                 tolerance                          =1.0d-4                                            , &
-          &                                                                                                 toleranceTopHat                    =1.0d-4                                            , &
-          &                                                                                                 monotonicInterpolation             =.false.                                           , &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                       , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_                    , &
-          &                                                                                                 powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_         , &
-          &                                                                                                 powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_             &
-          &                                                                                                )
-     intergalacticMediumFilteringMassGnedin2000_        =intergalacticMediumFilteringMassGnedin2000        (                                                                                        &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                       , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_                    , &
-          &                                                                                                 intergalacticMediumState_          =intergalacticMediumState_                           &
-          &                                                                                                )
-     criticalOverdensitySphericalCollapseMatterLambda_  =criticalOverdensitySphericalCollapseMatterLambda  (                                                                                        &
-          &                                                                                                 linearGrowth_                      =linearGrowthSimple_                               , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_            , &
-          &                                                                                                 darkMatterParticle_                =darkMatterParticleCDM_                            , &
-          &                                                                                                 tableStore                         =.true.                                              &
-          &                                                                                                )
-     criticalOverdensitySphericalCollapseBaryonsDM_     =criticalOverdensitySphericalCollapseBaryonsDM     (                                                                                        &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersDMO_                           , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_            , &
-          &                                                                                                 darkMatterParticle_                =darkMatterParticleCDM_                            , &
-          &                                                                                                 intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_       , &
-          &                                                                                                 tableStore                         =.false.                                           , &
-          &                                                                                                 normalization                      =1.0d0                                               &
-          &                                                                                                )
-     virialDensityContrastSphericalCollapseMatterLambda_=virialDensityContrastSphericalCollapseMatterLambda(                                                                                        &
-          &                                                                                                 tableStore                         =.false.                                           , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                     &
+     powerSpectrumWindowFunctionSharpKSpace_            =powerSpectrumWindowFunctionSharpKSpace            (                                                                                 &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                , &
+          &                                                                                                 normalization                      =0.0d0                                        &
           &                                                                                                )
 
-     virialDensityContrastSphericalCollapseBaryonsDM_   =virialDensityContrastSphericalCollapseBaryonsDM   (                                                                                        &
-          &                                                                                                 tableStore                         =.true.                                            , &
-          &                                                                                                 energyFixedAt                      =darkEnergySphericalCollapseEnergyFixedAtTurnaround, &
-          &                                                                                                 cosmologyParameters_               =cosmologyParametersDMO_                           , &
-          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_                   , &
-          &                                                                                                 intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_         &
+     cosmologicalMassVarianceFilteredPower_             =cosmologicalMassVarianceFilteredPower             (                                                                                 &
+          &                                                                                                 sigma8                             =1.0d+0                                     , &
+          &                                                                                                 tolerance                          =1.0d-4                                     , &
+          &                                                                                                 toleranceTopHat                    =1.0d-4                                     , &
+          &                                                                                                 monotonicInterpolation             =.false.                                    , &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_             , &
+          &                                                                                                 powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_  , &
+          &                                                                                                 powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_      &
+          &                                                                                                )
+     intergalacticMediumFilteringMassGnedin2000_        =intergalacticMediumFilteringMassGnedin2000        (                                                                                 &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersBaryons_                , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 linearGrowth_                      =linearGrowthBaryonsDarkMatter_             , &
+          &                                                                                                 intergalacticMediumState_          =intergalacticMediumState_                    &
+          &                                                                                                )
+     criticalOverdensitySphericalCollapseMatterLambda_  =criticalOverdensitySphericalCollapseMatterLambda  (                                                                                 &
+          &                                                                                                 linearGrowth_                      =linearGrowthSimple_                        , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &
+          &                                                                                                 darkMatterParticle_                =darkMatterParticleCDM_                     , &
+          &                                                                                                 tableStore                         =.true.                                       &
+          &                                                                                                )
+     criticalOverdensitySphericalCollapseBaryonsDM_     =criticalOverdensitySphericalCollapseBaryonsDM     (                                                                                 &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersDMO_                    , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &
+          &                                                                                                 darkMatterParticle_                =darkMatterParticleCDM_                     , &
+          &                                                                                                 intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_, &
+          &                                                                                                 tableStore                         =.false.                                    , &
+          &                                                                                                 normalization                      =1.0d0                                        &
+          &                                                                                                )
+     virialDensityContrastSphericalCollapseMatterLambda_=virialDensityContrastSphericalCollapseMatterLambda(                                                                                 &
+          &                                                                                                 tableStore                         =.false.                                    , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_              &
+          &                                                                                                )
+
+     virialDensityContrastSphericalCollapseBaryonsDM_   =virialDensityContrastSphericalCollapseBaryonsDM   (                                                                                 &
+          &                                                                                                 tableStore                         =.true.                                     , &
+          &                                                                                                 energyFixedAt                      =matterDarkEnergyFixedAtTurnaround          , &
+          &                                                                                                 cosmologyParameters_               =cosmologyParametersDMO_                    , &
+          &                                                                                                 cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                 intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_  &
           &                                                                                                )
      ! Iterate over redshifts.
      do i=1,size(redshift)

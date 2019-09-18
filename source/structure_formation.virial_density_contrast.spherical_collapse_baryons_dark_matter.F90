@@ -20,28 +20,36 @@
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   
   use Tables                               , only : table1D
-  use Cosmology_Parameters                 , only : cosmologyParameters             , cosmologyParametersClass
-  use Cosmology_Functions                  , only : cosmologyFunctions              , cosmologyFunctionsClass
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use Cosmology_Parameters                 , only : cosmologyParameters                     , cosmologyParametersClass
+  use Cosmology_Functions                  , only : cosmologyFunctions                      , cosmologyFunctionsClass
+  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass        , intergalacticMediumFilteringMassClass
+  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatter
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseBaryonsDM">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+  !#  </stateStorable>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseBaryonsDM
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                              :: tableInitialized                  =  .false., turnaroundInitialized           =.false.
-     double precision                                                     :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum               , &
-          &                                                                  tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum             , &
-          &                                                                  turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum          , &
-          &                                                                  turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
-     logical                                                              :: tableStore
-     integer                                                              :: energyFixedAt
-     class           (table1D                              ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                  , &
-          &                                                                  turnaroundClustered                         , turnaroundUnclustered
-     class           (cosmologyParametersClass             ), pointer     :: cosmologyParameters_              => null()
-     class           (cosmologyFunctionsClass              ), pointer     :: cosmologyFunctions_               => null()
-     class           (intergalacticMediumFilteringMassClass), pointer     :: intergalacticMediumFilteringMass_ => null()
+     logical                                                                 :: tableInitialized                  =  .false., turnaroundInitialized              =  .false.
+     double precision                                                        :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
+          &                                                                     tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum                  , &
+          &                                                                     turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
+          &                                                                     turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
+     logical                                                                 :: tableStore
+     integer                                                                 :: energyFixedAt
+     class           (table1D                                 ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
+          &                                                                     turnaroundClustered                         , turnaroundUnclustered
+     class           (cosmologyParametersClass                ), pointer     :: cosmologyParameters_              => null()
+     class           (cosmologyFunctionsClass                 ), pointer     :: cosmologyFunctions_               => null()
+     class           (intergalacticMediumFilteringMassClass   ), pointer     :: intergalacticMediumFilteringMass_ => null()
+     type            (sphericalCollapseSolverBaryonsDarkMatter), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
      !@ <objectMethods>
      !@   <object>virialDensityContrastSphericalCollapseBaryonsDM</object>
@@ -76,8 +84,8 @@ contains
   
   function sphericalCollapseBaryonsDMConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters                     , only : inputParameter                                           , inputParameters
-    use Spherical_Collapse_Matter_Dark_Energy, only : enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode
+    use Input_Parameters          , only : inputParameter                          , inputParameters
+    use Spherical_Collapse_Solvers, only : enumerationMatterDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseBaryonsDM)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
@@ -108,7 +116,7 @@ contains
     !# <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     !# <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseBaryonsDM(tableStore,enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
+    self=virialDensityContrastSphericalCollapseBaryonsDM(tableStore,enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"             />
     !# <objectDestructor name="cosmologyFunctions_"              />
@@ -128,6 +136,10 @@ contains
     !# <constructorAssign variables="tableStore, energyFixedAt, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumFilteringMass_"/>
 
     self%tableInitialized=.false.
+    allocate(self%sphericalCollapseSolverClustered_  )
+    allocate(self%sphericalCollapseSolverUnclustered_)
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatter(.true. ,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatter(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     return
   end function sphericalCollapseBaryonsDMConstructorInternal
   
@@ -148,15 +160,16 @@ contains
        deallocate(self%turnaroundClustered  )
        deallocate(self%turnaroundUnclustered)
     end if
-    !# <objectDestructor name="self%cosmologyParameters_"             />
-    !# <objectDestructor name="self%cosmologyFunctions_"              />
-    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%cosmologyFunctions_"                />
+    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"  />
+    !# <objectDestructor name="self%sphericalCollapseSolverClustered_"  />
+    !# <objectDestructor name="self%sphericalCollapseSolverUnclustered_"/>
     return
   end subroutine sphericalCollapseBaryonsDMDestructor
 
   subroutine sphericalCollapseBaryonsDMRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_BDM, only : Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate
     implicit none
     class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout) :: self
     double precision                                                 , intent(in   ) :: time
@@ -169,8 +182,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.false.,self%energyFixedAt,self%tableStore,self%deltaVirialUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.true. ,self%energyFixedAt,self%tableStore,self%deltaVirialClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolverUnclustered_%virialDensityContrast(time,self%tableStore,self%deltaVirialUnclustered)
+       call self%sphericalCollapseSolverClustered_  %virialDensityContrast(time,self%tableStore,self%deltaVirialClustered  )
        self%tableInitialized=.true.
        self%tableClusteredTimeMinimum  =self%deltaVirialClustered  %x(+1)
        self%tableClusteredTimeMaximum  =self%deltaVirialClustered  %x(-1)
@@ -235,7 +248,6 @@ contains
 
   subroutine sphericalCollapseBaryonsDMRetabulateTurnaround(self,time)
     !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_BDM, only : Spherical_Collapse_BDM_Turnaround_Radius_Tabulate
     implicit none
     class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout) :: self
     double precision                                                 , intent(in   ) :: time
@@ -248,8 +260,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.false.,self%energyFixedAt,self%tableStore,self%turnaroundUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.true. ,self%energyFixedAt,self%tableStore,self%turnaroundClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolverUnclustered_%radiusTurnaround(time,self%tableStore,self%turnaroundUnclustered)
+       call self%sphericalCollapseSolverClustered_  %radiusTurnaround(time,self%tableStore,self%turnaroundClustered  )
        self%turnaroundInitialized=.true.
        self%turnaroundClusteredTimeMinimum  =self%turnaroundClustered  %x(+1)
        self%turnaroundClusteredTimeMaximum  =self%turnaroundClustered  %x(-1)

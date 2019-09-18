@@ -31,6 +31,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   use Numerical_Constants_Math
   use Cosmological_Density_Field
   use Galacticus_Display
+  use Events_Hooks
   implicit none
   double precision                          , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctions_
@@ -45,6 +46,8 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-½ cosmology)")

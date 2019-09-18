@@ -25,9 +25,16 @@
   use Tables
   use Statistics_Distributions
   use Kind_Numbers
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
 
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </stateStorable>
   !# </haloEnvironment>
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
      !% A normal halo environment class.
@@ -37,6 +44,7 @@
      class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_       => null()
      class           (linearGrowthClass                   ), pointer :: linearGrowth_                   => null()
      class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_            => null()
+     type            (sphericalCollapseSolverMatterLambda ), pointer :: sphericalCollapseSolver_        => null()
      type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
      type            (distributionFunction1DNormal        )          :: distributionOverdensityMassive
      type            (table2DLinLinLin                    )          :: linearToNonLinear
@@ -158,6 +166,9 @@ contains
     self%uniqueIDPrevious=-1_kind_int8
     ! Set initialization states.
     self%linearToNonLinearInitialized=.false.
+    ! Construct a spherical collapse solver.
+    allocate(self%sphericalCollapseSolver_)
+    !# <referenceConstruct owner="self" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterLambda(self%cosmologyFunctions_,self%linearGrowth_)"/>
     return
   end function normalConstructorInternal
 
@@ -171,6 +182,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%criticalOverdensity_"      />
     !# <objectDestructor name="self%linearGrowth_"             />
+    !# <objectDestructor name="self%sphericalCollapseSolver_"  />
     return
   end subroutine normalDestructor
 
@@ -245,8 +257,7 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes                , only : nodeComponentBasic
-    use Spherical_Collapse_Matter_Lambda, only : Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node
@@ -254,7 +265,7 @@ contains
 
     ! Get a table of linear vs. nonlinear density.
     if (.not.self%linearToNonLinearInitialized) then
-       call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear,self%linearGrowth_,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolver_%linearNonlinearMap(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear)
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.

@@ -26,8 +26,6 @@
   type, extends(criticalOverdensitySphericalCollapseMatterLambda) :: criticalOverdensitySphericalCollapseMatterDE
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
-   contains
-     procedure :: retabulate => sphericalCollapseMatterDERetabulate
   end type criticalOverdensitySphericalCollapseMatterDE
 
   interface criticalOverdensitySphericalCollapseMatterDE
@@ -52,6 +50,7 @@ contains
     class           (cosmologicalMassVarianceClass               ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                     ), pointer       :: darkMatterParticle_
     double precision                                                              :: normalization
+    logical                                                                       :: tableStore
 
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -61,11 +60,19 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>tableStore</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
-    self=criticalOverdensitySphericalCollapseMatterDE(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization)
+    self=criticalOverdensitySphericalCollapseMatterDE(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="linearGrowth_"            />
     !# <objectDestructor name="cosmologyFunctions_"      />
@@ -74,21 +81,28 @@ contains
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization) result(self)
+  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
     use Dark_Matter_Particles
     use Galacticus_Error
+    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterDarkEnergy, matterDarkEnergyFixedAtUndefined
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterDE)                          :: self
     class           (cosmologyFunctionsClass                     ), target  , intent(in   ) :: cosmologyFunctions_    
     class           (linearGrowthClass                           ), target  , intent(in   ) :: linearGrowth_    
     class           (cosmologicalMassVarianceClass               ), target  , intent(in   ) :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                     ), target  , intent(in   ) :: darkMatterParticle_
+    logical                                                                 , intent(in   ) :: tableStore
     double precision                                              , optional, intent(in   ) :: normalization
     !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, normalization"/>
+    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, normalization, tableStore"/>
 
     self%tableInitialized=.false.
+    allocate(sphericalCollapseSolverMatterDarkEnergy :: self%sphericalCollapseSolver_)
+    select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
+    type is (sphericalCollapseSolverMatterDarkEnergy)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterDarkEnergy(matterDarkEnergyFixedAtUndefined,self%cosmologyFunctions_,self%linearGrowth_)"/>
+    end select
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -98,26 +112,3 @@ contains
     end select
     return
   end function sphericalCollapseMatterDEConstructorInternal
-
-  subroutine sphericalCollapseMatterDERetabulate(self,time)
-    !% Recompute the look-up tables for critical overdensity for collapse.
-    use Spherical_Collapse_Matter_Dark_Energy
-    implicit none
-    class           (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
-    double precision                                              , intent(in   ) :: time
-    logical                                                                       :: remakeTable
-
-    ! Check if we need to recompute our table.
-    if (self%tableInitialized) then
-       remakeTable=(time < self%tableTimeMinimum .or. time > self%tableTimeMaximum)
-    else
-       remakeTable=.true.
-    end if
-    if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
-       self%tableInitialized=.true.
-       self%tableTimeMinimum=self%overdensityCritical%x(+1)
-       self%tableTimeMaximum=self%overdensityCritical%x(-1)
-    end if
-    return
-  end subroutine sphericalCollapseMatterDERetabulate

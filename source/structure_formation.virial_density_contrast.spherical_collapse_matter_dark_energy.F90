@@ -29,8 +29,6 @@
      private
      integer :: energyFixedAt
    contains
-     procedure :: retabulate                => sphericalCollapseMatterDERetabulate
-     procedure :: turnAroundOverVirialRadii => sphericalCollapseMatterDETurnAroundOverVirialRadii
   end type virialDensityContrastSphericalCollapseMatterDE
 
   interface virialDensityContrastSphericalCollapseMatterDE
@@ -43,14 +41,23 @@ contains
 
   function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters
-    use Spherical_Collapse_Matter_Dark_Energy
+    use Input_Parameters          , only : inputParameter                          , inputParameters
+    use Spherical_Collapse_Solvers, only : enumerationMatterDarkEnergyFixedAtEncode
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterDE)                :: self
-    type (inputParameters                               ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
-    type (varying_string                                )                :: energyFixedAt
-    
+    type   (virialDensityContrastSphericalCollapseMatterDE)                :: self
+    type   (inputParameters                               ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
+    type   (varying_string                                )                :: energyFixedAt
+    logical                                                                :: tableStore
+
+    !# <inputParameter>
+    !#   <name>tableStore</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
     !#   <cardinality>1</cardinality>
@@ -62,94 +69,28 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseMatterDE(enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseMatterDE(tableStore,enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(energyFixedAt,cosmologyFunctions_) result(self)
+  function sphericalCollapseMatterDEConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
+    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterDarkEnergy
     implicit none
     type   (virialDensityContrastSphericalCollapseMatterDE)                        :: self
     integer                                                , intent(in   )         :: energyFixedAt
+    logical                                                , intent(in   )         :: tableStore
     class  (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="energyFixedAt, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="tableStore, energyFixedAt, *cosmologyFunctions_"/>
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
+    allocate(sphericalCollapseSolverMatterDarkEnergy :: self%sphericalCollapseSolver_)
+    select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
+    type is (sphericalCollapseSolverMatterDarkEnergy)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterDarkEnergy(self%energyFixedAt,self%cosmologyFunctions_)"/>
+    end select
     return
   end function sphericalCollapseMatterDEConstructorInternal
-
-  subroutine sphericalCollapseMatterDERetabulate(self,time)
-    !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_Matter_Dark_Energy
-    implicit none
-    class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
-    double precision                                                , intent(in   ) :: time
-    logical                                                                         :: remakeTable
-
-    ! Check if we need to recompute our table.
-    if (self%tableInitialized) then
-       remakeTable=(time < self%tableTimeMinimum .or. time > self%tableTimeMaximum)
-    else
-       remakeTable=.true.
-    end if
-    if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,self%energyFixedAt,self%deltaVirial,self%cosmologyFunctions_)
-       self%tableInitialized=.true.
-       self%tableTimeMinimum=self%deltaVirial%x(+1)
-       self%tableTimeMaximum=self%deltaVirial%x(-1)
-    end if
-    return
-  end subroutine sphericalCollapseMatterDERetabulate
-
-  double precision function sphericalCollapseMatterDETurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
-    !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
-    !% constant universe.
-    use Galacticus_Error
-    use Spherical_Collapse_Matter_Dark_Energy
-    implicit none
-    class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout)           :: self
-    double precision                                                , intent(in   )           :: mass
-    double precision                                                , intent(in   ), optional :: time       , expansionFactor
-    logical                                                         , intent(in   ), optional :: collapsing
-    logical                                                                                   :: remakeTable, collapsingActual
-    double precision                                                                          :: timeActual
-    !GCC$ attributes unused :: mass
-
-    ! Determine which type of input we have.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
-       else
-          timeActual=time
-       end if
-    else
-       if (present(expansionFactor)) then
-          if (present(collapsing)) then
-             collapsingActual=collapsing
-          else
-             collapsingActual=.false.
-          end if
-          timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
-       else
-          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
-       end if
-    end if
-    ! Check if we need to recompute our table.
-    if (self%turnaroundInitialized) then
-       remakeTable=(timeActual < self%turnaroundTimeMinimum .or. timeActual > self%turnaroundTimeMaximum)
-    else
-       remakeTable=.true.
-    end if
-    if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(timeActual,self%energyFixedAt,self%turnaround,self%cosmologyFunctions_)
-       self%turnaroundInitialized=.true.
-       self%turnaroundTimeMinimum=self%turnaround%x(+1)
-       self%turnaroundTimeMaximum=self%turnaround%x(-1)
-    end if
-    ! Interpolate to get the ratio.
-    sphericalCollapseMatterDETurnAroundOverVirialRadii=self%turnaround%interpolate(timeActual)
-    return
-  end function sphericalCollapseMatterDETurnAroundOverVirialRadii

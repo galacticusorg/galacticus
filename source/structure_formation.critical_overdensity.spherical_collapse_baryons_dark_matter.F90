@@ -20,25 +20,33 @@
   !% An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
 
   use Tables                               , only : table1D
-  use Cosmology_Parameters                 , only : cosmologyParameters             , cosmologyParametersClass
-  use Dark_Matter_Particles                , only : darkMatterParticle              , darkMatterParticleClass
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
-  
+  use Cosmology_Parameters                 , only : cosmologyParameters                     , cosmologyParametersClass
+  use Dark_Matter_Particles                , only : darkMatterParticle                      , darkMatterParticleClass
+  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass        , intergalacticMediumFilteringMassClass
+  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatter
+
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseBaryonsDM">
   !#  <description>Critical overdensity for collapse based on the spherical collapse accounting for non-clustering of baryons.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+  !#  </stateStorable>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseBaryonsDM
      !% A critical overdensity class based on spherical collapse accounting for non-clustering of baryons.
      private
-     logical                                                              :: tableInitialized
-     double precision                                                     :: tableClusteredTimeMinimum                  , tableClusteredTimeMaximum     , &
-          &                                                                  tableUnclusteredTimeMinimum                , tableUnclusteredTimeMaximum
-     double precision                                                     :: normalization
-     logical                                                              :: tableStore
-     class           (table1D                              ), allocatable :: overdensityCriticalClustered               , overdensityCriticalUnclustered
-     class           (darkMatterParticleClass              ), pointer     :: darkMatterParticle_               => null()
-     class           (cosmologyParametersClass             ), pointer     :: cosmologyParameters_              => null()
-     class           (intergalacticMediumFilteringMassClass), pointer     :: intergalacticMediumFilteringMass_ => null()
+     logical                                                                 :: tableInitialized
+     double precision                                                        :: tableClusteredTimeMinimum                  , tableClusteredTimeMaximum                    , &
+          &                                                                     tableUnclusteredTimeMinimum                , tableUnclusteredTimeMaximum
+     double precision                                                        :: normalization
+     logical                                                                 :: tableStore
+     class           (table1D                                 ), allocatable :: overdensityCriticalClustered               , overdensityCriticalUnclustered
+     class           (darkMatterParticleClass                 ), pointer     :: darkMatterParticle_               => null()
+     class           (cosmologyParametersClass                ), pointer     :: cosmologyParameters_              => null()
+     class           (intergalacticMediumFilteringMassClass   ), pointer     :: intergalacticMediumFilteringMass_ => null()
+     type            (sphericalCollapseSolverBaryonsDarkMatter), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseBaryonsDM</object>
@@ -114,8 +122,9 @@ contains
 
   function sphericalCollapseBaryonsDMConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} critical overdensity class.
-    use Dark_Matter_Particles, only : darkMatterParticleCDM
-    use Galacticus_Error     , only : Galacticus_Error_Report
+    use Dark_Matter_Particles     , only : darkMatterParticleCDM
+    use Galacticus_Error          , only : Galacticus_Error_Report
+    use Spherical_Collapse_Solvers, only : matterDarkEnergyFixedAtUndefined
     implicit none
     type            (criticalOverdensitySphericalCollapseBaryonsDM)                          :: self
     class           (cosmologyFunctionsClass                      ), target  , intent(in   ) :: cosmologyFunctions_    
@@ -129,6 +138,10 @@ contains
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, normalization"/>
 
     self%tableInitialized=.false.
+    allocate(self%sphericalCollapseSolverClustered_  )
+    allocate(self%sphericalCollapseSolverUnclustered_)
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatter(.true. ,matterDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatter(.false.,matterDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -144,11 +157,13 @@ contains
     implicit none
     type(criticalOverdensitySphericalCollapseBaryonsDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"             />
-    !# <objectDestructor name="self%cosmologyFunctions_"              />
-    !# <objectDestructor name="self%darkMatterParticle_"              />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"        />
-    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%cosmologyFunctions_"                />
+    !# <objectDestructor name="self%darkMatterParticle_"                />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"          />
+    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"  />
+    !# <objectDestructor name="self%sphericalCollapseSolverClustered_"  />
+    !# <objectDestructor name="self%sphericalCollapseSolverUnclustered_"/>
     if (self%tableInitialized) then
        call self%overdensityCriticalClustered  %destroy()
        call self%overdensityCriticalUnclustered%destroy()
@@ -160,7 +175,6 @@ contains
 
   subroutine sphericalCollapseBaryonsDMRetabulate(self,time)
     !% Recompute the look-up tables for critical overdensity for collapse.
-    use Spherical_Collapse_BDM, only : Spherical_Collapse_BDM_Critical_Overdensity_Tabulate
     implicit none
     class           (criticalOverdensitySphericalCollapseBaryonsDM), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
@@ -173,8 +187,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.false.,self%tableStore,self%overdensityCriticalUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.true. ,self%tableStore,self%overdensityCriticalClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolverUnclustered_%criticalOverdensity(time,self%tableStore,self%overdensityCriticalUnclustered)
+       call self%sphericalCollapseSolverClustered_  %criticalOverdensity(time,self%tableStore,self%overdensityCriticalClustered  )
        self%tableInitialized           =.true.
        self%tableClusteredTimeMinimum  =self%overdensityCriticalClustered  %x(+1)
        self%tableClusteredTimeMaximum  =self%overdensityCriticalClustered  %x(-1)
@@ -249,8 +263,6 @@ contains
 
   double precision function sphericalCollapseBaryonsDMGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
-    use Linear_Growth
-    use Cosmology_Functions
     implicit none
     class           (criticalOverdensitySphericalCollapseBaryonsDM), intent(inout)           :: self
     double precision                                               , intent(in   ), optional :: time      , expansionFactor

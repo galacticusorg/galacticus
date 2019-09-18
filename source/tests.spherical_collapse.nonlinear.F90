@@ -27,39 +27,44 @@ program Tests_Spherical_Collapse_NonLinear
   use Cosmology_Functions
   use Cosmology_Parameters
   use Linear_Growth
-  use Spherical_Collapse_Matter_Lambda
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
   use Galacticus_Display
   implicit none
   ! Target nonlinear overdensities are computed using the analytic solutions for expanding/collapsing perturbations in an
   ! Einstein-de Sitter universe.
-  double precision                                , dimension(5), parameter :: overdensityLinear         =[-1.500000d0,-1.000000d0,+0.000000d0,+1.00000d0,+1.50000d0], &
-       &                                                                       overdensityNonLinearTarget=[-0.653016d0,-0.540387d0,+0.000000d0,+3.69477d0,+4.82042d1]
-  double precision                                , dimension(5)            :: overdensityNonLinear
-  type            (table2DLinLinLin              )                          :: linearToNonLinear
-  type            (cosmologyFunctionsMatterLambda)                          :: cosmologyFunctions_
-  type            (cosmologyParametersSimple     )                          :: cosmologyParameters_
-  type            (linearGrowthSimple            )                          :: linearGrowth_
-  integer                                                                   :: i
+  double precision                                     , dimension(5), parameter :: overdensityLinear         =[-1.500000d0,-1.000000d0,+0.000000d0,+1.00000d0,+1.50000d0], &
+       &                                                                            overdensityNonLinearTarget=[-0.653016d0,-0.540387d0,+0.000000d0,+3.69477d0,+4.82042d1]
+  double precision                                     , dimension(5)            :: overdensityNonLinear
+  type            (table2DLinLinLin                   )                          :: linearToNonLinear
+  type            (cosmologyFunctionsMatterLambda     )                          :: cosmologyFunctions_
+  type            (cosmologyParametersSimple          )                          :: cosmologyParameters_
+  type            (linearGrowthSimple                 )                          :: linearGrowth_
+  type            (sphericalCollapseSolverMatterLambda)                          :: sphericalCollapseSolver_
+  integer                                                                        :: i
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Initialize cosmology.
-  cosmologyParameters_=cosmologyParametersSimple     (                                      &
-       &                                              OmegaMatter    = 1.00d0             , &
-       &                                              OmegaBaryon    = 0.00d0             , &
-       &                                              OmegaDarkEnergy= 0.00d0             , &
-       &                                              temperatureCMB = 2.73d0             , &
-       &                                              HubbleConstant =70.00d0               &
-       &                                             )
-  cosmologyFunctions_ =cosmologyFunctionsMatterLambda(                                      &
-       &                                                              cosmologyParameters_  &
-       &                                             )
-  linearGrowth_       =linearGrowthSimple            (                                      &
-       &                                                              cosmologyParameters_, &
-       &                                                              cosmologyFunctions_   &
-       &                                             )
+  cosmologyParameters_    =cosmologyParametersSimple          (                                      &
+       &                                                       OmegaMatter    = 1.00d0             , &
+       &                                                       OmegaBaryon    = 0.00d0             , &
+       &                                                       OmegaDarkEnergy= 0.00d0             , &
+       &                                                       temperatureCMB = 2.73d0             , &
+       &                                                       HubbleConstant =70.00d0               &
+       &                                                      )
+  cosmologyFunctions_     =cosmologyFunctionsMatterLambda     (                                      &
+       &                                                                       cosmologyParameters_  &
+       &                                                      )
+  linearGrowth_           =linearGrowthSimple                 (                                      &
+       &                                                                       cosmologyParameters_, &
+       &                                                                       cosmologyFunctions_   &
+       &                                                      )
+  sphericalCollapseSolver_=sphericalCollapseSolverMatterLambda(                                      &
+       &                                                                       cosmologyFunctions_ , &
+       &                                                                       linearGrowth_         &
+       &                                                      )
   ! Get a table of linear to nonlinear overdensity mapping.
-  call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(cosmologyFunctions_%cosmicTime(1.0d0),linearToNonLinear,linearGrowth_,cosmologyFunctions_)
+  call sphericalCollapseSolver_%linearNonlinearMap(cosmologyFunctions_%cosmicTime(1.0d0),linearToNonLinear)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: nonlinear solutions")
   do i=1,size(overdensityLinear)

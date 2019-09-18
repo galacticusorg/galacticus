@@ -32,7 +32,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
   use Galacticus_Display
   use Events_Hooks
   implicit none
-  double precision                            , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
+  double precision                            , dimension(3) :: redshift                     =[  0.00d0,  1.00d0,  2.00d0]
   double precision                            , dimension(3) :: virialDensityContrastExpected=[367.81d0,217.63d0,192.72d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_

@@ -23,19 +23,27 @@
   use Tables
   use Cosmology_Functions
   use Dark_Matter_Particles
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
 
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </stateStorable>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                :: tableInitialized    = .false.
-     double precision                                       :: tableTimeMinimum             , tableTimeMaximum
-     double precision                                       :: normalization
-     logical                                                :: tableStore
-     class           (table1D                ), allocatable :: overdensityCritical
-     class           (darkMatterParticleClass), pointer     :: darkMatterParticle_ => null()
+     logical                                                            :: tableInitialized         = .false.
+     double precision                                                   :: tableTimeMinimum                  , tableTimeMaximum
+     double precision                                                   :: normalization
+     logical                                                            :: tableStore
+     class           (table1D                            ), allocatable :: overdensityCritical
+     class           (darkMatterParticleClass            ), pointer     :: darkMatterParticle_      => null()
+     class           (sphericalCollapseSolverMatterLambda), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseMatterLambda</object>
@@ -123,6 +131,11 @@ contains
 
     self%normalization   =normalization_
     self%tableInitialized=.false.
+    allocate(sphericalCollapseSolverMatterLambda :: self%sphericalCollapseSolver_)
+    select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
+    type is (sphericalCollapseSolverMatterLambda)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterLambda(self%cosmologyFunctions_,self%linearGrowth_)"/>
+    end select
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -142,6 +155,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%darkMatterParticle_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%sphericalCollapseSolver_" />
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)
@@ -151,7 +165,6 @@ contains
 
   subroutine sphericalCollapseMatterLambdaRetabulate(self,time)
     !% Recompute the look-up tables for critical overdensity for collapse.
-    use Spherical_Collapse_Matter_Lambda
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
     double precision                                                  , intent(in   ) :: time
@@ -164,7 +177,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%tableStore,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
+       call self%sphericalCollapseSolver_%criticalOverdensity(time,self%tableStore,self%overdensityCritical)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)
