@@ -1,0 +1,526 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% A spherical collapse solver class for universes consisting of baryons, collisionless matter, and dark energy.
+
+  use Cosmology_Parameters, only : cosmologyParametersClass, cosmologyParameters
+
+  !# <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatter">
+  !#  <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
+  !# </sphericalCollapseSolver>
+  type, extends(sphericalCollapseSolverMatterDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatter
+     !% A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
+     private
+     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
+     logical                                    :: baryonsCluster
+   contains
+     final     ::             baryonsDarkMatterDestructor
+     procedure :: tabulate => baryonsDarkMatterTabulate
+  end type sphericalCollapseSolverBaryonsDarkMatter
+
+  interface sphericalCollapseSolverBaryonsDarkMatter
+     !% Constructors for the {\normalfont \ttfamily baryonsDarkMatter} spherical collapse solver class.
+     module procedure baryonsDarkMatterConstructorParameters
+     module procedure baryonsDarkMatterConstructorInternal
+  end interface sphericalCollapseSolverBaryonsDarkMatter
+
+  ! Variables used in root finding.
+  double precision :: baryonsDarkMatterOmegaBaryonEpochal
+  logical          :: baryonsDarkMatterBaryonsCluster
+  !$omp threadprivate(baryonsDarkMatterOmegaBaryonEpochal,baryonsDarkMatterBaryonsCluster)
+  
+contains
+
+  function baryonsDarkMatterConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily baryonsDarkMatter} spherical collapse solver class that takes a parameter set as
+    !% input.
+    use Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type   (sphericalCollapseSolverBaryonsDarkMatter)                :: self
+    type   (inputParameters                         ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    class  (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
+    type   (varying_string                          )                :: energyFixedAt
+    logical                                                          :: baryonsCluster
+
+    !# <inputParameter>
+    !#   <name>baryonsCluster</name>
+    !#   <source>parameters</source>
+    !#   <description>If true baryons are assumed to cluster in the same way as collisionless matter. If false, baryons are assumed not to cluster at all.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>energyFixedAt</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('turnaround')</defaultValue>
+    !#   <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=sphericalCollapseSolverBaryonsDarkMatter(baryonsCluster,enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    return
+  end function baryonsDarkMatterConstructorParameters
+
+  function baryonsDarkMatterConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} spherical collapse solver class.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    use Linear_Growth   , only : linearGrowthSimple     , linearGrowthNonClusteringBaryons
+    implicit none
+    type   (sphericalCollapseSolverBaryonsDarkMatter)                        :: self
+    logical                                          , intent(in   )         :: baryonsCluster
+    integer                                          , intent(in   )         :: energyFixedAt
+    class  (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
+    class  (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="baryonsCluster, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
+
+    if (.not.enumerationMatterDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
+    if (baryonsCluster) then
+       allocate(linearGrowthSimple               :: self%linearGrowth_)
+    else
+       allocate(linearGrowthNonClusteringBaryons :: self%linearGrowth_)
+    end if
+    select type (linearGrowth_ => self%linearGrowth_)
+    type is (linearGrowthSimple              )
+       !# <referenceConstruct object="linearGrowth_" constructor="linearGrowthSimple              (self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    type is (linearGrowthNonClusteringBaryons)
+       !# <referenceConstruct object="linearGrowth_" constructor="linearGrowthNonClusteringBaryons(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    end select
+    return
+  end function baryonsDarkMatterConstructorInternal
+
+  subroutine baryonsDarkMatterDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily baryonsDarkMatter} spherical collapse solver class.
+    implicit none
+    type(sphericalCollapseSolverBaryonsDarkMatter), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    return
+  end subroutine baryonsDarkMatterDestructor
+  
+  subroutine baryonsDarkMatterTabulate(self,time,sphericalCollapse_,calculationType)
+    !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    use Root_Finder       , only : rootFinder               , rangeExpandMultiplicative  , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use Galacticus_Error  , only : Galacticus_Error_Report
+    use Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter   , Galacticus_Display_Counter_Clear, &
+         &                         verbosityWorking
+    use Tables            , only : table1DLogarithmicLinear
+    implicit none
+    class           (sphericalCollapseSolverBaryonsDarkMatter)             , intent(inout) :: self
+    double precision                                                       , intent(in   ) :: time
+    integer                                                                , intent(in   ) :: calculationType
+    class           (table1D                                 ), allocatable, intent(inout) :: sphericalCollapse_
+    class           (linearGrowthClass                       ), pointer                    :: linearGrowth_
+    double precision                                          , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-12
+    double precision                                          , dimension(2)               :: timeRange
+    type            (rootFinder                              ), save                       :: finderPerturbationInitial            , finderExpansionMaximum
+    !$omp threadprivate(finderPerturbationInitial,finderExpansionMaximum)
+    integer                                                                                :: countTimes                           , iTime                                  , &
+         &                                                                                    iCount
+    double precision                                                                       :: expansionFactor                      , epsilonPerturbation                    , &
+         &                                                                                    epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , &
+         &                                                                                    densityContrastExpansionMaximum      , expansionFactorExpansionMaximum        , &
+         &                                                                                    radiusExpansionMaximum               , timeExpansionMaximum                   , &
+         &                                                                                    normalization                        , q                                      , &
+         &                                                                                    timeEnergyFixed                      , timeInitial                            , &
+         &                                                                                    y                                    , timeMinimum                            , &
+         &                                                                                    timeMaximum                          , r                                      , &
+         &                                                                                    z                                    , fractionDarkMatter
+    double complex                                                                         :: a                                    , b                                      , &
+         &                                                                                    x
+    type            (varying_string                          )                             :: message
+    character       (len=13                                  )                             :: label
+    
+    ! Find minimum and maximum times to tabulate.
+    if (allocated(sphericalCollapse_)) then
+       ! Use currently tabulated range as the starting point.
+       timeMinimum=sphericalCollapse_%x(+1)
+       timeMaximum=sphericalCollapse_%x(-1)
+    else
+       ! Specify an initial default range.
+       timeMinimum= 0.1d0
+       timeMaximum=20.0d0
+    end if
+    ! Expand the range to ensure the requested time is included.
+    timeMinimum=min(timeMinimum,time/2.0d0)
+    timeMaximum=max(timeMaximum,time*2.0d0)
+    ! Determine number of points to tabulate.
+    countTimes=int(log10(timeMaximum/timeMinimum)*dble(matterLambdaTablePointsPerDecade))
+    ! Copy baryon clustering option to module-scope.
+    baryonsDarkMatterBaryonsCluster=self%baryonsCluster
+    ! Deallocate table if currently allocated.
+    if (allocated(sphericalCollapse_)) then
+       call sphericalCollapse_%destroy()
+       deallocate(sphericalCollapse_)
+    end if
+    allocate(table1DLogarithmicLinear :: sphericalCollapse_)
+    select type (sphericalCollapse_)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
+       ! Solve ODE to get corresponding overdensities.
+       message="Solving spherical collapse model for baryons + dark matter + dark energy universe for "
+       write (label,'(e12.6)') timeMinimum
+       message=message//trim(adjustl(label))//" ≤ t/Gyr ≤ "
+       write (label,'(e12.6)') timeMaximum
+       message=message//trim(adjustl(label))
+       call Galacticus_Display_Indent(message,verbosity=verbosityWorking)
+       iCount=0
+       call Galacticus_Display_Counter(                            &
+            &                                    iCount          , &
+            &                          isNew    =.true.          , &
+            &                          verbosity=verbosityWorking  &
+            &                         )
+       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)       
+       allocate(matterDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !# <deepCopy source="self%cosmologyFunctions_" destination="matterDarkEnergyCosmologyFunctions_"/>
+       if (calculationType == matterLambdaCalculationCriticalOverdensity) then
+          allocate(linearGrowth_,mold=self%linearGrowth_)
+          !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
+       end if
+       !$omp do schedule(dynamic)
+       do iTime=1,countTimes
+          call Galacticus_Display_Counter(                                              &
+               &                          int(100.0d0*dble(iCount-1)/dble(countTimes)), &
+               &                          isNew=.false.                               , &
+               &                          verbosity=verbosityWorking                    &
+               &                         )
+          ! Get the current expansion factor.
+          expansionFactor=matterDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
+          ! Initial guess for the range of the initial perturbation amplitude. Since we expect a collapsing perturbation to have
+          ! linear theory amplitude of order unity at the time of collapse, and since linear perturbations grow proportional to
+          ! the expansion factor in an Einstein-de Sitter universe with no baryons, we use an initial guess for the lower and
+          ! upper limits which are a multiple of our starting expansion factor.
+          epsilonPerturbationMinimum=1.0d-1*matterDarkEnergyExpansionFactorInitialFraction
+          epsilonPerturbationMaximum=1.0d+1*matterDarkEnergyExpansionFactorInitialFraction
+          ! Evaluate cosmological parameters at the present time.
+          matterLambdaOmegaMatterEpochal        =+     matterDarkEnergyCosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)
+          if (self%baryonsCluster) then
+             baryonsDarkMatterOmegaBaryonEpochal=+0.0d0
+          else
+             baryonsDarkMatterOmegaBaryonEpochal=+matterLambdaOmegaMatterEpochal                                                                   &
+                  &                              *self%cosmologyParameters_               %OmegaBaryon           (                               ) &
+                  &                              /self%cosmologyParameters_               %OmegaMatter           (                               )
+          end if
+          matterLambdaOmegaDarkEnergyEpochal    =+     matterDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          matterLambdaHubbleTimeEpochal         =+     matterDarkEnergyCosmologyFunctions_%expansionRate         (                expansionFactor)
+          matterLambdaTime                      =+     sphericalCollapse_                 %x                     (                iTime          )
+          ! Check dark energy equation of state is within acceptable range.
+          if (matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=matterLambdaTime) >= -1.0d0/3.0d0) &
+               & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
+          ! Find the value of epsilon for which the perturbation just collapses at this time.
+          if (.not.finderPerturbationInitial%isInitialized()) then
+             call finderPerturbationInitial%rootFunction(baryonsDarkMatterRadiusPerturbation)
+             call finderPerturbationInitial%tolerance   (toleranceAbsolute,toleranceRelative)
+             call finderPerturbationInitial%rangeExpand (                                             &
+                  &                                      rangeExpandUpward=2.0d0                    , &
+                  &                                      rangeExpandType  =rangeExpandMultiplicative  &
+                  &                                     )
+          end if
+          epsilonPerturbation=finderPerturbationInitial%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
+          select case (calculationType)
+          case (matterLambdaCalculationCriticalOverdensity)
+             ! Critical linear overdensity.
+             normalization=+linearGrowth_%value                                                                                                                (matterLambdaTime) &
+                  &        /linearGrowth_%value(                                                                                                                                  &
+                  &                             matterDarkEnergyCosmologyFunctions_%cosmicTime(                                                                                   &
+                  &                                                                            +matterDarkEnergyExpansionFactorInitialFraction                                    &
+                  &                                                                            *matterDarkEnergyCosmologyFunctions_            %expansionFactor(matterLambdaTime) &
+                  &                                                                           )                                                                                   &
+                  &                            )
+             call sphericalCollapse_%populate(                                   &
+                  &                           normalization*epsilonPerturbation, &
+                  &                           iTime                              &
+                  &                          )
+          case (matterLambdaCalculationVirialDensityContrast,matterLambdaCalculationRadiusTurnaround)
+             ! Find the epoch of maximum expansion for the perturbation.
+             if (.not.finderExpansionMaximum%isInitialized()) then
+                call finderExpansionMaximum%rootFunction(baryonsDarkMatterExpansionRatePerturbation)
+                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative       )
+             end if
+             call finderExpansionMaximum%rangeExpand (                                                             &
+                  &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &
+                  &                                   rangeExpandUpward            =1.0d0+1.0d-2                 , &
+                  &                                   rangeExpandType              =rangeExpandMultiplicative    , &
+                  &                                   rangeUpwardLimit             =matterLambdaTime             , &
+                  &                                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+                  &                                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+                  &                                  )
+             matterLambdaAmplitudePerturbation=epsilonPerturbation
+             ! Compute the corresponding time of maximum expansion.
+             timeInitial                    =matterDarkEnergyCosmologyFunctions_%cosmicTime(matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)*matterDarkEnergyExpansionFactorInitialFraction)
+             ! Guess that the time of maximum expansion occurred at close to half of the current time.
+             timeRange                      =[0.45d0,0.55d0]*matterLambdaTime
+             timeExpansionMaximum           =finderExpansionMaximum%find(rootRange=timeRange)
+             expansionFactorExpansionMaximum=matterDarkEnergyCosmologyFunctions_%expansionFactor(timeExpansionMaximum)
+             ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
+             call baryonsDarkMatterPerturbationDynamicsSolver(epsilonPerturbation,timeExpansionMaximum,radiusExpansionMaximum)
+             ! Compute the density contrast of the perturbation at maximum expansion.
+             densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
+             ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38; but modified to include the effects of baryons)
+             ! to give the ratio of virial to turnaround radii, x.
+             select case (self%energyFixedAt)
+             case (matterDarkEnergyFixedAtTurnaround   )
+                timeEnergyFixed=timeExpansionMaximum
+             case (matterDarkEnergyFixedAtVirialization)
+                timeEnergyFixed=matterLambdaTime
+             case default
+                call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})
+             end select
+             if (self%baryonsCluster) then
+                q                 =     +matterDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(time=timeExpansionMaximum) &
+                     &                  /matterDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (time=timeExpansionMaximum) &
+                     &                  /densityContrastExpansionMaximum
+                y                 =     +expansionFactorExpansionMaximum**matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=timeExpansionMaximum) &
+                     &                  /expansionFactor                **matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=matterLambdaTime    )
+                a                 =+1.0d0          -(1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed ))*q/2.0d0
+                b                 =                +(1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=matterLambdaTime))*q/y
+             else
+                fractionDarkMatter=+(                                         &
+                     &               +self%cosmologyParameters_%OmegaMatter() &
+                     &               -self%cosmologyParameters_%OmegaBaryon() &
+                     &              )                                         &
+                     &             /  self%cosmologyParameters_%OmegaMatter()
+                q                 =+matterDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(time=timeExpansionMaximum) &
+                     &             /matterDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (time=timeExpansionMaximum) &
+                     &             /fractionDarkMatter                                                                    &
+                     &             /densityContrastExpansionMaximum
+                y                 = expansionFactorExpansionMaximum**matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=timeExpansionMaximum) &
+                     &             /expansionFactor                **matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=matterLambdaTime                )
+                
+                r                 =+  self%cosmologyParameters_%OmegaBaryon() &
+                     &             /(                                         &
+                     &               +self%cosmologyParameters_%OmegaMatter() &
+                     &               -self%cosmologyParameters_%OmegaBaryon() & 
+                     &              )                                         &
+                     &             /densityContrastExpansionMaximum
+                z                 =+(                                    &
+                     &               +expansionFactorExpansionMaximum    &
+                     &               /expansionFactor                    &
+                     &              )**3
+                a                 =+1.0d0+r        -(1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed ))*q/2.0d0
+                b                 =      -r/z/2.0d0+(1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=matterLambdaTime))*q/y
+             end if
+             x      =+(0.0d0,0.5d0)*sqrt(3.0d0)                                                                          &
+                  &  *(                                                                                                  &
+                  &    +1.0d0/b*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(+1.0d0/3.0d0)/ 6.0d0  &
+                  &    +2.0d0*a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)         &
+                  &   )                                                                                                  &
+                  &  - (1.0d0/b*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(+1.0d0/3.0d0)/12.0d0) &
+                  &  + (      a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)       )
+             select case (calculationType)
+             case (matterLambdaCalculationVirialDensityContrast)
+                ! The density contrast calculated as Δ=1/(x Rmax)³ is Δ=ρvir/⟨ρDM⟩ - i.e. the density of the virialized dark
+                ! matter perturbation relative to the mean density of dark matter. However, what we want (for the definition used
+                ! by Galacticus) is the density of the perturbation relative to the total mean density. So we perform that
+                ! conversion here.
+                call sphericalCollapse_%populate(                                            &
+                     &                           +(                                          &
+                     &                             +self%cosmologyParameters_%OmegaMatter()  &
+                     &                             -self%cosmologyParameters_%OmegaBaryon()  &
+                     &                            )                                          &
+                     &                           /  self%cosmologyParameters_%OmegaMatter()  &
+                     &                           /(dble(x)*radiusExpansionMaximum)**3      , &
+                     &                           iTime                                       &
+                     &                          )
+             case (matterLambdaCalculationRadiusTurnaround)
+                call sphericalCollapse_%populate(                                            &
+                     &                           1.0d0/ dble(x)                            , &
+                     &                           iTime                                       &
+                     &                          )
+             end select
+          end select
+          !$omp atomic
+          iCount=iCount+1
+       end do
+       !$omp end do
+       !#    <objectDestructor name="matterDarkEnergyCosmologyFunctions_"/>
+       if (calculationType == matterLambdaCalculationCriticalOverdensity) then
+          !# <objectDestructor name="linearGrowth_"                      />
+       end if
+       !$omp end parallel
+       call Galacticus_Display_Counter_Clear(       verbosity=verbosityWorking)
+       call Galacticus_Display_Unindent     ('done',verbosity=verbosityWorking)
+    end select
+    return
+  end subroutine baryonsDarkMatterTabulate
+
+  double precision function baryonsDarkMatterRadiusPerturbation(epsilonPerturbation)
+    !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    implicit none
+    double precision, intent(in   ) :: epsilonPerturbation
+
+    call baryonsDarkMatterPerturbationDynamicsSolver(epsilonPerturbation,matterLambdaTime,baryonsDarkMatterRadiusPerturbation)
+    return
+  end function baryonsDarkMatterRadiusPerturbation
+
+  double precision function baryonsDarkMatterExpansionRatePerturbation(time)
+    !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    implicit none
+    double precision, intent(in   ) :: time
+
+    call baryonsDarkMatterPerturbationDynamicsSolver(matterLambdaAmplitudePerturbation,time,expansionRatePerturbation=baryonsDarkMatterExpansionRatePerturbation)
+    return
+  end function baryonsDarkMatterExpansionRatePerturbation
+
+  subroutine baryonsDarkMatterPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
+    !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    use FGSL            , only : FGSL_Success
+    use ODEIV2_Solver   , only : ODEIV2_Solve           , ODEIV2_Solver_Free
+    use FODEIV2         , only : fodeiv2_system         , fodeiv2_driver
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                    , intent(in   )                        :: perturbationOverdensityInitial           , time
+    double precision                    , intent(  out)             , optional :: expansionRatePerturbation                , radiusPerturbation
+    integer                             , parameter                            :: countProperties                    =2
+    double precision                    , dimension(countProperties)           :: propertyValues
+    double precision                    , parameter                            :: odeToleranceAbsolute               =0.0d0, odeToleranceRelative             =1.0d-12
+    type            (fodeiv2_system    )                                       :: ode2System
+    type            (fodeiv2_driver    )                                       :: ode2Driver
+    logical                                                                    :: odeReset
+    double precision                                                           :: expansionFactorInitial                   , radiusDifferenceGrowthRateInitial        , &
+         &                                                                        timeInitial                              , exponent                                 , &
+         &                                                                        radiusDifferenceInitial
+    integer                                                                    :: odeStatus
+
+    ! Validate the perturbation overdensity.
+    if (perturbationOverdensityInitial < 0.0d+0) call Galacticus_Error_Report('initial overdensity of perturbation should be non-negative'//{introspection:location})
+    if (perturbationOverdensityInitial > 1.0d-3) call Galacticus_Error_Report('initial overdensity of perturbation should be small'       //{introspection:location})
+    ! Specify a sufficiently early time.
+    expansionFactorInitial=matterDarkEnergyExpansionFactorInitialFraction
+    ! Find the corresponding cosmic time.
+    timeInitial=matterDarkEnergyCosmologyFunctions_%cosmicTime(expansionFactorInitial*matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime))
+    ! Determine the initial growth rate of the overdensity assuming the matter-dominated phase growth factor is proportional to the expansion factor.
+    if (baryonsDarkMatterBaryonsCluster) then
+       ! Baryons are assumed to cluster, so the usual matter dominated solution of D(a)=a applies.
+       exponent=1.0d0
+    else
+       ! Baryons do not cluster, the growth factor is D(a)=a^{3p/2} with p=[sqrt(1+24fₓ)-1]/6
+       exponent=0.25d0*(sqrt(1.0d0+24.0d0*(matterLambdaOmegaMatterEpochal-baryonsDarkMatterOmegaBaryonEpochal)/matterLambdaOmegaMatterEpochal)-1.0d0)
+    end if
+    ! We solve the equations for the evolution of y(t) = a_p(t) - a(t) - where a_p(t) is the radius of our perturbation, and a(t)
+    ! is the expansion factor. Using y(t) as our variable allows us to maintain precision at early times when y(t) is very small -
+    ! if we instead solve directly for a_p(t) numerical issues prevent a numerically robust solution from being obtained.
+    !! Find the initial radius parameter, y(t) of the perturbation.
+    radiusDifferenceInitial          =+      expansionFactorInitial                                                &
+         &                            *(                                                                           &
+         &                              -( 1.0d0/  3.0d0)                       *perturbationOverdensityInitial    &
+         &                              +( 2.0d0/  9.0d0)                       *perturbationOverdensityInitial**2 &
+         &                              -(14.0d0/ 81.0d0)                       *perturbationOverdensityInitial**3 &
+         &                              +(35.0d0/243.0d0)                       *perturbationOverdensityInitial**4 &
+         &                              -(91.0d0/729.0d0)                       *perturbationOverdensityInitial**5 &
+         &                             )
+    ! Find the initial growth rate of the perturbation radius.
+    radiusDifferenceGrowthRateInitial=+      matterLambdaHubbleTimeEpochal                                         &
+         &                            *sqrt(                                                                       &
+         &                                  +matterLambdaOmegaMatterEpochal                                        &
+         &                                  /expansionFactorInitial**3                                             &
+         &                                 )                                                                       &
+         &                            *      expansionFactorInitial                                                &
+         &                            *(                                                                           &
+         &                              -( 1.0d0/  3.0d0)*(1.0d0+      exponent)*perturbationOverdensityInitial    &
+         &                              +( 2.0d0/  9.0d0)*(1.0d0+2.0d0*exponent)*perturbationOverdensityInitial**2 &
+         &                              -(14.0d0/ 81.0d0)*(1.0d0+3.0d0*exponent)*perturbationOverdensityInitial**3 &
+         &                              +(35.0d0/243.0d0)*(1.0d0+4.0d0*exponent)*perturbationOverdensityInitial**4 &
+         &                              -(91.0d0/729.0d0)*(1.0d0+5.0d0*exponent)*perturbationOverdensityInitial**5 &
+         &                             )
+    ! Set initial conditions.
+    propertyValues=[radiusDifferenceInitial,radiusDifferenceGrowthRateInitial]
+    ! Evolve if the requested time is after the initial time.
+    if (time > timeInitial) then
+       ! Solve the ODE to find the perturbation radius at the present day.
+       odeReset=.true.
+       call ODEIV2_Solve(                                             &
+            &                      ode2Driver                       , &
+            &                      ode2System                       , &
+            &                      timeInitial                      , &
+            &                      time                             , &
+            &                      countProperties                  , &
+            &                      propertyValues                   , &
+            &                      baryonsDarkMatterPerturbationODEs, &
+            &                      odeToleranceAbsolute             , &
+            &                      odeToleranceRelative             , &
+            &            reset    =odeReset                         , &
+            &            odeStatus=odeStatus                          &
+            &           )
+       call ODEIV2_Solver_Free(ode2Driver,ode2System)         
+       ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
+       ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
+       ! permit our root finder to locate the point at which collapse occurs at the current time.
+       if (odeStatus /= FGSL_Success) propertyValues(1)=+propertyValues(1) &
+            &                                           +propertyValues(2) &
+            &                                           *(                 &
+            &                                             +time            &
+            &                                             -timeInitial     &
+            &                                           )
+    end if
+    ! Return the radius and/or expansion rate of the perturbation. Note that here we add back the expansion factor (or its growth
+    ! rate) since we've solved the the radius and expansion rate of the perturbation relative to the epansion factor.
+    if (present(radiusPerturbation       )) radiusPerturbation       =+propertyValues                                                                                       (               1)  &
+         &                                                            +                                                  matterDarkEnergyCosmologyFunctions_%expansionFactor(            time)  &
+         &                                                            /                                                  matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)
+    if (present(expansionRatePerturbation)) expansionRatePerturbation=+propertyValues                                                                                       (               2)  &
+         &                                                            +matterDarkEnergyCosmologyFunctions_%expansionRate(matterDarkEnergyCosmologyFunctions_%expansionFactor(            time)) &
+         &                                                            *                                                  matterDarkEnergyCosmologyFunctions_%expansionFactor(            time)  &
+         &                                                            /                                                  matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)
+    return
+  end subroutine baryonsDarkMatterPerturbationDynamicsSolver
+
+  integer function baryonsDarkMatterPerturbationODEs(time,y,dydt)
+    !% Differential equations describing the evolution of spherical perturbations in a universe containing baryons, collisionless dark matter and dark energy.
+    use FGSL, only : FGSL_Success
+    implicit none
+    double precision, intent(in   )               :: time
+    double precision, intent(in   ), dimension(:) :: y
+    double precision, intent(  out), dimension(:) :: dydt
+    double precision                              :: expansionFactor
+
+    expansionFactor  =+matterDarkEnergyCosmologyFunctions_%expansionFactor(            time) &
+         &            /matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)
+    if (y(1) <= -expansionFactor) then
+       dydt(1:2)=0.0d0
+    else
+       dydt(1  )=+  y(2)
+       dydt(2  )=-0.5d0                                                                                                                                                                                                                                                                             &
+            &    *matterLambdaHubbleTimeEpochal**2                                                                                                                                                                                                                                                  &
+            &    *(                                                                                                                                                                                                                                                                                 &
+            &      +y(1)                                                                                                                                                                                                                                                                            &
+            &      *(                                                                                                                                                                                                                                                                               &
+            &         +(matterLambdaOmegaMatterEpochal-baryonsDarkMatterOmegaBaryonEpochal)                                                                                       *(y(1)+expansionFactor)**(-3)                                                                                     &
+            &         +                                baryonsDarkMatterOmegaBaryonEpochal                                                                                        *                              expansionFactor**(-3)                                                              &
+            &         + matterLambdaOmegaDarkEnergyEpochal                                 *(3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*                              expansionFactor**matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=time) &
+            &        )                                                                                                                                                                                                                                                                              &
+            &      +expansionFactor                                                                                                                                                                                                                                                                 &
+            &      *(                                                                                                                                                                                                                                                                               &
+            &         +(matterLambdaOmegaMatterEpochal-baryonsDarkMatterOmegaBaryonEpochal)                                                                                        *((y(1)+expansionFactor)**(-3)-expansionFactor**(-3))                                                            &
+            &        )                                                                                                                                                                                                                                                                              &
+            &     )
+    end if
+    ! Return success.
+    baryonsDarkMatterPerturbationODEs=FGSL_Success
+    return
+  end function baryonsDarkMatterPerturbationODEs
