@@ -33,6 +33,7 @@
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_      => null()
      double precision                                   :: wavenumberMaximum
      logical                                            :: wavenumberMaximumReached          , lockFileGlobally
+     integer                                            :: cambCountPerDecade
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionCAMB</object>
@@ -75,7 +76,8 @@ contains
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
     logical                                                   :: lockFileGlobally
     double precision                                          :: redshift
-    
+    integer                                                   :: cambCountPerDecade
+ 
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
@@ -92,17 +94,25 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>cambCountPerDecade</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0</defaultValue>
+    !#   <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally)
+    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally,cambCountPerDecade)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
     return
   end function cambConstructorParameters
   
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally) result(self)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally,cambCountPerDecade) result(self)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use Input_Parameters
     use Galacticus_Error
@@ -114,9 +124,10 @@ contains
     class           (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), intent(in   ), target   :: cosmologyFunctions_
     double precision                          , intent(in   )           :: redshift
-    logical                            ,        intent(in   ), optional :: lockFileGlobally
+    integer                                   , intent(in   )           :: cambCountPerDecade
+    logical                                   , intent(in   ), optional :: lockFileGlobally
     !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
-    !# <constructorAssign variables="redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="cambCountPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
     
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -171,7 +182,7 @@ contains
     end if
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
-    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%fileName,self%wavenumberMaximumReached)
+    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
     ! Initialize the file lock.
     if (self%lockFileGlobally) then
        if (.not.cambFileLockInitialized) then

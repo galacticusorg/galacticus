@@ -113,7 +113,7 @@ contains
 
   end subroutine Interface_CAMB_Initialize
 
-  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
+  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -139,6 +139,7 @@ contains
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
     double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
+    integer                                   , intent(in   ), optional         :: countPerDecade
     logical                                   , intent(in   )                   :: lockFileGlobally
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
@@ -168,6 +169,7 @@ contains
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
+    !# <optionalArgument name="countPerDecade" defaultsTo="0"/>
     
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))
@@ -181,7 +183,10 @@ contains
     call cosmologyParameters_%descriptor(descriptor)
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call descriptor%addParameter("Y_He",parameterLabel)
+    call descriptor%addParameter("Y_He"          ,parameterLabel)
+    ! Add wavenumber resolution to descriptor.
+    write (parameterLabel,'(i4)'  ) countPerDecade_
+    call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()// &
          &      "_sourceDigest:"              // &
@@ -242,7 +247,7 @@ contains
        call speciesGroup%close()
        call cambOutput  %close()
        call hdf5Access  %unset()
-   end if
+    end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
@@ -355,7 +360,7 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'CMB_outputscale              ',7.42835025d12 
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_high_precision      ','F'
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'transfer_kmax                ',wavenumberCAMB/cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
-       write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_k_per_logint        ',0
+       write (cambParameterFile,'(a,1x,"=",1x,i3   )') 'transfer_k_per_logint        ',countPerDecade_
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_num_redshifts       ',countRedshiftsUnique
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_interp_matterpower  ','T'
        do i=countRedshiftsUnique,1,-1
