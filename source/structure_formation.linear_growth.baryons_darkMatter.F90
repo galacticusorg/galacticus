@@ -240,14 +240,15 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use FGSL            , only : FGSL_Success
-    use ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
-    use FODEIV2         , only : fodeiv2_system                  , fodeiv2_driver
-    use Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
-    use Tables          , only : table1DGeneric
-    use Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use File_Utilities  , only : File_Lock                       , File_Unlock
+    use   FGSL            , only : FGSL_Success
+    use   ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
+    use   FODEIV2         , only : fodeiv2_system                  , fodeiv2_driver
+    use   Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
+    use   Tables          , only : table1DGeneric
+    use   Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use   Galacticus_Error, only : Galacticus_Error_Report
+    use   File_Utilities  , only : File_Lock                       , File_Unlock
+    !$use OMP_Lib         , only : omp_lock_kind
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   )           :: time
@@ -267,7 +268,8 @@ contains
     logical                                                                  :: odeReset
     type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
-
+    !$ integer      (omp_lock_kind                )                          :: lockBaryons                              , lockDarkMatter
+    
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
@@ -312,6 +314,8 @@ contains
        countWavenumbers=int(dble(growthTablePointsPerDecadeWavenumber)*log10(self%tableWavenumberMaximum/self%tableWavenumberMinimum))+1
        call self%growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints,self%tableWavenumberMinimum,self%tableWavenumberMaximum,countWavenumbers,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
        ! Iterate over wavenumber.
+       !$ call OMP_Init_Lock(lockBaryons   )
+       !$ call OMP_Init_Lock(lockDarkMatter)
        !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,odeReset,ode2Driver,ode2System,linearGrowthFactorPresent)
        allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
@@ -322,11 +326,15 @@ contains
           baryonDarkMatterWavenumber=self%growthFactor%y(j)
           wavenumberLogarithmic=log(baryonDarkMatterWavenumber)
           ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
-           call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterDarkMatter)
-           call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterBaryons   )
-           growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-           growthFactorDerivativeBaryons   =(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-           do i=2,growthTableNumberPoints
+          !$ call OMP_Set_Lock  (lockDarkMatter)
+          call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterDarkMatter)
+          growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+          !$ call OMP_Unset_Lock(lockDarkMatter)
+          !$ call OMP_Set_Lock  (lockBaryons   )
+          call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterBaryons   )
+          growthFactorDerivativeBaryons   =(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+          !$ call OMP_Unset_Lock(lockBaryons   )
+          do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                                    )
              growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterDarkMatter)
              growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
@@ -366,6 +374,8 @@ contains
        end do
        !$omp end do
        !$omp end parallel
+       !$ call OMP_Destroy_Lock(lockBaryons   )
+       !$ call OMP_Destroy_Lock(lockDarkMatter)
        self%tableInitialized=.true.
        ! Store file.
        call self%fileWrite()
