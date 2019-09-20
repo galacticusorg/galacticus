@@ -20,15 +20,16 @@
   !% An implementation of linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales),
   !% and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
-  !# <linearGrowth name="linearGrowthNonClusteringBaryons">
+  !# <linearGrowth name="linearGrowthNonClusteringBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
   use Tables
   use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
   use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
 
-  type, extends(linearGrowthClass) :: linearGrowthNonClusteringBaryons
-     !% A linear growth of cosmological structure contrast class in nonClusteringBaryons cosomologies.
+  type, extends(linearGrowthClass) :: linearGrowthNonClusteringBaryonsDarkMatter
+     !% A linear growth of cosmological structure contrast class in the limit where baryons do not cluster (i.e. small scales),
+     !% and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
      private
      logical                                                 :: tableInitialized
      double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
@@ -38,7 +39,7 @@
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
      !@ <objectMethods>
-     !@   <object>linearGrowthNonClusteringBaryons</object>
+     !@   <object>linearGrowthNonClusteringBaryonsDarkMatter</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -46,50 +47,50 @@
      !@     <description>Tabulate linear growth factor.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                         nonClusteringBaryonsDestructor
-     procedure :: value                                => nonClusteringBaryonsValue
-     procedure :: logarithmicDerivativeExpansionFactor => nonClusteringBaryonsLogarithmicDerivativeExpansionFactor
-     procedure :: logarithmicDerivativeWavenumber      => nonClusteringBaryonsLogarithmicDerivativeWavenumber
-     procedure :: retabulate                           => nonClusteringBaryonsRetabulate
-     procedure :: isWavenumberDependent                => nonClusteringBaryonsIsWavenumberDependent
-  end type linearGrowthNonClusteringBaryons
+     final     ::                                         nonClusteringBaryonsDarkMatterDestructor
+     procedure :: value                                => nonClusteringBaryonsDarkMatterValue
+     procedure :: logarithmicDerivativeExpansionFactor => nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor
+     procedure :: logarithmicDerivativeWavenumber      => nonClusteringBaryonsDarkMatterLogDerivativeWavenumber
+     procedure :: retabulate                           => nonClusteringBaryonsDarkMatterRetabulate
+     procedure :: isWavenumberDependent                => nonClusteringBaryonsDarkMatterIsWavenumberDependent
+  end type linearGrowthNonClusteringBaryonsDarkMatter
 
-  interface linearGrowthNonClusteringBaryons
-     !% Constructors for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class.
-     module procedure nonClusteringBaryonsConstructorParameters
-     module procedure nonClusteringBaryonsConstructorInternal
-  end interface linearGrowthNonClusteringBaryons
+  interface linearGrowthNonClusteringBaryonsDarkMatter
+     !% Constructors for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
+     module procedure nonClusteringBaryonsDarkMatterConstructorParameters
+     module procedure nonClusteringBaryonsDarkMatterConstructorInternal
+  end interface linearGrowthNonClusteringBaryonsDarkMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision, parameter :: nonClusteringBaryonsTimeToleranceRelative=1.0d-4
+  double precision, parameter :: nonClusteringBaryonsDarkMatterTimeToleranceRelative=1.0d-4
 
 contains
 
-  function nonClusteringBaryonsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class which takes a parameter set as input.
+  function nonClusteringBaryonsDarkMatterConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (linearGrowthNonClusteringBaryons)                :: self
-    type (inputParameters                 ), intent(inout) :: parameters
-    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_    
-    class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    type (linearGrowthNonClusteringBaryonsDarkMatter)                :: self
+    type (inputParameters                           ), intent(inout) :: parameters
+    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_    
+    class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=nonClusteringBaryonsConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
+    self=nonClusteringBaryonsDarkMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
-  end function nonClusteringBaryonsConstructorParameters
+  end function nonClusteringBaryonsDarkMatterConstructorParameters
 
-  function nonClusteringBaryonsConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class.
+  function nonClusteringBaryonsDarkMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
     implicit none
-    type            (linearGrowthNonClusteringBaryons)                           :: self
-    class           (cosmologyParametersClass        ), target   , intent(in   ) :: cosmologyParameters_    
-    class           (cosmologyFunctionsClass         ), target   , intent(in   ) :: cosmologyFunctions_
-    double precision                                                             :: timeBigCrunch
+    type            (linearGrowthNonClusteringBaryonsDarkMatter)                           :: self
+    class           (cosmologyParametersClass                  ), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass                   ), target   , intent(in   ) :: cosmologyFunctions_
+    double precision                                                                       :: timeBigCrunch
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     self%tableInitialized=.false.
@@ -98,16 +99,16 @@ contains
     timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsTimeToleranceRelative)*timeBigCrunch
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                                     *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
     end if
     return
-  end function nonClusteringBaryonsConstructorInternal
+  end function nonClusteringBaryonsDarkMatterConstructorInternal
 
-  subroutine nonClusteringBaryonsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class.
+  subroutine nonClusteringBaryonsDarkMatterDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
     implicit none
-    type (linearGrowthNonClusteringBaryons), intent(inout) :: self
+    type (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_"/>
@@ -116,35 +117,35 @@ contains
        deallocate(self%growthFactor)
     end if
     return
-  end subroutine nonClusteringBaryonsDestructor
+  end subroutine nonClusteringBaryonsDarkMatterDestructor
 
-  subroutine nonClusteringBaryonsRetabulate(self,time)
+  subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a nonClusteringBaryons matter plus cosmological constant cosmology.
+    !% $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
     use FGSL        , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
          &                   FGSL_Success
     use Tables
     use Table_Labels
     use ODE_Solver
     implicit none
-    class           (linearGrowthNonClusteringBaryons), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time
-    double precision                                  , parameter     :: dominateFactor               =   1.0d+04
-    double precision                                  , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
-    integer                                           , parameter     :: growthTablePointsPerDecade   =1000
-    double precision                                  , dimension(2)  :: growthFactorODEVariables
-    logical                                                           :: remakeTable
-    integer                                                           :: i
-    double precision                                                  :: expansionFactorMatterDominant           , growthFactorDerivative           , &
-         &                                                               timeNow                                 , linearGrowthFactorPresent        , &
-         &                                                               timeMatterDominant                      , timePresent                      , &
-         &                                                               timeBigCrunch, exponent
-    integer                                                           :: growthTableNumberPoints    
-    type            (fgsl_odeiv_step                 )                :: odeStepper
-    type            (fgsl_odeiv_control              )                :: odeController
-    type            (fgsl_odeiv_evolve               )                :: odeEvolver
-    type            (fgsl_odeiv_system               )                :: odeSystem
-    logical                                                           :: odeReset                     =.true.
+    class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
+    double precision                                            , intent(in   ) :: time
+    double precision                                            , parameter     :: dominateFactor               =   1.0d+04
+    double precision                                            , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
+    integer                                                     , parameter     :: growthTablePointsPerDecade   =1000
+    double precision                                            , dimension(2)  :: growthFactorODEVariables
+    logical                                                                     :: remakeTable
+    integer                                                                     :: i
+    double precision                                                            :: expansionFactorMatterDominant           , growthFactorDerivative           , &
+         &                                                                         timeNow                                 , linearGrowthFactorPresent        , &
+         &                                                                         timeMatterDominant                      , timePresent                      , &
+         &                                                                         timeBigCrunch, exponent
+    integer                                                                     :: growthTableNumberPoints    
+    type            (fgsl_odeiv_step                           )                :: odeStepper
+    type            (fgsl_odeiv_control                        )                :: odeController
+    type            (fgsl_odeiv_evolve                         )                :: odeEvolver
+    type            (fgsl_odeiv_system                         )                :: odeSystem
+    logical                                                                     :: odeReset                     =.true.
     
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -172,7 +173,7 @@ contains
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
           if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsTimeToleranceRelative)*timeBigCrunch
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
        end if
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
@@ -262,17 +263,17 @@ contains
       growthFactorODEs  = FGSL_Success
     end function growthFactorODEs
 
-  end subroutine nonClusteringBaryonsRetabulate
+  end subroutine nonClusteringBaryonsDarkMatterRetabulate
 
-  double precision function nonClusteringBaryonsValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
+  double precision function nonClusteringBaryonsDarkMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor at the given epoch.
     implicit none
-    class           (linearGrowthNonClusteringBaryons), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: time      , expansionFactor
-    logical                                           , intent(in   ), optional :: collapsing
-    integer                                           , intent(in   ), optional :: normalize , component
-    double precision                                  , intent(in   ), optional :: wavenumber
-    double precision                                                            :: time_
+    class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
+    double precision                                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                                     , intent(in   ), optional :: collapsing
+    integer                                                     , intent(in   ), optional :: normalize , component
+    double precision                                            , intent(in   ), optional :: wavenumber
+    double precision                                                                      :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component, wavenumber
     
@@ -281,25 +282,25 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    nonClusteringBaryonsValue=self%growthFactor%interpolate(time_)
+    nonClusteringBaryonsDarkMatterValue=self%growthFactor%interpolate(time_)
     ! Normalize.
     select case (normalize_)
     case (normalizeMatterDominated)
-       nonClusteringBaryonsValue=nonClusteringBaryonsValue*self%normalizationMatterDominated
+       nonClusteringBaryonsDarkMatterValue=nonClusteringBaryonsDarkMatterValue*self%normalizationMatterDominated
     end select
     return
-  end function nonClusteringBaryonsValue
+  end function nonClusteringBaryonsDarkMatterValue
 
-  double precision function nonClusteringBaryonsLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
+  double precision function nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     use Galacticus_Error
     implicit none
-    class           (linearGrowthNonClusteringBaryons), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: time      , expansionFactor
-    logical                                           , intent(in   ), optional :: collapsing
-    integer                                           , intent(in   ), optional :: component 
-    double precision                                  , intent(in   ), optional :: wavenumber
-    double precision                                                            :: time_     , expansionFactor_
+    class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
+    double precision                                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                                     , intent(in   ), optional :: collapsing
+    integer                                                     , intent(in   ), optional :: component 
+    double precision                                            , intent(in   ), optional :: wavenumber
+    double precision                                                                      :: time_     , expansionFactor_
     !GCC$ attributes unused :: component, wavenumber
     
     ! Determine cosmological time.
@@ -307,34 +308,34 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    nonClusteringBaryonsLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
-         &                                                   /self%growthFactor       %interpolate        (time_           ) &
-         &                                                   /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
+    nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
+         &                                                     /self%growthFactor       %interpolate        (time_           ) &
+         &                                                     /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
     return
-  end function nonClusteringBaryonsLogarithmicDerivativeExpansionFactor
+  end function nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor
 
-  double precision function nonClusteringBaryonsLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
+  double precision function nonClusteringBaryonsDarkMatterLogDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to wavenumber at the given epoch.
     implicit none
-    class           (linearGrowthNonClusteringBaryons), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: time      , expansionFactor
-    logical                                           , intent(in   ), optional :: collapsing
-    integer                                           , intent(in   ), optional :: component 
-    double precision                                  , intent(in   ), optional :: wavenumber 
+    class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
+    double precision                                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                                     , intent(in   ), optional :: collapsing
+    integer                                                     , intent(in   ), optional :: component 
+    double precision                                            , intent(in   ), optional :: wavenumber 
     !GCC$ attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
     
     ! No dependence on wavenumber.
-    nonClusteringBaryonsLogarithmicDerivativeWavenumber=0.0d0
+    nonClusteringBaryonsDarkMatterLogDerivativeWavenumber=0.0d0
     return
-  end function nonClusteringBaryonsLogarithmicDerivativeWavenumber
+  end function nonClusteringBaryonsDarkMatterLogDerivativeWavenumber
 
-  logical function nonClusteringBaryonsIsWavenumberDependent(self,component)
+  logical function nonClusteringBaryonsDarkMatterIsWavenumberDependent(self,component)
     !% Return false indicating that the growth function is not wavenumber-dependent.
     implicit none
-    class  (linearGrowthNonClusteringBaryons), intent(inout)           :: self
-    integer                                  , intent(in   ), optional :: component 
+    class  (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
+    integer                                            , intent(in   ), optional :: component 
     !GCC$ attributes unused :: self, component
     
-    nonClusteringBaryonsIsWavenumberDependent=.false.
+    nonClusteringBaryonsDarkMatterIsWavenumberDependent=.false.
     return
-  end function nonClusteringBaryonsIsWavenumberDependent
+  end function nonClusteringBaryonsDarkMatterIsWavenumberDependent

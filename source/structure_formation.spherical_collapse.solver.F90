@@ -28,7 +28,7 @@ module Spherical_Collapse_Solvers
   !#  <name>sphericalCollapseSolver</name>
   !#  <descriptiveName>Spherical Collapse Solvers</descriptiveName>
   !#  <description>Class providing solvers for the collapse of spherical perturbations.</description>
-  !#  <default>matterLambda</default>
+  !#  <default>cllsnlssMttrCsmlgclCnstnt</default>
   !#  <method name="criticalOverdensity" >
   !#   <description>Returns a tabulation of the critical overdensity for collapse.</description>
   !#   <type>void</type>

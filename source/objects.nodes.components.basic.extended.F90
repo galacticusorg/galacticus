@@ -99,7 +99,7 @@ contains
     use Galacticus_Nodes          , only : nodeComponentBasicStandardExtended
     use ISO_Varying_String
     use Input_Parameters
-    use Spherical_Collapse_Solvers, only : enumerationMatterDarkEnergyFixedAtEncode
+    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
     type(inputParameters                   ), intent(inout) :: globalParameters_
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
@@ -132,7 +132,7 @@ contains
        !#   <type>string</type>
        !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
        !# </inputParameter>
-       nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationMatterDarkEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
+       nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
     case ('bryanNorman')
        nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
     end select
@@ -187,22 +187,22 @@ contains
     if (.not.virialDensityContrastInitialized) then
       select case (nodeComponentBasicExtendedSphericalCollapseType)
        case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
-          allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
+          allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: virialDensityContrast_)
           select type (virialDensityContrast_)
-          type is (virialDensityContrastSphericalCollapseMatterLambda)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(.true.                                                         ,cosmologyFunctions_)
+          type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                                                         ,cosmologyFunctions_)
           end select
-       case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
-          allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
+       case (nodeComponentBasicExtendedSphericalCollapseTypeDE                    )
+          allocate(virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy      :: virialDensityContrast_)
           select type (virialDensityContrast_)
-          type is (virialDensityContrastSphericalCollapseMatterDE    )
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    (.true.,nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt,cosmologyFunctions_)
+          type is (virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy     )
+             virialDensityContrast_=virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy     (.true.,nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt,cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
-          allocate(virialDensityContrastBryanNorman1998               :: virialDensityContrast_)
+          allocate(virialDensityContrastBryanNorman1998                            :: virialDensityContrast_)
           select type (virialDensityContrast_)
-          type is (virialDensityContrastBryanNorman1998              )
-             virialDensityContrast_=virialDensityContrastBryanNorman1998              (       cosmologyParameters_                                    ,cosmologyFunctions_)
+          type is (virialDensityContrastBryanNorman1998                           )
+             virialDensityContrast_=virialDensityContrastBryanNorman1998                           (       cosmologyParameters_                                    ,cosmologyFunctions_)
           end select
        end select
        virialDensityContrastInitialized=.true.

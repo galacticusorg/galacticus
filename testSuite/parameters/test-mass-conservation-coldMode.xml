@@ -63,13 +63,13 @@
     <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
 
     <!-- Structure formation options -->
-    <linearGrowthMethod value="simple"/>
+    <linearGrowthMethod value="collisionlessMatter"/>
     <haloMassFunctionMethod value="simpleSystematic">
       <alpha value="-0.0197873321812387"/>
       <beta value="0.00986021548527724"/>
       <haloMassFunctionMethod value="tinker2008"/>
     </haloMassFunctionMethod>
-    <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
     <virialDensityContrastMethod value="percolation">
       <linkingLength value="0.2"/>
     </virialDensityContrastMethod>

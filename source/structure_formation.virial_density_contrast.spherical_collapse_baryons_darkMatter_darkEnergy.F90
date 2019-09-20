@@ -20,12 +20,12 @@
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   
   use Tables                               , only : table1D
-  use Cosmology_Parameters                 , only : cosmologyParameters                     , cosmologyParametersClass
-  use Cosmology_Functions                  , only : cosmologyFunctions                      , cosmologyFunctionsClass
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass        , intergalacticMediumFilteringMassClass
-  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatter
+  use Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
+  use Cosmology_Functions                  , only : cosmologyFunctions                                , cosmologyFunctionsClass
+  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
+  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
 
-  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseBaryonsDM">
+  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
   !#  <deepCopy>
   !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
@@ -34,25 +34,25 @@
   !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
   !#  </stateStorable>
   !# </virialDensityContrast>
-  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseBaryonsDM
+  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                                 :: tableInitialized                  =  .false., turnaroundInitialized              =  .false.
-     double precision                                                        :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
-          &                                                                     tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum                  , &
-          &                                                                     turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
-          &                                                                     turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
-     logical                                                                 :: tableStore
-     integer                                                                 :: energyFixedAt
-     class           (table1D                                 ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
-          &                                                                     turnaroundClustered                         , turnaroundUnclustered
-     class           (cosmologyParametersClass                ), pointer     :: cosmologyParameters_              => null()
-     class           (cosmologyFunctionsClass                 ), pointer     :: cosmologyFunctions_               => null()
-     class           (intergalacticMediumFilteringMassClass   ), pointer     :: intergalacticMediumFilteringMass_ => null()
-     type            (sphericalCollapseSolverBaryonsDarkMatter), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
+     logical                                                                           :: tableInitialized                  =  .false., turnaroundInitialized              =  .false.
+     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
+          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum                  , &
+          &                                                                               turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
+          &                                                                               turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
+     logical                                                                           :: tableStore
+     integer                                                                           :: energyFixedAt
+     class           (table1D                                           ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
+          &                                                                               turnaroundClustered                         , turnaroundUnclustered
+     class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
+     class           (cosmologyFunctionsClass                           ), pointer     :: cosmologyFunctions_               => null()
+     class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
+     type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseBaryonsDM</object>
+     !@   <object>virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -66,34 +66,34 @@
      !@     <description>Tabulate spherical collapse turnaround radius.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                sphericalCollapseBaryonsDMDestructor
-     procedure :: densityContrast             => sphericalCollapseBaryonsDMDensityContrast
-     procedure :: densityContrastRateOfChange => sphericalCollapseBaryonsDMDensityContrastRateOfChange
-     procedure :: turnAroundOverVirialRadii   => sphericalCollapseBaryonsDMTurnAroundOverVirialRadii
-     procedure :: retabulate                  => sphericalCollapseBaryonsDMRetabulate
-     procedure :: retabulateTurnaround        => sphericalCollapseBaryonsDMRetabulateTurnaround
-  end type virialDensityContrastSphericalCollapseBaryonsDM
+     final     ::                                sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
+     procedure :: densityContrast             => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast
+     procedure :: densityContrastRateOfChange => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng
+     procedure :: turnAroundOverVirialRadii   => sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii
+     procedure :: retabulate                  => sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
+     procedure :: retabulateTurnaround        => sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulateTurnaround
+  end type virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
 
-  interface virialDensityContrastSphericalCollapseBaryonsDM
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseBaryonsDMConstructorParameters
-     module procedure sphericalCollapseBaryonsDMConstructorInternal
-  end interface virialDensityContrastSphericalCollapseBaryonsDM
+  interface virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
+     module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
+     module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
+  end interface virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
 
 contains
   
-  function sphericalCollapseBaryonsDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters          , only : inputParameter                          , inputParameters
-    use Spherical_Collapse_Solvers, only : enumerationMatterDarkEnergyFixedAtEncode
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
+    use Input_Parameters          , only : inputParameter                                , inputParameters
+    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
-    type   (virialDensityContrastSphericalCollapseBaryonsDM)                :: self
-    type   (inputParameters                                ), intent(inout) :: parameters
-    class  (cosmologyParametersClass                       ), pointer       :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctions_
-    class  (intergalacticMediumFilteringMassClass          ), pointer       :: intergalacticMediumFilteringMass_
-    logical                                                                 :: tableStore
-    type   (varying_string                                 )                :: energyFixedAt
+    type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
+    type   (inputParameters                                           ), intent(inout) :: parameters
+    class  (cosmologyParametersClass                                  ), pointer       :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                                   ), pointer       :: cosmologyFunctions_
+    class  (intergalacticMediumFilteringMassClass                     ), pointer       :: intergalacticMediumFilteringMass_
+    logical                                                                            :: tableStore
+    type   (varying_string                                            )                :: energyFixedAt
 
     !# <inputParameter>
     !#   <name>tableStore</name>
@@ -116,37 +116,37 @@ contains
     !# <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     !# <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseBaryonsDM(tableStore,enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
+    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"             />
     !# <objectDestructor name="cosmologyFunctions_"              />
     !# <objectDestructor name="intergalacticMediumFilteringMass_"/>
     return
-  end function sphericalCollapseBaryonsDMConstructorParameters
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseBaryonsDMConstructorInternal(tableStore,energyFixedAt,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} dark matter halo virial density contrast class.
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(tableStore,energyFixedAt,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
     implicit none
-    type   (virialDensityContrastSphericalCollapseBaryonsDM)                        :: self
-    class  (cosmologyParametersClass                       ), intent(in   ), target :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctions_
-    class  (intergalacticMediumFilteringMassClass          ), intent(in   ), target :: intergalacticMediumFilteringMass_
-    integer                                                 , intent(in   )         :: energyFixedAt
-    logical                                                 , intent(in   )         :: tableStore
+    type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                        :: self
+    class  (cosmologyParametersClass                                  ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
+    class  (intergalacticMediumFilteringMassClass                     ), intent(in   ), target :: intergalacticMediumFilteringMass_
+    integer                                                            , intent(in   )         :: energyFixedAt
+    logical                                                            , intent(in   )         :: tableStore
     !# <constructorAssign variables="tableStore, energyFixedAt, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumFilteringMass_"/>
 
     self%tableInitialized=.false.
     allocate(self%sphericalCollapseSolverClustered_  )
     allocate(self%sphericalCollapseSolverUnclustered_)
-    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatter(.true. ,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatter(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     return
-  end function sphericalCollapseBaryonsDMConstructorInternal
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
   
-  subroutine sphericalCollapseBaryonsDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseBaryonsDM} dark matter halo virial density contrast class.
+  subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
     implicit none
-    type (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout) :: self
+    type (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
 
     if (self%tableInitialized) then
        call self%deltaVirialClustered  %destroy()
@@ -166,14 +166,14 @@ contains
     !# <objectDestructor name="self%sphericalCollapseSolverClustered_"  />
     !# <objectDestructor name="self%sphericalCollapseSolverUnclustered_"/>
     return
-  end subroutine sphericalCollapseBaryonsDMDestructor
+  end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
 
-  subroutine sphericalCollapseBaryonsDMRetabulate(self,time)
+  subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
     implicit none
-    class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout) :: self
-    double precision                                                 , intent(in   ) :: time
-    logical                                                                          :: remakeTable
+    class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
+    double precision                                                            , intent(in   ) :: time
+    logical                                                                                     :: remakeTable
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -191,17 +191,17 @@ contains
        self%tableUnclusteredTimeMaximum=self%deltaVirialUnclustered%x(-1)
     end if
     return
-  end subroutine sphericalCollapseBaryonsDMRetabulate
+  end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
 
-  double precision function sphericalCollapseBaryonsDMDensityContrast(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout)           :: self
-    double precision                                                 , intent(in   )           :: mass
-    double precision                                                 , intent(in   ), optional :: time      , expansionFactor
-    logical                                                          , intent(in   ), optional :: collapsing
-    double precision                                                                           :: time_     , interpolator
+    class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
+    double precision                                                            , intent(in   )           :: mass
+    double precision                                                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                                                     , intent(in   ), optional :: collapsing
+    double precision                                                                                      :: time_     , interpolator
     
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -211,21 +211,21 @@ contains
     ! appears in the suppression of baryonic accretion as a reasonable measure.
     interpolator=self%intergalacticMediumFilteringMass_%fractionBaryons(mass,time_)
     ! Interpolate the virial density contrast between the clustered and unclustered baryons case.
-    sphericalCollapseBaryonsDMDensityContrast=+self%deltaVirialClustered  %interpolate(time_)*       interpolator  &
-         &                                    +self%deltaVirialUnclustered%interpolate(time_)*(1.0d0-interpolator) 
+    sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast=+self%deltaVirialClustered  %interpolate(time_)*       interpolator  &
+         &                                               +self%deltaVirialUnclustered%interpolate(time_)*(1.0d0-interpolator) 
     return
-  end function sphericalCollapseBaryonsDMDensityContrast
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast
 
-  double precision function sphericalCollapseBaryonsDMDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout)           :: self
-    double precision                                                 , intent(in   )           :: mass
-    double precision                                                 , intent(in   ), optional :: time                    , expansionFactor
-    logical                                                          , intent(in   ), optional :: collapsing
-    double precision                                                                           :: time_                   , interpolator   , &
-         &                                                                                        interpolatorRateOfChange
+    class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
+    double precision                                                            , intent(in   )           :: mass
+    double precision                                                            , intent(in   ), optional :: time                    , expansionFactor
+    logical                                                                     , intent(in   ), optional :: collapsing
+    double precision                                                                                      :: time_                   , interpolator   , &
+         &                                                                                                   interpolatorRateOfChange
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -236,22 +236,22 @@ contains
     interpolator            =self%intergalacticMediumFilteringMass_%fractionBaryons            (mass,time_)
     interpolatorRateOfChange=self%intergalacticMediumFilteringMass_%fractionBaryonsRateOfChange(mass,time_)
     ! Interpolate the virial density contrast rate of change between the clustered and unclustered baryons case.
-    sphericalCollapseBaryonsDMDensityContrastRateOfChange=+  self%deltaVirialClustered  %interpolateGradient(time_)*       interpolator              &
-         &                                                +  self%deltaVirialUnclustered%interpolateGradient(time_)*(1.0d0-interpolator            ) &
-         &                                                +(                                                                                         &
-         &                                                  +self%deltaVirialClustered  %interpolate        (time_)                                  &
-         &                                                  -self%deltaVirialUnclustered%interpolate        (time_)                                  &
-         &                                                 )                                                                                         &
-         &                                                *                                                                interpolatorRateOfChange
+    sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng=+  self%deltaVirialClustered  %interpolateGradient(time_)*       interpolator              &
+         &                                                     +  self%deltaVirialUnclustered%interpolateGradient(time_)*(1.0d0-interpolator            ) &
+         &                                                     +(                                                                                         &
+         &                                                       +self%deltaVirialClustered  %interpolate        (time_)                                  &
+         &                                                       -self%deltaVirialUnclustered%interpolate        (time_)                                  &
+         &                                                      )                                                                                         &
+         &                                                     *                                                                interpolatorRateOfChange
    return
-  end function sphericalCollapseBaryonsDMDensityContrastRateOfChange
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng
 
-  subroutine sphericalCollapseBaryonsDMRetabulateTurnaround(self,time)
+  subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulateTurnaround(self,time)
     !% Recompute the look-up tables for virial density contrast.
     implicit none
-    class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout) :: self
-    double precision                                                 , intent(in   ) :: time
-    logical                                                                          :: remakeTable
+    class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
+    double precision                                                            , intent(in   ) :: time
+    logical                                                                                     :: remakeTable
 
     ! Check if we need to recompute our table.
     if (self%turnaroundInitialized) then
@@ -269,18 +269,18 @@ contains
        self%turnaroundUnclusteredTimeMaximum=self%turnaroundUnclustered%x(-1)
     end if
     return
-  end subroutine sphericalCollapseBaryonsDMRetabulateTurnaround
+  end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulateTurnaround
 
-  double precision function sphericalCollapseBaryonsDMTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (virialDensityContrastSphericalCollapseBaryonsDM), intent(inout)           :: self
-    double precision                                                 , intent(in   )           :: mass
-    double precision                                                 , intent(in   ), optional :: time      , expansionFactor
-    logical                                                          , intent(in   ), optional :: collapsing
-    double precision                                                                           :: time_      , interpolator
+    class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
+    double precision                                                            , intent(in   )           :: mass
+    double precision                                                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                                                     , intent(in   ), optional :: collapsing
+    double precision                                                                                      :: time_      , interpolator
     
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -290,7 +290,7 @@ contains
     ! appears in the suppression of baryonic accretion as a reasonable measure.
     interpolator=self%intergalacticMediumFilteringMass_%fractionBaryons(mass,time_)
     ! Interpolate the virial density contrast between the clustered and unclustered baryons case.
-    sphericalCollapseBaryonsDMTurnAroundOverVirialRadii=+self%turnaroundClustered  %interpolate(time_)*       interpolator  &
-         &                                              +self%turnaroundUnclustered%interpolate(time_)*(1.0d0-interpolator) 
+    sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii=+self%turnaroundClustered  %interpolate(time_)*       interpolator  &
+         &                                                         +self%turnaroundUnclustered%interpolate(time_)*(1.0d0-interpolator) 
     return
-  end function sphericalCollapseBaryonsDMTurnAroundOverVirialRadii
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii

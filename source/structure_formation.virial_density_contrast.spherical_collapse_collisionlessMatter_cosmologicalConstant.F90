@@ -20,10 +20,10 @@
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
   use Tables                    , only : table1D
-  use Cosmology_Functions       , only : cosmologyFunctionsClass            , cosmologyFunctions
-  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
+  use Cosmology_Functions       , only : cosmologyFunctionsClass                         , cosmologyFunctions
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
-  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterLambda">
+  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
   !#  <deepCopy>
   !#   <functionClass variables="sphericalCollapseSolver_"/>
@@ -32,19 +32,19 @@
   !#   <functionClass variables="sphericalCollapseSolver_"/>
   !#  </stateStorable>
   !# </virialDensityContrast>
-  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseMatterLambda
+  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                            :: tableInitialized        =  .false., turnaroundInitialized=.false.
-     double precision                                                   :: tableTimeMinimum                  , tableTimeMaximum             , &
-          &                                                                turnaroundTimeMinimum             , turnaroundTimeMaximum
-     logical                                                            :: tableStore
-     class           (table1D                            ), allocatable :: deltaVirial                       , turnaround
-     class           (cosmologyFunctionsClass            ), pointer     :: cosmologyFunctions_      => null()
-     class           (sphericalCollapseSolverMatterLambda), pointer     :: sphericalCollapseSolver_ => null()
+     logical                                                                         :: tableInitialized        =  .false., turnaroundInitialized=.false.
+     double precision                                                                :: tableTimeMinimum                  , tableTimeMaximum             , &
+          &                                                                             turnaroundTimeMinimum             , turnaroundTimeMaximum
+     logical                                                                         :: tableStore
+     class           (table1D                                         ), allocatable :: deltaVirial                       , turnaround
+     class           (cosmologyFunctionsClass                         ), pointer     :: cosmologyFunctions_      => null()
+     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseMatterLambda</object>
+     !@   <object>virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -52,29 +52,29 @@
      !@     <description>Tabulate spherical collapse virial density contrast.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                sphericalCollapseMatterLambdaDestructor
-     procedure :: densityContrast             => sphericalCollapseMatterLambdaDensityContrast
-     procedure :: densityContrastRateOfChange => sphericalCollapseMatterLambdaDensityContrastRateOfChange
-     procedure :: turnAroundOverVirialRadii   => sphericalCollapseMatterLambdaTurnAroundOverVirialRadii
-     procedure :: retabulate                  => sphericalCollapseMatterLambdaRetabulate
-  end type virialDensityContrastSphericalCollapseMatterLambda
+     final     ::                                sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
+     procedure :: densityContrast             => sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast
+     procedure :: densityContrastRateOfChange => sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng
+     procedure :: turnAroundOverVirialRadii   => sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd
+     procedure :: retabulate                  => sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
+  end type virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
 
-  interface virialDensityContrastSphericalCollapseMatterLambda
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseMatterLambdaConstructorParameters
-     module procedure sphericalCollapseMatterLambdaConstructorInternal
-  end interface virialDensityContrastSphericalCollapseMatterLambda
+  interface virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
+     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
+  end interface virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
 
 contains
 
-  function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class that takes a parameter set as input.
+  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class that takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (virialDensityContrastSphericalCollapseMatterLambda)                :: self
-    type   (inputParameters                                   ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
-    logical                                                                    :: tableStore
+    type   (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                :: self
+    type   (inputParameters                                                ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                                        ), pointer       :: cosmologyFunctions_
+    logical                                                                                 :: tableStore
 
     !# <inputParameter>
     !#   <name>tableStore</name>
@@ -85,34 +85,34 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseMatterLambda(tableStore,cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(tableStore,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
-  end function sphericalCollapseMatterLambdaConstructorParameters
+  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal(tableStore,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal(tableStore,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
-    type   (virialDensityContrastSphericalCollapseMatterLambda)                        :: self
-    class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
-    logical                                                    , intent(in   )         :: tableStore
+    type   (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                        :: self
+    class  (cosmologyFunctionsClass                                        ), intent(in   ), target :: cosmologyFunctions_
+    logical                                                                 , intent(in   )         :: tableStore
     !# <constructorAssign variables="tableStore, *cosmologyFunctions_"/>
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
-    allocate(sphericalCollapseSolverMatterLambda :: self%sphericalCollapseSolver_)
+    allocate(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
-    type is (sphericalCollapseSolverMatterLambda)
-       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterLambda(self%cosmologyFunctions_)"/>
+    type is (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_)"/>
     end select
     return
-  end function sphericalCollapseMatterLambdaConstructorInternal
+  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
 
-  subroutine sphericalCollapseMatterLambdaDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
+    type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     
     if (self%tableInitialized) then
        call self%deltaVirial%destroy()
@@ -125,14 +125,14 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"     />
     !# <objectDestructor name="self%sphericalCollapseSolver_"/>
     return
-  end subroutine sphericalCollapseMatterLambdaDestructor
+  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
 
-  subroutine sphericalCollapseMatterLambdaRetabulate(self,time)
+  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
     implicit none
-    class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
-    double precision                                                    , intent(in   ) :: time
-    logical                                                                             :: remakeTable
+    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    double precision                                                                 , intent(in   ) :: time
+    logical                                                                                          :: remakeTable
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -147,18 +147,18 @@ contains
        self%tableTimeMaximum=self%deltaVirial%x(-1)
     end if
     return
-  end subroutine sphericalCollapseMatterLambdaRetabulate
+  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
 
-  double precision function sphericalCollapseMatterLambdaDensityContrast(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
     implicit none
-    class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time            , expansionFactor
-    logical                                                             , intent(in   ), optional :: collapsing
-    logical                                                                                       :: collapsingActual
-    double precision                                                                              :: timeActual
+    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    double precision                                                                 , intent(in   )           :: mass
+    double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
+    logical                                                                          , intent(in   ), optional :: collapsing
+    logical                                                                                                    :: collapsingActual
+    double precision                                                                                           :: timeActual
     !GCC$ attributes unused :: mass
     
     ! Determine which type of input we have.
@@ -183,20 +183,20 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(timeActual)
     ! Interpolate to get the expansion factor.
-    sphericalCollapseMatterLambdaDensityContrast=self%deltaVirial%interpolate(timeActual)
+    sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast=self%deltaVirial%interpolate(timeActual)
     return
-  end function sphericalCollapseMatterLambdaDensityContrast
+  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast
 
-  double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
     implicit none
-    class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time            , expansionFactor
-    logical                                                             , intent(in   ), optional :: collapsing
-    logical                                                                                       :: collapsingActual
-    double precision                                                                              :: timeActual
+    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    double precision                                                                 , intent(in   )           :: mass
+    double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
+    logical                                                                          , intent(in   ), optional :: collapsing
+    logical                                                                                                    :: collapsingActual
+    double precision                                                                                           :: timeActual
     !GCC$ attributes unused :: mass
 
     ! Determine which type of input we have.
@@ -221,21 +221,21 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(timeActual)
     ! Interpolate to get the expansion factor.
-    sphericalCollapseMatterLambdaDensityContrastRateOfChange=self%deltaVirial%interpolateGradient(timeActual)
+    sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng=self%deltaVirial%interpolateGradient(timeActual)
    return
-  end function sphericalCollapseMatterLambdaDensityContrastRateOfChange
+  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng
 
-  double precision function sphericalCollapseMatterLambdaTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     use Galacticus_Error
     implicit none
-    class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time       , expansionFactor
-    logical                                                             , intent(in   ), optional :: collapsing
-    logical                                                                                       :: remakeTable
-    double precision                                                                              :: time_
+    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    double precision                                                                 , intent(in   )           :: mass
+    double precision                                                                 , intent(in   ), optional :: time       , expansionFactor
+    logical                                                                          , intent(in   ), optional :: collapsing
+    logical                                                                                                    :: remakeTable
+    double precision                                                                                           :: time_
     !GCC$ attributes unused :: mass
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -252,6 +252,6 @@ contains
        self%turnaroundTimeMaximum=self%turnaround%x(-1)
     end if
     ! Interpolate to get the ratio.
-    sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=self%turnaround%interpolate(time_)
+    sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd=self%turnaround%interpolate(time_)
     return
-  end function sphericalCollapseMatterLambdaTurnAroundOverVirialRadii
+  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd

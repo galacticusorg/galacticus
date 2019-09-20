@@ -48,10 +48,10 @@
   </powerSpectrumPrimordialMethod>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <haloMassFunctionMethod value="tinker2008"/>
-  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree reading options -->
   <mergerTreeConstructorMethod value="read">
@@ -201,7 +201,7 @@
   </starFormationFeedbackDisksMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <velocityCharacteristic value="50.0"/>
-    <exponent               value="2.0" />
+    <exponent value="2.0"/>
   </starFormationFeedbackSpheroidsMethod>
 
   <!-- Accretion disk properties -->

@@ -19,27 +19,27 @@
 
   !% A spherical collapse solver class for universes consisting of collisionless matter and dark energy.
 
-  !# <sphericalCollapseSolver name="sphericalCollapseSolverMatterDarkEnergy">
+  !# <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy">
   !#  <description>A spherical collapse solver for universes consisting of collisionless matter and dark energy.</description>
   !# </sphericalCollapseSolver>
-  type, extends(sphericalCollapseSolverMatterLambda) :: sphericalCollapseSolverMatterDarkEnergy
+  type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCllsnlssMttrDarkEnergy
      !% A spherical collapse solver for universes consisting of collisionless matter and dark energy.
      private
      integer :: energyFixedAt
    contains
-     procedure :: linearNonlinearMap => matterDarkEnergyLinearNonlinearMap
-     procedure :: tabulate           => matterDarkEnergyTabulate
-  end type sphericalCollapseSolverMatterDarkEnergy
+     procedure :: linearNonlinearMap => cllsnlssMttrDarkEnergyLinearNonlinearMap
+     procedure :: tabulate           => cllsnlssMttrDarkEnergyTabulate
+  end type sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
-  interface sphericalCollapseSolverMatterDarkEnergy
-     !% Constructors for the {\normalfont \ttfamily matterDarkEnergy} spherical collapse solver class.
-     module procedure matterDarkEnergyConstructorParameters
-     module procedure matterDarkEnergyConstructorInternal
-  end interface sphericalCollapseSolverMatterDarkEnergy
+  interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
+     !% Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+     module procedure cllsnlssMttrDarkEnergyConstructorParameters
+     module procedure cllsnlssMttrDarkEnergyConstructorInternal
+  end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
   ! Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
   !# <enumeration>
-  !#  <name>matterDarkEnergyFixedAt</name>
+  !#  <name>cllsnlssMttrDarkEnergyFixedAt</name>
   !#  <description>Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <validator>yes</validator>
@@ -50,28 +50,28 @@
   !# </enumeration>
 
   ! Pointer to the default cosmology functions object.
-  class           (cosmologyFunctionsClass), pointer   :: matterDarkEnergyCosmologyFunctions_
-  !$omp threadprivate(matterDarkEnergyCosmologyFunctions_)
+  class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_
+  !$omp threadprivate(cllsnlssMttrDarkEnergyCosmologyFunctions_)
 
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                         , parameter :: matterDarkEnergyExpansionFactorInitialFraction=1.0d-6
+  double precision                         , parameter :: cllsnlssMttrDarkEnergyExpansionFactorInitialFraction=1.0d-6
 
   ! Variables used in root finding.
-  double precision                                     :: matterDarkEnergyPerturbationRadiusInitial
-  !$omp threadprivate(matterDarkEnergyPerturbationRadiusInitial)
+  double precision                                     :: cllsnlssMttrDarkEnergyPerturbationRadiusInitial
+  !$omp threadprivate(cllsnlssMttrDarkEnergyPerturbationRadiusInitial)
   
 contains
 
-  function matterDarkEnergyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily matterDarkEnergy} spherical collapse solver class that takes a parameter set as
+  function cllsnlssMttrDarkEnergyConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class that takes a parameter set as
     !% input.
     use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (sphericalCollapseSolverMatterDarkEnergy)                :: self
-    type   (inputParameters                        ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class  (linearGrowthClass                      ), pointer       :: linearGrowth_
-    type   (varying_string                         )                :: energyFixedAt
+    type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                :: self
+    type   (inputParameters                              ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
+    class  (linearGrowthClass                            ), pointer       :: linearGrowth_
+    type   (varying_string                               )                :: energyFixedAt
 
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
@@ -83,28 +83,28 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
-    self=sphericalCollapseSolverMatterDarkEnergy(enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_,linearGrowth_)
+    self=sphericalCollapseSolverCllsnlssMttrDarkEnergy(enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="linearGrowth_"      />
     return
-  end function matterDarkEnergyConstructorParameters
+  end function cllsnlssMttrDarkEnergyConstructorParameters
 
-  function matterDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily matterDarkEnergy} spherical collapse solver class.
+  function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type   (sphericalCollapseSolverMatterDarkEnergy)                                  :: self
-    integer                                         , intent(in   )                   :: energyFixedAt
-    class  (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
-    class  (linearGrowthClass                      ), intent(in   ), target, optional :: linearGrowth_
+    type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
+    integer                                               , intent(in   )                   :: energyFixedAt
+    class  (cosmologyFunctionsClass                      ), intent(in   ), target           :: cosmologyFunctions_
+    class  (linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
     !# <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
 
-    if (.not.enumerationMatterDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
+    if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
     return
-  end function matterDarkEnergyConstructorInternal
+  end function cllsnlssMttrDarkEnergyConstructorInternal
 
-  subroutine matterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
+  subroutine cllsnlssMttrDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     use Root_Finder       , only : rootFinder               , rangeExpandMultiplicative  , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use Galacticus_Error  , only : Galacticus_Error_Report
@@ -113,32 +113,32 @@ contains
     use Tables            , only : table1DLogarithmicLinear
     use Linear_Growth     , only : normalizeMatterDominated
     implicit none
-    class           (sphericalCollapseSolverMatterDarkEnergy)             , intent(inout) :: self
-    double precision                                                      , intent(in   ) :: time
-    integer                                                               , intent(in   ) :: calculationType
-    class           (table1D                                ), allocatable, intent(inout) :: sphericalCollapse_
-    class           (linearGrowthClass                      ), pointer                    :: linearGrowth_
-    double precision                                         , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
-    double precision                                         , dimension(2)               :: timeRange
-    type            (rootFinder                             ), save                       :: finderAmplitudePerturbation          , finderExpansionMaximum
+    class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
+    double precision                                                            , intent(in   ) :: time
+    integer                                                                     , intent(in   ) :: calculationType
+    class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
+    class           (linearGrowthClass                            ), pointer                    :: linearGrowth_
+    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    double precision                                               , dimension(2)               :: timeRange
+    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation          , finderExpansionMaximum
     !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum)
-    integer                                                                               :: countTimes                           , iTime                                 , &
-         &                                                                                   iCount
-    double precision                                                                      :: expansionFactor                      , epsilonPerturbation                   , &
-         &                                                                                   epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
-         &                                                                                   densityContrastExpansionMaximum      , expansionFactorExpansionMaximum       , &
-         &                                                                                   radiusExpansionMaximum               , maximumExpansionTime                  , &
-         &                                                                                   normalization                        , q                                     , &
-         &                                                                                   timeEnergyFixed                      , timeInitial                           , &
-         &                                                                                   y                                    , timeMinimum                           , &
-         &                                                                                   timeMaximum
-    double complex                                                                        :: a                                    , b                                     , &
-         &                                                                                   x
-    type            (varying_string                         )                             :: message
-    character       (len=13                                 )                             :: label
+    integer                                                                                     :: countTimes                           , iTime                                 , &
+         &                                                                                         iCount
+    double precision                                                                            :: expansionFactor                      , epsilonPerturbation                   , &
+         &                                                                                         epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
+         &                                                                                         densityContrastExpansionMaximum      , expansionFactorExpansionMaximum       , &
+         &                                                                                         radiusExpansionMaximum               , maximumExpansionTime                  , &
+         &                                                                                         normalization                        , q                                     , &
+         &                                                                                         timeEnergyFixed                      , timeInitial                           , &
+         &                                                                                         y                                    , timeMinimum                           , &
+         &                                                                                         timeMaximum
+    double complex                                                                              :: a                                    , b                                     , &
+         &                                                                                         x
+    type            (varying_string                               )                             :: message
+    character       (len=13                                       )                             :: label
 
     ! Validate.
-    if (calculationType == matterLambdaCalculationCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Galacticus_Error_Report('linearGrowth object was not provided'//{introspection:location})
+    if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Galacticus_Error_Report('linearGrowth object was not provided'//{introspection:location})
     ! Find minimum and maximum times to tabulate.
     if (allocated(sphericalCollapse_)) then
        ! Use currently tabulated range as the starting point.
@@ -153,7 +153,7 @@ contains
     timeMinimum=min(timeMinimum,time/2.0d0)
     timeMaximum=max(timeMaximum,time*2.0d0)
     ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(matterLambdaTablePointsPerDecade))
+    countTimes=int(log10(timeMaximum/timeMinimum)*dble(cllsnlssMttCsmlgclCnstntTablePointsPerDecade))
     ! Deallocate table if currently allocated.
     if (allocated(sphericalCollapse_)) then
        call sphericalCollapse_%destroy()
@@ -178,9 +178,9 @@ contains
             &                          verbosity=verbosityWorking  &
             &                         )
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)
-       allocate(matterDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
-       !# <deepCopy source="self%cosmologyFunctions_" destination="matterDarkEnergyCosmologyFunctions_"/>
-       if (calculationType == matterLambdaCalculationCriticalOverdensity) then
+       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
           !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
        end if
@@ -192,85 +192,85 @@ contains
                &                          verbosity=verbosityWorking                    &
                &                         )
           ! Get the current expansion factor.
-          expansionFactor=matterDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
+          expansionFactor=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of ε for which a
           ! perturbation can collapse. So, use no perturbation.
           epsilonPerturbationMaximum=  0.0d0
           ! Estimate a suitably negative minimum value for ε.
           epsilonPerturbationMinimum=-10.0d0
           ! Evaluate cosmological parameters at the present time.
-          matterLambdaOmegaMatterEpochal    =matterDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-          matterLambdaOmegaDarkEnergyEpochal=matterDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-          matterLambdaHubbleTimeEpochal     =matterDarkEnergyCosmologyFunctions_%expansionRate         (                expansionFactor)
-          matterLambdaTime                  =sphericalCollapse_                 %x                     (                iTime          )
+          cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+          cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionRate         (                expansionFactor)
+          cllsnlssMttCsmlgclCnstntTime                  =sphericalCollapse_                       %x                     (                iTime          )
           ! Check dark energy equation of state is within acceptable range.
-          if (matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=matterLambdaTime) >= -1.0d0/3.0d0) &
+          if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
                & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderAmplitudePerturbation%isInitialized()) then
-             call finderAmplitudePerturbation%rootFunction(matterDarkEnergyRadiusPerturbation                 )
-             call finderAmplitudePerturbation%tolerance   (toleranceAbsolute,toleranceRelative)
+             call finderAmplitudePerturbation%rootFunction(cllsnlssMttrDarkEnergyRadiusPerturbation)
+             call finderAmplitudePerturbation%tolerance   (toleranceAbsolute,toleranceRelative     )
           end if
           epsilonPerturbation=finderAmplitudePerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           select case (calculationType)
-          case (matterLambdaCalculationCriticalOverdensity)
+          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
              ! Critical linear overdensity.
-             normalization=+linearGrowth_%value(matterLambdaTime,normalize=normalizeMatterDominated) &
+             normalization=+linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated) &
                   &        /                    expansionFactor
-             call sphericalCollapse_%populate(                                       &
-                  &                           +normalization                         &
-                  &                           *0.6d0                                 &
-                  &                           *(                                     &
-                  &                             +1.0d0                               &
-                  &                             -matterLambdaOmegaMatterEpochal      &
-                  &                             -matterLambdaOmegaDarkEnergyEpochal  &
-                  &                             -epsilonPerturbation                 &
-                  &                            )                                     &
-                  &                           /matterLambdaOmegaMatterEpochal      , &
-                  &                           iTime                                  &
+             call sphericalCollapse_%populate(                                                   &
+                  &                           +normalization                                     &
+                  &                           *0.6d0                                             &
+                  &                           *(                                                 &
+                  &                             +1.0d0                                           &
+                  &                             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      &
+                  &                             -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal  &
+                  &                             -epsilonPerturbation                             &
+                  &                            )                                                 &
+                  &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
+                  &                           iTime                                              &
                   &                          )
-          case (matterLambdaCalculationVirialDensityContrast,matterLambdaCalculationRadiusTurnaround)
+          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
              ! Find the epoch of maximum expansion for the perturbation.
              if (.not.finderExpansionMaximum%isInitialized()) then
-                call finderExpansionMaximum%rootFunction(matterDarkEnergyExpansionRatePerturbation)
-                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative      )
+                call finderExpansionMaximum%rootFunction(cllsnlssMttrDarkEnergyExpansionRatePerturbation)
+                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative            )
              end if
              call finderExpansionMaximum%rangeExpand (                                                             &
                   &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &
                   &                                   rangeExpandUpward            =1.0d0+1.0d-2                 , &
                   &                                   rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                                   rangeUpwardLimit             =matterLambdaTime             , &
+                  &                                   rangeUpwardLimit             =cllsnlssMttCsmlgclCnstntTime , &
                   &                                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
                   &                                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
                   &                                  )
-             matterLambdaAmplitudePerturbation=epsilonPerturbation
+             cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
              ! Compute the corresponding time of maximum expansion.
-             timeInitial                    =matterDarkEnergyCosmologyFunctions_%cosmicTime(matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)*matterDarkEnergyExpansionFactorInitialFraction)
+             timeInitial                    =cllsnlssMttrDarkEnergyCosmologyFunctions_%cosmicTime(cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)*cllsnlssMttrDarkEnergyExpansionFactorInitialFraction)
              ! Guess that the time of maximum expansion occurred at close to half of the current time.
-             timeRange                      =[0.45d0,0.55d0]*matterLambdaTime
+             timeRange                      =[0.45d0,0.55d0]*cllsnlssMttCsmlgclCnstntTime
              maximumExpansionTime           =finderExpansionMaximum%find(rootRange=timeRange)
-             expansionFactorExpansionMaximum=matterDarkEnergyCosmologyFunctions_%expansionFactor(maximumExpansionTime)
+             expansionFactorExpansionMaximum=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(maximumExpansionTime)
              ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
-             call matterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,maximumExpansionTime,radiusExpansionMaximum)
+             call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,maximumExpansionTime,radiusExpansionMaximum)
              ! Compute the density contrast of the perturbation at maximum expansion.
              densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
              ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38) to give the ratio of virial to turnaround radii,
              ! x.
-             q=      matterDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
-                  & /matterDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (time=maximumExpansionTime) &
+             q=      cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
+                  & /cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (time=maximumExpansionTime) &
                   & /densityContrastExpansionMaximum
-             y=      expansionFactorExpansionMaximum**matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime) &
-                  & /expansionFactor                **matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=matterLambdaTime    )
+             y=      expansionFactorExpansionMaximum**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime        ) &
+                  & /expansionFactor                **cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime)
              select case (self%energyFixedAt)
-             case (matterDarkEnergyFixedAtTurnaround   )
+             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   )
                 timeEnergyFixed=maximumExpansionTime
-             case (matterDarkEnergyFixedAtVirialization)
-                timeEnergyFixed=matterLambdaTime
+             case (cllsnlssMttrDarkEnergyFixedAtVirialization)
+                timeEnergyFixed=cllsnlssMttCsmlgclCnstntTime
              case default
                 call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})
              end select
-             a=1.0d0-(1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed ))*q/2.0d0
-             b=      (1.0d0+3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=matterLambdaTime))*q/y
+             a=1.0d0-(1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed             ))*q/2.0d0
+             b=      (1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime))*q/y
              ! Check for special cases.
              if (q == 0.0d0) then
                 ! No dark energy, the ratio of radii is always ½.
@@ -287,12 +287,12 @@ contains
                      & +(      a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)       )
              end if
              select case (calculationType)
-             case (matterLambdaCalculationVirialDensityContrast)
+             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast)
                 call sphericalCollapse_%populate(                                           &
                      &                           1.0d0/(dble(x)*radiusExpansionMaximum)**3, &
                      &                           iTime                                      &
                      &                          )
-             case (matterLambdaCalculationRadiusTurnaround)
+             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
                 call sphericalCollapse_%populate(                                           &
                      &                           1.0d0/ dble(x)                           , &
                      &                           iTime                                      &
@@ -303,35 +303,35 @@ contains
           iCount=iCount+1
        end do
        !$omp end do
-       !# <objectDestructor name="matterDarkEnergyCosmologyFunctions_"/>
+       !# <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        !$omp end parallel
        call Galacticus_Display_Counter_Clear(       verbosity=verbosityWorking)
        call Galacticus_Display_Unindent     ('done',verbosity=verbosityWorking)
     end select
     return
-  end subroutine matterDarkEnergyTabulate
+  end subroutine cllsnlssMttrDarkEnergyTabulate
 
-  double precision function matterDarkEnergyRadiusPerturbation(epsilonPerturbation)
+  double precision function cllsnlssMttrDarkEnergyRadiusPerturbation(epsilonPerturbation)
     !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
-    call matterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,matterLambdaTime,matterDarkEnergyRadiusPerturbation)
+    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,cllsnlssMttCsmlgclCnstntTime,cllsnlssMttrDarkEnergyRadiusPerturbation)
     return
-  end function matterDarkEnergyRadiusPerturbation
+  end function cllsnlssMttrDarkEnergyRadiusPerturbation
 
-  double precision function matterDarkEnergyExpansionRatePerturbation(time)
+  double precision function cllsnlssMttrDarkEnergyExpansionRatePerturbation(time)
     !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     implicit none
     double precision, intent(in   ) :: time
 
-    call matterDarkEnergyPerturbationDynamicsSolver(matterLambdaAmplitudePerturbation,time,expansionRatePerturbation=matterDarkEnergyExpansionRatePerturbation)
+    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(cllsnlssMttCsmlgclCnstntAmplitudePerturbation,time,expansionRatePerturbation=cllsnlssMttrDarkEnergyExpansionRatePerturbation)
     return
-  end function matterDarkEnergyExpansionRatePerturbation
+  end function cllsnlssMttrDarkEnergyExpansionRatePerturbation
 
-  subroutine matterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
+  subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     use FGSL         , only : FGSL_Success
@@ -351,37 +351,37 @@ contains
     integer                                                                                   :: odeStatus
 
     ! Specify a sufficiently early time.
-    expansionFactorInitial=matterDarkEnergyExpansionFactorInitialFraction
+    expansionFactorInitial=cllsnlssMttrDarkEnergyExpansionFactorInitialFraction
     ! Find the corresponding cosmic time.
-    timeInitial=matterDarkEnergyCosmologyFunctions_%cosmicTime(matterDarkEnergyCosmologyFunctions_%expansionFactor(time)*expansionFactorInitial)
+    timeInitial=cllsnlssMttrDarkEnergyCosmologyFunctions_%cosmicTime(cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(time)*expansionFactorInitial)
     ! Find the overdensity of the perturbation at early time (Percival, 2005, A&A, 443, 819, eqn. 25).
-    overdensityInitial=+0.6d0                                &
-         &             *(                                    &
-         &               +1.0d0                              &
-         &               -matterLambdaOmegaMatterEpochal     &
-         &               -matterLambdaOmegaDarkEnergyEpochal &
-         &               -epsilonPerturbation                &
-         &              )                                    &
-         &             *(                                    &
-         &               +3.0d0                              &
-         &               /2.0d0                              &
-         &               /matterLambdaOmegaMatterEpochal     &
-         &               *matterLambdaHubbleTimeEpochal      &
-         &               *timeInitial                        &
+    overdensityInitial=+0.6d0                                            &
+         &             *(                                                &
+         &               +1.0d0                                          &
+         &               -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+         &               -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+         &               -epsilonPerturbation                            &
+         &              )                                                &
+         &             *(                                                &
+         &               +3.0d0                                          &
+         &               /2.0d0                                          &
+         &               /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+         &               *cllsnlssMttCsmlgclCnstntHubbleTimeEpochal      &
+         &               *timeInitial                                    &
          &              )**(2.0d0/3.0d0)
     ! Find the perturbation radius at this early time. This is, by construction, just the initial expansion factor.
-    matterDarkEnergyPerturbationRadiusInitial=+expansionFactorInitial
+    cllsnlssMttrDarkEnergyPerturbationRadiusInitial=+expansionFactorInitial
     ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22).
-    expansionRatePerturbationInitial         =+matterLambdaHubbleTimeEpochal        &
-         &                                    *sqrt(                                &
-         &                                          +matterLambdaOmegaMatterEpochal &
-         &                                          /expansionFactorInitial         &
-         &                                          +epsilonPerturbation            &
+    expansionRatePerturbationInitial         =+cllsnlssMttCsmlgclCnstntHubbleTimeEpochal        &
+         &                                    *sqrt(                                            &
+         &                                          +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
+         &                                          /expansionFactorInitial                     &
+         &                                          +epsilonPerturbation                        &
          &                                         )
     ! Set initial conditions.
-    propertyValues=[                                           &
-         &          matterDarkEnergyPerturbationRadiusInitial, &
-         &          expansionRatePerturbationInitial           &
+    propertyValues=[                                                 &
+         &          cllsnlssMttrDarkEnergyPerturbationRadiusInitial, &
+         &          expansionRatePerturbationInitial                 &
          &         ]
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
@@ -392,7 +392,7 @@ contains
             &                   timeInitial,time                         , &
             &                   countProperties                          , &
             &                   propertyValues                           , &
-            &                   matterDarkEnergyPerturbationODEs         , &
+            &                   cllsnlssMttrDarkEnergyPerturbationODEs   , &
             &                   odeToleranceAbsolute,odeToleranceRelative, &
             &                   reset=odeReset                           , &
             &                   odeStatus=odeStatus                        &
@@ -412,9 +412,9 @@ contains
     if (present(radiusPerturbation       )) radiusPerturbation       =propertyValues(1)
     if (present(expansionRatePerturbation)) expansionRatePerturbation=propertyValues(2)
     return
-  end subroutine matterDarkEnergyPerturbationDynamicsSolver
+  end subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver
 
-  integer function matterDarkEnergyPerturbationODEs(time,y,dydt)
+  integer function cllsnlssMttrDarkEnergyPerturbationODEs(time,y,dydt)
     !% Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
     use FGSL, only : FGSL_Success
     implicit none
@@ -426,31 +426,31 @@ contains
     if (y(1) <= 0.0d0) then
        dydt(1:2)=0.0d0
     else
-       expansionFactor=+matterDarkEnergyCosmologyFunctions_%expansionFactor(            time) &
-            &          /matterDarkEnergyCosmologyFunctions_%expansionFactor(matterLambdaTime)
+       expansionFactor=+cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(                        time) &
+            &          /cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
        dydt(1)=+y(2)
-       dydt(2)=-0.5d0                                                                                                                                                                                                          &
-            &  *y(1)                                                                                                                                                                                                           &
-            &  *matterLambdaHubbleTimeEpochal**2                                                                                                                                                                               &
-            &  *(                                                                                                                                                                                                              &
-            &    +                                                                                       matterLambdaOmegaMatterEpochal    /y(1)           **3                                                                 &
-            &    +(3.0d0*matterDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*matterLambdaOmegaDarkEnergyEpochal*expansionFactor**matterDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=time) &
+       dydt(2)=-0.5d0                                                                                                                                                                                                                                  &
+            &  *y(1)                                                                                                                                                                                                                                   &
+            &  *cllsnlssMttCsmlgclCnstntHubbleTimeEpochal**2                                                                                                                                                                                           &
+            &  *(                                                                                                                                                                                                                                      &
+            &    +                                                                                             cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    /y(1)           **3                                                                       &
+            &    +(3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*expansionFactor**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=time) &
             &   )
     end if
     ! Return success.
-    matterDarkEnergyPerturbationODEs=FGSL_Success
+    cllsnlssMttrDarkEnergyPerturbationODEs=FGSL_Success
     return
-  end function matterDarkEnergyPerturbationODEs
+  end function cllsnlssMttrDarkEnergyPerturbationODEs
 
-  subroutine matterDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
+  subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
     !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model. 
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (sphericalCollapseSolverMatterDarkEnergy), intent(inout) :: self
-    double precision                                         , intent(in   ) :: time
-    class           (table2DLinLinLin                       ), intent(inout) :: linearNonlinearMap_
+    class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self
+    double precision                                               , intent(in   ) :: time
+    class           (table2DLinLinLin                             ), intent(inout) :: linearNonlinearMap_
     !GCC$ attributes unused :: self, time, linearNonlinearMap_
 
     call Galacticus_Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
     return
-  end subroutine matterDarkEnergyLinearNonlinearMap
+  end subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap

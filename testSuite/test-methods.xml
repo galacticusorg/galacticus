@@ -39,7 +39,7 @@
     <outputHaloModelData value="true"/>
     <taskMethod value="multi">
       <taskMethod value="evolveForests"/>
-      <taskMethod value="powerSpectra" />
+      <taskMethod value="powerSpectra"/>
     </taskMethod>
     <nodePropertyExtractMethod value="multi">
       <nodePropertyExtractMethod value="haloBias"/>
@@ -264,7 +264,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+    <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
     <virialDensityContrastMethod value="bryanNorman1998"/>
     <virialDensityContrastMethod value="fixed"/>
     <virialDensityContrastMethod value="friendsOfFriends"/>
@@ -406,7 +406,7 @@
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
       <treeNodeMethodFormationTime value="Cole2000" parameterLevel="top"/>
       <nodePropertyExtractorMethod value="rateCooling" parameterLevel="top"/>
-      <nodePropertyExtractorMethod value="null"        parameterLevel="top"/>
+      <nodePropertyExtractorMethod value="null" parameterLevel="top"/>
     </coolingRateMethod>
   </parameters>
   
@@ -750,8 +750,8 @@
       <darkEnergyEquationOfStateW0 value="-0.8"/>
       <darkEnergyEquationOfStateW1 value="0.0"/>
     </cosmologyFunctionsMethod>
-    <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
-    <virialDensityContrastMethod value="sphericalCollapseMatterDE">
+    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrDrkEnrgy"/>
+    <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrDrkEnrgy">
   <energyFixedAt value="turnaround"/>
   </virialDensityContrastMethod>
     </parameters>
@@ -850,9 +850,9 @@
       <wavenumberReference value="1.000"/>
       <running value="0.000"/>
     </powerSpectrumPrimordialMethod>
-    <linearGrowthMethod value="simple"/>
+    <linearGrowthMethod value="collisionlessMatter"/>
     <haloMassFunctionMethod value="tinker2008"/>
-    <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
     <virialOrbitMethod value="isotropic">
       <virialOrbitMethod value="fixed"/>
     </virialOrbitMethod>
@@ -1536,9 +1536,9 @@
 	<darkMatterParticleMethod value="CDM"/>
       </transferFunctionMethod>
     </transferFunctionMethod>
-    <linearGrowthMethod value="simple"/>
+    <linearGrowthMethod value="collisionlessMatter"/>
     <criticalOverdensityMethod value="barkana2001WDM">
-      <criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+      <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt">
 	<darkMatterParticleMethod value="CDM"/>
       </criticalOverdensityMethod>
     </criticalOverdensityMethod>
@@ -1577,7 +1577,7 @@
  	    <running value="0.000"/>
  	  </powerSpectrumPrimordialMethod>
 	</cosmologicalMassVarianceMethod>
-	<criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+	<criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt">
  	  <darkMatterParticleMethod value="CDM"/>
 	</criticalOverdensityMethod>
 	<cosmologyFunctionsMethod value="matterLambda"/>
@@ -1613,7 +1613,7 @@
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="1.0e9"/>
     </mergerTreeMassResolutionMethod>
-    <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+    <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
     <darkMatterProfileDMOMethod value="NFW"/>
     <accretionHaloMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>

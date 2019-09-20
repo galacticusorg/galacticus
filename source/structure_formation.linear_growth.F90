@@ -44,7 +44,7 @@ module Linear_Growth
   !#  <name>linearGrowth</name>
   !#  <descriptiveName>Linear Growth of Cosmological Structure</descriptiveName>
   !#  <description>Object providing linear growth of cosmological structure.</description>
-  !#  <default>simple</default>
+  !#  <default>collisionlessMatter</default>
   !#  <method name="value" >
   !#   <description>Return the linear growth factor at the given time and mass.</description>
   !#   <type>double precision</type>

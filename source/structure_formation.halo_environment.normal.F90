@@ -25,7 +25,7 @@
   use Tables
   use Statistics_Distributions
   use Kind_Numbers
-  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterLambda
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
@@ -39,20 +39,20 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
      !% A normal halo environment class.
      private
-     class           (cosmologyParametersClass            ), pointer :: cosmologyParameters_            => null()
-     class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_             => null()
-     class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_       => null()
-     class           (linearGrowthClass                   ), pointer :: linearGrowth_                   => null()
-     class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_            => null()
-     type            (sphericalCollapseSolverMatterLambda ), pointer :: sphericalCollapseSolver_        => null()
-     type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
-     type            (distributionFunction1DNormal        )          :: distributionOverdensityMassive
-     type            (table2DLinLinLin                    )          :: linearToNonLinear
-     double precision                                                :: radiusEnvironment                        , variance           , &
-          &                                                             environmentalOverdensityMaximum          , overdensityPrevious, &
-          &                                                             includedVolumeFraction
-     integer         (kind_int8                           )          :: uniqueIDPrevious
-     logical                                                         :: linearToNonLinearInitialized
+     class           (cosmologyParametersClass                         ), pointer :: cosmologyParameters_            => null()
+     class           (cosmologyFunctionsClass                          ), pointer :: cosmologyFunctions_             => null()
+     class           (cosmologicalMassVarianceClass                    ), pointer :: cosmologicalMassVariance_       => null()
+     class           (linearGrowthClass                                ), pointer :: linearGrowth_                   => null()
+     class           (criticalOverdensityClass                         ), pointer :: criticalOverdensity_            => null()
+     type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_        => null()
+     type            (distributionFunction1DPeakBackground             )          :: distributionOverdensity
+     type            (distributionFunction1DNormal                     )          :: distributionOverdensityMassive
+     type            (table2DLinLinLin                                 )          :: linearToNonLinear
+     double precision                                                             :: radiusEnvironment                        , variance           , &
+          &                                                                          environmentalOverdensityMaximum          , overdensityPrevious, &
+          &                                                                          includedVolumeFraction
+     integer         (kind_int8                                        )          :: uniqueIDPrevious
+     logical                                                                      :: linearToNonLinearInitialized
    contains
      final     ::                                  normalDestructor
      procedure :: overdensityLinear             => normalOverdensityLinear
@@ -168,7 +168,7 @@ contains
     self%linearToNonLinearInitialized=.false.
     ! Construct a spherical collapse solver.
     allocate(self%sphericalCollapseSolver_)
-    !# <referenceConstruct owner="self" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterLambda(self%cosmologyFunctions_,self%linearGrowth_)"/>
+    !# <referenceConstruct owner="self" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
     return
   end function normalConstructorInternal
 

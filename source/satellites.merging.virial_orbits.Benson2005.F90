@@ -34,9 +34,9 @@
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
      !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
      private
-     class(darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_   => null()
-     class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_    => null()
-     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_ => null()
+     class(darkMatterHaloScaleClass                                       ), pointer :: darkMatterHaloScale_   => null()
+     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_    => null()
+     type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                                    benson2005Destructor
      procedure :: orbit                           => benson2005Orbit
@@ -81,7 +81,7 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.,cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
     return
   end function benson2005ConstructorInternal
 

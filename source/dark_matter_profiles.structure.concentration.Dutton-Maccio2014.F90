@@ -228,16 +228,16 @@ contains
 
     select case (self%densityContrastMethod)
     case (duttonMaccio2014DensityContrastMethodCritical200)
-       allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastFixed)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastFixed                                     )
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
        end select
     case (duttonMaccio2014DensityContrastMethodVirial    )
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true. ,                                                   self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(darkMatterHaloScaleDefinition_)

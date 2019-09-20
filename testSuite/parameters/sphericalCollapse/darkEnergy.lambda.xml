@@ -11,6 +11,6 @@
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="70.0"/>
-  </cosmologyParametersMethod><criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
+  </cosmologyParametersMethod><criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrDrkEnrgy"/>
+  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrDrkEnrgy"/>
 </parameters>

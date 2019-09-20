@@ -22,17 +22,17 @@
   use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
   use Linear_Growth      , only : linearGrowthClass      , linearGrowth
 
-  !# <sphericalCollapseSolver name="sphericalCollapseSolverMatterLambda">
+  !# <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt">
   !#  <description>A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.</description>
   !# </sphericalCollapseSolver>
-  type, extends(sphericalCollapseSolverClass) :: sphericalCollapseSolverMatterLambda
+  type, extends(sphericalCollapseSolverClass) :: sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
      !% A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      class(linearGrowthClass      ), pointer :: linearGrowth_       => null()
    contains
      !@ <objectMethods>
-     !@   <object>sphericalCollapseSolverMatterLambda</object>
+     !@   <object>sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt</object>
      !@   <objectMethod>
      !@     <method>restoreTable</method>
      !@     <type>void</type>
@@ -52,25 +52,25 @@
      !@     <description>Store a tabulated solution to file.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                          matterLambdaDestructor
-     procedure :: criticalOverdensity   => matterLambdaCriticalOverdensity
-     procedure :: virialDensityContrast => matterLambdaVirialDensityContrast
-     procedure :: radiusTurnaround      => matterLambdaRadiusTurnaround
-     procedure :: linearNonlinearMap    => matterLambdaLinearNonlinearMap
-     procedure :: restoreTable          => matterLambdaRestoreTable
-     procedure :: storeTable            => matterLambdaStoreTable
-     procedure :: tabulate              => matterLambdaTabulate
-  end type sphericalCollapseSolverMatterLambda
+     final     ::                          cllsnlssMttCsmlgclCnstntDestructor
+     procedure :: criticalOverdensity   => cllsnlssMttCsmlgclCnstntCriticalOverdensity
+     procedure :: virialDensityContrast => cllsnlssMttCsmlgclCnstntVirialDensityContrast
+     procedure :: radiusTurnaround      => cllsnlssMttCsmlgclCnstntRadiusTurnaround
+     procedure :: linearNonlinearMap    => cllsnlssMttCsmlgclCnstntLinearNonlinearMap
+     procedure :: restoreTable          => cllsnlssMttCsmlgclCnstntRestoreTable
+     procedure :: storeTable            => cllsnlssMttCsmlgclCnstntStoreTable
+     procedure :: tabulate              => cllsnlssMttCsmlgclCnstntTabulate
+  end type sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
-  interface sphericalCollapseSolverMatterLambda
-     !% Constructors for the {\normalfont \ttfamily matterLambda} spherical collapse solver class.
-     module procedure matterLambdaConstructorParameters
-     module procedure matterLambdaConstructorInternal
-  end interface sphericalCollapseSolverMatterLambda
+  interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+     !% Constructors for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+     module procedure cllsnlssMttCsmlgclCnstntConstructorParameters
+     module procedure cllsnlssMttCsmlgclCnstntConstructorInternal
+  end interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   ! Enumeration of types of calculation to perform.
   !# <enumeration>
-  !#  <name>matterLambdaCalculation</name>
+  !#  <name>cllsnlssMttCsmlgclCnstntClcltn</name>
   !#  <description>Enumeration of calculation types to be performed by the spherical collapse solver.</description>
   !#  <entry label="criticalOverdensity"  />
   !#  <entry label="virialDensityContrast"/>
@@ -78,70 +78,70 @@
   !# </enumeration>
 
   ! Resolution of tabulated solutions.
-  integer         , parameter :: matterLambdaTablePointsPerDecade=1000
+  integer         , parameter :: cllsnlssMttCsmlgclCnstntTablePointsPerDecade=1000
 
   ! Variables used in root finding.
-  double precision            :: matterLambdaOmegaDarkEnergyEpochal, matterLambdaOmegaMatterEpochal, &
-       &                         matterLambdaAmplitudePerturbation , matterLambdaHubbleTimeEpochal , &
-       &                         matterLambdaTime                  , matterLambdaTimeTarget        , &
-       &                         matterLambdaRadiusMaximum
-  !$omp threadprivate(matterLambdaOmegaDarkEnergyEpochal,matterLambdaOmegaMatterEpochal,matterLambdaAmplitudePerturbation,matterLambdaHubbleTimeEpochal,matterLambdaTime,matterLambdaTimeTarget,matterLambdaRadiusMaximum)
+  double precision            :: cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal, cllsnlssMttCsmlgclCnstntOmegaMatterEpochal, &
+       &                         cllsnlssMttCsmlgclCnstntAmplitudePerturbation , cllsnlssMttCsmlgclCnstntHubbleTimeEpochal , &
+       &                         cllsnlssMttCsmlgclCnstntTime                  , cllsnlssMttCsmlgclCnstntTimeTarget        , &
+       &                         cllsnlssMttCsmlgclCnstntRadiusMaximum
+  !$omp threadprivate(cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal,cllsnlssMttCsmlgclCnstntOmegaMatterEpochal,cllsnlssMttCsmlgclCnstntAmplitudePerturbation,cllsnlssMttCsmlgclCnstntHubbleTimeEpochal,cllsnlssMttCsmlgclCnstntTime,cllsnlssMttCsmlgclCnstntTimeTarget,cllsnlssMttCsmlgclCnstntRadiusMaximum)
   
 contains
 
-  function matterLambdaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily matterLambda} spherical collapse solver class that takes a parameter set as
+  function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
     !% input.
     use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (sphericalCollapseSolverMatterLambda)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
-    class(linearGrowthClass                  ), pointer       :: linearGrowth_
+    type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                :: self
+    type (inputParameters                                 ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                         ), pointer       :: cosmologyFunctions_
+    class(linearGrowthClass                               ), pointer       :: linearGrowth_
 
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
-    self=sphericalCollapseSolverMatterLambda(cosmologyFunctions_,linearGrowth_)
+    self=sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(cosmologyFunctions_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="linearGrowth_"      />
     return
-  end function matterLambdaConstructorParameters
+  end function cllsnlssMttCsmlgclCnstntConstructorParameters
 
-  function matterLambdaConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily matterLambda} spherical collapse solver class.
+  function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
     implicit none
-    type (sphericalCollapseSolverMatterLambda)                                  :: self
-    class(cosmologyFunctionsClass            ), intent(in   ), target           :: cosmologyFunctions_
-    class(linearGrowthClass                  ), intent(in   ), target, optional :: linearGrowth_
+    type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                                  :: self
+    class(cosmologyFunctionsClass                         ), intent(in   ), target           :: cosmologyFunctions_
+    class(linearGrowthClass                               ), intent(in   ), target, optional :: linearGrowth_
     !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_"/>
 
     return
-  end function matterLambdaConstructorInternal
+  end function cllsnlssMttCsmlgclCnstntConstructorInternal
 
-  subroutine matterLambdaDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily matterLambda} spherical collapse solver class.
+  subroutine cllsnlssMttCsmlgclCnstntDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
     implicit none
-    type(sphericalCollapseSolverMatterLambda), intent(inout) :: self
+    type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%linearGrowth_"      />
     return
-  end subroutine matterLambdaDestructor
+  end subroutine cllsnlssMttCsmlgclCnstntDestructor
 
-  subroutine matterLambdaCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
+  subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
     !% Compute the critical overdensity for collapse for the spherical collapse model.
     use ISO_Varying_String , only : varying_string    , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
     use Galacticus_Paths   , only : galacticusPath    , pathTypeDataDynamic
     use Tables             , only : table1D
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)              , intent(inout) :: self
-    double precision                                                   , intent(in   ) :: time
-    logical                                                            , intent(in   ) :: tableStore
-    class           (table1D                             ), allocatable, intent(inout) :: criticalOverdensity_
-    type            (varying_string                      )                             :: fileName
-    integer                                                                            :: status
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)              , intent(inout) :: self
+    double precision                                                                , intent(in   ) :: time
+    logical                                                                         , intent(in   ) :: tableStore
+    class           (table1D                                          ), allocatable, intent(inout) :: criticalOverdensity_
+    type            (varying_string                                   )                             :: fileName
+    integer                                                                                         :: status
 
     fileName=galacticusPath(pathTypeDataDynamic)              // &
          &   'largeScaleStructure/'                           // &
@@ -149,27 +149,27 @@ contains
          &   'CriticalOverdensity_'                           // &
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
-    call    self%restoreTable(time,criticalOverdensity_,fileName                                  ,tableStore,status)
+    call    self%restoreTable(time,criticalOverdensity_,fileName                                         ,tableStore,status)
     if (status /= errorStatusSuccess) then       
-       call self%tabulate    (time,criticalOverdensity_,matterLambdaCalculationCriticalOverdensity                  )
-       call self%storeTable  (     criticalOverdensity_,fileName                                  ,tableStore       )
+       call self%tabulate    (time,criticalOverdensity_,cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity                  )
+       call self%storeTable  (     criticalOverdensity_,fileName                                         ,tableStore       )
     end if
     return
-  end subroutine matterLambdaCriticalOverdensity
+  end subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity
 
-  subroutine matterLambdaVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
+  subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
     use Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
     use Tables             , only : table1D
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)             , intent(inout) :: self
-    double precision                                                  , intent(in   ) :: time
-    logical                                                           , intent(in   ) :: tableStore
-    class           (table1D                            ), allocatable, intent(inout) :: virialDensityContrast_
-    type            (varying_string                     )                             :: fileName
-    integer                                                                           :: status
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
+    double precision                                                               , intent(in   ) :: time
+    logical                                                                        , intent(in   ) :: tableStore
+    class           (table1D                                         ), allocatable, intent(inout) :: virialDensityContrast_
+    type            (varying_string                                  )                             :: fileName
+    integer                                                                                        :: status
 
     fileName=galacticusPath(pathTypeDataDynamic)              // &
          &   'largeScaleStructure/'                           // &
@@ -177,27 +177,27 @@ contains
          &   'VirialDensityContrast_'                         // &
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
-    call    self%restoreTable(time,virialDensityContrast_,fileName                                    ,tableStore,status)
+    call    self%restoreTable(time,virialDensityContrast_,fileName                                           ,tableStore,status)
     if (status /= errorStatusSuccess) then       
-       call self%tabulate    (time,virialDensityContrast_,matterLambdaCalculationVirialDensityContrast                  )
-       call self%storeTable  (     virialDensityContrast_,fileName                                    ,tableStore       )
+       call self%tabulate    (time,virialDensityContrast_,cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast                  )
+       call self%storeTable  (     virialDensityContrast_,fileName                                           ,tableStore       )
     end if
     return
-  end subroutine matterLambdaVirialDensityContrast
+  end subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast
 
-  subroutine matterLambdaRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
+  subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
     use ISO_Varying_String , only : varying_string          , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
     use Galacticus_Paths   , only : galacticusPath          , pathTypeDataDynamic
     use Tables             , only : table1D
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)             , intent(inout) :: self
-    double precision                                                  , intent(in   ) :: time
-    logical                                                           , intent(in   ) :: tableStore
-    class           (table1D                            ), allocatable, intent(inout) :: radiusTurnaround_
-    type            (varying_string                     )                             :: fileName
-    integer                                                                           :: status
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
+    double precision                                                               , intent(in   ) :: time
+    logical                                                                        , intent(in   ) :: tableStore
+    class           (table1D                                         ), allocatable, intent(inout) :: radiusTurnaround_
+    type            (varying_string                                  )                             :: fileName
+    integer                                                                                        :: status
 
     fileName=galacticusPath(pathTypeDataDynamic)              // &
          &   'largeScaleStructure/'                           // &
@@ -205,15 +205,15 @@ contains
          &   'TurnaroundRadius_'                              // &
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
-    call    self%restoreTable(time,radiusTurnaround_,fileName                               ,tableStore,status)
+    call    self%restoreTable(time,radiusTurnaround_,fileName                                      ,tableStore,status)
     if (status /= errorStatusSuccess) then       
-       call self%tabulate    (time,radiusTurnaround_,matterLambdaCalculationRadiusTurnaround                  )
-       call self%storeTable  (     radiusTurnaround_,fileName                               ,tableStore       )
+       call self%tabulate    (time,radiusTurnaround_,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround                  )
+       call self%storeTable  (     radiusTurnaround_,fileName                                      ,tableStore       )
     end if
     return
-  end subroutine matterLambdaRadiusTurnaround
+  end subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround
 
-  subroutine matterLambdaTabulate(self,time,sphericalCollapse_,calculationType)
+  subroutine cllsnlssMttCsmlgclCnstntTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     use Root_Finder        , only : rootFinder                    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use Kind_Numbers       , only : kind_dble
@@ -222,23 +222,23 @@ contains
     use Linear_Growth      , only : normalizeMatterDominated
     use Galacticus_Error   , only : Galacticus_Error_Report
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)             , intent(inout) :: self
-    double precision                                                  , intent(in   ) :: time
-    integer                                                           , intent(in   ) :: calculationType
-    class           (table1D                            ), allocatable, intent(inout) :: sphericalCollapse_
-    double precision                                     , parameter                  :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
-    type            (rootFinder                         ), save                       :: finder
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
+    double precision                                                               , intent(in   ) :: time
+    integer                                                                        , intent(in   ) :: calculationType
+    class           (table1D                                         ), allocatable, intent(inout) :: sphericalCollapse_
+    double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
+    type            (rootFinder                                      ), save                       :: finder
     !$omp threadprivate(finder)
-    integer                                                                           :: countTimes                       , i
-    double precision                                                                  :: expansionFactor                  , epsilonPerturbation              , &
-         &                                                                               epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
-         &                                                                               eta                              , normalization                    , &
-         &                                                                               radiiRatio                       , radiusMaximum                    , &
-         &                                                                               timeBigCrunch                    , timeMinimum                      , &
-         &                                                                               timeMaximum
-    double complex                                                                    :: a                                , b                                , &
-         &                                                                               c                                , d                                , &
-         &                                                                               Delta
+    integer                                                                                        :: countTimes                       , i
+    double precision                                                                               :: expansionFactor                  , epsilonPerturbation              , &
+         &                                                                                            epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
+         &                                                                                            eta                              , normalization                    , &
+         &                                                                                            radiiRatio                       , radiusMaximum                    , &
+         &                                                                                            timeBigCrunch                    , timeMinimum                      , &
+         &                                                                                            timeMaximum
+    double complex                                                                                 :: a                                , b                                , &
+         &                                                                                            c                                , d                                , &
+         &                                                                                            Delta
 
     ! Find minimum and maximum times to tabulate.
     if (allocated(sphericalCollapse_)) then
@@ -260,7 +260,7 @@ contains
        if (timeMaximum > timeBigCrunch) timeMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
     end if
     ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(matterLambdaTablePointsPerDecade))
+    countTimes=int(log10(timeMaximum/timeMinimum)*dble(cllsnlssMttCsmlgclCnstntTablePointsPerDecade))
     ! Deallocate table if currently allocated.
     if (allocated(sphericalCollapse_)) then
        call sphericalCollapse_%destroy()
@@ -272,9 +272,9 @@ contains
        call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
        ! Solve ODE to get corresponding overdensities.       
        do i=1,countTimes
-          matterLambdaTime=sphericalCollapse_%x(i)
+          cllsnlssMttCsmlgclCnstntTime=sphericalCollapse_%x(i)
           ! Get the current expansion factor.
-          expansionFactor=self%cosmologyFunctions_%expansionFactor(matterLambdaTime)
+          expansionFactor=self%cosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
           ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
           if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
              epsilonPerturbationMaximum=-(                                                                                     &
@@ -289,12 +289,12 @@ contains
           ! Estimate a suitably negative minimum value for ε.
           epsilonPerturbationMinimum=-10.0d0
           ! Compute epochal cosmological parameters.
-          matterLambdaOmegaMatterEpochal    =    self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-          matterLambdaOmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-          matterLambdaHubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
+          cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =    self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+          cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finder%isInitialized()) then
-             call finder%rootFunction(matterLambdaPerturbationCollapseRoot)
+             call finder%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
              call finder%tolerance   (toleranceAbsolute,toleranceRelative )
              call finder%rangeExpand (                                                             &
                   &                   rangeExpandUpward            =0.5d0                        , &
@@ -307,34 +307,34 @@ contains
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the required quantity for this perturbation.
           select case (calculationType)
-          case (matterLambdaCalculationCriticalOverdensity)
+          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
              ! Critical linear overdensity.
              if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
-             normalization=self%linearGrowth_%value(matterLambdaTime,normalize=normalizeMatterDominated)/expansionFactor
-             call sphericalCollapse_%populate(                                       &
-                  &                           +normalization                         &
-                  &                           *0.6d0                                 &
-                  &                           *(                                     &
-                  &                             +1.0d0                               &
-                  &                             -matterLambdaOmegaMatterEpochal      &
-                  &                             -matterLambdaOmegaDarkEnergyEpochal  &
-                  &                             -epsilonPerturbation                 &
-                  &                            )                                     &
-                  &                           /matterLambdaOmegaMatterEpochal      , &
-                  &                           i                                      &
+             normalization=self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated)/expansionFactor
+             call sphericalCollapse_%populate(                                                   &
+                  &                           +normalization                                     &
+                  &                           *0.6d0                                             &
+                  &                           *(                                                 &
+                  &                             +1.0d0                                           &
+                  &                             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      &
+                  &                             -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal  &
+                  &                             -epsilonPerturbation                             &
+                  &                            )                                                 &
+                  &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
+                  &                           i                                                  &
                   &                           )
-          case (matterLambdaCalculationVirialDensityContrast,matterLambdaCalculationRadiusTurnaround)
+          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
              ! Compute the maximum radius of the perturbation.
-             radiusMaximum=+matterLambdaRadiusPerturbationMaximum(epsilonPerturbation)
+             radiusMaximum=+cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
              ! Find the η-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
              ! perturbation.
-             eta          =+2.0d0                                &
-                  &        *(                                    &
-                  &          +matterLambdaOmegaDarkEnergyEpochal &
-                  &          /matterLambdaOmegaMatterEpochal     &
+             eta          =+2.0d0                                            &
+                  &        *(                                                &
+                  &          +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+                  &          /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
                   &         )*radiusMaximum**3
              ! Handle the open universe case separately.
-             if (matterLambdaOmegaDarkEnergyEpochal == 0.0d0) then
+             if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
                 radiiRatio=0.5d0
              else
                 ! Coefficients of the cubic energy equation.
@@ -354,35 +354,35 @@ contains
                      &          )
              end if
              select case (calculationType)
-             case (matterLambdaCalculationVirialDensityContrast)
-                call sphericalCollapse_%populate(                                                                                  &
-                     &                           1.0d0/(radiiRatio*matterLambdaRadiusPerturbationMaximum(epsilonPerturbation))**3, &
-                     &                           i                                                                                 &
+             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast)
+                call sphericalCollapse_%populate(                                                                                              &
+                     &                           1.0d0/(radiiRatio*cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation))**3, &
+                     &                           i                                                                                             &
                      &                          )
-             case (matterLambdaCalculationRadiusTurnaround)
-                call sphericalCollapse_%populate(                                                                                  &
-                     &                           1.0d0/ radiiRatio                                                               , &
-                     &                           i                                                                                 &
+             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+                call sphericalCollapse_%populate(                                                                                              &
+                     &                           1.0d0/ radiiRatio                                                                           , &
+                     &                           i                                                                                             &
                      &                          )
              end select
           end select
        end do
     end select
     return
-  end subroutine matterLambdaTabulate
+  end subroutine cllsnlssMttCsmlgclCnstntTabulate
 
-  double precision function matterLambdaPerturbationCollapseRoot(epsilonPerturbation)
+  double precision function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot(epsilonPerturbation)
     !% Root function used to determine when the collapse time for a perturbation of amplitude {\normalfont \ttfamily
     !% epsilonPerturbation} collapses at the current time.
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
     ! Evaluate the root function.
-    matterLambdaPerturbationCollapseRoot=matterLambdaTimeCollapse(epsilonPerturbation)-matterLambdaTime
+    cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot=cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)-cllsnlssMttCsmlgclCnstntTime
     return
-  end function matterLambdaPerturbationCollapseRoot
+  end function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot
 
-  double precision function matterLambdaRadiusPerturbationMaximum(epsilonPerturbation)
+  double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
     !% Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
     use Root_Finder, only : rootFinder
     implicit none
@@ -393,55 +393,55 @@ contains
     double precision                            :: expansionFactorTurnaroundMaximum      , expansionFactorTurnaroundMinimum
 
 
-    if (matterLambdaOmegaDarkEnergyEpochal == 0.0d0) then
+    if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
        ! No cosmological constant - use the simple analytic solution.
-       matterLambdaRadiusPerturbationMaximum=-matterLambdaOmegaMatterEpochal &
+       cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
             &                                 /epsilonPerturbation
     else
        ! Cosmological constant - use root finder.
-       matterLambdaAmplitudePerturbation=+epsilonPerturbation
-       expansionFactorTurnaroundMinimum =-matterLambdaOmegaMatterEpochal       &
-            &                            /matterLambdaAmplitudePerturbation
-       expansionFactorTurnaroundMaximum =+(                                    &
-            &                              +matterLambdaOmegaMatterEpochal     &
-            &                              /matterLambdaOmegaDarkEnergyEpochal &
-            &                              /2.0d0                              &
+       cllsnlssMttCsmlgclCnstntAmplitudePerturbation=+epsilonPerturbation
+       expansionFactorTurnaroundMinimum =-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal       &
+            &                            /cllsnlssMttCsmlgclCnstntAmplitudePerturbation
+       expansionFactorTurnaroundMaximum =+(                                                &
+            &                              +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+            &                              /cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+            &                              /2.0d0                                          &
             &                             )**(1.0d0/3.0d0)
-       if      (matterLambdaRadiusPerturbationMaximumRoot(expansionFactorTurnaroundMaximum) > 0.0d0) then
+       if      (cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(expansionFactorTurnaroundMaximum) > 0.0d0) then
           ! If the root function is not negative at the upper limit for the expansion factor at turnaround it is due to rounding
           ! errors in the calculation of the upper limit for the expansion factor at turnaround which implies that the upper limit
           ! for the expansion factor at turnaround is very close to the actual root.
-          matterLambdaRadiusPerturbationMaximum=expansionFactorTurnaroundMaximum
-       else if (matterLambdaRadiusPerturbationMaximumRoot(expansionFactorTurnaroundMinimum) < 0.0d0)  then
+          cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=expansionFactorTurnaroundMaximum
+       else if (cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(expansionFactorTurnaroundMinimum) < 0.0d0)  then
           ! If the root function is not positive at the lower limit for the expansion factor at turnaround it is due to rounding
           ! errors in the calculation of the lower limit for the expansion factor at turnaround which implies that the lower limit
           ! for the expansion factor at turnaround is very close to the actual root.
-          matterLambdaRadiusPerturbationMaximum=expansionFactorTurnaroundMinimum
+          cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=expansionFactorTurnaroundMinimum
        else
           if (.not.finder%isInitialized()) then
-             call finder%rootFunction(matterLambdaRadiusPerturbationMaximumRoot)
+             call finder%rootFunction(cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot)
              call finder%tolerance   (toleranceAbsolute,toleranceRelative      )
           end if
-          matterLambdaRadiusPerturbationMaximum=finder%find(rootRange=[expansionFactorTurnaroundMinimum,expansionFactorTurnaroundMaximum])
+          cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=finder%find(rootRange=[expansionFactorTurnaroundMinimum,expansionFactorTurnaroundMaximum])
        end if
     end if
     return
-  end function matterLambdaRadiusPerturbationMaximum
+  end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum
 
-  double precision function matterLambdaRadiusPerturbationMaximumRoot(radiusMaximum)
+  double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(radiusMaximum)
     !% Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed
     !% of the perturbation which must be zero at the maximum radius.
     double precision, intent(in   ) :: radiusMaximum
     
-    matterLambdaRadiusPerturbationMaximumRoot=+matterLambdaOmegaMatterEpochal     &
-         &                                    /radiusMaximum                      &
-         &                                    +matterLambdaAmplitudePerturbation  &
-         &                                    +matterLambdaOmegaDarkEnergyEpochal &
+    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
+         &                                    /radiusMaximum                                          &
+         &                                    +cllsnlssMttCsmlgclCnstntAmplitudePerturbation          &
+         &                                    +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal         &
          &                                    *radiusMaximum**2
     return
-  end function matterLambdaRadiusPerturbationMaximumRoot
+  end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
-  double precision function matterLambdaTimeCollapse(epsilonPerturbation)
+  double precision function cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)
     use Numerical_Integration, only : Integrate    , Integrate_Done
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     implicit none
@@ -455,7 +455,7 @@ contains
          &                                                      timeTurnaround
 
     ! Find the maximum radius of the perturbation.
-    radiusTurnaround       =+matterLambdaRadiusPerturbationMaximum(epsilonPerturbation)
+    radiusTurnaround       =+cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
     ! Compute maximum value of a for numerical integration.
     radiusUpperNumerical=+(                       &
          &                 +1.0d0                 &
@@ -463,68 +463,68 @@ contains
          &                )                       &
          &               *radiusTurnaround
     ! Share the epsilon parameter.
-    matterLambdaAmplitudePerturbation=epsilonPerturbation
+    cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
     integrationReset=.true.
-    timeTurnaround  =+Integrate(                                                     &
-         &                                        radiusMinimum                    , &
-         &                                        radiusUpperNumerical             , &
-         &                                        matterLambdaPerturbationIntegrand, &
-         &                                        integrandFunction                , &
-         &                                        integrationWorkspace             , &
-         &                      toleranceAbsolute=0.0d+0                           , &
-         &                      toleranceRelative=1.0d-6                           , &
-         &                      hasSingularities =.true.                           , &
-         &                      reset            =integrationReset                   &
-         &                     )                                                     &
-         &           /matterLambdaHubbleTimeEpochal
+    timeTurnaround  =+Integrate(                                                                 &
+         &                                        radiusMinimum                                , &
+         &                                        radiusUpperNumerical                         , &
+         &                                        cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
+         &                                        integrandFunction                            , &
+         &                                        integrationWorkspace                         , &
+         &                      toleranceAbsolute=0.0d+0                                       , &
+         &                      toleranceRelative=1.0d-6                                       , &
+         &                      hasSingularities =.true.                                       , &
+         &                      reset            =integrationReset                               &
+         &                     )                                                                 &
+         &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Add on analytic correction for region close to the turnaround radius.
-    timeTurnaround=+timeTurnaround                              &
-         &         -2.0d0                                       &
-         &         *sqrt(                                       &
-         &               +matterLambdaOmegaMatterEpochal        &
-         &               /radiusUpperNumerical                  &
-         &               +epsilonPerturbation                   &
-         &               +matterLambdaOmegaDarkEnergyEpochal    &
-         &               *radiusUpperNumerical              **2 &
-         &              )                                       &
-         &         /    (                                       &
-         &               +2.0d0                                 &
-         &               *matterLambdaOmegaDarkEnergyEpochal    &
-         &               *radiusUpperNumerical                  &
-         &               -matterLambdaOmegaMatterEpochal        &
-         &               /radiusUpperNumerical              **2 &
-         &              )                                       &
-         &         /      matterLambdaHubbleTimeEpochal
+    timeTurnaround=+timeTurnaround                                          &
+         &         -2.0d0                                                   &
+         &         *sqrt(                                                   &
+         &               +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal        &
+         &               /radiusUpperNumerical                              &
+         &               +epsilonPerturbation                               &
+         &               +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal    &
+         &               *radiusUpperNumerical                          **2 &
+         &              )                                                   &
+         &         /    (                                                   &
+         &               +2.0d0                                             &
+         &               *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal    &
+         &               *radiusUpperNumerical                              &
+         &               -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal        &
+         &               /radiusUpperNumerical                          **2 &
+         &              )                                                   &
+         &         /      cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
     ! Time to collapse is twice the time to maximum expansion.
-    matterLambdaTimeCollapse=+2.0d0          &
-         &                   *timeTurnaround
+    cllsnlssMttCsmlgclCnstntTimeCollapse=+2.0d0          &
+         &                               *timeTurnaround
     return
-  end function matterLambdaTimeCollapse
+  end function cllsnlssMttCsmlgclCnstntTimeCollapse
 
-  double precision function matterLambdaPerturbationIntegrand(radius)
+  double precision function cllsnlssMttCsmlgclCnstntPerturbationIntegrand(radius)
     !% Integrand function giving the $\mathrm{d}t/\mathrm{d}r$ for the perturbation.
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: sqrtArgument
     
     ! Compute the integrand.
-    sqrtArgument=+matterLambdaOmegaMatterEpochal               &
-         &       +matterLambdaAmplitudePerturbation *radius    &
-         &       +matterLambdaOmegaDarkEnergyEpochal*radius**3
+    sqrtArgument=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal               &
+         &       +cllsnlssMttCsmlgclCnstntAmplitudePerturbation *radius    &
+         &       +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radius**3
     if (sqrtArgument > 0.0d0) then
-       matterLambdaPerturbationIntegrand=+sqrt(              &
-            &                                  +radius       &
-            &                                  /sqrtArgument &
-            &                                 )
+       cllsnlssMttCsmlgclCnstntPerturbationIntegrand=+sqrt(              &
+            &                                              +radius       &
+            &                                              /sqrtArgument &
+            &                                             )
     else
-       matterLambdaPerturbationIntegrand=+0.0d0
+       cllsnlssMttCsmlgclCnstntPerturbationIntegrand=+0.0d0
     end if
     return
-  end function matterLambdaPerturbationIntegrand
+  end function cllsnlssMttCsmlgclCnstntPerturbationIntegrand
 
-  subroutine matterLambdaLinearNonlinearMap(self,time,linearNonlinearMap_)
+  subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
     !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
     use Linear_Growth        , only : normalizeMatterDominated
     use Root_Finder          , only : rootFinder              , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
@@ -535,7 +535,7 @@ contains
     use FGSL                 , only : fgsl_function           , fgsl_integration_workspace
     use Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)             , intent(inout) :: self
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                  , intent(in   ) :: time
     class           (table2DLinLinLin                   )             , intent(inout) :: linearNonlinearMap_
     integer                                              , parameter                  :: tableIncrement          =100
@@ -576,13 +576,13 @@ contains
     ! Iterate over times.
     do iTime=1,timeCount
        ! Get the current expansion factor.
-       matterLambdaTime           =times(iTime)
-       expansionFactor=self%cosmologyFunctions_%expansionFactor(matterLambdaTime)
+       cllsnlssMttCsmlgclCnstntTime           =times(iTime)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
        ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
        if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
-          epsilonPerturbationMaximum=-(                                                                                &
-               &                       +27.0d0                                                                         &
-               &                       / 4.0d0                                                                         &
+          epsilonPerturbationMaximum=-(                                                                                     &
+               &                       +27.0d0                                                                              &
+               &                       / 4.0d0                                                                              &
                &                       *self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)    &
                &                       *self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)**2 &
                &                      )**(1.0d0/3.0d0)
@@ -592,12 +592,12 @@ contains
        ! Estimate a suitably negative minimum value for epsilon.
        epsilonPerturbationMinimum=-10.0d0
        ! Compute cosmological parametrers at this epoch.
-       matterLambdaOmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-       matterLambdaOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-       matterLambdaHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
+       cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+       cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+       cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
        ! Find the value of epsilon for which the perturbation just collapses at this time.
        if (.not.finderPerturbation%isInitialized()) then
-          call finderPerturbation%rootFunction(matterLambdaPerturbationCollapseRoot)
+          call finderPerturbation%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
           call finderPerturbation%tolerance   (toleranceAbsolute,toleranceRelative )
           call finderPerturbation%rangeExpand (                                                             &
                &                               rangeExpandUpward            =0.5d0                        , &
@@ -616,62 +616,62 @@ contains
           i                  =i                  +1
           epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
           ! Share the epsilon parameter.
-          matterLambdaAmplitudePerturbation=epsilonPerturbation
+          cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
           ! For collapsing perturbations, find the time of maximum radius.
           if (epsilonPerturbation > epsilonPerturbationMaximum) then
              ! This perturbation will not collapse. Maximum radius is reached at infinite time.
-             matterLambdaRadiusMaximum=huge(1.0d0)
-             matterLambdaTimeTarget   =     matterLambdaTime
+             cllsnlssMttCsmlgclCnstntRadiusMaximum=huge(1.0d0)
+             cllsnlssMttCsmlgclCnstntTimeTarget   =     cllsnlssMttCsmlgclCnstntTime
           else
              ! This perturbation will collapse. Find the maximum radius.
-             matterLambdaRadiusMaximum=matterLambdaRadiusPerturbationMaximum(epsilonPerturbation)
+             cllsnlssMttCsmlgclCnstntRadiusMaximum=cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
              ! Compute maximum value of a for numerical integration.
-             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*matterLambdaRadiusMaximum
+             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum
              ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
              ! analytic correction for the region close to maximum expansion.
              integrationReset=.true.
-             timeMaximum     =+Integrate(                                                     &
-                  &                                        0.0d0                            , &
-                  &                                        radiusUpperLimit                 , &
-                  &                                        matterLambdaPerturbationIntegrand, &
-                  &                                        integrandFunction                , &
-                  &                                        integrationWorkspace             , &
-                  &                      toleranceAbsolute=0.0d0                            , &
-                  &                      toleranceRelative=1.0d-6                           , &
-                  &                      hasSingularities =.true.                           , &
-                  &                      reset            =integrationReset                   &
-                  &                     )                                                     &
-                  &           /matterLambdaHubbleTimeEpochal                                  &
-                  &           -2.0d0                                                          &
-                  &           *sqrt(                                                          &
-                  &                 +matterLambdaOmegaMatterEpochal                           &
-                  &                 /radiusUpperLimit                                         &
-                  &                 +epsilonPerturbation                                      &
-                  &                 +matterLambdaOmegaDarkEnergyEpochal                       &
-                  &                 *radiusUpperLimit                  **2                    &
-                  &                )                                                          &
-                  &           /(                                                              &
-                  &             +2.0d0                                                        &
-                  &             *matterLambdaOmegaDarkEnergyEpochal                           &
-                  &             *radiusUpperLimit                                             &
-                  &             -matterLambdaOmegaMatterEpochal                               &
-                  &             /radiusUpperLimit                  **2                        &
+             timeMaximum     =+Integrate(                                                                 &
+                  &                                        0.0d0                                        , &
+                  &                                        radiusUpperLimit                             , &
+                  &                                        cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
+                  &                                        integrandFunction                            , &
+                  &                                        integrationWorkspace                         , &
+                  &                      toleranceAbsolute=0.0d0                                        , &
+                  &                      toleranceRelative=1.0d-6                                       , &
+                  &                      hasSingularities =.true.                                       , &
+                  &                      reset            =integrationReset                               &
+                  &                     )                                                                 &
+                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal                                  &
+                  &           -2.0d0                                                                      &
+                  &           *sqrt(                                                                      &
+                  &                 +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal                           &
+                  &                 /radiusUpperLimit                                                     &
+                  &                 +epsilonPerturbation                                                  &
+                  &                 +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal                       &
+                  &                 *radiusUpperLimit                  **2                                &
+                  &                )                                                                      &
+                  &           /(                                                                          &
+                  &             +2.0d0                                                                    &
+                  &             *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal                           &
+                  &             *radiusUpperLimit                                                         &
+                  &             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal                               &
+                  &             /radiusUpperLimit                  **2                                    &
                   &            )&
-                  &           /matterLambdaHubbleTimeEpochal
+                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
              call Integrate_Done(integrandFunction,integrationWorkspace)
              ! Set the target time
-             if (timeMaximum > matterLambdaTime) then
+             if (timeMaximum > cllsnlssMttCsmlgclCnstntTime) then
                 ! Expanding phase.
-                matterLambdaTimeTarget=+      matterLambdaTime
+                cllsnlssMttCsmlgclCnstntTimeTarget=+      cllsnlssMttCsmlgclCnstntTime
              else
                 ! Collapsing phase.
-                matterLambdaTimeTarget=+2.0d0*timeMaximum      &
-                     &                 -      matterLambdaTime
+                cllsnlssMttCsmlgclCnstntTimeTarget=+2.0d0*timeMaximum      &
+                     &                 -      cllsnlssMttCsmlgclCnstntTime
              end if
           end if
           ! Solve for the radius at the present time.
           if (.not.finderRadius%isInitialized()) then
-             call finderRadius%rootFunction(matterLambdaRadiusRoot             )
+             call finderRadius%rootFunction(cllsnlssMttCsmlgclCnstntRadiusRoot )
              call finderRadius%tolerance   (toleranceAbsolute,toleranceRelative)
              call finderRadius%rangeExpand (                                                             &
                   &                         rangeExpandDownward          =0.5d0                        , &
@@ -681,14 +681,14 @@ contains
                   &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
                   &                        )
           end if
-          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. matterLambdaRadiusRoot(matterLambdaRadiusMaximum) < 0.0d0) then
+          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(cllsnlssMttCsmlgclCnstntRadiusMaximum) < 0.0d0) then
              ! Perturbation is close to maximum radius. Adopt this as the solution.
-             radiusNow=matterLambdaRadiusMaximum
+             radiusNow=cllsnlssMttCsmlgclCnstntRadiusMaximum
           else
              ! Find the current radius.
              radiusNow=finderRadius%find(rootGuess=1.0d0)
           end if
-          normalization=+self%linearGrowth_%value(matterLambdaTime,normalize=normalizeMatterDominated) &
+          normalization=+self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated) &
                &        /                         expansionFactor
           if (.not.allocated(overdensityLinear)) then
              allocate(overdensityLinear   (tableIncrement))
@@ -701,17 +701,17 @@ contains
              overdensityLinear   (1:size(overdensityLinearTmp   ))=overdensityLinearTmp
              overdensityNonLinear(1:size(overdensityNonLinearTmp))=overdensityNonLinearTmp
           end if
-          overdensityLinear   (i)=+normalization                        &
-               &                  *0.6d0                                &
-               &                  *(                                    &
-               &                    +1.0d0                              &
-               &                    -matterLambdaOmegaMatterEpochal     &
-               &                    -matterLambdaOmegaDarkEnergyEpochal &
-               &                    -epsilonPerturbation                &
-               &                   )                                    &
-               &                  /matterLambdaOmegaMatterEpochal
-          overdensityNonLinear(i)=+1.0d0                                &
-               &                  /radiusNow**3                         &
+          overdensityLinear   (i)=+normalization                                    &
+               &                  *0.6d0                                            &
+               &                  *(                                                &
+               &                    +1.0d0                                          &
+               &                    -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+               &                    -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+               &                    -epsilonPerturbation                            &
+               &                   )                                                &
+               &                  /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal
+          overdensityNonLinear(i)=+1.0d0                                            &
+               &                  /radiusNow**3                                     &
                &                  -1.0d0
           if (overdensityNonLinear(i) <= -0.99d0) exit
        end do
@@ -754,9 +754,9 @@ contains
        end do
     end do
     return
-  end subroutine matterLambdaLinearNonlinearMap
+  end subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap
 
-  double precision function matterLambdaRadiusRoot(radiusNow)
+  double precision function cllsnlssMttCsmlgclCnstntRadiusRoot(radiusNow)
     !% Root function used in solving for the radius of a perturbation.
     use Numerical_Integration, only : Integrate    , Integrate_Done
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
@@ -768,40 +768,40 @@ contains
     logical                                                     :: integrationReset 
     double precision                                            :: radiusUpperLimit
 
-    radiusUpperLimit      =min(                                                          &
-         &                     +(1.0d0-numericalLimitEpsilon)*matterLambdaRadiusMaximum, &
-         &                     +                              radiusNow                  &
+    radiusUpperLimit      =min(                                                                      &
+         &                     +(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum, &
+         &                     +                              radiusNow                              &
          &                    )
     integrationReset      =.true.
-    matterLambdaRadiusRoot=+Integrate(                                                     &
-         &                                              0.0d0                            , &
-         &                                              radiusUpperLimit                 , &
-         &                                              matterLambdaPerturbationIntegrand, &
-         &                                              integrandFunction                , &
-         &                                              integrationWorkspace             , &
-         &                            toleranceAbsolute=0.0d+0                           , &
-         &                            toleranceRelative=1.0d-6                           , &
-         &                            hasSingularities =.true.                           , &
-         &                            reset            =integrationReset                   &
-         &                           )                                                     &
-         &                 /matterLambdaHubbleTimeEpochal                                  &
-         &                 -matterLambdaTimeTarget
+    cllsnlssMttCsmlgclCnstntRadiusRoot=+Integrate(                                                     &
+         &                                              0.0d0                                        , &
+         &                                              radiusUpperLimit                             , &
+         &                                              cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
+         &                                              integrandFunction                            , &
+         &                                              integrationWorkspace                         , &
+         &                            toleranceAbsolute=0.0d+0                                       , &
+         &                            toleranceRelative=1.0d-6                                       , &
+         &                            hasSingularities =.true.                                       , &
+         &                            reset            =integrationReset                               &
+         &                           )                                                                 &
+         &                 /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal                                  &
+         &                 -cllsnlssMttCsmlgclCnstntTimeTarget
     call Integrate_Done(integrandFunction,integrationWorkspace)
     if (radiusUpperLimit < radiusNow) then
-       matterLambdaRadiusRoot       =+matterLambdaRadiusRoot                                                                                                                                         &
-            &                        -2.0d0*sqrt(+matterLambdaOmegaMatterEpochal/radiusUpperLimit   +      matterLambdaOmegaDarkEnergyEpochal*radiusUpperLimit**2+matterLambdaAmplitudePerturbation) &
-            &                        /          (-matterLambdaOmegaMatterEpochal/radiusUpperLimit**2+2.0d0*matterLambdaOmegaDarkEnergyEpochal*radiusUpperLimit                                     ) &
-            &                        /matterLambdaHubbleTimeEpochal
-       if (radiusNow < matterLambdaRadiusMaximum)                                                                                                                                                    &
-            & matterLambdaRadiusRoot=+matterLambdaRadiusRoot                                                                                                                                         &
-            &                        + 2.0d0*sqrt(+matterLambdaOmegaMatterEpochal/radiusNow         +      matterLambdaOmegaDarkEnergyEpochal*radiusNow       **2+matterLambdaAmplitudePerturbation) &
-            &                        /(           -matterLambdaOmegaMatterEpochal/radiusNow      **2+2.0d0*matterLambdaOmegaDarkEnergyEpochal*radiusNow                                            ) &
-            &                        /matterLambdaHubbleTimeEpochal 
+       cllsnlssMttCsmlgclCnstntRadiusRoot       =+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
+            &                        -2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusUpperLimit   +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusUpperLimit**2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &
+            &                        /          (-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusUpperLimit**2+2.0d0*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusUpperLimit                                                 ) &
+            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
+       if (radiusNow < cllsnlssMttCsmlgclCnstntRadiusMaximum)                                                                                                                                                                            &
+            & cllsnlssMttCsmlgclCnstntRadiusRoot=+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
+            &                        + 2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow         +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow       **2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &
+            &                        /(           -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow      **2+2.0d0*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow                                                        ) &
+            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal 
     end if
     return
-  end function matterLambdaRadiusRoot
+  end function cllsnlssMttCsmlgclCnstntRadiusRoot
 
-  subroutine matterLambdaRestoreTable(self,time,restoredTable,fileName,tableStore,status)
+  subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
     !% Attempt to restore a table from file.
     use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
     use IO_HDF5           , only : hdf5Object        , hdf5Access
@@ -810,15 +810,15 @@ contains
     use Tables            , only : table1D           , table1DLogarithmicLinear
     use ISO_Varying_String, only : varying_string    , char    
     implicit none
-    class           (sphericalCollapseSolverMatterLambda)             , intent(inout) :: self
-    double precision                                                  , intent(in   ) :: time
-    class           (table1D                            ), allocatable, intent(inout) :: restoredTable
-    type            (varying_string                     )             , intent(in   ) :: fileName
-    logical                                                           , intent(in   ) :: tableStore
-    integer                                                           , intent(  out) :: status
-    type            (hdf5Object                         )                             :: file
-    double precision                                     , allocatable, dimension(:)  :: timeTable    , valueTable
-    type            (lockDescriptor                     )                             :: fileLock
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
+    double precision                                                               , intent(in   ) :: time
+    class           (table1D                                         ), allocatable, intent(inout) :: restoredTable
+    type            (varying_string                                  )             , intent(in   ) :: fileName
+    logical                                                                        , intent(in   ) :: tableStore
+    integer                                                                        , intent(  out) :: status
+    type            (hdf5Object                                      )                             :: file
+    double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
+    type            (lockDescriptor                                  )                             :: fileLock
     !GCC$ attributes unused :: self
 
     status=errorStatusFail
@@ -852,9 +852,9 @@ contains
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
-  end subroutine matterLambdaRestoreTable
+  end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
-  subroutine matterLambdaStoreTable(self,storeTable,fileName,tableStore)
+  subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
     !% Attempt to restore a table from file.
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
@@ -862,12 +862,12 @@ contains
     use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
          &                         File_Path     , Directory_Make
     implicit none
-    class  (sphericalCollapseSolverMatterLambda), intent(inout) :: self
-    class  (table1D                            ), intent(in   ) :: storeTable
-    type   (varying_string                     ), intent(in   ) :: fileName
-    logical                                     , intent(in   ) :: tableStore
-    type   (hdf5Object                         )                :: file
-    type   (lockDescriptor                     )                :: fileLock
+    class  (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    class  (table1D                                         ), intent(in   ) :: storeTable
+    type   (varying_string                                  ), intent(in   ) :: fileName
+    logical                                                  , intent(in   ) :: tableStore
+    type   (hdf5Object                                      )                :: file
+    type   (lockDescriptor                                  )                :: fileLock
     !GCC$ attributes unused :: self
 
     if (.not.tableStore) return
@@ -882,4 +882,4 @@ contains
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
-  end subroutine matterLambdaStoreTable
+  end subroutine cllsnlssMttCsmlgclCnstntStoreTable

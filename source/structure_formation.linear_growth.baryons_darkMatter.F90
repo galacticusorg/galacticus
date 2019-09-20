@@ -29,29 +29,29 @@
   !# <linearGrowth name="linearGrowthBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="linearGrowthSimple_"/>
+  !#   <functionClass variables="linearGrowthCollisionlessMatter_"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <functionClass variables="linearGrowthSimple_"/>
+  !#   <functionClass variables="linearGrowthCollisionlessMatter_"/>
   !#  </stateStorable>
   !# </linearGrowth>
   type, extends(linearGrowthClass) :: linearGrowthBaryonsDarkMatter
      !% A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth
      !% of radiation perturbations.
      private
-     logical                                                  :: tableInitialized
-     double precision                                         :: tableTimeMinimum                      , tableTimeMaximum      , &
-          &                                                      tableWavenumberMinimum                , tableWavenumberMaximum, &
-          &                                                      fractionDarkMatter                    , fractionBaryons       , &
-          &                                                      normalizationMatterDominated          , redshiftInitial       , &
-          &                                                      redshiftInitialDelta
-     integer                                                  :: cambCountPerDecade
-     type            (table2DLogLogLin             )          :: growthFactor
-     type            (varying_string               )          :: fileName
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_         => null()
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_          => null()
-     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_    => null()
-     type            (linearGrowthSimple           ), pointer :: linearGrowthSimple_          => null()
+     logical                                                    :: tableInitialized
+     double precision                                           :: tableTimeMinimum                          , tableTimeMaximum      , &
+          &                                                        tableWavenumberMinimum                    , tableWavenumberMaximum, &
+          &                                                        fractionDarkMatter                        , fractionBaryons       , &
+          &                                                        normalizationMatterDominated              , redshiftInitial       , &
+          &                                                        redshiftInitialDelta
+     integer                                                    :: cambCountPerDecade
+     type            (table2DLogLogLin               )          :: growthFactor
+     type            (varying_string                 )          :: fileName
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_              => null()
+     class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
+     type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
      !@ <objectMethods>
      !@   <object>linearGrowthBaryonsDarkMatter</object>
@@ -196,15 +196,15 @@ contains
     ! Compute dark matter and baryon fractions.
     self%fractionDarkMatter=(+self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
     self%fractionBaryons   =(                                        +self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
-    ! Build a linear growth object of the simple class which we will use to derive the matter-dominated phase normalization
+    ! Build a linear growth object of the "collisionlessMatter" class which we will use to derive the matter-dominated phase normalization
     ! factor. This is used to figure out the amplitude of a growing mode which grows as the expansion factor at early times, as is
     ! needed for calculations of critical overdensity. The initial conditions we use from CAMB are not pure growing modes, so we
     ! can't compute the normalization from them directly.
-    allocate(self%linearGrowthSimple_)
-    !# <referenceConstruct isResult="yes" owner="self" object="linearGrowthSimple_" constructor="linearGrowthSimple(cosmologyParameters_,cosmologyFunctions_)"/>
+    allocate(self%linearGrowthCollisionlessMatter_)
+    !# <referenceConstruct isResult="yes" owner="self" object="linearGrowthCollisionlessMatter_" constructor="linearGrowthCollisionlessMatter(cosmologyParameters_,cosmologyFunctions_)"/>
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
-    self%normalizationMatterDominated=+self%linearGrowthSimple_%value(timeNow,normalize=normalizeMatterDominated) &
-         &                            /self%linearGrowthSimple_%value(timeNow                                   )
+    self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
+         &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
          &                      'largeScaleStructure/'                           // &
          &                      self%objectType      (                          )// &
@@ -229,10 +229,10 @@ contains
     implicit none
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%intergalacticMediumState_"/>
-    !# <objectDestructor name="self%linearGrowthSimple_"      />
+    !# <objectDestructor name="self%cosmologyParameters_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%intergalacticMediumState_"       />
+    !# <objectDestructor name="self%linearGrowthCollisionlessMatter_"/>
     call self%growthFactor%destroy()
     return
   end subroutine baryonsDarkMatterDestructor

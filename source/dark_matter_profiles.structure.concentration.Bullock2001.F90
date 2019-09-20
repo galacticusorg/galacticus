@@ -35,13 +35,13 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
      private
-     class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_             => null()
-     class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_              => null()
-     class           (criticalOverdensityClass                          ), pointer :: criticalOverdensity_             => null()
-     class           (cosmologicalMassVarianceClass                     ), pointer :: cosmologicalMassVariance_        => null()
-     type            (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW                           ), pointer :: darkMatterProfileDMODefinition_  => null()
-     double precision                                                              :: F                                         , K
+     class           (cosmologyParametersClass                                       ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_              => null()
+     class           (criticalOverdensityClass                                       ), pointer :: criticalOverdensity_             => null()
+     class           (cosmologicalMassVarianceClass                                  ), pointer :: cosmologicalMassVariance_        => null()
+     type            (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
+     type            (darkMatterProfileDMONFW                                        ), pointer :: darkMatterProfileDMODefinition_  => null()
+     double precision                                                                           :: F                                         , K
    contains
      final     ::                                   bullock2001Destructor
      procedure :: concentration                  => bullock2001Concentration
@@ -119,10 +119,10 @@ contains
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.                   ,self%cosmologyFunctions_                                      )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (                                                          darkMatterHaloScaleDefinition_)"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                   ,self%cosmologyFunctions_                                      )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition             (self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                                        (                                                          darkMatterHaloScaleDefinition_)"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                                          />
     return
   end function bullock2001ConstructorInternal
 

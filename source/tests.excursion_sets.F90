@@ -19,18 +19,18 @@
 
 program Tests_Excursion_Sets
   !% Tests of merger tree branching rates.
-  use Unit_Tests                          , only : Unit_Tests_Begin_Group                          , Unit_Tests_End_Group                            , Unit_Tests_Finish, Assert
-  use Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower           , criticalOverdensitySphericalCollapseMatterLambda
+  use Unit_Tests                          , only : Unit_Tests_Begin_Group                          , Unit_Tests_End_Group                                         , Unit_Tests_Finish, Assert
+  use Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower           , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
   use Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
   use Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
-  use Linear_Growth                       , only : linearGrowthSimple
+  use Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use Cosmology_Parameters                , only : cosmologyParametersSimple
   use Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use Transfer_Functions                  , only : transferFunctionIdentity
   use Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityParkinsonColeHelly, mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
   use Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity
-  use Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingLinearBarrier          , excursionSetFirstCrossingFarahiMidpoint        , excursionSetFirstCrossingFarahi, excursionSetFirstCrossingZhangHui, &
+  use Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingLinearBarrier          , excursionSetFirstCrossingFarahiMidpoint                      , excursionSetFirstCrossingFarahi, excursionSetFirstCrossingZhangHui, &
        &                                           excursionSetFirstCrossingZhangHuiHighOrder      , excursionSetFirstCrossingClass
   use Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
   use Galacticus_Display !                 , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
@@ -39,118 +39,118 @@ program Tests_Excursion_Sets
   use ISO_Varying_String                  , only : var_str
   use Events_Hooks                        , only : eventsHooksInitialize
   implicit none
-  type            (cosmologyParametersSimple                       )               :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                  )               :: cosmologyFunctionsMatterLambda_
-  type            (cosmologicalMassVarianceFilteredPower           )               :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionSharpKSpace          )               :: powerSpectrumWindowFunctionSharpKSpace_
-  type            (powerSpectrumPrimordialPowerLaw                 )               :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionIdentity                        )               :: transferFunctionIdentity_
-  type            (powerSpectrumPrimordialTransferredSimple        )               :: powerSpectrumPrimordialTransferredSimple_
-  type            (linearGrowthSimple                              )               :: linearGrowthSimple_
-  type            (excursionSetFirstCrossingLinearBarrier          )               :: excursionSetFirstCrossingLinearBarrier_
-  type            (excursionSetFirstCrossingFarahiMidpoint         ), target       :: excursionSetFirstCrossingFarahiMidpoint_
-  type            (excursionSetFirstCrossingFarahi                 ), target       :: excursionSetFirstCrossingFarahi_
-  type            (excursionSetFirstCrossingZhangHui               ), target       :: excursionSetFirstCrossingZhangHui_
-  type            (excursionSetFirstCrossingZhangHuiHighOrder      ), target       :: excursionSetFirstCrossingZhangHuiHighOrder_
-  class           (excursionSetFirstCrossingClass                  ), pointer      :: excursionSetFirstCrossing_
-  type            (excursionSetBarrierCriticalOverdensity          )               :: excursionSetBarrierCriticalOverdensity_
-  type            (darkMatterParticleCDM                           )               :: darkMatterParticleCDM_
-  type            (treeNode                                        )               :: node
-  type            (criticalOverdensitySphericalCollapseMatterLambda)               :: criticalOverdensitySphericalCollapseMatterLambda_
-  double precision                                                                 :: time
-  double precision                                                  , dimension(2) :: variance                                         =[0.50d0,1.00d0]
-  double precision                                                  , dimension(2) :: varianceProgenitor                               =[1.00d0,1.01d0]
-  double precision                                                  , dimension(2) :: probabilityTarget                                                , probability, &
-       &                                                                              rateTarget                                                       , rate
-  double precision                                                  , parameter    :: varianceLarge                                    =10.0d0
-  integer                                                                          :: i                                                                , j
-  character       (len=32                                          )               :: label
-  logical                                                                          :: testRates
+  type            (cosmologyParametersSimple                                    )               :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                               )               :: cosmologyFunctionsMatterLambda_
+  type            (cosmologicalMassVarianceFilteredPower                        )               :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionSharpKSpace                       )               :: powerSpectrumWindowFunctionSharpKSpace_
+  type            (powerSpectrumPrimordialPowerLaw                              )               :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionIdentity                                     )               :: transferFunctionIdentity_
+  type            (powerSpectrumPrimordialTransferredSimple                     )               :: powerSpectrumPrimordialTransferredSimple_
+  type            (linearGrowthCollisionlessMatter                              )               :: linearGrowthCollisionlessMatter_
+  type            (excursionSetFirstCrossingLinearBarrier                       )               :: excursionSetFirstCrossingLinearBarrier_
+  type            (excursionSetFirstCrossingFarahiMidpoint                      ), target       :: excursionSetFirstCrossingFarahiMidpoint_
+  type            (excursionSetFirstCrossingFarahi                              ), target       :: excursionSetFirstCrossingFarahi_
+  type            (excursionSetFirstCrossingZhangHui                            ), target       :: excursionSetFirstCrossingZhangHui_
+  type            (excursionSetFirstCrossingZhangHuiHighOrder                   ), target       :: excursionSetFirstCrossingZhangHuiHighOrder_
+  class           (excursionSetFirstCrossingClass                               ), pointer      :: excursionSetFirstCrossing_
+  type            (excursionSetBarrierCriticalOverdensity                       )               :: excursionSetBarrierCriticalOverdensity_
+  type            (darkMatterParticleCDM                                        )               :: darkMatterParticleCDM_
+  type            (treeNode                                                     )               :: node
+  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_
+  double precision                                                                              :: time
+  double precision                                                               , dimension(2) :: variance                                                      =[0.50d0,1.00d0]
+  double precision                                                               , dimension(2) :: varianceProgenitor                                            =[1.00d0,1.01d0]
+  double precision                                                               , dimension(2) :: probabilityTarget                                                             , probability, &
+       &                                                                                           rateTarget                                                                    , rate
+  double precision                                                               , parameter    :: varianceLarge                                                 =10.0d0
+  integer                                                                                       :: i                                                                             , j
+  character       (len=32                                                       )               :: label
+  logical                                                                                       :: testRates
   
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityWorking) !Standard)
   call eventsHooksInitialize()
   ! Build all objects needed for these tests.
-  darkMatterParticleCDM_    =darkMatterParticleCDM                                                     (                                                                                           &
-       &                                                                                               )
-  cosmologyParametersSimple_=cosmologyParametersSimple                                                 (                                                                                           &
-       &                                                                                                OmegaMatter                            = 1.00d0                                          , &
-       &                                                                                                OmegaBaryon                            = 0.00d0                                          , &
-       &                                                                                                OmegaDarkEnergy                        = 0.00d0                                          , &
-       &                                                                                                temperatureCMB                         = 2.78d0                                          , &
-       &                                                                                                HubbleConstant                         =70.00d0                                            &
-       &                                                                                               )
-  cosmologyFunctionsMatterLambda_=cosmologyFunctionsMatterLambda                                       (                                                                                           &
-       &                                                                                                cosmologyParameters_                   =cosmologyParametersSimple_                         &
-       &                                                                                               )
-  linearGrowthSimple_=linearGrowthSimple                                                               (                                                                                           &
-       &                                                                                                cosmologyParameters_                   =cosmologyParametersSimple_                       , &
-       &                                                                                                cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                    &
-       &                                                                                               )
-  powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw                            (                                                                                           &
-       &                                                                                                index                                  =-1.0d0                                           , &
-       &                                                                                                running                                =+0.0d0                                           , &
-       &                                                                                                wavenumberReference                    =+1.0d0                                             &
-       &                                                                                               )
-  transferFunctionIdentity_                =transferFunctionIdentity                                   (                                                                                           &
-       &                                                                                                time                                   =13.8d0                                             & 
-       &                                                                                               )
-  powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple                   (                                                                                           &
-       &                                                                                                powerSpectrumPrimordial_               =powerSpectrumPrimordialPowerLaw_                 , &
-       &                                                                                                transferFunction_                      =transferFunctionIdentity_                        , &
-       &                                                                                                linearGrowth_                          =linearGrowthSimple_                                &
-       &                                                                                               )
-  powerSpectrumWindowFunctionSharpKSpace_  =powerSpectrumWindowFunctionSharpKSpace                     (                                                                                           &
-       &                                                                                                cosmologyParameters_                   =cosmologyParametersSimple_                       , &
-       &                                                                                                normalization                          =0.0d0                                              &
-       &                                                                                               )
+  darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                        &
+       &                                                                                                                      )
+  cosmologyParametersSimple_                                    =cosmologyParametersSimple                                    (                                                                                                        &
+       &                                                                                                                       OmegaMatter                            = 1.00d0                                                       , &
+       &                                                                                                                       OmegaBaryon                            = 0.00d0                                                       , &
+       &                                                                                                                       OmegaDarkEnergy                        = 0.00d0                                                       , &
+       &                                                                                                                       temperatureCMB                         = 2.78d0                                                       , &
+       &                                                                                                                       HubbleConstant                         =70.00d0                                                         &
+       &                                                                                                                      )
+  cosmologyFunctionsMatterLambda_                               =cosmologyFunctionsMatterLambda                               (                                                                                                        &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                      &
+       &                                                                                                                      )
+  linearGrowthCollisionlessMatter_                              =linearGrowthCollisionlessMatter                              (                                                                                                        &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                    , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                                 &
+       &                                                                                                                      )
+  powerSpectrumPrimordialPowerLaw_                              =powerSpectrumPrimordialPowerLaw                              (                                                                                                        &
+       &                                                                                                                       index                                  =-1.0d0                                                        , &
+       &                                                                                                                       running                                =+0.0d0                                                        , &
+       &                                                                                                                       wavenumberReference                    =+1.0d0                                                          &
+       &                                                                                                                      )
+  transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
+       &                                                                                                                       time                                   =13.8d0                                                          & 
+       &                                                                                                                      )
+  powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
+       &                                                                                                                       powerSpectrumPrimordial_               =powerSpectrumPrimordialPowerLaw_                              , &
+       &                                                                                                                       transferFunction_                      =transferFunctionIdentity_                                     , &
+       &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                                &
+       &                                                                                                                      )
+  powerSpectrumWindowFunctionSharpKSpace_                       =powerSpectrumWindowFunctionSharpKSpace                       (                                                                                                        &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                    , &
+       &                                                                                                                       normalization                          =0.0d0                                                           &
+       &                                                                                                                      )
 
-  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower                      (                                                                                           &
-       &                                                                                                sigma8                                 =1.0d+0                                           , &
-       &                                                                                                tolerance                              =1.0d-4                                           , &
-       &                                                                                                toleranceTopHat                        =1.0d-4                                           , &
-       &                                                                                                monotonicInterpolation                 =.false.                                          , &
-       &                                                                                                cosmologyParameters_                   =cosmologyParametersSimple_                       , &
-       &                                                                                                cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                  , &
-       &                                                                                                linearGrowth_                          =linearGrowthSimple_                              , &
-       &                                                                                                powerSpectrumPrimordialTransferred_    =powerSpectrumPrimordialTransferredSimple_        , &
-       &                                                                                                powerSpectrumWindowFunction_           =powerSpectrumWindowFunctionSharpKSpace_            &
-       &                                                                                               )
-  criticalOverdensitySphericalCollapseMatterLambda_=criticalOverdensitySphericalCollapseMatterLambda   (                                                                                           &
-       &                                                                                                linearGrowth_                          =linearGrowthSimple_                              , &
-       &                                                                                                cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                  , &
-       &                                                                                                cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_           , &
-       &                                                                                                darkMatterParticle_                    =darkMatterParticleCDM_                           , &
-       &                                                                                                tableStore                             =.true.                                             &
-       &                                                                                               )
-  excursionSetBarrierCriticalOverdensity_=excursionSetBarrierCriticalOverdensity                       (                                                                                           &
-       &                                                                                                criticalOverdensity_                   =criticalOverdensitySphericalCollapseMatterLambda_, &
-       &                                                                                                cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_             &
-       &                                                                                               )
-  excursionSetFirstCrossingLinearBarrier_=excursionSetFirstCrossingLinearBarrier                       (                                                                                           &
-       &                                                                                                excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_          , &
-       &                                                                                                cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_             &
-       &                                                                                               )
-  excursionSetFirstCrossingFarahiMidpoint_=excursionSetFirstCrossingFarahiMidpoint                     (                                                                                           &
-       &                                                                                                timeStepFractional                     =0.01d0                                           , &
-       &                                                                                                fileName                               =var_str("auto")                                  , &
-       &                                                                                                cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                  , &
-       &                                                                                                excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_          , &
-       &                                                                                                cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_             &
-       &                                                                                               )
-  excursionSetFirstCrossingFarahi_=excursionSetFirstCrossingFarahi                                     (                                                                                           &
-       &                                                                                                timeStepFractional                     =0.01d0                                           , &
-       &                                                                                                fileName                               =var_str("auto")                                  , &
-       &                                                                                                cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                  , &
-       &                                                                                                excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_          , &
-       &                                                                                                cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_             &
-       &                                                                                               )
-  excursionSetFirstCrossingZhangHui_=excursionSetFirstCrossingZhangHui                                 (                                                                                           &
-       &                                                                                                excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_            &
-       &                                                                                               )
-  excursionSetFirstCrossingZhangHuiHighOrder_=excursionSetFirstCrossingZhangHuiHighOrder               (                                                                                           &
-       &                                                                                                excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_            &
-       &                                                                                               )
+  cosmologicalMassVarianceFilteredPower_                        =cosmologicalMassVarianceFilteredPower                        (                                                                                                        &
+       &                                                                                                                       sigma8                                 =1.0d+0                                                        , &
+       &                                                                                                                       tolerance                              =1.0d-4                                                        , &
+       &                                                                                                                       toleranceTopHat                        =1.0d-4                                                        , &
+       &                                                                                                                       monotonicInterpolation                 =.false.                                                       , &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                    , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
+       &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                              , &
+       &                                                                                                                       powerSpectrumPrimordialTransferred_    =powerSpectrumPrimordialTransferredSimple_                     , &
+       &                                                                                                                       powerSpectrumWindowFunction_           =powerSpectrumWindowFunctionSharpKSpace_                         &
+       &                                                                                                                      )
+  criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                                                        &
+       &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                              , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
+       &                                                                                                                       darkMatterParticle_                    =darkMatterParticleCDM_                                        , &
+       &                                                                                                                       tableStore                             =.true.                                                          &
+       &                                                                                                                      )
+  excursionSetBarrierCriticalOverdensity_                       =excursionSetBarrierCriticalOverdensity                       (                                                                                                        &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
+       &                                                                                                                      )
+  excursionSetFirstCrossingLinearBarrier_                       =excursionSetFirstCrossingLinearBarrier                       (                                                                                                        &
+       &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
+       &                                                                                                                      )
+  excursionSetFirstCrossingFarahiMidpoint_                      =excursionSetFirstCrossingFarahiMidpoint                      (                                                                                                        &
+       &                                                                                                                       timeStepFractional                     =0.01d0                                                        , &
+       &                                                                                                                       fileName                               =var_str("auto")                                               , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
+       &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
+       &                                                                                                                      )
+  excursionSetFirstCrossingFarahi_                              =excursionSetFirstCrossingFarahi                              (                                                                                                        &
+       &                                                                                                                       timeStepFractional                     =0.01d0                                                        , &
+       &                                                                                                                       fileName                               =var_str("auto")                                               , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
+       &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
+       &                                                                                                                      )
+  excursionSetFirstCrossingZhangHui_                            =excursionSetFirstCrossingZhangHui                            (                                                                                                        &
+       &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                         &
+       &                                                                                                                      )
+  excursionSetFirstCrossingZhangHuiHighOrder_                   =excursionSetFirstCrossingZhangHuiHighOrder                   (                                                                                                        &
+       &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                         &
+       &                                                                                                                      )
   ! Evaluate at a large variance initially to ensure the full range is tabulated.
   time          =cosmologyFunctionsMatterLambda_         %cosmicTime (                               1.0d0     )
   probability(1)=excursionSetFirstCrossingFarahiMidpoint_%probability(varianceLarge                 ,time ,node)

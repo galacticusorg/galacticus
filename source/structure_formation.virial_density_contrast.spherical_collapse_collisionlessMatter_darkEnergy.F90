@@ -21,34 +21,34 @@
 
   use Tables
 
-  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterDE">
+  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
   !# </virialDensityContrast>
-  type, extends(virialDensityContrastSphericalCollapseMatterLambda) :: virialDensityContrastSphericalCollapseMatterDE
+  type, extends(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt) :: virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark eneryg universe.
      private
      integer :: energyFixedAt
    contains
-  end type virialDensityContrastSphericalCollapseMatterDE
+  end type virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
 
-  interface virialDensityContrastSphericalCollapseMatterDE
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseMatterDEConstructorParameters
-     module procedure sphericalCollapseMatterDEConstructorInternal
-  end interface virialDensityContrastSphericalCollapseMatterDE
+  interface virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} dark matter halo virial density contrast class.
+     module procedure sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters
+     module procedure sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal
+  end interface virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
 
 contains
 
-  function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters          , only : inputParameter                          , inputParameters
-    use Spherical_Collapse_Solvers, only : enumerationMatterDarkEnergyFixedAtEncode
+  function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
+    use Input_Parameters          , only : inputParameter                                , inputParameters
+    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
-    type   (virialDensityContrastSphericalCollapseMatterDE)                :: self
-    type   (inputParameters                               ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
-    type   (varying_string                                )                :: energyFixedAt
-    logical                                                                :: tableStore
+    type   (virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy)                :: self
+    type   (inputParameters                                           ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                                   ), pointer       :: cosmologyFunctions_
+    type   (varying_string                                            )                :: energyFixedAt
+    logical                                                                            :: tableStore
 
     !# <inputParameter>
     !#   <name>tableStore</name>
@@ -69,28 +69,28 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseMatterDE(tableStore,enumerationMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy(tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
-  end function sphericalCollapseMatterDEConstructorParameters
+  end function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
-    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverMatterDarkEnergy
+  function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} dark matter halo virial density contrast class.
+    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
-    type   (virialDensityContrastSphericalCollapseMatterDE)                        :: self
-    integer                                                , intent(in   )         :: energyFixedAt
-    logical                                                , intent(in   )         :: tableStore
-    class  (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    type   (virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy)                        :: self
+    integer                                                            , intent(in   )         :: energyFixedAt
+    logical                                                            , intent(in   )         :: tableStore
+    class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="tableStore, energyFixedAt, *cosmologyFunctions_"/>
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
-    allocate(sphericalCollapseSolverMatterDarkEnergy :: self%sphericalCollapseSolver_)
+    allocate(sphericalCollapseSolverCllsnlssMttrDarkEnergy :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
-    type is (sphericalCollapseSolverMatterDarkEnergy)
-       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverMatterDarkEnergy(self%energyFixedAt,self%cosmologyFunctions_)"/>
+    type is (sphericalCollapseSolverCllsnlssMttrDarkEnergy)
+       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrDarkEnergy(self%energyFixedAt,self%cosmologyFunctions_)"/>
     end select
     return
-  end function sphericalCollapseMatterDEConstructorInternal
+  end function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal
