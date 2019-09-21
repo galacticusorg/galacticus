@@ -346,6 +346,7 @@ contains
                    if (index(self%modelParametersInactive_(i)%definition,"%[") == 0) then
                       ! No dependencies remain, the expression can be evaluated.
                       self%modelParametersInactive_(i)%resolved=.true.
+                      dependenciesUpdated                      =.true.
 #ifdef MATHEVALAVAIL
                       evaluator   =Evaluator_Create_(char(self%modelParametersInactive_(i)%definition))
                       valueDerived=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
