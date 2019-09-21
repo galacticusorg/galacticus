@@ -529,8 +529,7 @@ contains
     ! Filter this node.
     if (.not.self%galacticFilter_%passes(node)) return
     ! Allocate work arrays.
-    allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount              ))
-    allocate(covariance  (                    self%binCount                 ,self%binCount))
+    allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount))
     ! Extract the property from the node.
     propertyType             =self%nodePropertyExtractor_%type    (    )
     propertyQuantity         =self%nodePropertyExtractor_%quantity(    )
@@ -574,6 +573,7 @@ contains
        end if
     else
        ! Construct contribution to the covariance matrix assuming Poisson statistics.
+       allocate(covariance(self%binCount,self%binCount))
        forall(j=1:self%binCount)
           forall(k=j:self%binCount)
              covariance(j,k)=+distribution(j  ) &
@@ -587,10 +587,10 @@ contains
             & +self%functionCovariance  &
             & +             covariance
        !$ call OMP_Unset_Lock(self%accumulateLock)
+       deallocate(covariance)
     end if
     ! Deallocate workspace.
     deallocate(distribution)
-    deallocate(covariance  )
     return
   end subroutine volumeFunction1DAnalyze
 
@@ -700,6 +700,7 @@ contains
                    self               %functionCovariance     (i,i)=                       &
                         &         self%functionCovariance     (i,i)                        &
                         & +(1.0d0-self%weightMainBranch       (i,m)/weightMainBranchTotal) &
+                        & +       self%weightMainBranch       (i,m)/weightMainBranchTotal  &
                         & *       self%weightSquaredMainBranch(i,m)
                 else
                    ! Special case - only one halo mass bin contributed to this bin of the volume function. We revert to Poisson
@@ -710,15 +711,14 @@ contains
                 end if
                 do j=1,self%binCount
                    if (i == j) cycle
-                   self               %functionCovariance     (i,j)= &
-                        &  +      self%functionCovariance     (i,j)  &
-                        &  -      self%weightMainBranch       (i,m)  &
-                        &  *      self%weightMainBranch       (j,m)  &
-                        &  *sqrt(                                    &
-                        &         self%weightSquaredMainBranch(i,m)  &
-                        &        *self%weightSquaredMainBranch(j,m)  &
-                        &       )                                    &
-                        &  /weightMainBranchTotal
+                   self               %functionCovariance     (i,j)=                       &
+                        &  +      self%functionCovariance     (i,j)                        &
+                        &  -      self%weightMainBranch       (i,m)/weightMainBranchTotal  &
+                        &  *      self%weightMainBranch       (j,m)/weightMainBranchTotal  &
+                        &  *sqrt(                                                          &
+                        &         self%weightSquaredMainBranch(i,m)                        &
+                        &        *self%weightSquaredMainBranch(j,m)                        &
+                        &       )
                 end do
              end do
           end if
