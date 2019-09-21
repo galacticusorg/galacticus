@@ -1,13 +1,16 @@
---- sps_vars.f90.orig	2018-07-16 17:16:35.695587942 +0000
-+++ sps_vars.f90	2018-07-16 17:14:58.203960242 +0000
-@@ -12,8 +12,8 @@
- #define C3K 0
+--- a/src/sps_vars.f90
++++ b/src/sps_vars.f90
+@@ -21,11 +21,11 @@ MODULE SPS_VARS
  
  !------set the isochrone library------!
+ #ifndef MIST
 -#define MIST 1
--#define PADOVA 0
 +#define MIST 0
+ #endif
+ 
+ #ifndef PADOVA
+-#define PADOVA 0
 +#define PADOVA 1
- #define PARSEC 0
- #define BASTI 0
- #define GENEVA 0
+ #endif
+ 
+ #ifndef PARSEC

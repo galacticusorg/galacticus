@@ -37,31 +37,31 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
-     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_ => null()
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_       => null()
+     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_         => null()
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_      => null()
      class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_ => null()
-     type            (hdf5Object                   )                            :: file                     , forestHalos
-     type            (statefulInteger              )                            :: hasSubhalos              , areSelfContained              , &
-          &                                                                        includesHubbleFlow       , periodicPositions             , &
+     type            (hdf5Object                   )                            :: file                               , forestHalos
+     type            (statefulInteger              )                            :: hasSubhalos                        , areSelfContained              , &
+          &                                                                        includesHubbleFlow                 , periodicPositions             , &
           &                                                                        lengthStatus
-     type            (statefulLogical              )                            :: massesAreInclusive       , angularMomentaAreInclusive
+     type            (statefulLogical              )                            :: massesAreInclusive                 , angularMomentaAreInclusive
      type            (statefulDouble               )                            :: length
-     type            (importerUnits                )                            :: massUnit                 , lengthUnit                    , &
-          &                                                                        timeUnit                 , velocityUnit
-     logical                                                                    :: fatalMismatches          , forestIndicesRead             , &
-          &                                                                        angularMomentaIsScalar   , angularMomentaIsVector        , &
-          &                                                                        spinIsScalar             , spinIsVector                  , &
-          &                                                                        reweightTrees
-     integer                                                                    :: forestsCount             , formatVersion
-     integer                                        , allocatable, dimension(:) :: firstNodes               , nodeCounts
+     type            (importerUnits                )                            :: massUnit                           , lengthUnit                    , &
+          &                                                                        timeUnit                           , velocityUnit
+     logical                                                                    :: fatalMismatches                    , forestIndicesRead             , &
+          &                                                                        angularMomentaIsScalar             , angularMomentaIsVector        , &
+          &                                                                        spinIsScalar                       , spinIsVector                  , &
+          &                                                                        reweightTrees                      , validateData
+     integer                                                                    :: forestsCount                       , formatVersion
+     integer                                        , allocatable, dimension(:) :: firstNodes                         , nodeCounts
      integer         (kind=kind_int8               ), allocatable, dimension(:) :: forestIndices
      double precision                               , allocatable, dimension(:) :: weights
      type            (hdf5Object                   )                            :: particles
      integer                                                                    :: particleEpochType
      type            (varying_string               )                            :: particleEpochDataSetName
-     character       (len=32                       )                            :: forestHalosGroupName     , forestContainmentAttributeName, &
-          &                                                                        forestIndexGroupName     , forestIndexDatasetName        , &
+     character       (len=32                       )                            :: forestHalosGroupName               , forestContainmentAttributeName, &
+          &                                                                        forestIndexGroupName               , forestIndexDatasetName        , &
           &                                                                        forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor
@@ -120,7 +120,8 @@ contains
     class  (haloMassFunctionClass        ), pointer       :: haloMassFunction_
     class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    logical                                               :: fatalMismatches          , reweightTrees
+    logical                                               :: fatalMismatches          , reweightTrees, &
+         &                                                   validateData
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -138,11 +139,19 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>validateData</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true perform some validation of imported data to identify possible problems.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
+    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>  
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="haloMassFunction_"        />
@@ -151,16 +160,17 @@ contains
     return
   end function galacticusConstructorParameters
 
-  function galacticusConstructorInternal(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
+  function galacticusConstructorInternal(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the \glc\ format merger tree importer.
     implicit none
     type   (mergerTreeImporterGalacticus )                        :: self
-    logical                               , intent(in   )         :: fatalMismatches          , reweightTrees
+    logical                               , intent(in   )         :: fatalMismatches          , reweightTrees, &
+         &                                                           validateData
     class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class  (haloMassFunctionClass        ), intent(in   ), target :: haloMassFunction_
     class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="fatalMismatches, reweightTrees, *cosmologyFunctions_, *haloMassFunction_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="fatalMismatches, reweightTrees, validateData, *cosmologyFunctions_, *haloMassFunction_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
 
     self%hasSubhalos       %isSet=.false.
     self%massesAreInclusive%isSet=.false.
@@ -1009,6 +1019,10 @@ contains
        else
           call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)        )) call Galacticus_Error_Report('"nodeTime" dataset contains NaN values'    //{introspection:location})
+          if (any(      nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report('"nodeTime" dataset has non-positive values'//{introspection:location})
+       end if
     else if (self%forestHalos%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
        if (useNodeSubset) then
@@ -1017,8 +1031,11 @@ contains
           call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate expansion factors.
-       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("expansionFactor dataset values must be >0"//{introspection:location})
-       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)        )) call Galacticus_Error_Report('"expansionFactor" dataset contains NaN values'//{introspection:location})
+          if (any(      nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report('"expansionFactor" dataset values must be >0'  //{introspection:location})
+          if (any(      nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
+       end if
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
@@ -1031,8 +1048,11 @@ contains
           call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate redshifts.
-       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("redshift dataset values must be >-1"//{introspection:location})
-       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)         )) call Galacticus_Error_Report('"redshift" dataset contains NaN values'//{introspection:location})
+          if (any(      nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report('"redshift" dataset values must be >-1' //{introspection:location})
+          if (any(      nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
+       end if
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
@@ -1045,6 +1065,9 @@ contains
        call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass                                ,readSelection=nodeSubsetOffset)
     else
        call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
+    end if
+    if (self%validateData) then
+       if (any(isNaN(nodes%nodeMass))) call Galacticus_Error_Report('"nodeMass" dataset contains NaN values'//{introspection:location})
     end if
     !$ call hdf5Access%unset()
     ! If only structure is requested we are done.
@@ -1061,12 +1084,18 @@ contains
              else
                 call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%scaleRadius))) call Galacticus_Error_Report('"scaleRadius" dataset contains NaN values'//{introspection:location})
+             end if
           else
              nodes%scaleRadius   =-1.0d0
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius                         ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%halfMassRadius))) call Galacticus_Error_Report('"halfMassRadius" dataset contains NaN values'//{introspection:location})
              end if
           end if
        end if
@@ -1078,16 +1107,22 @@ contains
              else
                 call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(angularMomentum3D))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
+             end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
              end forall
-          call deallocateArray(angularMomentum3D)
+             call deallocateArray(angularMomentum3D)
           else if (self%angularMomentaIsScalar) then
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%angularMomentum))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
              end if
           else
              call Galacticus_Error_Report("scalar angular momentum is not available"//{introspection:location})
@@ -1100,6 +1135,9 @@ contains
           else
              call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
+          if (self%validateData) then
+             if (any(isNaN(angularMomentum3D))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
+          end if
        end if
        ! Halo spins.
        if (present(requireSpin).and.requireSpin) then
@@ -1108,6 +1146,9 @@ contains
                 call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(spin3D))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
              end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
@@ -1120,6 +1161,9 @@ contains
              else
                 call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%spin))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
+             end if
           else
              call Galacticus_Error_Report("scalar spin is not available"//{introspection:location})
           end if
@@ -1130,6 +1174,9 @@ contains
              call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
           else
              call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
+          if (self%validateData) then
+             if (any(isNaN(spin3D))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
           end if
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
@@ -1192,6 +1239,10 @@ contains
              call self%forestHalos%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              ! velocity.
              call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
+          if (self%validateData) then
+             if (any(isNaN(position))) call Galacticus_Error_Report('"position" dataset contains NaN values'//{introspection:location})
+             if (any(isNaN(velocity))) call Galacticus_Error_Report('"velocity" dataset contains NaN values'//{introspection:location})
           end if
           ! If a set of most bound particle indices are present, read them.
           if (self%forestHalos%hasDataset("particleIndexStart").and.self%forestHalos%hasDataset("particleIndexCount")) then
