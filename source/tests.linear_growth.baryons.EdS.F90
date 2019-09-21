@@ -59,6 +59,7 @@ program Tests_Linear_Growth_EdS_Baryons
   linearGrowth_       =linearGrowthBaryonsDarkMatter      (                                                      &
        &                                                   redshiftInitial           =100.0d0                  , &
        &                                                   redshiftInitialDelta      =  1.0d0                  , &
+       &                                                   cambCountPerDecade        =  0                      , &
        &                                                   cosmologyParameters_      =cosmologyParameters_     , &
        &                                                   cosmologyFunctions_       =cosmologyFunctions_      , &
        &                                                   intergalacticMediumState_ =intergalacticMediumState_  &
