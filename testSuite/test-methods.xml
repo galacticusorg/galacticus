@@ -334,7 +334,7 @@
  	  <temperatureCMB value="2.725"/>
  	</cosmologyParametersMethod>
  	<darkMatterProfileConcentrationMethod value="gao2008"/>
- 	<linearGrowthMethod value="simple"/>
+ 	<linearGrowthMethod value="collisionlessMatter"/>
  	<cosmologyFunctionsMethod value="matterLambda"/>
  	<powerSpectrumPrimordialMethod value="powerLaw">
  	  <index value="1.0"/>
