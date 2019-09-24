@@ -770,9 +770,10 @@ contains
 
   double precision function volumeFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a volumeFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Error_Report
+    use Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
+    use Numerical_Constants_Math    , only : Pi
+    use Models_Likelihoods_Constants, only : logImprobable
+    use Galacticus_Error            , only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
@@ -784,23 +785,28 @@ contains
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
        call volumeFunction1DFinalizeAnalysis(self)
-       ! Allocate workspaces.
-       allocate(functionCovarianceCombined(self%binCount,self%binCount))
-       allocate(functionValueDifference   (self%binCount              ))
-       ! Find combined covariance and difference between model and target.
-       functionValueDifference   =+self%functionValue            &
-            &                     -self%functionValueTarget
-       functionCovarianceCombined=+self%functionCovariance       &
-            &                     +self%functionCovarianceTarget
-       residual                  = functionValueDifference
-       covariance                = functionCovarianceCombined
-       ! Compute the log-likelihood.
-       volumeFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
-       if (self%likelihoodNormalize)                                                      &
-            & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood                &
-            &                               -0.5d0*covariance%determinant      (        ) &
-            &                               -0.5d0*dble(self%binCount)                    &
-            &                               *log(2.0d0*Pi)
+       ! If model has everywhere zero return an improbable likelihood.
+       if (all(self%functionValue == 0.0d0) .and. all(self%functionCovariance == 0.0d0)) then
+          volumeFunction1DLogLikelihood=logImprobable
+       else
+          ! Allocate workspaces.
+          allocate(functionCovarianceCombined(self%binCount,self%binCount))
+          allocate(functionValueDifference   (self%binCount              ))
+          ! Find combined covariance and difference between model and target.
+          functionValueDifference   =+self%functionValue            &
+               &                     -self%functionValueTarget
+          functionCovarianceCombined=+self%functionCovariance       &
+               &                     +self%functionCovarianceTarget
+          residual                  = functionValueDifference
+          covariance                = functionCovarianceCombined
+          ! Compute the log-likelihood.
+          volumeFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
+          if (self%likelihoodNormalize)                                                      &
+               & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood                &
+               &                               -0.5d0*covariance%determinant      (        ) &
+               &                               -0.5d0*dble(self%binCount)                    &
+               &                               *log(2.0d0*Pi)
+       end if
     else
        volumeFunction1DLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})
