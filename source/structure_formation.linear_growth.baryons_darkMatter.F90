@@ -274,7 +274,7 @@ contains
     if (self%remakeTable(time)) then
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(baryonsDarkMatterFileLock)
+       call File_Unlock(baryonsDarkMatterFileLock,sync=.false.)
     end if
     if (self%remakeTable(time)) then
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.false.)

@@ -520,7 +520,7 @@ contains
     if (self%remakeTable(mass,time)) then
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(filteredPowerFileLock)
+       call File_Unlock(filteredPowerFileLock,sync=.false.)
     end if
     if (self%remakeTable(mass,time)) then
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.false.)
@@ -974,6 +974,7 @@ contains
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
     double precision                                         , intent(in   ), optional :: mass, time
+    
     if (self%initialized) then
        filteredPowerRemakeTable=.false.
        if (present(mass)) then
