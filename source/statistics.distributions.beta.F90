@@ -66,7 +66,7 @@ contains
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <cardinality>1</cardinality>
-    !#   <description>The $\beta parameter of the beta distribution function.</description>
+    !#   <description>The $\beta$ parameter of the beta distribution function.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
