@@ -315,10 +315,9 @@ contains
                 basicNew1      => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
-                ! Compute the critical overdensity corresponding to this new node.
-                deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
-                ! Set properties of the new node.
                 call basicNew1%massSet(nodeMass1     )
+                ! Compute the critical overdensity corresponding to this new node.
+                deltaCritical1=self%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
                 node%firstChild => nodeNew1
@@ -368,7 +367,7 @@ contains
                 ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
                 ! grow a branch from it), and flag that the branch is done.
                 node                => nodeNew1
-                branchIsDone        =  .true.             
+                branchIsDone        =  .true.
              else
                 ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
                 ! al. (2000) algorithm.
@@ -695,7 +694,7 @@ contains
        cole2000CriticalOverdensityUpdate=self%criticalOverdensity_      %value         (time               =     time         ,mass=massNew    ,node=nodeNew) &
             &                            *self%cosmologicalMassVariance_%rootVariance  (time               =self%timeNow      ,mass=massNew                 ) &
             &                            /self%cosmologicalMassVariance_%rootVariance  (time               =     time         ,mass=massNew                 )
-    else       
+    else
        ! Critical overdensity is mass independent, so the critical overdensity for parent and child node is the same.
        cole2000CriticalOverdensityUpdate=                                                             deltaCritical
     end if
