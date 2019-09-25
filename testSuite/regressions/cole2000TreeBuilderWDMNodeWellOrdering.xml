@@ -136,7 +136,7 @@
     <branchIntervalStep value="false"/>
   </mergerTreeBuilderMethod>
   <mergerTreeBranchingProbabilityMethod value="gnrlzdPrssSchchtr">
-    <massMinimum value="1.0e5"/>
+    <massMinimum value="1.0e6"/>
   </mergerTreeBranchingProbabilityMethod>
   <mergerTreeBranchingProbabilityModifierMethod value="parkinson2008">
     <G0 value="+0.57"/>
@@ -163,7 +163,6 @@
   <energyOrbital value="1"/>
   </mergerRemnantSizeMethod>
   <virialOrbitMethod value="benson2005"/>
-  <!--satelliteMergingTimescalesMethod value="jiang2008"/-->
   <satelliteMergingTimescalesMethod value="jiang2008">
     <timescaleMultiplier value="0.75"/>
   </satelliteMergingTimescalesMethod>
