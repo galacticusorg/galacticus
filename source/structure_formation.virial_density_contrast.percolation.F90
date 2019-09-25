@@ -44,7 +44,7 @@
      !#  <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
      !# </workaround>
      logical                                                     :: isRecursive                              , parentDeferred
-     class           (virialDensityContrastPercolation), pointer :: recursiveSelf
+     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
