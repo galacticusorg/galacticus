@@ -2274,12 +2274,28 @@ CODE
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrDflt\n";
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrPrmtrs\n";
 	    $preContains->[0]->{'content'} .= "   end interface ".$directive->{'name'}."\n";
-	    # Add a variable which records whether construction of the default object is underway.
+	    # Add a variable which records whether construction of the default object is underway, and for detecting and
+	    # performing recursive build of the default object from a parameter list.
 	    my $allowRecursion = grep {exists($_->{'recursive'}) && $_->{'recursive'} eq "yes"} @classes;
 	    if ( $allowRecursion ) {
 		$preContains->[0]->{'content'} .= "   ! Record of whether construction of default object is underway.\n";
 		$preContains->[0]->{'content'} .= "   logical :: ".$directive->{'name'}."DefaultConstructing=.false.\n";
-		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing)\n\n";
+                $preContains->[0]->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
+		$preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing,".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
+                my $usesNode =
+	        {
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			Input_Parameters =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			}
+		    }
+		};
+                &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
  	    }
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
@@ -2358,12 +2374,17 @@ CODE
 	    $postContains->[0]->{'content'} .= "      else\n";
 	    $postContains->[0]->{'content'} .= "        copyInstance_=1\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
-	    if ( exists($directive->{'default'}) ) {
+            if ( exists($directive->{'default'}) ) {
+                (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;    
 	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
 	        $postContains->[0]->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
 	        $postContains->[0]->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
 		$postContains->[0]->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
-    		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => parameterNode\n";
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => ".$directive->{'name'}."CnstrctrPrmtrs\n";
+		}
 		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
 		$postContains->[0]->{'content'} .= "            call debugStackPush(loc(".$directive->{'name'}."CnstrctrPrmtrs))\n"
@@ -2372,8 +2393,27 @@ CODE
 		$postContains->[0]->{'content'} .= "            call debugStackPop()\n"
 		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "         end select\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => null()\n";
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		}
                 $postContains->[0]->{'content'} .= "         call parameterNode%objectSet(".$directive->{'name'}."CnstrctrPrmtrs)\n";
                 $postContains->[0]->{'content'} .= "      else\n";
+                if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "         parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+		    $postContains->[0]->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."DefaultBuildNode)) then\n";
+		    $postContains->[0]->{'content'} .= "           allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		    $postContains->[0]->{'content'} .= "           select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		    $postContains->[0]->{'content'} .= "           type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		    $postContains->[0]->{'content'} .= "              ".$directive->{'name'}."CnstrctrPrmtrs%isRecursive=.true.\n";
+		    $postContains->[0]->{'content'} .= "              select type (".$directive->{'name'}."DefaultBuildObject)\n";
+		    $postContains->[0]->{'content'} .= "              type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		    $postContains->[0]->{'content'} .= "                 ".$directive->{'name'}."CnstrctrPrmtrs%recursiveSelf => ".$directive->{'name'}."DefaultBuildObject\n";
+		    $postContains->[0]->{'content'} .= "              end select\n";
+		    $postContains->[0]->{'content'} .= "           end select\n";
+		    $postContains->[0]->{'content'} .= "           return\n";
+		    $postContains->[0]->{'content'} .= "        end if\n";
+                }
             }
 	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance_)\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance_)\n";
