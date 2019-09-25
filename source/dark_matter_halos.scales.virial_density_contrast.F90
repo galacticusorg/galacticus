@@ -31,8 +31,8 @@
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
      !% A dark matter halo scale contrast class using virial density contrasts.
      private
-     logical                                                                       :: isRecursive
-     class           (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: recursiveSelf
+     logical                                                                       :: isRecursive                         , parentDeferred
+     class           (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: recursiveSelf              => null()
      class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_       => null()
      class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_        => null()
      class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_     => null()
@@ -139,6 +139,7 @@ contains
           call Galacticus_Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
        end select
     end if
+    self%parentDeferred=.false.
     return
   end function virialDensityContrastDefinitionInternal
 
@@ -189,6 +190,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionDynamicalTimescale=self%recursiveSelf%dynamicalTimescale(node)
        return
     end if
@@ -217,6 +219,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocity=self%recursiveSelf%virialVelocity(node)
        return
     end if
@@ -247,6 +250,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocityGrowthRate=self%recursiveSelf%virialVelocityGrowthRate(node)
        return
     end if
@@ -274,6 +278,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialTemperature=self%recursiveSelf%virialTemperature(node)
        return
     end if
@@ -302,6 +307,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadius=self%recursiveSelf%virialRadius(node)
        return
     end if
@@ -331,6 +337,7 @@ contains
     
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGradientLogMass=self%recursiveSelf%virialRadiusGradientLogarithmicMass(node)
        return
     end if
@@ -349,6 +356,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGrowthRate=self%recursiveSelf%virialRadiusGrowthRate(node)
        return
     end if
@@ -372,6 +380,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensity=self%recursiveSelf%meanDensity(node)
        return
     end if
@@ -429,6 +438,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
+       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensityGrowthRate=self%recursiveSelf%meanDensityGrowthRate(node)
        return
     end if
@@ -489,6 +499,7 @@ contains
        destination%meanDensityTimeMaximum    =self%meanDensityTimeMaximum
        destination%meanDensityTimeMinimum    =self%meanDensityTimeMinimum
        destination%meanDensityTable          =self%meanDensityTable
+       destination%parentDeferred            =.false.
        if (self%isRecursive) then
           if (associated(self%recursiveSelf%recursiveSelf)) then
              ! If the parent self's recursiveSelf pointer is set, it indicates that it was deep-copied, and the pointer points to
@@ -498,6 +509,7 @@ contains
              ! The parent self does not appear to have been deep-copied yet. Retain the same parent self pointer in our copy, but
              ! indicate that we need to look for the new parent later.
              destination%recursiveSelf  => self%recursiveSelf
+             destination%parentDeferred =  .true.
           end if
        else
           ! This is a parent of a recursively-constructed object. Record the location of our copy so that it can be used to set
@@ -533,3 +545,20 @@ contains
     end select
     return
   end subroutine virialDensityContrastDefinitionDeepCopyAssign
+
+  subroutine virialDensityContrastFindParent(self)
+    !% Find the deep-copied parent of a recursive child.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+
+    if (self%parentDeferred) then
+       if (associated(self%recursiveSelf%recursiveSelf)) then
+          self%recursiveSelf => self%recursiveSelf%recursiveSelf
+       else
+          call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+       end if
+       self%parentDeferred=.false.
+    end if
+    return
+  end subroutine virialDensityContrastFindParent
