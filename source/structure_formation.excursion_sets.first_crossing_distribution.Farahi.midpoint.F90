@@ -354,6 +354,7 @@ contains
     use Kind_Numbers
     use Error_Functions
     use MPI_Utilities
+    use Galacticus_Error       , only : Galacticus_Error_Report
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -619,6 +620,7 @@ contains
                      &                                         )                                                                          &
                      &                                        /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
                      &                                       )
+                if (integralKernelRate <= 0.0d0) call Galacticus_Error_Report('integral kernel is non-positive - possibly the effective barrier is too large'//{introspection:location})
                 firstCrossingTableRateQuad(1)=+(                                                              &
                      &                          +1.0_kind_quad                                                &
                      &                          -erfApproximate(                                              &
