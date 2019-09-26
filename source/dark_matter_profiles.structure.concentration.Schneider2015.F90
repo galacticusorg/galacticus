@@ -36,7 +36,7 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                                schneider2015Destructor
+    final     ::                                   schneider2015Destructor
     procedure :: concentration                  => schneider2015Concentration
     procedure :: densityContrastDefinition      => schneider2015DensityContrastDefinition
     procedure :: darkMatterProfileDMODefinition => schneider2015DarkMatterProfileDefinition
@@ -146,7 +146,7 @@ contains
          &       +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation,schneider2015Time)**2  &
          &       -self%cosmologicalMassVariance_%rootVariance(mass                           ,schneider2015Time)**2  &
          &      )
-    collapseCriticalOverdensity=+(&
+    collapseCriticalOverdensity=+(                                                                               &
          &                        +sqrt(                                                                         &
          &                              +Pi                                                                      &
          &                              /2.0d0                                                                   &
@@ -172,7 +172,7 @@ contains
             &                       )
     end if
     schneider2015Self                  => self
-    schneider2015MassReferencePrevious =  -1.0d0
+    schneider2015MassReferencePrevious =  -1.0d0    
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
        ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
@@ -230,7 +230,7 @@ contains
     !% \cite{schneider_structure_2015} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
  
     schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDMODefinition()
