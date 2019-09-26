@@ -2278,24 +2278,27 @@ CODE
 	    # performing recursive build of the default object from a parameter list.
 	    my $allowRecursion = grep {exists($_->{'recursive'}) && $_->{'recursive'} eq "yes"} @classes;
 	    if ( $allowRecursion ) {
+                (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;    
 		$preContains->[0]->{'content'} .= "   ! Record of whether construction of default object is underway.\n";
 		$preContains->[0]->{'content'} .= "   logical :: ".$directive->{'name'}."DefaultConstructing=.false.\n";
-                $preContains->[0]->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
-		$preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
-		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing,".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
-                my $usesNode =
-	        {
-		    type      => "moduleUse",
-		    moduleUse =>
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $preContains->[0]->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
+		    $preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing,".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
+		    my $usesNode =
 		    {
-			Input_Parameters =>
+			type      => "moduleUse",
+			moduleUse =>
 			{
-			    intrinsic => 0,
-			    all       => 1
+			    Input_Parameters =>
+			    {
+				intrinsic => 0,
+				all       => 1
+			    }
 			}
-		    }
-		};
-                &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+		    };
+		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+                }
  	    }
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
