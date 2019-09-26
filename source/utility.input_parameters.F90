@@ -68,6 +68,7 @@ module Input_Parameters
      type   (inputParameter   ), pointer    , public       :: parent , firstChild, &
           &                                                   sibling, referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
+     logical :: created=.false.
    contains
      !@ <objectMethods>
      !@   <object>inputParameter</object>
@@ -840,9 +841,9 @@ contains
     !% Reset objects associated with this parameter and any sub-parameters.
     !$ use OMP_Lib
     implicit none
-    class  (inputParameter), intent(inout)           :: self
+    class  (inputParameter), intent(inout), target :: self
     logical                , intent(in   ), optional :: children
-    type   (inputParameter), pointer                 :: child
+    type   (inputParameter), pointer                 :: child, childNext, parent, self_
     integer                                          :: i
     !# <optionalArgument name="children" defaultsTo=".true."/>
     
@@ -853,12 +854,38 @@ contains
           end if
        end do
     end if
-    ! Reset children if requested.
+    ! Clean up children if requested.
     if (children_) then
+       ! Remove if this parameter was created.
+       if (self%created) then
+          child => self%firstChild
+          do while (associated(child))
+             childNext => child%sibling
+             call child%destroy()
+             deallocate(child)
+             child => childNext
+          end do
+          self_ => self
+          parent => self_%parent
+          ! Find child, unlink and deallocate.
+          if (associated(parent%firstChild,self_))  then
+             parent%firstChild => self_%sibling
+          else
+             child => parent%firstChild
+             do while (.not.associated(child%sibling,self_))
+                child => child%sibling
+             end do
+             child%sibling => self_%sibling
+          end if
+          deallocate(self_)
+          return
+       end if
+       ! Reset children if requested.
        child => self%firstChild
        do while (associated(child))
+          childNext => child%sibling
           call child%reset()
-          child => child%sibling
+          child => childNext
        end do
     end if
     return
@@ -1552,6 +1579,7 @@ contains
     currentParameter%firstChild => null()
     currentParameter%sibling    => null()
     currentParameter%referenced => null()
+    currentParameter%created=.true.
     return
   end subroutine inputParametersAddParameter
     
