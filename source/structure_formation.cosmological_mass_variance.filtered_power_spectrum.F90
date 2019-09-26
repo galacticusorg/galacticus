@@ -679,7 +679,8 @@ contains
       logical                                     , intent(in   ) :: useTopHat
       double precision                            , parameter     :: wavenumberBAO       =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
       double precision                                            :: topHatRadius              , wavenumberMaximum, &
-           &                                                         wavenumberMinimum
+           &                                                         wavenumberMinimum         , integrandLow     , &
+           &                                                         integrandHigh
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
 
@@ -702,29 +703,32 @@ contains
       if (useTopHat) then
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
          if (wavenumberMaximum > wavenumberBAO) then
-            rootVariance=+(                                                         &
-                 &         +Integrate(                                              &
-                 &                    wavenumberMinimum                           , &
-                 &                    wavenumberBAO                               , &
-                 &                    varianceIntegrandTopHat                     , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &         +Integrate(                                              &
-                 &                    wavenumberBAO                               , &
-                 &                    wavenumberMaximum                           , &
-                 &                    varianceIntegrandTopHat                     , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &              )                                                   &
-                 &       /2.0d0                                                     &
+            integrandLow =Integrate(                                             &
+                 &                  wavenumberMinimum                          , &
+                 &                  wavenumberBAO                              , &
+                 &                  varianceIntegrandTopHat                    , &
+                 &                  integrandFunction                          , &
+                 &                  integrationWorkspace                       , &
+                 &                  toleranceAbsolute      =+0.0d0             , &
+                 &                  toleranceRelative      =+self%tolerance    , &
+                 &                  integrationRule        = FGSL_Integ_Gauss15  &
+                 &                 )
+            integrandHigh=Integrate(                                             &
+                 &                  wavenumberBAO                              , &
+                 &                  wavenumberMaximum                          , &
+                 &                  varianceIntegrandTopHat                    , &
+                 &                  integrandFunction                          , &
+                 &                  integrationWorkspace                       , &
+                 &                  toleranceAbsolute      =+self%tolerance      &
+                 &                                          *integrandLow      , &
+                 &                  toleranceRelative      =+self%tolerance    , &
+                 &                  integrationRule        = FGSL_Integ_Gauss15  &
+                 &                 )
+           rootVariance=+(                                                       &
+                 &         +integrandLow                                         &
+                 &         +integrandHigh                                        &
+                 &        )                                                      &
+                 &       /2.0d0                                                  &
                  &       /Pi**2
          else
             rootVariance=+  Integrate(                                              &
@@ -743,42 +747,45 @@ contains
       else
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
          if (wavenumberMaximum > wavenumberBAO) then
-            rootVariance=+(                                                         &
-                 &         +Integrate(                                              &
-                 &                    wavenumberMinimum                           , &
-                 &                    wavenumberBAO                               , &
-                 &                    varianceIntegrand                           , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &         +Integrate(                                              &
-                 &                    wavenumberBAO                               , &
-                 &                    wavenumberMaximum                           , &
-                 &                    varianceIntegrand                           , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &           )                                                      &
-                 &       /2.0d0                                                     &
+            integrandLow =Integrate(                                             &
+                 &                  wavenumberMinimum                          , &
+                 &                  wavenumberBAO                              , &
+                 &                  varianceIntegrand                          , &
+                 &                  integrandFunction                          , &
+                 &                  integrationWorkspace                       , &
+                 &                  toleranceAbsolute      =+0.0d0             , &
+                 &                  toleranceRelative      =+self%tolerance    , &
+                 &                  integrationRule        = FGSL_Integ_Gauss15  &
+                 &                 )
+            integrandHigh=Integrate(                                             &
+                 &                  wavenumberBAO                              , &
+                 &                  wavenumberMaximum                          , &
+                 &                  varianceIntegrand                          , &
+                 &                  integrandFunction                          , &
+                 &                  integrationWorkspace                       , &
+                 &                  toleranceAbsolute      =+self%tolerance      &
+                 &                                          *integrandLow      , &
+                 &                  toleranceRelative      =+self%tolerance    , &
+                 &                  integrationRule        = FGSL_Integ_Gauss15  &
+                 &                 )
+           rootVariance=+(                                                       &
+                 &         +integrandLow                                         &
+                 &         +integrandHigh                                        &
+                 &        )                                                      &
+                 &       /2.0d0                                                  &
                  &       /Pi**2
          else
-            rootVariance=+  Integrate(                                              &
-                 &                    wavenumberMinimum                           , &
-                 &                    wavenumberMaximum                           , &
-                 &                    varianceIntegrand                           , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &       /2.0d0                                                     &
+            rootVariance=+  Integrate(                                            &
+                 &                    wavenumberMinimum                         , &
+                 &                    wavenumberMaximum                         , &
+                 &                    varianceIntegrand                         , &
+                 &                    integrandFunction                         , &
+                 &                    integrationWorkspace                      , &
+                 &                    toleranceAbsolute      =0.0d0             , &
+                 &                    toleranceRelative      =self%tolerance    , &
+                 &                    integrationRule        =FGSL_Integ_Gauss15  &
+                 &                   )                                            &
+                 &       /2.0d0                                                   &
                  &       /Pi**2
          end if
       end if
@@ -792,12 +799,12 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &            *(                                                                             &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass   ) &
-           &              *                                               wavenumber                   &
+           &            *(                                                                              &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
+           &              *                                               wavenumber                    &
            &             )**2
       return
     end function varianceIntegrand
