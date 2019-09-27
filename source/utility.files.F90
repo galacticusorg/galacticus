@@ -197,8 +197,6 @@ contains
     integer                                          :: fileUnit, errorStatus
     !# <optionalArgument name="sync" defaultsTo=".true." />
     
-    ! First unlock the file.
-    call funlock_C(lock%lockDescriptorC)
     if (sync_) then
        open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
        if (errorStatus == 0) then
@@ -206,6 +204,8 @@ contains
           close(fileUnit)
        end if
     end if
+    ! First unlock the file.
+    call funlock_C(lock%lockDescriptorC)
     ! Then release the per-thread lock.
     !$ call OMP_Unset_Lock(lock%threadLock)
     return
