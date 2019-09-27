@@ -2281,10 +2281,11 @@ CODE
                 (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;    
 		$preContains->[0]->{'content'} .= "   ! Record of whether construction of default object is underway.\n";
 		$preContains->[0]->{'content'} .= "   logical :: ".$directive->{'name'}."DefaultConstructing=.false.\n";
+		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing)\n\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
 		    $preContains->[0]->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
 		    $preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
-		    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing,".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
+		    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
 		    my $usesNode =
 		    {
 			type      => "moduleUse",
@@ -2572,7 +2573,7 @@ CODE
 		    }
 		}
 		if ( @nonRecursiveTypes ) {
-		    $postContains->[0]->{'content'} .= "        case (".join(",",map {"'".$_."'"} @nonRecursiveTypes).")\n";
+		    $postContains->[0]->{'content'} .= "        case (".join(",",map {(my $name = $_) =~ s/^$directive->{'name'}//;"'".lcfirst($name)."'"} @nonRecursiveTypes).")\n";
 		    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('this type does not support recursion'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 		$postContains->[0]->{'content'} .= "      case default\n";
