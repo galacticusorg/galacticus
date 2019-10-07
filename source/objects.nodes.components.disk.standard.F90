@@ -475,7 +475,8 @@ contains
     double precision                                                   :: diskMass                       , fractionalError, &
          &                                                                specificAngularMomentum
     character       (len=20                  )                         :: valueString
-    type            (varying_string          )                         :: message
+    type            (varying_string          ), save                   :: message
+    !$omp threadprivate(message)
 
     ! Get the disk component.
     disk => node%disk()

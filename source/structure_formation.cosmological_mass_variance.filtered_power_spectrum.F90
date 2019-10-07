@@ -513,7 +513,8 @@ contains
     double precision                                                                     :: sigma                     , smoothingMass          , &
          &                                                                                  massMinimum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
-    type            (varying_string                       )                              :: message
+    type            (varying_string                       ), save                        :: message
+    !$omp threadprivate(message)
     character       (len=12                               )                              :: label                     , labelLow               , &
          &                                                                                  labelHigh                 , labelTarget
 
