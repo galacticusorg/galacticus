@@ -132,18 +132,19 @@ module Node_Component_Satellite_Orbiting
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
-  subroutine Node_Component_Satellite_Orbiting_Initialize()
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Satellite_Orbiting_Initialize(globalParameters_)
     !% Initializes the orbiting satellite methods module.
-    use Input_Parameters
-    use Galacticus_Error
+    use Input_Parameters  , only : inputParameters
+    use Galacticus_Error  , only : Galacticus_Error_Report
     use Galacticus_Nodes  , only : nodeComponentSatelliteOrbiting, defaultSatelliteComponent
     use ISO_Varying_String, only : varying_string                , var_str                  , char
     implicit none
-    type(nodeComponentSatelliteOrbiting) :: satelliteComponent
-    type(varying_string                ) :: satelliteBoundMassInitializeTypeText
+    type(inputParameters               ), intent(inout) :: globalParameters_
+    type(nodeComponentSatelliteOrbiting)                :: satelliteComponent
+    type(varying_string                )                :: satelliteBoundMassInitializeTypeText
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -151,6 +152,7 @@ contains
        !# <inputParameter>
        !#   <name>satelliteOrbitingDestructionMassIsFractional</name>
        !#   <defaultValue>.true.</defaultValue>
+       !#   <source>globalParameters_</source>
        !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
        !#   <type>double</type>
        !#   <cardinality>1</cardinality>
@@ -160,7 +162,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.01d0</defaultValue>
        !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -168,7 +170,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('basicMass')</defaultValue>
        !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>string</type>
        !#   <variable>satelliteBoundMassInitializeTypeText</variable>
        !# </inputParameter>
@@ -178,7 +180,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -186,7 +188,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>200.0d0</defaultValue>
        !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        ! Validate the parameters.
