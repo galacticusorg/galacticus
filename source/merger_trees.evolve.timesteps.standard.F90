@@ -92,33 +92,38 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepStandard), intent(inout), target  :: self
-    type            (treeNode                        ), intent(inout), target  :: node
-    procedure       (timestepTask                    ), intent(  out), pointer :: task
-    class           (*                               ), intent(  out), pointer :: taskSelf
-    logical                                           , intent(in   )          :: report
-    type            (treeNode                        ), intent(  out), pointer :: lockNode
-    type            (varying_string                  ), intent(  out)          :: lockType
-    double precision                                                           :: timeEvolveToSimple, timeEvolveToSatellite
-    procedure       (timestepTask                    )               , pointer :: taskSimple        , taskSatellite
-    type            (treeNode                        )               , pointer :: lockNodeSimple    , lockNodeSatellite
-    class           (*                               )               , pointer :: taskSelfSimple    , taskSelfSatellite
-    type            (varying_string                  )                         :: lockTypeSimple    , lockTypeSatellite
-
-    timeEvolveToSimple   =self%simple   %timeEvolveTo(node,taskSimple   ,taskSelfSimple   ,report,lockNodeSimple   ,lockTypeSimple   )
-    timeEvolveToSatellite=self%satellite%timeEvolveTo(node,taskSatellite,taskSelfSatellite,report,lockNodeSatellite,lockTypeSatellite)
+    class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
+    type            (treeNode                        ), intent(inout), target            :: node
+    procedure       (timestepTask                    ), intent(  out), pointer           :: task
+    class           (*                               ), intent(  out), pointer           :: taskSelf
+    logical                                           , intent(in   )                    :: report
+    type            (treeNode                        ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                  ), intent(  out)         , optional :: lockType
+    double precision                                                                     :: timeEvolveToSimple, timeEvolveToSatellite
+    procedure       (timestepTask                    )               , pointer           :: taskSimple        , taskSatellite
+    type            (treeNode                        )               , pointer           :: lockNodeSimple    , lockNodeSatellite
+    class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite
+    type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite
+    !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
+    
+    timeEvolveToSimple   =self%simple   %timeEvolveTo(node,taskSimple   ,taskSelfSimple   ,report,lockNode,lockType)
+    if (present(lockNode)) lockNodeSimple    => lockNode
+    if (present(lockType)) lockTypeSimple    =  lockType
+    timeEvolveToSatellite=self%satellite%timeEvolveTo(node,taskSatellite,taskSelfSatellite,report,lockNode,lockType)
+    if (present(lockNode)) lockNodeSatellite => lockNode
+    if (present(lockType)) lockTypeSatellite =  lockType
     if (timeEvolveToSatellite <= timeEvolveToSimple) then
-       standardTimeEvolveTo =  timeEvolveToSatellite
-       task                 => taskSatellite
-       taskSelf             => taskSelfSatellite
-       lockNode             => lockNodeSatellite
-       lockType             =  lockTypeSatellite
+       standardTimeEvolveTo            =  timeEvolveToSatellite
+       task                            => taskSatellite
+       taskSelf                        => taskSelfSatellite
+       if (present(lockNode)) lockNode => lockNodeSatellite
+       if (present(lockType)) lockType =  lockTypeSatellite
     else
-       standardTimeEvolveTo =  timeEvolveToSimple
-       task                 => taskSimple
-       taskSelf             => taskSelfSimple
-       lockNode             => lockNodeSimple
-       lockType             =  lockTypeSimple
+       standardTimeEvolveTo            =  timeEvolveToSimple
+       task                            => taskSimple
+       taskSelf                        => taskSelfSimple
+       if (present(lockNode)) lockNode => lockNodeSimple
+       if (present(lockType)) lockType =  lockTypeSimple
     end if
     return
   end function standardTimeEvolveTo

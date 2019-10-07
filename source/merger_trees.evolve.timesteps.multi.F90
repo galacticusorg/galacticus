@@ -106,25 +106,25 @@ contains
   double precision function multiTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Perform all mergerTreeEvolveTimesteps.
     implicit none
-    class           (mergerTreeEvolveTimestepMulti    ), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout), target  :: node
-    procedure       (timestepTask                     ), intent(  out), pointer :: task
-    class           (*                                ), intent(  out), pointer :: taskSelf
-    logical                                            , intent(in   )          :: report
-    type            (treeNode                         ), intent(  out), pointer :: lockNode
-    type            (varying_string                   ), intent(  out)          :: lockType
-    type            (multiMergerTreeEvolveTimestepList)               , pointer :: mergerTreeEvolveTimestep_
-    procedure       (timestepTask                     )               , pointer :: task_
-    class           (*                                )               , pointer :: taskSelf_
-    type            (treeNode                         )               , pointer :: lockNode_
-    type            (varying_string                   )                         :: lockType_
-    double precision                                                            :: timeEvolveTo
+    class           (mergerTreeEvolveTimestepMulti    ), intent(inout), target            :: self
+    type            (treeNode                         ), intent(inout), target            :: node
+    procedure       (timestepTask                     ), intent(  out), pointer           :: task
+    class           (*                                ), intent(  out), pointer           :: taskSelf
+    logical                                            , intent(in   )                    :: report
+    type            (treeNode                         ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                   ), intent(  out)         , optional :: lockType
+    type            (multiMergerTreeEvolveTimestepList)               , pointer           :: mergerTreeEvolveTimestep_
+    procedure       (timestepTask                     )               , pointer           :: task_
+    class           (*                                )               , pointer           :: taskSelf_
+    type            (treeNode                         )               , pointer           :: lockNode_
+    type            (varying_string                   )                                   :: lockType_
+    double precision                                                                      :: timeEvolveTo
 
-    multiTimeEvolveTo =  huge(0.0d0)
-    task              => null(     )
-    taskSelf          => null(     )
-    lockNode          => null(     )
-    lockType          = ""
+    multiTimeEvolveTo               =  huge(0.0d0)
+    task                            => null(     )
+    taskSelf                        => null(     )
+    if (present(lockNode)) lockNode => null(     )
+    if (present(lockType)) lockType = ""
     mergerTreeEvolveTimestep_ => self%mergerTreeEvolveTimesteps
     do while (associated(mergerTreeEvolveTimestep_))
        timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report,lockNode_,lockType_)

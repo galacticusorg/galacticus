@@ -164,32 +164,32 @@ contains
     use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target  :: self
-    type            (treeNode                               ), intent(inout), target  :: node
-    procedure       (timestepTask                           ), intent(  out), pointer :: task
-    class           (*                                      ), intent(  out), pointer :: taskSelf
-    logical                                                  , intent(in   )          :: report
-    type            (treeNode                               ), intent(  out), pointer :: lockNode
-    type            (varying_string                         ), intent(  out)          :: lockType
-    class           (nodeComponentBasic                     )               , pointer :: basic
-    integer         (c_size_t                               )                         :: indexTime
-    double precision                                                                  :: time
+    class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target            :: self
+    type            (treeNode                               ), intent(inout), target            :: node
+    procedure       (timestepTask                           ), intent(  out), pointer           :: task
+    class           (*                                      ), intent(  out), pointer           :: taskSelf
+    logical                                                  , intent(in   )                    :: report
+    type            (treeNode                               ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                         ), intent(  out)         , optional :: lockType
+    class           (nodeComponentBasic                     )               , pointer           :: basic
+    integer         (c_size_t                               )                                   :: indexTime
+    double precision                                                                            :: time
 
     recordEvolutionTimeEvolveTo =  huge(0.0d0)
-    lockNode                    => null()
-    lockType                    =  ""
-    task                        => null()
-    taskSelf                    => null()
+    if (present(lockNode)) lockNode => null()
+    if (present(lockType)) lockType =  ""
+    task                            => null()
+    taskSelf                        => null()
     if (node%isOnMainBranch()) then
        basic     => node %basic()
        time      =  basic%time ()
        indexTime =  Interpolate_Locate(self%time,self%interpolationAccelerator,time)
        if (time < self%time(indexTime+1)) then
-          recordEvolutionTimeEvolveTo =  self%time(indexTime+1)
-          lockNode                    => node
-          lockType                    =  "record evolution"
-          task                        => recordEvolutionStore
-          taskSelf                    => self
+          recordEvolutionTimeEvolveTo     =  self%time(indexTime+1)
+          if (present(lockNode)) lockNode => node
+          if (present(lockType)) lockType =  "record evolution"
+          task                            => recordEvolutionStore
+          taskSelf                        => self
        end if
     end if
     if (report) call Evolve_To_Time_Report("record evolution: ",recordEvolutionTimeEvolveTo)

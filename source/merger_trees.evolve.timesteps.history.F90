@@ -172,16 +172,16 @@ contains
     use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepHistory), intent(inout), target  :: self
-    type            (treeNode                       ), intent(inout), target  :: node
-    procedure       (timestepTask                   ), intent(  out), pointer :: task
-    class           (*                              ), intent(  out), pointer :: taskSelf
-    logical                                          , intent(in   )          :: report
-    type            (treeNode                       ), intent(  out), pointer :: lockNode
-    type            (varying_string                 ), intent(  out)          :: lockType
-    class           (nodeComponentBasic             )               , pointer :: basic
-    integer         (c_size_t                       )                         :: timeIndex
-    double precision                                                          :: time
+    class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self
+    type            (treeNode                       ), intent(inout), target            :: node
+    procedure       (timestepTask                   ), intent(  out), pointer           :: task
+    class           (*                              ), intent(  out), pointer           :: taskSelf
+    logical                                          , intent(in   )                    :: report
+    type            (treeNode                       ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                 ), intent(  out)         , optional :: lockType
+    class           (nodeComponentBasic             )               , pointer           :: basic
+    integer         (c_size_t                       )                                   :: timeIndex
+    double precision                                                                    :: time
 
     ! Determine how long until next available timestep.
     basic     => node %basic()
@@ -196,9 +196,9 @@ contains
        task                => null(     )
        taskSelf            => null(     )
     end if
-    lockNode => node
-    lockType =  "history"
-    if (report) call Evolve_To_Time_Report("history: ",historyTimeEvolveTo)
+    if (present(lockNode)) lockNode => node
+    if (present(lockType)) lockType =  "history"
+    if (        report   ) call Evolve_To_Time_Report("history: ",historyTimeEvolveTo)
     return
   end function historyTimeEvolveTo
 
