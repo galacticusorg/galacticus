@@ -200,7 +200,6 @@ contains
           presentTime      =self%cosmologyFunctions_      %cosmicTime  (1.0d0                                                 )
           self%sigmaMaximum=self%cosmologicalMassVariance_%rootVariance(self%massMinimum                     ,presentTime     )
           varianceMaximum  =self%sigmaMaximum**2
-          testResult       =self%excursionSetFirstCrossing_%probability(                      varianceMaximum,presentTime,node)
           testResult       =self%excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime,node)
        end if
        self%excursionSetsTested=.true.
