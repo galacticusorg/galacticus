@@ -135,20 +135,24 @@ contains
        massProgenitor       =+self%cosmologicalMassVariance_%mass        (varianceProgenitor,time          )
        growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(    massProgenitor,time          ) &
             &                /self%cosmologicalMassVariance_%rootVariance(    massProgenitor,timeProgenitor)
-       linearBarrierRate=+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
-            &            *exp(                                                                      &
-            &                 -0.5d0                                                                &
-            &                 *barrierEffective(variance,time,varianceProgenitor,timeProgenitor)**2 &
-            &                 / (+varianceProgenitor-variance)                                      &
-            &                 )                                                                     &
-            &            /      (+varianceProgenitor-variance)                                      &
-            &            /sqrt(                                                                     &
-            &                  +2.0d0                                                               &
-            &                  *Pi                                                                  &
-            &                  *(+varianceProgenitor-variance)                                      &
-            &                 )                                                                     &
-            &            /time                                                                      &
-            &            /fractionalTimeChange
+       linearBarrierRate    =+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
+            &                *exp(                                                                      &
+            &                     -0.5d0                                                                &
+            &                     *barrierEffective(variance,time,varianceProgenitor,timeProgenitor)**2 &
+            &                     / (+varianceProgenitor-variance)                                      &
+            &                     )                                                                     &
+            &                /      (+varianceProgenitor-variance)                                      &
+            &                /sqrt(                                                                     &
+            &                      +2.0d0                                                               &
+            &                      *Pi                                                                  &
+            &                      *(+varianceProgenitor-variance)                                      &
+            &                     )                                                                     &
+            &                /time                                                                      &
+            &                /fractionalTimeChange
+       linearBarrierRate    =max(                   &
+            &                    linearBarrierRate, &
+            &                    0.0d0              &
+            &                   )
     end if
     return
 
