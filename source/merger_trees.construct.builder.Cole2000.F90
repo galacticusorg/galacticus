@@ -426,7 +426,7 @@ contains
                 if (self%branchIntervalStep) then
                    ! In this case we draw intervals between branching events from a negative
                    ! exponential distribution.
-                   if (branchingProbabilityRate > 0.0d0) then
+                   if (branchingProbabilityRate > 1.0d-100) then
                       branchingIntervalScaleFree=0.0d0
                       do while (branchingIntervalScaleFree <= 0.0d0)
                          branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
