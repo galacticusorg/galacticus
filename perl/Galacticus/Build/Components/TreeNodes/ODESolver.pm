@@ -238,17 +238,15 @@ CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-select type (component => self%component{ucfirst($class->{'name'})})
-type is (nodeComponent{ucfirst($class->{'name'})})
-class default
-  do i=1,size(component)
-    count=component(i)%serializeCount(propertyType)
+if (allocated(self%component{ucfirst($class->{'name'})})) then
+  do i=1,size(self%component{ucfirst($class->{'name'})})
+    count=self%component{ucfirst($class->{'name'})}(i)%serializeCount(propertyType)
     if (count > 0) then
-       call component(i)%deserializeValues(array(offset:),propertyType)
+       call self%component{ucfirst($class->{'name'})}(i)%deserializeValues(array(offset:),propertyType)
        offset=offset+count
     end if
   end do
-end select
+end if
 CODE
     }
     # Insert a type-binding for this function into the treeNode type.
