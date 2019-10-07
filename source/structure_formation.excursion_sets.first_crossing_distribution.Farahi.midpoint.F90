@@ -91,7 +91,7 @@ contains
          &                                                                                      jTime                        , jVariance
     double precision                                                                         :: sigma1f
     real            (kind=kind_quad                         )                                :: integralKernel                        
-    character       (len =6                                 )                                :: label
+    character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     logical                                                                                  :: locked
 
@@ -136,11 +136,11 @@ contains
        self%varianceMaximum   =max(self%varianceMaximum,variance)
        self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
        if (self%tableInitialized) then
-          self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
-          self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
+          self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)))
+          self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)))
        else
-          self%timeMinimum=                                                                     0.5d0*time
-          self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
+          self%timeMinimum=                     time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
+          self%timeMaximum=                     time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
        end if
        self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
@@ -167,9 +167,9 @@ contains
           message=message//label
           call Galacticus_Display_Message(message,verbosityWorking)
           message="variance: "
-          write (label,'(f6.3)') self%varianceMaximum
+          write (label,'(f9.3)') self%varianceMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call Galacticus_Display_Message(message,verbosityWorking)          
 #ifdef USEMPI
        end if
 #endif
@@ -382,14 +382,15 @@ contains
     double precision                                                                           :: timeProgenitor                   , varianceMinimumRate      , &
          &                                                                                        massProgenitor                   , timeMinimumRate          , &
          &                                                                                        timeMaximumRate
-    character       (len=6                                  )                                  :: label
+    character       (len=9                                  )                                  :: label
     type            (varying_string                         )                                  :: message
     real            (kind=kind_quad                         )                                  :: crossingFraction                 , effectiveBarrierInitial  , &
          &                                                                                        sigma1f                          , varianceTableStepRate    , &
          &                                                                                        barrier                          , integralKernelRate       , &
-         &                                                                                        growthFactorEffective
+         &                                                                                        growthFactorEffective            , erfArgumentNumerator     , &
+         &                                                                                        erfArgumentDenominator           , erfValue
     logical                                                                                    :: locked                           , varianceMaximumChanged
-   
+
     ! Determine if we need to make the table.
     !    
     !! Read tables from file if possible. We make two passes through the logic that determines if the table needs to be remade. On
@@ -434,8 +435,8 @@ contains
        countNewUpper=0
        if (self%tableInitializedRate) then
           varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
-          timeMinimumRate=min(0.5d0*time,self%timeMinimumRate)
-          timeMaximumRate=max(2.0d0*time,self%timeMaximumRate)
+          timeMinimumRate=min(time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)),self%timeMinimumRate)
+          timeMaximumRate=max(time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)),self%timeMaximumRate)
           ! Determine how many points the table must be extended by in each direction to span the new required range.
           if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
           if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
@@ -445,10 +446,8 @@ contains
           self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(farahiTimeNumberPerDecade))
        else
           varianceMaximumChanged =.true.
-          self%timeMinimumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMaximum))
-          self%timeMaximumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMinimum))
-          self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
-          self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
+          self%timeMinimumRate   =time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
+          self%timeMaximumRate   =time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
           self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+2,2)
           ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
           self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%timeTableCountRate-1)/dble(farahiTimeNumberPerDecade))
@@ -530,7 +529,7 @@ contains
           message=message//label
           call Galacticus_Display_Message(message,verbosityWorking)
           message="variance: "
-          write (label,'(f6.3)') self%varianceMaximumRate
+          write (label,'(f9.3)') self%varianceMaximumRate
           message=message//label
           call Galacticus_Display_Message(message,verbosityWorking)
 #ifdef USEMPI
@@ -566,7 +565,6 @@ contains
        !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
        call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
        call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
-       !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
           ! Skip if this time was already computed.
           if (.not.varianceMaximumChanged.and.(iTime > countNewLower .and. self%timeTableCountRate+1-iTime > countNewUpper)) cycle
@@ -575,6 +573,7 @@ contains
           ! Compute a suitable progenitor time.
           timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%timeStepFractional)
           ! Loop through the starting variances.
+          !$omp do schedule(dynamic)
           do iVariance=0,self%varianceTableCountRateBase
 #ifdef USEMPI
              taskCount=taskCount+1
@@ -587,6 +586,8 @@ contains
 #ifdef USEMPI
              end if
 #endif
+             !$omp atomic
+             loopCount=loopCount+1_c_size_t
              ! Construct the barrier table.
              do i=1,self%varianceTableCountRate
                 massProgenitor            =+cosmologicalMassVariance_%mass        (real(+varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
@@ -600,8 +601,6 @@ contains
                 barrierMidTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(+varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
                      &                     *growthFactorEffective
              end do
-             !$omp atomic
-             loopCount=loopCount+1_c_size_t
              ! For zero variance, the rate is initialized to zero.
              firstCrossingTableRateQuad(0)=0.0_kind_quad
              ! Compute the step in variance across this first grid cell.
@@ -636,24 +635,6 @@ contains
                    firstCrossingTableRateQuad(i)=0.0_kind_quad
                 else
                    effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
-                   sigma1f                =+0.0_kind_quad
-                   do j=1,i-1
-                      varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
-                      sigma1f=+sigma1f                                                                                      &
-                           &  +firstCrossingTableRateQuad(j)                                                                &
-                           &  *varianceTableStepRate                                                                        &
-                           &  *(                                                                                            &
-                           &    +1.0_kind_quad                                                                              &
-                           &    -erfApproximate(                                                                            &
-                           &                    +(                                                                          &
-                           &                      +effectiveBarrierInitial                                                  &
-                           &                      -barrierMidTableRateQuad(j)                                               &
-                           &                      +barrier                                                                  &
-                           &                     )                                                                          &
-                           &                    /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j))) &
-                           &                   )                                                                            &
-                           &   )
-                   end do
                    integralKernelRate=+1.0_kind_quad                                                                              &
                         &             -erfApproximate(                                                                            &
                         &                             +(                                                                          &
@@ -666,6 +647,28 @@ contains
                    if (integralKernelRate==0.0_kind_quad) then
                       firstCrossingTableRateQuad(i)=0.0_kind_quad
                    else
+                      sigma1f=+0.0_kind_quad
+                      do j=1,i-1
+                         erfArgumentNumerator=+effectiveBarrierInitial    &
+                              &               -barrierMidTableRateQuad(j) &
+                              &               +barrier
+                         if (erfArgumentNumerator == 0.0d0) then
+                            erfValue=0.0_kind_quad
+                         else
+                            erfArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
+                            erfValue=erfApproximate(erfArgumentNumerator/erfArgumentDenominator)
+                         end if
+                         if (erfValue < 1.0_kind_quad) then
+                            varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
+                            sigma1f=+sigma1f                       &
+                                 &  +firstCrossingTableRateQuad(j) &
+                                 &  *varianceTableStepRate         &
+                                 &  *(                             &
+                                 &    +1.0_kind_quad               &
+                                 &    -erfValue                    &
+                                 &   )
+                         end if
+                      end do
                       varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
                       firstCrossingTableRateQuad(i)=max(                                                                &
                            &                            +0.0_kind_quad,                                                 &
@@ -686,9 +689,8 @@ contains
                            &   varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
                            &  .and.                                                                                                                          &
                            &   firstCrossingTableRateQuad(i) > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                                                &
-                           & ) then
-                            firstCrossingTableRateQuad(i)=0.0_kind_quad
-                      end if
+                           & )                                                                                                                               &
+                           & firstCrossingTableRateQuad(i)=0.0_kind_quad
                    end if
                 end if
              end do
@@ -709,14 +711,13 @@ contains
                   &                                         )
              ! Store the compute crossing rate in our table.
              self%firstCrossingTableRate(:,iVariance,iTime)=real(firstCrossingTableRateQuad,kind=kind_dble)
-
           end do
+          !$omp end do
           ! Divide through by the time step to get the rate of barrier crossing.
           self%firstCrossingTableRate(:,:,iTime)=+self%firstCrossingTableRate(:,:,iTime) &
                &                                 /self%timeTableRate         (    iTime) &
-               &                                 /self%timeStepFractional
+               &                                 /self%timeStepFractional          
        end do
-       !$omp end do
        !# <objectDestructor name="excursionSetBarrier_"     />
        !# <objectDestructor name="cosmologicalMassVariance_"/>
        call deallocateArray(barrierTableRateQuad   )
