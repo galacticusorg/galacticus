@@ -41,9 +41,10 @@ contains
     !% parameter set as input.
     use Input_Parameters, only : inputParameters
     implicit none
-    type            (galacticStructureSolverNull)                :: self
-    type            (inputParameters                   ), intent(inout) :: parameters
-
+    type(galacticStructureSolverNull)                :: self
+    type(inputParameters            ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
     self=galacticStructureSolverNull()
     return
   end function nullConstructorParameters
@@ -51,7 +52,9 @@ contains
   subroutine nullSolve(self,node)
     !% Solve for the structure of galactic components.
     implicit none
-    class           (galacticStructureSolverNull), intent(inout)         :: self
-    type            (treeNode                          ), intent(inout), target :: node
+    class(galacticStructureSolverNull), intent(inout)         :: self
+    type (treeNode                   ), intent(inout), target :: node
+    !GCC$ attributes unused :: self, node
+    
     return
   end subroutine nullSolve
