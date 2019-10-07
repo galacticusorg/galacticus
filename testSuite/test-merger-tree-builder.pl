@@ -42,7 +42,7 @@ my @models =
      	 parameterFile       => 'parameters/mergerTreeBuilderCole2000_intervalStepFalse.xml'             ,
      	 color               => 'mediumSeaGreen'                                                         ,
      	 reference           => 'reference'                                                              ,
-     	 toleranceSigma      => 6.0                                                                      ,
+     	 toleranceSigma      => 7.5                                                                      ,
      	 toleranceFractional => 1.0e-3
      },
      {
