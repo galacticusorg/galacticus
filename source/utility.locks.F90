@@ -272,7 +272,7 @@ contains
     
     !$ call OMP_Set_Lock(self%locks(omp_get_thread_num()))
     return
-   end subroutine ompReadWriteLockSetRead
+  end subroutine ompReadWriteLockSetRead
 
   subroutine ompReadWriteLockUnsetRead(self)
     !% Release a read lock on an OpenMP read/write lock objects.
