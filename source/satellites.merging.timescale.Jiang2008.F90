@@ -77,12 +77,12 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>       
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"  />
+    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function jiang2008ConstructorParameters
 
@@ -103,8 +103,8 @@ contains
     implicit none
     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine jiang2008Destructor
 
