@@ -242,11 +242,7 @@ contains
     !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
     self%sigma8Value           =sigma8
     self%initialized           =.false.
-    self%massMinimum           =1.0d06
-    self%massMaximum           =1.0d15
-    self%timeMinimum           =self%cosmologyFunctions_                %cosmicTime                 (0.1d0)
-    self%timeMaximum           =self%cosmologyFunctions_                %cosmicTime                 (1.0d0)
-    self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent(     )
+    self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
          &                      'largeScaleStructure/'                           // &
          &                      self%objectType      (                          )// &
@@ -509,9 +505,11 @@ contains
     double precision                                       , parameter                   :: radiusNormalization =8.0d0
     integer                                                                              :: i                         , rootVarianceTableCount , &
          &                                                                                  j                         , rootVarianceUniqueCount, &
-         &                                                                                  rootVarianceTimeCount     , k
+         &                                                                                  rootVarianceTimeCount     , k                      , &
+         &                                                                                  countNewLower             , countNewUpper
     double precision                                                                     :: sigma                     , smoothingMass          , &
-         &                                                                                  massMinimum
+         &                                                                                  massMinimum               , massMaximum            , &
+         &                                                                                  timeMinimum               , timeMaximum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
     type            (varying_string                       ), save                        :: message
     !$omp threadprivate(message)
@@ -542,8 +540,23 @@ contains
             &                  /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
        ! Find suitable range of masses to tabulate.
        if (present(mass)) then
-          self%massMinimum=min(self%massMinimum,mass/10.0d0)
-          self%massMaximum=max(self%massMaximum,mass*10.0d0)
+          countNewLower=0
+          countNewUpper=0
+          if (self%initialized) then
+             massMinimum     =min(mass/10.0d0,self%massMinimum)
+             massMaximum     =max(mass*10.0d0,self%massMaximum)
+          else
+             self%massMinimum=    mass
+             self%massMaximum=    mass
+             massMinimum     =    mass/10.0d0
+             massMaximum     =    mass*10.0d0
+          end if
+          ! Determine how many points the table must be extended by in each direction to span the new required range.
+          if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
+          if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
+          ! Adjust the limits of the table by an integer number of steps.
+          self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
+          self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
        end if
        rootVarianceTableCount=int(                                         &
             &                     +log10(                                  &
@@ -555,8 +568,23 @@ contains
        ! Find suitable range of times to tabulate.
        if (self%growthIsMassDependent_) then
           if (present(time)) then
-             self%timeMinimum=min(self%timeMinimum,time/ 2.0d0)
-             self%timeMaximum=max(self%timeMaximum,time* 2.0d0)
+             countNewLower=0
+             countNewUpper=0
+             if (self%initialized) then
+                timeMinimum     =min(time/2.0d0,self%timeMinimum)
+                timeMaximum     =max(time*2.0d0,self%timeMaximum)
+             else
+                self%timeMinimum=    time
+                self%timeMaximum=    time
+                timeMinimum     =    time/2.0d0
+                timeMaximum     =    time*2.0d0
+             end if
+             ! Determine how many points the table must be extended by in each direction to span the new required range.
+             if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+             if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+             ! Adjust the limits of the table by an integer number of steps.
+             self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
+             self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
           end if
           rootVarianceTimeCount =int(                                         &
                &                     +log10(                                  &
