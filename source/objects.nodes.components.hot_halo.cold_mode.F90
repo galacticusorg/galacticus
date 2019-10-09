@@ -80,11 +80,11 @@ module Node_Component_Hot_Halo_Cold_Mode
   !# </component>
   
   ! Objects used by this component.
-  class(accretionHaloClass      ), pointer :: accretionHalo_
-  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_
-  class(coldModeInfallRateClass ), pointer :: coldModeInfallRate_
-  class(cosmologyParametersClass), pointer :: cosmologyParameters_
+  class(accretionHaloClass       ), pointer :: accretionHalo_
+  class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  class(coldModeInfallRateClass  ), pointer :: coldModeInfallRate_
+  class(cosmologyParametersClass ), pointer :: cosmologyParameters_
   !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfileDMO_,coldModeInfallRate_,cosmologyParameters_)
 
   ! Options controlling the behavior of the cold mode gas.
@@ -144,7 +144,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="globalParameters_"/>
        !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="globalParameters_"/>
        !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="globalParameters_"/>
        !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="globalParameters_"/>
@@ -164,7 +164,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectDestructor name="cosmologyParameters_"     />
        !# <objectDestructor name="darkMatterHaloScale_"     />
-       !# <objectDestructor name="darkMatterProfileDMO_"       />
+       !# <objectDestructor name="darkMatterProfileDMO_"    />
        !# <objectDestructor name="accretionHalo_"           />
        !# <objectDestructor name="coldModeInfallRate_"      />
        !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>

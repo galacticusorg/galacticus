@@ -75,7 +75,7 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
 
     self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
     return

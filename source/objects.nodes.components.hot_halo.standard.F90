@@ -213,7 +213,7 @@ module Node_Component_Hot_Halo_Standard
   ! Objects used by this component.
   class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass             ), pointer :: darkMatterProfileDMO_
+  class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
   class(coolingSpecificAngularMomentumClass), pointer :: coolingSpecificAngularMomentum_
   class(coolingInfallRadiusClass           ), pointer :: coolingInfallRadius_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
@@ -441,7 +441,7 @@ contains
        !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="globalParameters_"/>
        !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"              name="darkMatterProfileDMO_"              source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="globalParameters_"/>
        !# <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="globalParameters_"/>
        !# <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="globalParameters_"/>
        !# <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="globalParameters_"/>

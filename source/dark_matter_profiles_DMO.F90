@@ -200,17 +200,17 @@ module Dark_Matter_Profiles_DMO
   !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode                 ), intent(inout) :: node</argument>
   !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
-  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#   <argument>double precision                           , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="specificEnergyGradient" >
   !#   <description>The gradient of the specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode                 ), intent(inout) :: node</argument>
   !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
-  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#   <argument>double precision                           , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="specificEnergyIsEverywhereZero" >
   !#   <description>Returns true if the specific energy is zero everywhere in the given {\normalfont \ttfamily node}.</description>

@@ -112,7 +112,7 @@ module Node_Component_Disk_Very_Simple
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
   class(starFormationFeedbackDisksClass ), pointer :: starFormationFeedbackDisks_
   class(starFormationTimescaleDisksClass), pointer :: starFormationTimescaleDisks_
-  class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
+  class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
   !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfileDMO_)
 
   ! Record of whether to use the simple disk analytic solver.

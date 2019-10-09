@@ -36,9 +36,9 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                                schneider2015Destructor
-    procedure :: concentration               => schneider2015Concentration
-    procedure :: densityContrastDefinition   => schneider2015DensityContrastDefinition
+    final     ::                                   schneider2015Destructor
+    procedure :: concentration                  => schneider2015Concentration
+    procedure :: densityContrastDefinition      => schneider2015DensityContrastDefinition
     procedure :: darkMatterProfileDMODefinition => schneider2015DarkMatterProfileDefinition
  end type darkMatterProfileConcentrationSchneider2015
 
@@ -222,7 +222,7 @@ contains
     !% \cite{schneider_structure_2015} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
  
     schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDMODefinition()

@@ -31,17 +31,17 @@
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                   :: timeScaleNormalization , velocityExponent            , &
-          &                                                redshiftExponent       , velocityMaximumFactor       , &
-          &                                                expansionFactorFactor  , rateStored                  , &
-          &                                                timeScaleMinimum       , timeScale
-     logical                                            :: velocityMaximumComputed, expansionFactorComputed     , &
-          &                                                rateComputed
-     integer         (kind=kind_int8                  ) :: lastUniqueID
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_     => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
+     double precision                                     :: timeScaleNormalization           , velocityExponent            , &
+          &                                                  redshiftExponent                 , velocityMaximumFactor       , &
+          &                                                  expansionFactorFactor            , rateStored                  , &
+          &                                                  timeScaleMinimum                 , timeScale
+     logical                                              :: velocityMaximumComputed          , expansionFactorComputed     , &
+          &                                                  rateComputed
+     integer         (kind=kind_int8            )         :: lastUniqueID
      ! Fast exponentiation tables for rapid computation of the outflow rate.
-     type            (fastExponentiator               ) :: velocityExponentiator  , expansionFactorExponentiator
+     type            (fastExponentiator         )         :: velocityExponentiator            , expansionFactorExponentiator
    contains
      !@ <objectMethods>
      !@   <object>hotHaloOutflowReincorporationVelocityMaximumScaling</object>
@@ -77,9 +77,9 @@ contains
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                            ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                             ), pointer       :: darkMatterProfileDMO_
-    double precision                                                                     :: timeScale          , velocityExponent, &
-         &                                                                                  redshiftExponent   , timeScaleMinimum
+    class           (darkMatterProfileDMOClass                          ), pointer       :: darkMatterProfileDMO_
+    double precision                                                                     :: timeScale            , velocityExponent, &
+         &                                                                                  redshiftExponent     , timeScaleMinimum
 
     !# <inputParameter>
     !#   <name>timeScale</name>
@@ -113,12 +113,12 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=hotHaloOutflowReincorporationVelocityMaximumScaling(timeScale,timescaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>  
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_" />
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function velocityMaximumScalingConstructorParameters
 
@@ -128,10 +128,10 @@ contains
     use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                        :: self
-    double precision                                                     , intent(in   )         :: timeScale          , velocityExponent, &
-         &                                                                                          redshiftExponent   , timeScaleMinimum
+    double precision                                                     , intent(in   )         :: timeScale            , velocityExponent, &
+         &                                                                                          redshiftExponent     , timeScaleMinimum
     class           (cosmologyFunctionsClass                            ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                             ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                          ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="timeScale, velocityExponent, redshiftExponent, timeScaleMinimum, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
 
     ! Validate.
@@ -176,8 +176,8 @@ contains
     implicit none
     type(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     call calculationResetEvent%detach(self,velocityMaximumScalingCalculationReset)
     return
   end subroutine velocityMaximumScalingDestructor
@@ -215,8 +215,8 @@ contains
     end if
     ! Compute expansion factor factor.
     if (.not.self%expansionFactorComputed) then
-       basic                        =>                                                      node                    %basic                  (            )
-       self%expansionFactorFactor   =  1.0d0/self%expansionFactorExponentiator%exponentiate(self%cosmologyFunctions_%expansionFactor        (basic%time()))
+       basic                        =>                                                      node                       %basic                  (            )
+       self%expansionFactorFactor   =  1.0d0/self%expansionFactorExponentiator%exponentiate(self%cosmologyFunctions_   %expansionFactor        (basic%time()))
        self%expansionFactorComputed = .true.
     end if
     ! Compute the rate.

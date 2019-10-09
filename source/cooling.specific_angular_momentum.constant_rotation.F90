@@ -113,17 +113,17 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="parameters"/>
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=coolingSpecificAngularMomentumConstantRotation(                                                                                                        &
-         &                                              darkMatterProfileDMO_                                                                                    , &
+         &                                              darkMatterProfileDMO_                                                                                 , &
          &                                              hotHaloMassDistribution_                                                                              , &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceAngularMomentumSpecificMean),includesPrefix=.false.), &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceNormalizationRotation      ),includesPrefix=.false.), &
          &                                              useInteriorMean                                                                                         &
          &                                             )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"      />
+    !# <objectDestructor name="darkMatterProfileDMO_"   />
     !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function constantRotationConstructorParameters
@@ -132,7 +132,7 @@ contains
     !% Internal constructor for the darkMatterHalo freefall radius class.
     implicit none
     type   (coolingSpecificAngularMomentumConstantRotation)                        :: self
-    class  (darkMatterProfileDMOClass                        ), intent(in   ), target :: darkMatterProfileDMO_
+    class  (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
     class  (hotHaloMassDistributionClass                  ), intent(in   ), target :: hotHaloMassDistribution_
     integer                                                , intent(in   )         :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
     logical                                                , intent(in   )         :: useInteriorMean
@@ -159,7 +159,7 @@ contains
     implicit none
     type(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"      />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"   />
     !# <objectDestructor name="self%hotHaloMassDistribution_"/>
     call calculationResetEvent%detach(self,constantRotationCalculationReset)
     return
@@ -191,9 +191,9 @@ contains
           ! Compute mean specific angular momentum of the dark matter halo from the spin parameter, mass and energy of the halo.
           basic => node%basic()
           spin  => node%spin ()
-          angularMomentumSpecificMean=+gravitationalConstantGalacticus                         &
-               &                      *         spin                    %spin  (    )          &
-               &                      *         basic                   %mass  (    )  **1.5d0 &
+          angularMomentumSpecificMean=+gravitationalConstantGalacticus                            &
+               &                      *         spin                       %spin  (    )          &
+               &                      *         basic                      %mass  (    )  **1.5d0 &
                &                      /sqrt(abs(self %darkMatterProfileDMO_%energy(node)))
        case (angularMomentumSourceHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
@@ -207,7 +207,7 @@ contains
        ! Compute the rotation normalization.
        select case (self%sourceNormalizationRotation      )
        case (angularMomentumSourceDarkMatter)
-          normalizationRotation=self%darkMatterProfileDMO_      %rotationNormalization(node)
+          normalizationRotation=self%darkMatterProfileDMO_   %rotationNormalization(node)
        case (angularMomentumSourceHotGas    )
           normalizationRotation=self%hotHaloMassDistribution_%rotationNormalization(node)
        case default

@@ -38,23 +38,23 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
      !% A merger tree operator which create particle representations of \glc\ halos.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
-     type            (varying_string          )          :: outputFileName
-     double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial   , &
-          &                                                 timeSnapshot        , energyDistributionPointsPerDecade, & 
-          &                                                 lengthSoftening
-     logical                                             :: satelliteOffset     , nonCosmological                  , &
-          &                                                 positionOffset      , addHubbleFlow                    , &
-          &                                                 haloIdToParticleType, sampleParticleNumber             , &
-          &                                                 subtractRandomOffset
-     integer                                             :: selection           , kernelSoftening
-     integer         (hsize_t                 )          :: chunkSize
-     integer         (kind_int8               )          :: idMultiplier
+     class           (cosmologyParametersClass ), pointer :: cosmologyParameters_  => null()
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     type            (varying_string           )          :: outputFileName
+     double precision                                     :: massParticle                   , radiusTruncateOverRadiusVirial   , &
+          &                                                  timeSnapshot                   , energyDistributionPointsPerDecade, & 
+          &                                                  lengthSoftening
+     logical                                              :: satelliteOffset                , nonCosmological                  , &
+          &                                                  positionOffset                 , addHubbleFlow                    , &
+          &                                                  haloIdToParticleType           , sampleParticleNumber             , &
+          &                                                  subtractRandomOffset
+     integer                                              :: selection                      , kernelSoftening
+     integer         (hsize_t                  )          :: chunkSize
+     integer         (kind_int8                )          :: idMultiplier
      ! Pointer to the parameters for this task.
-     type            (inputParameters         )          :: parameters
+     type            (inputParameters          )          :: parameters
    contains
      final     ::            particulateDestructor
      procedure :: operate => particulateOperate
@@ -117,21 +117,21 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     type            (varying_string               )                :: outputFileName
     integer         (kind_int8                    )                :: idMultiplier
-    double precision                                               :: massParticle        , radiusTruncateOverRadiusVirial   , &
-         &                                                            timeSnapshot        , energyDistributionPointsPerDecade, &
+    double precision                                               :: massParticle         , radiusTruncateOverRadiusVirial   , &
+         &                                                            timeSnapshot         , energyDistributionPointsPerDecade, &
          &                                                            lengthSoftening
-    logical                                                        :: satelliteOffset     , nonCosmological                  , &
-         &                                                            positionOffset      , addHubbleFlow                    , &
-         &                                                            haloIdToParticleType, sampleParticleNumber             , &
+    logical                                                        :: satelliteOffset      , nonCosmological                  , &
+         &                                                            positionOffset       , addHubbleFlow                    , &
+         &                                                            haloIdToParticleType , sampleParticleNumber             , &
          &                                                            subtractRandomOffset
-    integer                                                        :: selection           , chunkSize                        , &
+    integer                                                        :: selection            , chunkSize                        , &
          &                                                            kernelSoftening
     class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     type            (inputParameters              ), pointer       :: parametersRoot
-    type            (varying_string               )                :: selectionText       , kernelSofteningText
+    type            (varying_string               )                :: selectionText        , kernelSofteningText
     
     !# <inputParameter>
     !#   <name>outputFileName</name>
@@ -269,10 +269,10 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
        do while (associated(parametersRoot%parent))
@@ -283,10 +283,10 @@ contains
        self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"  />
+    !# <objectDestructor name="cosmologyParameters_" />
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function particulateConstructorParameters
 
@@ -297,19 +297,19 @@ contains
     type            (mergerTreeOperatorParticulate)                        :: self
     type            (varying_string               ), intent(in   )         :: outputFileName
     integer         (kind_int8                    ), intent(in   )         :: idMultiplier
-    double precision                               , intent(in   )         :: massParticle        , radiusTruncateOverRadiusVirial   , &
-         &                                                                    timeSnapshot        , energyDistributionPointsPerDecade, &
+    double precision                               , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
+         &                                                                    timeSnapshot         , energyDistributionPointsPerDecade, &
          &                                                                    lengthSoftening
-    logical                                        , intent(in   )         :: satelliteOffset     , nonCosmological                  , &
-         &                                                                    positionOffset      , addHubbleFlow                    , &
-         &                                                                    haloIdToParticleType, sampleParticleNumber             , &
+    logical                                        , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
+         &                                                                    positionOffset       , addHubbleFlow                    , &
+         &                                                                    haloIdToParticleType , sampleParticleNumber             , &
          &                                                                    subtractRandomOffset
-    integer                                        , intent(in   )         :: selection           , chunkSize                        , &
+    integer                                        , intent(in   )         :: selection            , chunkSize                        , &
          &                                                                    kernelSoftening
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     type            (inputParameters              ), intent(in   ), target :: parameters
     !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
     
@@ -324,10 +324,10 @@ contains
     implicit none
     type(mergerTreeOperatorParticulate), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
+    !# <objectDestructor name="self%cosmologyParameters_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine particulateDestructor
 
@@ -763,23 +763,23 @@ contains
        select case (particulateSofteningKernel)
        case (particulateKernelDelta)
           energyPotentialTruncate=+particulateSelf%darkMatterProfileDMO_%potential(                            &
-               &                                                                 particulateNode          , &
-               &                                                                +particulateRadiusTruncate  &
-               &                                                               )
+               &                                                                    particulateNode          , &
+               &                                                                   +particulateRadiusTruncate  &
+               &                                                                  )
        case default
           ! Potential will be computed directly from the smoothed density profile in these cases.
           energyPotentialTruncate=0.0d0
        end select
        do i=1,radiusCount
           particulateRadius=particulateEnergyDistribution%x(i)
-          call particulateEnergyDistribution%populate(                                                                                          & 
+          call particulateEnergyDistribution%populate(                                                                                             & 
                &                                              +particulateSelf%darkMatterProfileDMO_%density  (                                    &
-               &                                                                                            particulateNode                   , &
-               &                                                                                            particulateEnergyDistribution%x(i)  &
-               &                                                                                           )                                  , &
-               &                                                                                                                            i , &
-               &                                table        =energyDistributionTableDensity                                                  , &
-               &                                computeSpline=i==radiusCount                                                                    &
+               &                                                                                               particulateNode                   , &
+               &                                                                                               particulateEnergyDistribution%x(i)  &
+               &                                                                                              )                                  , &
+               &                                                                                                                               i , &
+               &                                table        =energyDistributionTableDensity                                                     , &
+               &                                computeSpline=i==radiusCount                                                                       &
                &                               )            
           select case (particulateSofteningKernel)
           case (particulateKernelDelta)
@@ -790,15 +790,15 @@ contains
                   &                                table        =energyDistributionTableDensitySmoothed                                 , &
                   &                                computeSpline=i==radiusCount                                                           &
                   &                               )            
-             call particulateEnergyDistribution%populate(                                                                                          & 
+             call particulateEnergyDistribution%populate(                                                                                             & 
                   &                                              -particulateSelf%darkMatterProfileDMO_%potential(                                    &
-                  &                                                                                            particulateNode                   , &
-                  &                                                                                            particulateEnergyDistribution%x(i)  &
-                  &                                                                                           )                                    &
-                  &                                              +energyPotentialTruncate                                                        , &
-                  &                                                                                                                            i , &
-                  &                                table        =energyDistributionTablePotential                                                , &
-                  &                                computeSpline=i==radiusCount                                                                    &
+                  &                                                                                               particulateNode                   , &
+                  &                                                                                               particulateEnergyDistribution%x(i)  &
+                  &                                                                                              )                                    &
+                  &                                              +energyPotentialTruncate                                                           , &
+                  &                                                                                                                               i , &
+                  &                                table        =energyDistributionTablePotential                                                   , &
+                  &                                computeSpline=i==radiusCount                                                                       &
                   &                               )
          case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
@@ -1031,17 +1031,17 @@ contains
     double precision, intent(in   ) :: radiusCylindrical
     double precision                :: radiusSplineKernel, lengthSplineKernel
 
-    particulateSmoothingIntegrandR=+radiusCylindrical                                                        &
+    particulateSmoothingIntegrandR=+radiusCylindrical                                                           &
          &                         *particulateSelf%darkMatterProfileDMO_%density(                              &
-         &                                                                     particulateNode             , &
-         &                                                                     sqrt(                         &
-         &                                                                          +radiusCylindrical  **2  &
-         &                                                                          +(                       &
-         &                                                                            +particulateHeight     &
-         &                                                                            -particulateRadius     &
-         &                                                                           )                  **2  &
-         &                                                                         )                         &
-         &                                                                    )
+         &                                                                        particulateNode             , &
+         &                                                                        sqrt(                         &
+         &                                                                             +radiusCylindrical  **2  &
+         &                                                                             +(                       &
+         &                                                                               +particulateHeight     &
+         &                                                                               -particulateRadius     &
+         &                                                                              )                  **2  &
+         &                                                                            )                         &
+         &                                                                       )
     ! Apply the softening kernel density distribution.
     select case (particulateSofteningKernel)
     case (particulateKernelPlummer)

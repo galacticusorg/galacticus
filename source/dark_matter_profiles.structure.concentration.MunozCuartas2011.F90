@@ -37,11 +37,11 @@
      class(cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
      class(cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      type (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMONFW                ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type (darkMatterProfileDMONFW             ), pointer :: darkMatterProfileDMODefinition_  => null()
    contains
-     final     ::                                munozCuartas2011Destructor
-     procedure :: concentration               => munozCuartas2011Concentration
-     procedure :: densityContrastDefinition   => munozCuartas2011DensityContrastDefinition
+     final     ::                                   munozCuartas2011Destructor
+     procedure :: concentration                  => munozCuartas2011Concentration
+     procedure :: densityContrastDefinition      => munozCuartas2011DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => munozCuartas2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationMunozCuartas2011
 

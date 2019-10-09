@@ -52,10 +52,10 @@
           &                                                      timePrevious                              , massPrevious, &
           &                                                      concentrationMeanPrevious
    contains
-     final     ::                                diemerKravtsov2014Destructor
-     procedure :: concentration               => diemerKravtsov2014Concentration
-     procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
-     procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
+     final     ::                                   diemerKravtsov2014Destructor
+     procedure :: concentration                  => diemerKravtsov2014Concentration
+     procedure :: concentrationMean              => diemerKravtsov2014ConcentrationMean
+     procedure :: densityContrastDefinition      => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => diemerKravtsov2014DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 

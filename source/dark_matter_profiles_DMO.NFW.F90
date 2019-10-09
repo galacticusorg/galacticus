@@ -346,9 +346,9 @@ contains
     !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)           :: self
-    double precision                      , intent(in   ), optional :: specificAngularMomentum
-    integer                                                         :: iRadius
-    logical                                                         :: retabulate
+    double precision                         , intent(in   ), optional :: specificAngularMomentum
+    integer                                                            :: iRadius
+    logical                                                            :: retabulate
 
     retabulate=.not.self%nfwInverseTableInitialized
     ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum

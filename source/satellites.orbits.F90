@@ -21,7 +21,7 @@
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Galacticus_Nodes    , only : treeNode
+  use Galacticus_Nodes        , only : treeNode
   use Kind_Numbers
   use Dark_Matter_Profiles_DMO
   implicit none
@@ -29,33 +29,33 @@ module Satellite_Orbits
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
-  double precision                                            :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
+  double precision                                               :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
   ! Node used in root finding calculations.
-  type            (treeNode              ), pointer           :: activeNode
+  type            (treeNode                 ), pointer           :: activeNode
   class           (darkMatterProfileDMOClass), pointer           :: darkMatterProfileDMO__
   !$omp threadprivate(activeNode,darkMatterProfileDMO__)
 
   ! Enumeratation used to indicate type of extremum.
-  integer                                 , parameter, public :: extremumPericenter            =-1
-  integer                                 , parameter, public :: extremumApocenter             =+1
+  integer                                    , parameter, public :: extremumPericenter            =-1
+  integer                                    , parameter, public :: extremumApocenter             =+1
 
   ! Error codes.
-  integer                                 , parameter, public :: errorCodeSuccess              =0
-  integer                                 , parameter, public :: errorCodeOrbitUnbound         =1
-  integer                                 , parameter, public :: errorCodeNoEquivalentOrbit    =2
+  integer                                    , parameter, public :: errorCodeSuccess              =0
+  integer                                    , parameter, public :: errorCodeOrbitUnbound         =1
+  integer                                    , parameter, public :: errorCodeNoEquivalentOrbit    =2
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8        )                    :: lastUniqueID                  =-1
-  logical                                                     :: pericenterCalculated          =.false.
-  logical                                                     :: apocenterCalculated           =.false.
-  double precision                                            :: timePrevious
-  double precision                                            :: orbitalEnergyPrevious
-  double precision                                            :: orbitalAngularMomentumPrevious
-  double precision                                            :: pericenterRadius
-  double precision                                            :: pericenterVelocity
-  double precision                                            :: apocenterRadius
-  double precision                                            :: apocenterVelocity
+  integer         (kind=kind_int8           )                    :: lastUniqueID                  =-1
+  logical                                                        :: pericenterCalculated          =.false.
+  logical                                                        :: apocenterCalculated           =.false.
+  double precision                                               :: timePrevious
+  double precision                                               :: orbitalEnergyPrevious
+  double precision                                               :: orbitalAngularMomentumPrevious
+  double precision                                               :: pericenterRadius
+  double precision                                               :: pericenterVelocity
+  double precision                                               :: apocenterRadius
+  double precision                                               :: apocenterVelocity
   !$omp threadprivate(lastUniqueID,pericenterCalculated,apocenterCalculated,timePrevious,orbitalEnergyPrevious,orbitalAngularMomentumPrevious,pericenterRadius,pericenterVelocity,apocenterRadius,apocenterVelocity)
   
 contains
@@ -66,19 +66,19 @@ contains
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer  :: nodeHost
-    type            (keplerOrbit             ), intent(inout)           :: orbit
-    integer                                   , intent(  out), optional :: errorCode
-    class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass  ), intent(inout), target   :: darkMatterProfileDMO_
-    double precision                          , parameter               :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder              )                          :: finder
-    type            (keplerOrbit             )                          :: orbitCurrent
+    type            (treeNode                 ), intent(inout), pointer  :: nodeHost
+    type            (keplerOrbit              ), intent(inout)           :: orbit
+    integer                                    , intent(  out), optional :: errorCode
+    class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass), intent(inout), target   :: darkMatterProfileDMO_
+    double precision                           , parameter               :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder               )                          :: finder
+    type            (keplerOrbit              )                          :: orbitCurrent
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost)
     ! Assign the active node.
-    activeNode          => nodeHost
+    activeNode             => nodeHost
     darkMatterProfileDMO__ => darkMatterProfileDMO_
     ! Store the orbital energy.
     orbitalEnergyInternal=orbit%energy()

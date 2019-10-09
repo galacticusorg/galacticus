@@ -41,11 +41,11 @@
      class(cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMOEinasto     ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type (darkMatterProfileDMOEinasto  ), pointer :: darkMatterProfileDMODefinition_  => null()
    contains
-     final     ::                                ludlow2016FitDestructor
-     procedure :: concentration               => ludlow2016FitConcentration
-     procedure :: densityContrastDefinition   => ludlow2016FitDensityContrastDefinition
+     final     ::                                   ludlow2016FitDestructor
+     procedure :: concentration                  => ludlow2016FitConcentration
+     procedure :: densityContrastDefinition      => ludlow2016FitDensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => ludlow2016FitDarkMatterProfileDefinition
   end type darkMatterProfileConcentrationLudlow2016Fit
 
@@ -108,7 +108,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine ludlow2016FitDestructor
 

@@ -109,7 +109,7 @@ contains
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass                   ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
     double precision                                           , intent(in   ) :: radius
     class           (nodeComponentBasic                       ), pointer       :: basic
     double precision                                                           :: particleCount     , velocity               , &
@@ -117,7 +117,7 @@ contains
     
     basic => node%basic()
     if (basic%time() > self%timeStart) then
-       velocity                       =+darkMatterProfileDMO_                %circularVelocity(node,radius)
+       velocity                       =+darkMatterProfileDMO_             %circularVelocity(node,radius)
        impactParameterCritical        =+2.0d0                                                                &
             &                          *gravitationalConstantGalacticus                                      &
             &                          *self                              %massParticle                      &
@@ -133,7 +133,7 @@ contains
             &                                     )                                                          &
             &                                )                                                          **2  &
             &                              )
-       particleCount                  =+darkMatterProfileDMO_                %enclosedMass    (node,radius)     &
+       particleCount                  =+darkMatterProfileDMO_             %enclosedMass    (node,radius)     &
             &                          /self                              %massParticle 
        twoBodyRelaxationSpecificEnergy=+2.0d0                                                                &
             &                          *self                              %efficiency                        &
@@ -161,7 +161,7 @@ contains
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass                   ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
     double precision                                           , intent(in   ) :: radius
     class           (nodeComponentBasic                       ), pointer       :: basic
     double precision                                                           :: particleCount     , velocity               , &
@@ -170,7 +170,7 @@ contains
 
     basic => node%basic()
     if (basic%time() > self%timeStart) then
-       velocity                       =+darkMatterProfileDMO_                %circularVelocity(node,radius)
+       velocity                       =+darkMatterProfileDMO_             %circularVelocity(node,radius)
        impactParameterCritical        =+2.0d0                                                                &
             &                          *gravitationalConstantGalacticus                                      &
             &                          *self                              %massParticle                      &
@@ -186,7 +186,7 @@ contains
             &                                     )                                                          &
             &                                )                                                          **2  &
             &                              )
-       particleCount                  =+darkMatterProfileDMO_                %enclosedMass    (node,radius)     &
+       particleCount                  =+darkMatterProfileDMO_             %enclosedMass    (node,radius)     &
             &                          /self                              %massParticle
        if (self%lengthSoftening > impactParameterCritical) then
           gradientCoulomb=+radius                                                            &
@@ -201,25 +201,25 @@ contains
                &            *Pi                                                              &
                &            *gravitationalConstantGalacticus                                 &
                &            *radius                                                      **2 &
-               &            *darkMatterProfileDMO_             %density        (node,radius)    &
+               &            *darkMatterProfileDMO_          %density        (node,radius)    &
                &            /velocity                                                    **2 &
                &           )
        end if
        twoBodyRelaxationSpecificEnergyGradient=+self                             %specificEnergy(node,darkMatterProfileDMO_,radius)    &
-            &                                  /                                                                         radius     &
-            &                                  *(                                                                                   &
-            &                                    -2.5d0                                                                             &
-            &                                    +6.0d0                                                                             &
-            &                                    *Pi                                                                                &
-            &                                    *gravitationalConstantGalacticus                                                   &
-            &                                    *darkMatterProfileDMO_             %density       (node,                   radius)    &
-            &                                    *radius                                                                        **2 &
-            &                                    /velocity                                                                      **2 &
-            &                                    -                                                                       radius     &
-            &                                    *                gradientCoulomb                                                   &
-            &                                    /               logarithmCoulomb                                                   &
-            &                                    *sqrt(exp(2.0d0*logarithmCoulomb)-1.0d0)                                           &
-            &                                    /     exp(2.0d0*logarithmCoulomb)                                                  &
+            &                                  /                                                                            radius     &
+            &                                  *(                                                                                      &
+            &                                    -2.5d0                                                                                &
+            &                                    +6.0d0                                                                                &
+            &                                    *Pi                                                                                   &
+            &                                    *gravitationalConstantGalacticus                                                      &
+            &                                    *darkMatterProfileDMO_          %density       (node,                      radius)    &
+            &                                    *radius                                                                           **2 &
+            &                                    /velocity                                                                         **2 &
+            &                                    -                                                                          radius     &
+            &                                    *                gradientCoulomb                                                      &
+            &                                    /               logarithmCoulomb                                                      &
+            &                                    *sqrt(exp(2.0d0*logarithmCoulomb)-1.0d0)                                              &
+            &                                    /     exp(2.0d0*logarithmCoulomb)                                                     &
             &                                   ) 
     else
        twoBodyRelaxationSpecificEnergyGradient=0.0d0
@@ -233,7 +233,7 @@ contains
     implicit none
     class(darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type (treeNode                                 ), intent(inout) :: node
-    class(darkMatterProfileDMOClass                   ), intent(inout) :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentBasic                       ), pointer       :: basic
     !GCC$ attributes unused :: self, darkMatterProfileDMO_
 
