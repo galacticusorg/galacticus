@@ -147,7 +147,7 @@ contains
     double precision                                 , intent(in   )              :: time
     !GCC$ attributes unused :: self, time
 
-    allocate(peakHeightDescriptions(2))
+    allocate(peakHeightDescriptions(3))
     peakHeightDescriptions=[                                                                              &
          &                  var_str('Critical overdensity at the time when the halo was last isolated.'), &
          &                  var_str('The mass fluctuation on the scale of the halo.'                   ), &
@@ -162,7 +162,7 @@ contains
     double precision                                 , dimension(:) , allocatable :: peakHeightUnitsInSI
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
     double precision                                 , intent(in   )              :: time
-   !GCC$ attributes unused :: self, time
+    !GCC$ attributes unused :: self, time
 
     allocate(peakHeightUnitsInSI(3))
     peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0]
