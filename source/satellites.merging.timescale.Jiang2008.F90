@@ -28,11 +28,11 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
      private
-     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class          (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                   :: timescaleMultiplier
+     class          (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class          (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                    :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
-     double precision                                   :: scatter
+     double precision                                    :: scatter
    contains
      final     ::                     jiang2008Destructor
      procedure :: timeUntilMerging => jiang2008TimeUntilMerging
@@ -56,8 +56,8 @@ contains
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
-    double precision                                                     :: scatter             , timescaleMultiplier
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
+    double precision                                                     :: scatter              , timescaleMultiplier
 
     if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !# <inputParameter>
@@ -90,9 +90,9 @@ contains
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                        :: self
-    double precision                                     , intent(in   )         :: timescaleMultiplier , scatter
+    double precision                                     , intent(in   )         :: timescaleMultiplier  , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
 
     return
@@ -149,13 +149,15 @@ contains
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Compute orbital circularity.
-    orbitalCircularity= orbit%angularMomentum()                                                          &
-         &             /equivalentCircularOrbitRadius                                                    &
+    orbitalCircularity= orbit%angularMomentum()                                                             &
+         &             /equivalentCircularOrbitRadius                                                       &
          &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    basic => node%basic()
-    basicHost => nodeHost%basic()
-    massRatio=basicHost%mass()/basic%mass()-1.0d0
+    basic     =>  node     %basic()
+    basicHost =>  nodeHost %basic()
+    massRatio =  +basicHost%mass () &
+         &       /basic    %mass () &
+         &       -1.0d0
     ! Check for a non-zero mass ratio.
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
