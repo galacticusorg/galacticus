@@ -117,7 +117,7 @@ contains
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
     use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorOutputRootMasses), target , intent(inout) :: self

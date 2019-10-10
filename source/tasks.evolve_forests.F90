@@ -111,7 +111,7 @@ contains
   function evolveForestsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
     use System_Load
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Node_Components
     use Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
@@ -379,7 +379,7 @@ contains
     use               String_Handling
     use               Merger_Tree_Walkers
     use               Galacticus_Display
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Memory_Management
     use               System_Load
     use               Semaphores
@@ -1076,7 +1076,7 @@ contains
   subroutine evolveForestsSuspendTree(self,tree)
     !% Suspend processing of a tree.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     use String_Handling
     use Kind_Numbers

@@ -167,7 +167,7 @@ contains
   function listIndex(self,time,findClosest)
     !% Returns the index of the output given the corresponding time.
     use Kind_Numbers
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     use Arrays_Search
     implicit none

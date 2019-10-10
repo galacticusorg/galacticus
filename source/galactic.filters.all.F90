@@ -123,7 +123,7 @@ contains
 
   subroutine allDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily all} galactic filter class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(galacticFilterAll  ), intent(inout) :: self
     class(galacticFilterClass), intent(inout) :: destination

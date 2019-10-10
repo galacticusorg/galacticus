@@ -116,7 +116,7 @@ contains
     use Numerical_Constants_Math
     use Hypergeometric_Functions
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     implicit none
     type            (massDistributionBetaProfile)                          :: self
@@ -482,7 +482,7 @@ contains
 
     double precision function radialMomentTwoThirds(moment,x)
       !% Special case of radial moment for $\beta=2/3$ $\beta$-profile.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer         , intent(in   ) :: moment
       double precision, intent(in   ) :: x

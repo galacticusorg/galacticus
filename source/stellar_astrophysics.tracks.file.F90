@@ -96,7 +96,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use IO_HDF5
     use ISO_Varying_String

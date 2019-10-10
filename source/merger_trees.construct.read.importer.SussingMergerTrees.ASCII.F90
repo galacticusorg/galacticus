@@ -146,7 +146,7 @@ contains
     use Numerical_Comparison
     use Numerical_Constants_Astronomical
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Regular_Expressions
     use String_Handling
     use File_Utilities
@@ -275,7 +275,7 @@ contains
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Kind_Numbers
     use String_Handling
     use Sort
@@ -1352,7 +1352,7 @@ contains
        &   quickRead                              &
        & )
     !% Read an ASCII halo definition.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer                         , intent(in   )           :: haloFormat    , snapshotUnit
     double precision                                          :: Mvir          , Xc          , &

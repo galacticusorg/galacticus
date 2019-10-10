@@ -179,7 +179,7 @@ contains
   double precision function cmbComptonTemperature(radiation)
     !% Return the temperature of the cosmic microwave background.
     use Radiation_Fields
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(radiationFieldClass), intent(inout) :: radiation
     type (radiationFieldList ), pointer       :: radiationField_

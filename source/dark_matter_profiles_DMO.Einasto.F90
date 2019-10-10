@@ -244,7 +244,7 @@ contains
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
     use Array_Utilities
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
@@ -1275,7 +1275,7 @@ contains
     use Numerical_Ranges
     use Memory_Management
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired

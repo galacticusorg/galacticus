@@ -128,7 +128,7 @@ contains
 
   function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingRate_) result(self)
     !% Internal constructor for the cut off cooling rate class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coolingRateCutOff       )                        :: self
     double precision                          , intent(in   )         :: velocityCutOff      , timeCutOff

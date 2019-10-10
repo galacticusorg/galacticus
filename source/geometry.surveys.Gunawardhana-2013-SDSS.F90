@@ -58,7 +58,7 @@ contains
   
   function gunawardhana2013SDSSConstructorInternal(cosmologyFunctions_) result (self)
     !% Default constructor for the \cite{gunawardhana_galaxy_2013} survey geometry class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (surveyGeometryGunawardhana2013SDSS)                        :: self
     class(cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
@@ -99,7 +99,7 @@ contains
 
   double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Units

@@ -73,7 +73,7 @@ contains
     use Output_Times
     use Output_Analyses_Options
     use Output_Analysis_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Paths
     use IO_HDF5
     use Memory_Management

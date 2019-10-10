@@ -136,7 +136,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} merger tree operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOperatorSequence), intent(inout) :: self
     class(mergerTreeOperatorClass   ), intent(inout) :: destination

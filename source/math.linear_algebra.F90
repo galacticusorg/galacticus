@@ -387,7 +387,7 @@ contains
 
   function matrixMatrixMultiply(matrix1,matrix2)
     !% Multiply a matrix by a matrix, returning a matrix.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none   
     type   (matrix)                :: matrixMatrixMultiply
     class  (matrix), intent(in   ) :: matrix1, matrix2

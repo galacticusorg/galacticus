@@ -66,7 +66,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
     use Numerical_Constants_Astronomical
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use FoX_dom
     use IO_XML
     use Galacticus_Paths

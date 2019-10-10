@@ -211,7 +211,7 @@ contains
 
   function nfwConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileDMONFW )                        :: self

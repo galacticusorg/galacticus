@@ -247,7 +247,7 @@ contains
   function hydrogenNetworkConstructorInternal(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
     !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     !% input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                        :: self
     logical                                        , intent(in   )         :: fast
@@ -286,7 +286,7 @@ contains
   subroutine hydrogenNetworkRates(self,temperature,chemicalDensity,radiation,chemicalRates,node)
     !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     use Radiation_Fields
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity

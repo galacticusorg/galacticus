@@ -121,7 +121,7 @@ contains
 
   function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
     !% Constructor for the instantReionization \gls{igm} state class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Root_Finder
     implicit none
     type            (intergalacticMediumStateInstantReionization)                          :: self

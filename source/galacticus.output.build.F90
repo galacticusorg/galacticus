@@ -47,7 +47,7 @@ contains
     use ISO_Varying_String
     use FGSL              , only : FGSL_Version
     use HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (varying_string   )                        :: Galacticus_Build_String
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
@@ -116,7 +116,7 @@ contains
     use FoX_Common
     use ISO_Varying_String
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use FGSL              , only : FGSL_Version
     use File_Utilities
     implicit none

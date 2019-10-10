@@ -113,7 +113,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Ranges
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisBlackHoleBulgeRelation               )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum

@@ -75,7 +75,7 @@ contains
 
   function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime)
     !% Internal constructor for the prune-non-essential merger tree operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorInternal
     integer                                              , intent(in   ) :: essentialNodeID

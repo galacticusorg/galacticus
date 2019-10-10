@@ -63,7 +63,7 @@ contains
 
   double precision function Hypergeometric_2F1(a,b,x,status,error,toleranceRelative)
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     implicit none
     double precision                , intent(in   )           :: a(2)             , b(1), &
          &                                                       x

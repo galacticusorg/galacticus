@@ -374,7 +374,7 @@ contains
     !% Internal constructor for the conditional mass function merger tree operator class.
     use Numerical_Ranges
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
     use Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
@@ -622,7 +622,7 @@ contains
     use Input_Parameters
     use Memory_Management
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                               , target :: self
@@ -1117,7 +1117,7 @@ contains
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Galacticus_Nodes     , only : treeNode     , nodeComponentBasic
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
     double precision                                 , intent(in   )                    :: mass1                                  , time1                                , &
@@ -1275,7 +1275,7 @@ contains
     double precision function conditionalMFBinWeights2DIntegrand(mass1Primed)
       !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
       use Numerical_Constants_Math
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       double precision, intent(in   ) :: mass1Primed
       double precision                :: mass2LowerLimit, mass2UpperLimit, &

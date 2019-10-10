@@ -108,7 +108,7 @@ contains
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
     use Numerical_Constants_Physical
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error            , only : Galacticus_Error_Report, Galacticus_Warn
     use String_Handling
     use Galacticus_Display
     implicit none

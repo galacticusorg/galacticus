@@ -47,7 +47,7 @@ contains
     !% Set system resource limits.
     !$ use OMP_Lib
     use    Input_Parameters
-    use    Galacticus_Error
+    use    Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_int ) :: status
     integer(c_long) :: cpuLimit

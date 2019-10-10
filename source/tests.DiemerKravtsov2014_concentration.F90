@@ -28,7 +28,7 @@ program Test_DiemerKravtsov2014_Concentration
   use Cosmology_Parameters
   use Unit_Tests
   use System_Command
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use File_Utilities
   use Galacticus_Paths
   use Cosmological_Density_Field

@@ -231,7 +231,7 @@ contains
     use Memory_Management
     use Output_Times
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Output_Analysis_Molecular_Ratios

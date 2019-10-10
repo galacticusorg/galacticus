@@ -89,7 +89,7 @@ contains
   
   double precision function inactiveLogPrior(self,x)
     !% Return the log-prior on this parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
@@ -102,7 +102,7 @@ contains
   
   double precision function inactivePriorSample(self)
     !% Sample from the of this parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -114,7 +114,7 @@ contains
   
   double precision function inactivePriorInvert(self,f)
     !% Invert the prior, returning the parameter value given the cumulative probability.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: f
@@ -127,7 +127,7 @@ contains
   
   double precision function inactivePriorMinimum(self)
     !% Return the minimum value for which the prior is non-zero.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -139,7 +139,7 @@ contains
   
   double precision function inactivePriorMaximum(self)
     !% Return the maximum value for which the prior is non-zero.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -151,7 +151,7 @@ contains
   
   double precision function inactiveRandomPerturbation(self)
     !% Return a random perturbation to this parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -163,7 +163,7 @@ contains
 
   double precision function inactiveMap(self,x)
     !% Map this parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
@@ -176,7 +176,7 @@ contains
   
   double precision function inactiveUnmap(self,x)
     !% Unmap this parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x

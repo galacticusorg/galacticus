@@ -121,7 +121,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} N-body operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(nbodyOperatorSequence), intent(inout) :: self
     class(nbodyOperatorClass   ), intent(inout) :: destination

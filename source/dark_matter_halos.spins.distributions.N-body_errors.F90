@@ -221,7 +221,7 @@ contains
     use               Memory_Management
     use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin, nodeComponentDarkMatterProfile
     use               FGSL                          , only : fgsl_function, fgsl_integration_workspace
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Numerical_Constants_Math
     use               Galacticus_Calculations_Resets
     implicit none
@@ -445,7 +445,7 @@ contains
 
     double precision function massSpinIntegral(massIntrinsic)
       !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Warn, errorStatusSuccess, errorStatusFail
       use Input_Parameters
       implicit none
       double precision                , intent(in   ) :: massIntrinsic
@@ -775,7 +775,7 @@ contains
 
   double precision function nbodyErrorsSample(self,node)
     !% Sample from the halo spin distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionNbodyErrors), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node

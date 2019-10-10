@@ -50,7 +50,7 @@ contains
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
     use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Array_Utilities
     use Input_Parameters
     implicit none
@@ -131,7 +131,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Root_Finder
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self

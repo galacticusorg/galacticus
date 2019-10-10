@@ -124,7 +124,7 @@ contains
 
   function velocityMaximumScalingConstructorInternal(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                        :: self

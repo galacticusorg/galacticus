@@ -59,7 +59,7 @@ contains
  function schneider2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationSchneider2015)                :: self
     type(inputParameters                             ), intent(inout) :: parameters

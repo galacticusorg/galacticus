@@ -112,7 +112,7 @@ contains
     !% Root function used in finding equivalent circular orbits.
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ) :: radius
     double precision, parameter     :: potentialInfinite=huge(1.0d0)
@@ -141,7 +141,7 @@ contains
     use Kepler_Orbits
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
     use Galacticus_Nodes             , only : nodeComponentBasic

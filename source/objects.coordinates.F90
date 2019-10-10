@@ -222,7 +222,7 @@ contains
 
   subroutine Coordinates_Null_From(self,x)
     !% Set generic coordinate object from Cartesian point. Simply quits with an error.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coordinate)              , intent(  out) :: self
     double precision            , dimension(3), intent(in   ) :: x
@@ -234,7 +234,7 @@ contains
 
   function Coordinates_Null_To(self)
     !% Convert generic coordinate object to Cartesian point. Simply quits with an error.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coordinate), intent(in   ) :: self
     double precision            , dimension(3)  :: Coordinates_Null_To

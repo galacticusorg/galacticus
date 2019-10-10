@@ -44,7 +44,7 @@ contains
 
   function treeConstructionParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self

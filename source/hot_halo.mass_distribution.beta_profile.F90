@@ -61,7 +61,7 @@ contains
   function betaProfileConstructorParameters(parameters) result(self)
     !% Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
     !% parameter set.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Array_Utilities
     use Input_Parameters
     use Galacticus_Nodes, only : defaultHotHaloComponent

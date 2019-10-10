@@ -109,7 +109,7 @@ contains
   function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
     !% Internal constructor for the simple caling cooling rate class.
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     implicit none
     type            (coolingRateSimpleScaling)                        :: self

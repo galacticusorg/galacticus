@@ -294,7 +294,7 @@ contains
 
   function Chemicals_Names(index)
     !% Return a name for the specified entry in the chemicals structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Chemicals_Names
     integer                , intent(in   ) :: index
@@ -509,7 +509,7 @@ contains
   subroutine Chemicals_Builder(self,chemicalsDefinition)
     !% Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(chemicalAbundances), intent(inout) :: self
     type (node              ), pointer       :: chemicalsDefinition

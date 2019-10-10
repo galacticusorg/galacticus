@@ -101,7 +101,7 @@ contains
 
   double precision function negativeExponentialInverse(self,p)
     !% Return the inverse of a negative exponential distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout), target :: self
     double precision                                           , intent(in   )         :: p

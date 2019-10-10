@@ -49,7 +49,7 @@ contains
 
   function haloScalingConstructorParameters(parameters) result(self)
     !% Constructor for the halo scaling fraction star formation feedback in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackDisksHaloScaling)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters

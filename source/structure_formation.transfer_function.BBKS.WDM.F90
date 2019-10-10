@@ -74,7 +74,7 @@ contains
 
   function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (transferFunctionBBKSWDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
@@ -165,9 +165,9 @@ contains
   double precision function bbksWDMHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
-    use Numerical_Constants_Math
-    use Galacticus_Error
-    implicit none
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Error        , only : errorStatusSuccess
+    implicit none 
     class           (transferFunctionBBKSWDM), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status
     double precision                         , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0

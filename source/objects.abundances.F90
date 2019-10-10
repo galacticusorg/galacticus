@@ -376,7 +376,7 @@ contains
   subroutine Abundances_Builder(self,abundancesDefinition)
     !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (abundances), intent(inout)          :: self
     type   (node      ), intent(in   ), pointer :: abundancesDefinition
@@ -629,7 +629,7 @@ contains
 
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index
@@ -671,7 +671,7 @@ contains
   
   integer function Abundances_Atomic_Index(index)
     !% Return the atomic index for the specified entry in the abundances structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: index
 
@@ -748,7 +748,7 @@ contains
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
     !% Return the metallicity of the {\normalfont \ttfamily self} structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (abundances), intent(in   )           :: self
     integer            , intent(in   ), optional :: metallicityType
@@ -786,7 +786,7 @@ contains
 
   subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
     !% Set the metallicity of the {\normalfont \ttfamily self} structure to {\normalfont \ttfamily metallicity}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Atomic_Data
     implicit none
     class           (abundances), intent(inout)           :: self

@@ -245,7 +245,7 @@ contains
   subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
     !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(inout)            :: self
     type     (node                          ), intent(in   ), pointer   :: tensorDefinition
@@ -600,7 +600,7 @@ contains
 
   subroutine Tensor_R2_D3_Sym_From_Matrix(self,matrix)
     !% Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout)                 :: self
     double precision                     , intent(in   ), dimension(3,3) :: matrix
@@ -643,7 +643,7 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Assign_To(tensor,matrix)
     !% Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout)                 :: tensor
     double precision                     , intent(in   ), dimension(3,3) :: matrix

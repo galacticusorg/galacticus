@@ -104,7 +104,7 @@ contains
   
   function klypin2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -669,7 +669,7 @@ contains
   double precision function klypin2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self

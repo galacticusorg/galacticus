@@ -232,7 +232,7 @@ contains
     use               Multi_Counters
     use               Merger_Tree_Walkers
     use               Events_Hooks
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               IO_HDF5                       , only : hdf5Access
     use               Node_Property_Extractors      , only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
          &                                                   nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble

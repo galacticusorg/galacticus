@@ -124,7 +124,7 @@ contains
     use Numerical_Constants_Astronomical
     use Abundances_Structure
     use Atomic_Data
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013           )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum

@@ -302,7 +302,7 @@ contains
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node

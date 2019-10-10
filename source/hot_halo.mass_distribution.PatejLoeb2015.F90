@@ -85,7 +85,7 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,shockRadius,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none

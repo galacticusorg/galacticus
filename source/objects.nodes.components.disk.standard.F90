@@ -210,7 +210,7 @@ contains
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Abundances_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Node_Component_Disk_Standard_Data
     use Galacticus_Nodes                 , only : defaultDiskComponent, nodeComponentDiskStandard
     implicit none
@@ -294,7 +294,7 @@ contains
   subroutine Node_Component_Disk_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the standard disk component module for each thread.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Node_Component_Disk_Standard_Data
     use Galacticus_Nodes                 , only : defaultDiskComponent
     implicit none
@@ -463,7 +463,7 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Abundances_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
@@ -1115,7 +1115,7 @@ contains
     !% Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
     use Histories
     use Abundances_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Stellar_Luminosities_Structure
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Properties

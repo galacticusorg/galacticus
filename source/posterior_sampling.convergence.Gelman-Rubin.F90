@@ -156,7 +156,7 @@ contains
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !% Constructor for ``GelmanRubin'' convergence class.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use MPI_Utilities
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     double precision                                       , intent(in   ) :: thresholdHatR             , outlierSignificance, &

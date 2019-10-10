@@ -582,7 +582,7 @@ contains
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Properties
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Histories

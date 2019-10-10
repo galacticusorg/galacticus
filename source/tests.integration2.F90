@@ -27,7 +27,7 @@ program Test_Integration2
   use FGSL                       , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15, FGSL_Integ_Gauss61
   use Numerical_Integration2
   use Test_Integration2_Functions
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use Galacticus_Display
   use ISO_Varying_String
 #ifdef YEPPP

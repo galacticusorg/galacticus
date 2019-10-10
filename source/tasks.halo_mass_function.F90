@@ -274,9 +274,9 @@ contains
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use               Galacticus_Error                , only : errorStatusSuccess
     use               Galacticus_Display    
-    use               Galacticus_Nodes                , only : mergerTree   , nodeComponentBasic        , nodeComponentDarkMatterProfile
+    use               Galacticus_Nodes                , only : mergerTree         , nodeComponentBasic        , nodeComponentDarkMatterProfile
     use               Galacticus_Calculations_Resets
     use               Galacticus_HDF5
     use               Numerical_Constants_Astronomical

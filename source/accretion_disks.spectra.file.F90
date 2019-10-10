@@ -80,7 +80,7 @@ contains
 
   function fileConstructorInternal(fileName)
     !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report  , Galacticus_Component_List
     use Array_Utilities
     use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
@@ -136,7 +136,7 @@ contains
   subroutine fileLoadFile(self,fileName)
     !% Load a file of AGN spectra.
     use IO_HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName

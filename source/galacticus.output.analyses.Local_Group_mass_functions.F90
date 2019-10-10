@@ -468,7 +468,7 @@ contains
 
   subroutine localGroupMassFunctionReduce(self,reduced)
     !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis reduction.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
     class(outputAnalysisClass                 ), intent(inout) :: reduced

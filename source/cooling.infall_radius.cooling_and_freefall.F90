@@ -64,7 +64,7 @@ contains
 
   function coolingFreefallConstructorInternal(coolingRadius_,freefallRadius_) result(self)
     !% Internal constructor for the cooling radius infall radii class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                        :: self
     class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_

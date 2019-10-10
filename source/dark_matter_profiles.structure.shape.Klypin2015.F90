@@ -85,7 +85,7 @@ contains
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
     !% shape class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (darkMatterProfileShapeKlypin2015)                        :: self
     integer                                  , intent(in   )         :: sample
@@ -111,7 +111,7 @@ contains
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Nodes, only : nodeComponentBasic
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
     type            (treeNode                        ), intent(inout), pointer :: node

@@ -312,7 +312,7 @@ contains
 
   logical function sussingMassesIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -323,7 +323,7 @@ contains
 
   logical function sussingAngularMomentaIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -416,7 +416,7 @@ contains
     !% Read the tree indices.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Kind_Numbers
     use String_Handling
     use Sort
@@ -816,7 +816,7 @@ contains
     !% Return the weight to assign to trees.
     use Numerical_Constants_Boolean
     use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
@@ -920,7 +920,7 @@ contains
 
   subroutine sussingSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                 :: self
     class           (nodeData                 ), intent(in   )                 :: node
@@ -948,7 +948,7 @@ contains
   subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                            :: self
     integer                                    , intent(in   )                            :: i
@@ -1043,7 +1043,7 @@ contains
   
   logical function sussingValueIsBad(self,x)
     !% Determine if a value in a ``Sussing'' merger tree file is bad
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
@@ -1062,7 +1062,7 @@ contains
 
   subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout)                            :: self
     integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices

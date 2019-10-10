@@ -292,7 +292,7 @@ contains
 
   function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
     !% Internal constructor for the particulate merger tree operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorParticulate)                        :: self
     type            (varying_string               ), intent(in   )         :: outputFileName
@@ -343,7 +343,7 @@ contains
     use Coordinates
     use Numerical_Comparison
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Merger_Tree_Walkers
     use Node_Components
@@ -722,7 +722,7 @@ contains
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Table_Labels
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , intent(in   ) :: radius
     double precision                            , intent(in   ) :: energyDistributionPointsPerDecade

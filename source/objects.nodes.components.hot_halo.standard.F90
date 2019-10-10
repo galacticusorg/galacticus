@@ -266,7 +266,7 @@ contains
     use Input_Parameters
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Node_Component_Hot_Halo_Standard_Data
     use Galacticus_Nodes                     , only : nodeComponentHotHaloStandard, defaultHotHaloComponent
     implicit none
@@ -431,7 +431,7 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node hot halo methods module.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type(inputParameters   ), intent(inout) :: globalParameters_
@@ -698,7 +698,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Heat_Source(hotHalo,rate,interrupt,interruptProcedure)
     !% An incoming pipe for sources of heating to the hot halo.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, interruptTask
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: hotHalo
@@ -751,7 +751,7 @@ contains
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, interruptTask
     implicit none
     type            (treeNode                ), intent(inout)          , pointer :: node
@@ -1159,7 +1159,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Outflow_Return(self,interrupt,interruptProcedure)
     !% Return outflowed gas to the hot halo.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -1268,7 +1268,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Mass_Sink(self,setValue,interrupt,interruptProcedure)
     !% Account for a sink of gaseous material in the standard hot halo hot gas.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, interruptTask
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self

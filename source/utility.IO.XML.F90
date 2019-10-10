@@ -223,7 +223,7 @@ contains
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
     type     (node            ), intent(in   ), pointer  :: xmlElement
@@ -317,7 +317,7 @@ contains
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
     !% specified---if the extracted method does not match one of these an error is issued.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     implicit none
     type     (Node    )              , intent(in   ), pointer  :: extrapolationElement
@@ -350,7 +350,7 @@ contains
 
   function XML_Parse(fileName,iostat) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use File_Utilities
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &

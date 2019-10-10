@@ -226,7 +226,7 @@ contains
 
     double precision function boundLower(l)
       !% Compute lower bounds for particle inclusion in periodically replicated volumes.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l
 
@@ -246,7 +246,7 @@ contains
     
     double precision function boundUpper(l)
       !% Compute upper bounds for particle inclusion in periodically replicated volumes.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l
 

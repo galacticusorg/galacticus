@@ -62,7 +62,7 @@ contains
     use Galacticus_HDF5
     use IO_HDF5
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Dates_and_Times
     use File_Utilities
     use FoX_dom

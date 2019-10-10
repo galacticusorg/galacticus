@@ -88,7 +88,7 @@ contains
 
   logical function correlationLengthStop(self,simulationState)
     !% Returns true if the posterior sampling should stop.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self
     class(posteriorSampleStateClass                        ), intent(inout) :: simulationState

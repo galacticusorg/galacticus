@@ -231,7 +231,7 @@ contains
     !% fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
     !% {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
     !% {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicRecombinationRateDielectronicArnaud1985), intent(inout) :: self
     double precision                                               , intent(in   ) :: temperature                     

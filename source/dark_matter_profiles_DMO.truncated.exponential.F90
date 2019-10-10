@@ -88,7 +88,7 @@ contains
 
   function truncatedExponentialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                :: self
@@ -290,7 +290,7 @@ contains
   double precision function truncatedExponentialDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

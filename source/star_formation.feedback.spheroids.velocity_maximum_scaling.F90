@@ -52,7 +52,7 @@ contains
   function vlctyMxSclngConstructorParameters(parameters) result(self)
     !% Constructor for the velocity maximum scaling fraction star formation feedback in spheroids class which takes a parameter set as
     !% input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsVlctyMxSclng)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters

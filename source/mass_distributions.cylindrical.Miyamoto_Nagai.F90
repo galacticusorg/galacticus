@@ -126,7 +126,7 @@ contains
     !% Internal constructor for ``miyamotoNagai'' mass distribution class.
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (massDistributionMiyamotoNagai)                          :: self
     double precision                               , intent(in   ), optional :: a            , b, &
@@ -438,7 +438,7 @@ contains
 
   double precision function miyamotoNagaiSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionMiyamotoNagai   ), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment 

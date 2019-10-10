@@ -105,7 +105,7 @@ contains
     use FoX_DOM
     use IO_XML
     use Galacticus_Paths
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     implicit none
     type            (criticalOverdensityBarkana2001WDM)                        :: self
@@ -180,7 +180,7 @@ contains
     use Numerical_Interpolation
     use Table_Labels
     use FGSL                   , only : FGSL_Interp_CSpline
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                         , expansionFactor
@@ -287,7 +287,7 @@ contains
     use Numerical_Interpolation
     use Table_Labels
     use FGSL                   , only : FGSL_Interp_CSpline
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                    , expansionFactor

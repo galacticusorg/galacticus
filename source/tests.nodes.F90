@@ -25,7 +25,7 @@ program Test_Nodes
   use Memory_Management
   use Galacticus_Nodes  , only : treeNode       , nodeComponent               , nodeComponentBasic        , nodeComponentPosition, &
        &                         propertyTypeAll, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use ISO_Varying_String
   use Input_Parameters
   use Array_Utilities

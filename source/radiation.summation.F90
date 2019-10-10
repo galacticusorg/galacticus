@@ -133,7 +133,7 @@ contains
   
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} radiation field class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(radiationFieldSummation), intent(inout) :: self
     class(radiationFieldClass    ), intent(inout) :: destination

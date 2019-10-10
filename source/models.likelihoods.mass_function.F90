@@ -248,7 +248,7 @@ contains
     use Posterior_Sampling_Convergence
     use Conditional_Mass_Functions
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Mass_Function_Incompletenesses
     use FGSL                          , only : fgsl_function, fgsl_integration_workspace
     implicit none
@@ -386,7 +386,7 @@ contains
 
     double precision function likelihoodMassFunctionTimeIntegrand(timePrime)
       !% Integral over time.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
       use String_Handling
       implicit none
       double precision                            , intent(in   ) :: timePrime

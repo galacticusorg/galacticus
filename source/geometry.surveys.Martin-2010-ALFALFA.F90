@@ -84,7 +84,7 @@ contains
   
   double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Parameters
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
@@ -125,7 +125,7 @@ contains
 
   double precision function martin2010ALFALFASolidAngle(self,field)
     !% Return the solid angle of the \cite{martin_arecibo_2010} sample.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     integer                                          , intent(in   ), optional :: field
@@ -155,7 +155,7 @@ contains
     use File_Utilities
     use Galacticus_Paths
     use System_Command
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Pseudo_Random
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self

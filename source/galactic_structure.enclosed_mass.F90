@@ -73,7 +73,7 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Root_Finder
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
@@ -162,7 +162,7 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily thisNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Root_Finder
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
@@ -219,7 +219,7 @@ contains
 
   subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     !% Set the default values for options in the enclosed mass functions.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex
 

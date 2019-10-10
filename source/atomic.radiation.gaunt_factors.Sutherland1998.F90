@@ -150,7 +150,7 @@ contains
     use               Numerical_Constants_Physical
     use               Numerical_Constants_Units
     use               Arrays_Search
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (gauntFactorSutherland1998), intent(inout) :: self
     integer                                    , intent(in   ) :: atomicNumber     , electronNumber

@@ -46,7 +46,7 @@ contains
   function massFunctionStellarConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -225,7 +225,7 @@ contains
     use ISO_Varying_String
     use Memory_Management
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     use Output_Analyses_Options
     use Output_Analysis_Utilities

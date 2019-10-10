@@ -121,7 +121,7 @@ contains
 
   double precision function mangleSolidAngle(self,field)
     !% Return the survey solid angle computed from \gls{mangle} polygons.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     implicit none
     class  (surveyGeometryMangle), intent(inout)               :: self
@@ -159,7 +159,7 @@ contains
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Provides window functions for \gls{mangle}-based survey geometries.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMangle), intent(inout)                                           :: self
     double precision                      , intent(in   )                                           :: mass1,mass2
@@ -174,7 +174,7 @@ contains
 
   double precision function mangleAngularPower(self,i,j,l)
     !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use File_Utilities
     use String_Handling
     use System_Command
@@ -232,7 +232,7 @@ contains
   logical function manglePointIncluded(self,point,mass)
     !% Return true if a point is included in the survey geometry.
     use Vectors
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     double precision                      , intent(in   ), dimension(3) :: point

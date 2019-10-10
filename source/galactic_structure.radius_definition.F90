@@ -70,7 +70,7 @@ contains
     use Galacticus_Nodes              , only : treeNode               , defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     use Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use Galactic_Structure_Options
-    use Galacticus_Error
+    use Galacticus_Error              , only : Galacticus_Error_Report, Galacticus_Component_List
     use String_Handling
     implicit none
     type     (varying_string ), intent(in   ), dimension(:)              :: descriptors

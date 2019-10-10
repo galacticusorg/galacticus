@@ -88,7 +88,7 @@ contains
     use, intrinsic :: ISO_Fortran_Env
     use               Galacticus_Paths
     use               System_Command
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Galacticus_Display
     use               String_Handling
     use               IO_HDF5

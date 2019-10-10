@@ -113,7 +113,7 @@ contains
     !% Determine the subset of N-body particles which are self-bound.
     use Memory_Management
     use Numerical_Constants_Physical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling

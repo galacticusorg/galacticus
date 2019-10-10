@@ -88,7 +88,7 @@ contains
   
   function gammaConstructorInternal(shape,rate,limitLower,limitUpper) result(self)
     !% Constructor for ``gamma'' 1D distribution function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunction1DGamma)                          :: self
     double precision                             , intent(in   )           :: shape                        , rate
@@ -186,7 +186,7 @@ contains
 
   double precision function gammaInverse(self,p)
     !% Return the inverse of a Gamma distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Gamma_Functions
     implicit none
     class           (distributionFunction1DGamma), intent(inout), target :: self

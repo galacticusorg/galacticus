@@ -120,7 +120,7 @@ contains
        
   function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Atomic_Data
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self

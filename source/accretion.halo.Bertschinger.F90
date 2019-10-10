@@ -58,7 +58,7 @@ contains
        
   function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Atomic_Data
     implicit none
     type            (accretionHaloBertschinger    )                        :: self

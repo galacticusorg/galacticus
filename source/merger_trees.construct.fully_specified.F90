@@ -76,7 +76,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
     type(varying_string                     ), intent(in   ) :: fileName
@@ -122,7 +122,7 @@ contains
     use               Galacticus_Nodes   , only : treeNodeList
     use               FoX_DOM
     use               Kind_Numbers
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Memory_Management
     use               Galacticus_Display
     use               Pseudo_Random
@@ -217,7 +217,7 @@ contains
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       use FoX_Dom
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       use Kind_Numbers
       implicit none
       integer  (kind=kind_int8)                          :: indexNode
@@ -253,7 +253,7 @@ contains
       !% Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
       use Galacticus_Nodes, only : treeNode, treeNodeList
       use Kind_Numbers
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       type   (treeNode      ), pointer                     :: node
       type   (treeNodeList  ), dimension(:), intent(in   ) :: nodeArray

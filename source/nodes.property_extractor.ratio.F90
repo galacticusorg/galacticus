@@ -116,7 +116,7 @@ contains
 
   double precision function ratioExtract(self,node,instance)
     !% Implement a ratio output analysis.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorRatio), intent(inout)           :: self
     type            (treeNode                  ), intent(inout), target   :: node

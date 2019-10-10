@@ -127,7 +127,7 @@ contains
 
   double precision function combinedSolidAngle(self,field)
     !% Return the survey solid angle.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (surveyGeometryCombined), intent(inout)               :: self
     integer                        , intent(in   ), optional     :: field
@@ -141,7 +141,7 @@ contains
   subroutine combinedWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Provides window functions for combined survey geometries.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)                                           :: self
     double precision                        , intent(in   )                                           :: mass1,mass2
@@ -156,7 +156,7 @@ contains
 
   double precision function combinedAngularPower(self,i,j,l)
     !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout):: self
     integer                                 , intent(in   ):: i          , j, &
@@ -170,7 +170,7 @@ contains
 
   logical function combinedPointIncluded(self,point,mass)
     !% Return true if a point is included in the combined survey geometry.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)               :: self
     double precision                        , intent(in   ), dimension(3) :: point
@@ -189,7 +189,7 @@ contains
 
   subroutine combinedDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily combined} surveyGeometry class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     class(surveyGeometryClass   ), intent(inout) :: destination

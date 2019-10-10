@@ -236,7 +236,7 @@ contains
     use ISO_Varying_String
     use Memory_Management
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     use Output_Analyses_Options
     use Output_Analysis_Utilities

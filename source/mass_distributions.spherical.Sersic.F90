@@ -141,7 +141,7 @@ contains
     !% Internal constructor for ``sersic'' mass distribution class.
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (massDistributionSersic)                          :: self
     double precision                        , intent(in   )           :: index
@@ -223,7 +223,7 @@ contains
     !% Returns a radial density moment for the S\'ersic mass distribution.
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
     double precision                        , intent(in   )           :: moment    

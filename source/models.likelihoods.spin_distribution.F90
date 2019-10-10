@@ -157,7 +157,7 @@ contains
     use IO_HDF5
     use Memory_Management
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -229,7 +229,7 @@ contains
     use               Posterior_Sampling_State
     use               Models_Likelihoods_Constants
     use               Posterior_Sampling_Convergence
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Halo_Spin_Distributions
     use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin
     use               FGSL                          , only : fgsl_function, fgsl_integration_workspace

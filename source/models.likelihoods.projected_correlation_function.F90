@@ -219,7 +219,7 @@ contains
     use Posterior_Sampling_State
     use Posterior_Sampling_Convergence
     use Conditional_Mass_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Halo_Model_Projected_Correlations
     use Models_Likelihoods_Constants
     implicit none

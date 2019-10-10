@@ -90,7 +90,7 @@ contains
 
   subroutine stellarPopulationUniqueIDAssign(self)
     !% Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(stellarPopulationClass), intent(inout) :: self
     type (varying_string        )                :: hashedDescriptor

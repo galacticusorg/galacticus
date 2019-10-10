@@ -49,7 +49,7 @@ contains
     !% Push a node from the tree.
     use ISO_Varying_String
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     use Merger_Trees_Evolve_Deadlock_Status
     use Galacticus_Nodes                   , only : nodeEvent                   , nodeComponentBasic, treeNodeLinkedList, nodeEventSubhaloPromotionInterTree, &
@@ -173,7 +173,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Trees_Evolve_Deadlock_Status
     use Galacticus_Nodes                   , only : nodeEvent, nodeComponentBasic, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
     !# <include directive="interTreeSatelliteAttach" type="moduleUse">
@@ -495,7 +495,7 @@ contains
   subroutine Inter_Tree_Event_Post_Evolve()
     !% Check that the inter-tree transfer list is empty after universe evolution.
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use String_Handling
     implicit none

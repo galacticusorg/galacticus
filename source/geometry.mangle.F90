@@ -91,7 +91,7 @@ contains
   subroutine windowRead(self,fileName)
     !% Read a \gls{mangle} window definition from file.
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use String_Handling
     use Sort
@@ -208,7 +208,7 @@ contains
     use System_Command
     use Galacticus_Paths
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer :: iStatus
 
@@ -235,7 +235,7 @@ contains
     use System_Command
     use File_Utilities
     use Galacticus_Paths
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Math
     use IO_HDF5
     implicit none
@@ -308,7 +308,7 @@ contains
     use System_Command
     use File_Utilities
     use Galacticus_Paths
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Math
     use IO_HDF5
     implicit none

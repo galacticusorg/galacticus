@@ -79,7 +79,7 @@ contains
 
   subroutine readHDF5Read(self,mass,weight)
     !% Read merger tree masses from file.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use IO_HDF5
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self

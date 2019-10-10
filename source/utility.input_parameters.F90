@@ -429,7 +429,7 @@ contains
   function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use File_Utilities
     use IO_XML
     implicit none
@@ -481,7 +481,7 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Galacticus_Paths
     use File_Utilities
@@ -791,7 +791,7 @@ contains
   function inputParameterObjectGet(self)
     !% Return a pointer to the object associated with this parameter.
     !$ use OMP_Lib
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
@@ -1052,7 +1052,7 @@ contains
 
   subroutine inputParametersMarkGlobal(self)
     !% Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(inputParameters), intent(inout), target :: self
 
@@ -1116,7 +1116,7 @@ contains
 
   subroutine inputParametersValidateName(self,parameterName)
     !% Validate a parameter name.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (inputParameters), intent(in   ) :: self
     character(len=*          ), intent(in   ) :: parameterName
@@ -1128,7 +1128,7 @@ contains
 
   function inputParametersNode(self,parameterName,requireValue,copyInstance)
     !% Return the node containing the parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (inputParameter ), pointer                 :: inputParametersNode
     class    (inputParameters), intent(in   )           :: self
@@ -1218,7 +1218,7 @@ contains
 
   integer function inputParametersCopiesCount(self,parameterName,requireValue,zeroIfNotPresent)
     !% Return true if the specified parameter is present.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1267,7 +1267,7 @@ contains
 
   integer function inputParametersCount(self,parameterName,zeroIfNotPresent)
     !% Return a count of the number of values in a parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (inputParameters), intent(inout)           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1291,7 +1291,7 @@ contains
   
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
     !% Return sub-parameters of the specified parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
     class    (inputParameters), intent(in   ), target   :: self
@@ -1322,7 +1322,7 @@ contains
 
   subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !% Return the value of the parameter specified by name.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (inputParameters), intent(inout)           :: self
     character       (len=*          ), intent(in   )           :: parameterName
@@ -1355,7 +1355,7 @@ contains
 
   subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (inputParameters), intent(inout)           :: self
     type            (inputParameter ), intent(in   )           :: parameterNode

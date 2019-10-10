@@ -60,7 +60,7 @@ contains
 
   function kennicuttSchmidtConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
     type            (inputParameters                                     ), intent(inout) :: parameters

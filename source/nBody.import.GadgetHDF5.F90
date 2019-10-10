@@ -117,7 +117,7 @@ contains
   
   function gadgetHDF5Import(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none

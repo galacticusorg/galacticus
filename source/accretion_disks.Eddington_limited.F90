@@ -42,7 +42,7 @@ contains
 
   function eddingtonLimitedConstructorParameters(parameters) result(self)
     !% Constructor for the Eddington-limited accretion disk class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     implicit none
     type            (accretionDisksEddingtonLimited)                :: self

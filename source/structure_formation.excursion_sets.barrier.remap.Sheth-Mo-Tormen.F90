@@ -100,7 +100,7 @@ contains
 
   function remapShethMoTormenConstructorInternal(a,b,c,applyTo,excursionSetBarrier_) result(self)
     !% Internal constructor for the critical overdensity excursion set class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (excursionSetBarrierRemapShethMoTormen)                :: self
     class           (excursionSetBarrierClass             ), target        :: excursionSetBarrier_

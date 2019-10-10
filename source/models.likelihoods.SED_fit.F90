@@ -172,7 +172,7 @@ contains
     use Instruments_Filters
     use ISO_Varying_String
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
     double precision                                                   , intent(in   ), dimension(:) :: magnitude                                    , error
@@ -231,7 +231,7 @@ contains
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the SED fitting likelihood function.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               FGSL                             , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use               Models_Likelihoods_Constants
     use               Posterior_Sampling_State

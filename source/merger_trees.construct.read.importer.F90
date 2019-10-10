@@ -290,7 +290,7 @@ contains
 
   logical function importerUnitsAreEqual(units1,units2)
     !% Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(importerUnits), intent(in   ) :: units1                
     type (importerUnits), intent(in   ) :: units2                
@@ -318,7 +318,7 @@ contains
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ) :: values                    , times
     type            (importerUnits           ), intent(in   ) :: units
@@ -339,7 +339,7 @@ contains
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(           :) :: values               , times
     type            (importerUnits           ), intent(in   )                          :: units
@@ -363,7 +363,7 @@ contains
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(                 :,                 :) :: values
     double precision                          , intent(in   ), dimension(                                    :) :: times

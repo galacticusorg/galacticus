@@ -65,7 +65,7 @@ contains
   
   function hearin2014SDSSConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{hearin_dark_2013} conditional mass function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     type (surveyGeometryHearin2014SDSS)                        :: self

@@ -119,7 +119,7 @@ contains
   
   function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
@@ -215,7 +215,7 @@ contains
     double precision function magnificationCDFIntegrand(propertyValue)
       !% Integrand over the gravitational lensing magnification cumulative distribution.
       use Output_Analyses_Options
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       double precision, intent(in   ) :: propertyValue
       double precision                :: ratioMinimum , ratioMaximum

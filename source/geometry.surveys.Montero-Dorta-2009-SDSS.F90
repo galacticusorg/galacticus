@@ -69,7 +69,7 @@ contains
   
   function monteroDorta2009SDSSConstructorInternal(band,cosmologyFunctions_,redshiftMinimum,redshiftMaximum) result (self)
     !% Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryMonteroDorta2009SDSS)                          :: self
     character       (len=1                             ), intent(in   )           :: band
@@ -126,7 +126,7 @@ contains
   
   double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
@@ -149,7 +149,7 @@ contains
 
   double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self

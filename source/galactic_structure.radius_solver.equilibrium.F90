@@ -250,7 +250,7 @@ contains
       use Numerical_Constants_Physical
       use Galactic_Structure_Rotation_Curves
       use Galactic_Structure_Options
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       use ISO_Varying_String
       use String_Handling
       use Memory_Management

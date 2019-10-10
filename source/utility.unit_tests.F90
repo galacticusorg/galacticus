@@ -111,7 +111,7 @@ contains
 
   subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about real arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character(len=*       ), intent(in   )           :: testName
@@ -160,7 +160,7 @@ contains
 
   subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       ), intent(in   )           :: testName
@@ -223,7 +223,7 @@ contains
 
   subroutine Assert_Integer_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       ), intent(in   )           :: testName
     integer                , intent(in   )           :: value1       , value2
@@ -270,7 +270,7 @@ contains
 
   subroutine Assert_Integer8_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Kind_Numbers
     implicit none
     character(len=*         ), intent(in   )           :: testName
@@ -318,7 +318,7 @@ contains
 
   subroutine Assert_Character_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       ), intent(in   )           :: testName
     character(len=*       ), intent(in   )           :: value1       , value2
@@ -365,7 +365,7 @@ contains
 
   subroutine Assert_VarString_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*         ), intent(in   )           :: testName
     type     (varying_string), intent(in   )           :: value1       , value2
@@ -412,7 +412,7 @@ contains
 
   subroutine Assert_Real_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about real arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character(len=*       )              , intent(in   )           :: testName
@@ -467,7 +467,7 @@ contains
 
   subroutine Assert_Double_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       )                         , intent(in   )           :: testName
@@ -538,7 +538,7 @@ contains
   subroutine Assert_Double_Complex_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double complex arguments.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character       (len=*       )              , intent(in   )           :: testName
     double complex                , dimension(:), intent(in   )           :: value1       , value2
@@ -594,7 +594,7 @@ contains
    
   subroutine Assert_Double_2D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       )                , intent(in   )           :: testName
@@ -651,7 +651,7 @@ contains
 
   subroutine Assert_Double_3D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       )                  , intent(in   )           :: testName
@@ -710,7 +710,7 @@ contains
 
   subroutine Assert_Double_4D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       )                    , intent(in   )           :: testName
@@ -772,7 +772,7 @@ contains
 
   subroutine Assert_Double_5D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     character       (len=*       )                      , intent(in   )           :: testName
@@ -836,7 +836,7 @@ contains
 
   subroutine Assert_Integer_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     integer                , dimension(:), intent(in   )           :: value1       , value2
@@ -883,7 +883,7 @@ contains
 
   subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     logical                , dimension(:), intent(in   )           :: value1       , value2
@@ -924,7 +924,7 @@ contains
   subroutine Assert_Integer8_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     use Kind_Numbers
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*         )              , intent(in   )           :: testName
     integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2
@@ -971,7 +971,7 @@ contains
 
   subroutine Assert_Logical_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about logical arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       ), intent(in   )           :: testName
     logical                , intent(in   )           :: value1       , value2
@@ -1010,7 +1010,7 @@ contains
 
   subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     character(len=*       ), dimension(:), intent(in   )           :: value1       , value2
@@ -1057,7 +1057,7 @@ contains
 
   subroutine Assert_VarString_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*         )              , intent(in   )           :: testName
     type     (varying_string), dimension(:), intent(in   )           :: value1       , value2

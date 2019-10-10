@@ -265,7 +265,7 @@ contains
 
   subroutine catalogProjectedCorrelationFunctionPerform(self,status)
     !% Compute the projected correlation function from a galaxy catalog.
-    use Galacticus_Error
+    use Galacticus_Error                 , only : Galacticus_Error_Report, errorStatusSuccess
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Display

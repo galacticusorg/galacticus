@@ -159,7 +159,7 @@ contains
     !% Constructor for the ``massFunctionStellarUKIDSSUDS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     use ISO_Varying_String

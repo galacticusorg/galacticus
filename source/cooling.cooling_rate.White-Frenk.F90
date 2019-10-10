@@ -79,7 +79,7 @@ contains
   function whiteFrenk1991ConstructorInternal(velocityCutOff,darkMatterHaloScale_,coolingInfallRadius_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     use Galacticus_Nodes, only : defaultHotHaloComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     implicit none
     type            (coolingRateWhiteFrenk1991   )                        :: self

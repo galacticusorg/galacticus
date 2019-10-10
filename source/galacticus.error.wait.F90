@@ -30,7 +30,7 @@ contains
   subroutine Galacticus_Error_Wait_Set_From_Parameters()
     !% Read the parameter that controls the verbosity level, and set that level.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Wait_Set
     implicit none
     integer :: errorWaitTime
 

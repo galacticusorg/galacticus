@@ -113,7 +113,7 @@ contains
 
   function historyMean(self)
     !% Return the mean over state history.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
     double precision                             , dimension(self%parameterCount) :: historyMean
@@ -124,7 +124,7 @@ contains
 
   function historyVariance(self)
     !% Return the mean over state history.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
     double precision                             , dimension(self%parameterCount) :: historyVariance

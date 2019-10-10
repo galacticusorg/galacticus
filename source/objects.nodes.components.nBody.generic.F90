@@ -220,7 +220,7 @@ contains
    subroutine Node_Component_NBody_Generic_Set_Real_Property(self,propertyIndex,propertyValue)
      !% Set the value of the indexed real property.
      use Galacticus_Nodes, only : nodeComponentNBodyGeneric
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      implicit none
      class           (nodeComponentNBodyGeneric), intent(inout)               :: self
      integer                                    , intent(in   )               :: propertyIndex
@@ -240,7 +240,7 @@ contains
      !% Set the value of the indexed real property.
      use Galacticus_Nodes, only : nodeComponentNBodyGeneric
      use Kind_Numbers
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      implicit none
      class           (nodeComponentNBodyGeneric), intent(inout)               :: self
      integer                                    , intent(in   )               :: propertyIndex

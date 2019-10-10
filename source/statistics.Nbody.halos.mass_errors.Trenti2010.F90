@@ -102,7 +102,7 @@ contains
     !% a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
     !% comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     !% normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
     double precision                              , intent(in   )                   :: massParticle

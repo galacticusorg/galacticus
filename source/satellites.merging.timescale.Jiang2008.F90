@@ -51,7 +51,7 @@ contains
     use Galacticus_Nodes  , only : defaultBasicComponent
     use Galacticus_Display
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -112,7 +112,7 @@ contains
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     use Galacticus_Nodes, only : nodeComponentBasic
     use Satellite_Orbits
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (satelliteMergingTimescalesJiang2008), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

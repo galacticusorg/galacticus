@@ -81,7 +81,7 @@ contains
 
   function tomczak2014ZFOURGEConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{tomczak_galaxy_2014} mass function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     type   (surveyGeometryTomczak2014ZFOURGE)                        :: self
@@ -166,7 +166,7 @@ contains
   double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -201,7 +201,7 @@ contains
 
   double precision function tomczak2014ZFOURGEVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass

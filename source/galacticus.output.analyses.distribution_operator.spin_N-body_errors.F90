@@ -60,7 +60,7 @@ contains
 
   function spinNBodyErrorsConstructorInternal(haloSpinDistribution_) result(self)
     !% Internal constructor for the ``spinNBodyErrors'' output analysis distribution operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (outputAnalysisDistributionOperatorSpinNBodyErrors)                        :: self
     class(haloSpinDistributionClass                        ), intent(in   ), target :: haloSpinDistribution_
@@ -91,7 +91,7 @@ contains
     use Output_Analyses_Options
     use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   )                                        :: propertyValue
@@ -166,7 +166,7 @@ contains
 
   function spinNBodyErrorsOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution

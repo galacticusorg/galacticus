@@ -90,7 +90,7 @@ contains
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter) result (self)
     !% Internal constructor for the ``velocityDispersion'' N-body operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
     logical                                          , intent(in   )               :: selfBoundParticlesOnly
@@ -105,7 +105,7 @@ contains
   subroutine velocityDispersionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Physical
     use IO_HDF5
     use Pseudo_Random

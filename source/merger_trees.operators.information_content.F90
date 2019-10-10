@@ -77,7 +77,7 @@ contains
 
   function informationContentConstructorInternal(outputGroupName)
     !% Internal constructor for the information content merger tree operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
     type(varying_string                      ), intent(in   ) :: outputGroupName

@@ -89,7 +89,7 @@ contains
          &                       FGSL_Success
     use Galacticus_Nodes, only : nodeComponentBasic
     use ODE_Solver
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node

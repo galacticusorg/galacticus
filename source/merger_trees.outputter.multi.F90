@@ -139,7 +139,7 @@ contains
 
   subroutine multiReduce(self,reduced)
     !% Reduce over the outputter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: reduced
@@ -162,7 +162,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: destination

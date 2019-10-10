@@ -115,7 +115,7 @@ contains
   double precision function ludlow2016FitConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{ludlow_mass-concentration-redshift_2016} fitting function.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self

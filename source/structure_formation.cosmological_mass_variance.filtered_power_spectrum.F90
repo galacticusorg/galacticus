@@ -333,8 +333,8 @@ contains
  
   subroutine filteredPowerRetabulate(self,mass)
     !% Tabulate the cosmological mass variance.
-    use Numerical_Constants_Math
-    use Galacticus_Error
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Error        , only : Galacticus_Warn
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
     double precision                                         , intent(in   ), optional     :: mass

@@ -168,7 +168,7 @@ contains
   double precision function constantRotationAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the constantRotation model.
     use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentSpin, nodeComponentHotHalo
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Physical
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self

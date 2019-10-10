@@ -65,7 +65,7 @@ contains
     use System_Command
     use Numerical_Constants_Astronomical
     use Galacticus_Paths
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use File_Utilities
     use Dates_and_Times

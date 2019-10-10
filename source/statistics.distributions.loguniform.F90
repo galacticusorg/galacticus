@@ -110,7 +110,7 @@ contains
 
   double precision function logUniformInverse(self,p)
     !% Return the inverse of a uniform distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout), target :: self
     double precision                                  , intent(in   )         :: p

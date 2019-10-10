@@ -35,7 +35,7 @@ contains
   
   double precision function emissionLineWavelength(lineName)
     !% Return the wavelength of a named emission line.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in) :: lineName
     integer                      :: i

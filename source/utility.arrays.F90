@@ -204,7 +204,7 @@ contains
 
   subroutine Array_Which(mask,indices)
     !% Return an array of indices for which {\normalfont \ttfamily mask} is true.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     logical, intent(in   ) :: mask   (:)
     integer, intent(  out) :: indices(:)
@@ -267,7 +267,7 @@ contains
 
   function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
     !% Return a subset of a 2D double precision array given a set of indices into the array.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision             , dimension(:,:), intent(in   )           :: array
     integer                      , dimension(:  ), intent(in   )           :: indices

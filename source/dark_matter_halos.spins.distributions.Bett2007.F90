@@ -152,7 +152,7 @@ contains
     !% Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
     !% \ttfamily node}.
     use Pseudo_Random
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node

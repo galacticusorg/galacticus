@@ -110,7 +110,7 @@ contains
   function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class.
     use Dark_Matter_Particles
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterLambda)                          :: self
     class           (cosmologyFunctionsClass                         ), target  , intent(in   ) :: cosmologyFunctions_    
@@ -174,7 +174,7 @@ contains
 
   double precision function sphericalCollapseMatterLambdaValue(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                  , intent(in   ), optional :: time      , expansionFactor, &

@@ -101,7 +101,7 @@ contains
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
     use FoX_dom
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Paths
     implicit none
     type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
@@ -251,7 +251,7 @@ contains
 
   integer function Chemical_Database_Get_Index(chemicalName)
     !% Find a chemical in the database and return it.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   ) :: chemicalName
     integer                         :: iChemical

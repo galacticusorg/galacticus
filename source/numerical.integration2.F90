@@ -414,7 +414,7 @@ contains
   ! Generic functions.
   subroutine toleranceSetGeneric(self,toleranceAbsolute,toleranceRelative)
     !% Initialize the tolerances for numerical integrators.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integrator), intent(inout)           :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
@@ -451,7 +451,7 @@ contains
   ! Composite trapezoidal 1D integrator.
   subroutine compositeTrapezoidalInitialize1D(self,iterationsMaximum)
     !% Initialize a one-dimensional, composite trapezoidal numerical integrator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (integratorCompositeTrapezoidal1D), intent(inout) :: self
     integer                                  , intent(in   ) :: iterationsMaximum
@@ -468,7 +468,7 @@ contains
   double precision function compositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorCompositeTrapezoidal1D), intent(inout) :: self
     double precision                                  , intent(in   ) :: a,b
@@ -515,7 +515,7 @@ contains
   subroutine compositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
     !% Initialize a one-dimensional, composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from
     !% those used in the \gls{gsl}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class  (integratorCompositeGaussKronrod1D), intent(inout) :: self
@@ -655,7 +655,7 @@ contains
   double precision function compositeGaussKronrod1DEvaluate(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -862,7 +862,7 @@ contains
   subroutine vectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
     !% Initialize a one-dimensional, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are
     !% taken from those used in the \gls{gsl}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class  (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
@@ -1002,7 +1002,7 @@ contains
   double precision function vectorizedCompositeGaussKronrod1DEvaluate(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -1212,7 +1212,7 @@ contains
   double precision function adaptiveCompositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorAdaptiveCompositeTrapezoidal1D), intent(inout) :: self
     double precision                                          , intent(in   ) :: a,b
@@ -1342,7 +1342,7 @@ contains
   ! Vectorized composite trapezoidal 1D integrator.
   subroutine vectorizedCompositeTrapezoidalInitialize1D(self,iterationsMaximum)
     !% Initialize a one-dimensional, vectorized composite trapezoidal numerical integrator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout) :: self
@@ -1373,7 +1373,7 @@ contains
   double precision function vectorizedCompositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
 #ifdef YEPPP
     use yepCore
@@ -1441,7 +1441,7 @@ contains
 
   subroutine tolerancesSetGeneric(self,toleranceAbsolute,toleranceRelative)
     !% Initialize the tolerances for multi-integrand numerical integrators.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class           (integratorMulti), intent(inout)                         :: self
@@ -1514,7 +1514,7 @@ contains
   subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,intervalsMaximum,order)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
     !% and weights are taken from those used in the \gls{gsl}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
@@ -1655,7 +1655,7 @@ contains
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Comparison
-    use               Galacticus_Error
+    use               Galacticus_Error    , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
     use               Sort
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
@@ -1962,7 +1962,7 @@ contains
 
   subroutine multiVectorizedCompositeTrapezoidal1DInitialize(self,intervalsMaximum)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite trapezoidal numerical integrator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class  (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout) :: self
@@ -1982,7 +1982,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               ISO_Varying_String
     use               Numerical_Comparison
-    use               Galacticus_Error
+    use               Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
     use               Sort
     use               Galacticus_Display
     implicit none

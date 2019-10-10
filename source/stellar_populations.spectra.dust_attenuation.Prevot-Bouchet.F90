@@ -38,7 +38,7 @@ contains
 
   function prevotBouchetConstructorParameters(parameters) result(self)
     !% Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     use Input_Parameters
     implicit none
@@ -61,7 +61,7 @@ contains
 
   function prevotBouchetConstructorInternal(Rv) result(self)
     !% Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     implicit none
     type            (stellarSpectraDustAttenuationPrevotBouchet)                               :: self

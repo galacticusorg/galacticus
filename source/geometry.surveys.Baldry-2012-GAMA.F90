@@ -104,7 +104,7 @@ contains
 
   double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity

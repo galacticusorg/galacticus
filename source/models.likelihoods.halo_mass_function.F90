@@ -180,7 +180,7 @@ contains
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     use IO_HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Galacticus_Display
     implicit none
@@ -322,7 +322,7 @@ contains
     use Posterior_Sampling_State
     use Models_Likelihoods_Constants
     use Posterior_Sampling_Convergence
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Halo_Mass_Functions
     use Statistics_NBody_Halo_Mass_Errors
     implicit none

@@ -426,7 +426,7 @@ contains
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
      !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
      use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      implicit none
      type (treeNode          ), intent(inout), pointer :: node
      type (treeNode          )               , pointer :: nodeParent

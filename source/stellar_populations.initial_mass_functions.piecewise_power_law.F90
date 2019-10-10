@@ -80,7 +80,7 @@ contains
 
   function piecewisePowerLawConstructorInternal(mass,exponent) result(self)
     !% Internal constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Array_Utilities
     implicit none
     type            (initialMassFunctionPiecewisePowerLaw)                              :: self

@@ -633,7 +633,7 @@ contains
 
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from an chemical state file.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use ISO_Varying_String
     use IO_HDF5

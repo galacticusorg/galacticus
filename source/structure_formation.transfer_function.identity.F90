@@ -113,7 +113,7 @@ contains
   double precision function identityHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     integer                          , intent(  out), optional :: status

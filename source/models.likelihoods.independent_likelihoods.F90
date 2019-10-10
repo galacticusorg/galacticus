@@ -55,7 +55,7 @@ contains
     !% parameter set.
     use Input_Parameters
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
@@ -142,7 +142,7 @@ contains
   
   double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState

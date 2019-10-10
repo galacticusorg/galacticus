@@ -177,7 +177,7 @@ contains
   double precision function isothermalPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galactic_Structure_Options
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self

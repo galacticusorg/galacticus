@@ -126,7 +126,7 @@ contains
 
   function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
     !% Copies the upper triangle of a square matrix to the lower triangle.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, dimension(:                 ,:                 ), intent(in   ) :: matrix
     double precision, dimension(size(matrix,dim=1),size(matrix,dim=2))                :: Matrix_Copy_Upper_To_Lower_Triangle

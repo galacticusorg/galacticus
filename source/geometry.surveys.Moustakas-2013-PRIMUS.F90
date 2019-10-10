@@ -80,7 +80,7 @@ contains
 
   function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{moustakas_primus:_2013} mass function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     use Cosmology_Functions
     use Cosmology_Functions_Options
@@ -164,7 +164,7 @@ contains
   double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -220,7 +220,7 @@ contains
 
   double precision function moustakas2013PRIMUSVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass

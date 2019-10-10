@@ -50,7 +50,7 @@ contains
     use Input_Parameters
     use Stellar_Luminosities_Structure
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -81,7 +81,7 @@ contains
   function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``stellarApparentMagnitudes'' galactic filter class.
     use Stellar_Luminosities_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
     double precision                                         , intent(in   ), dimension(:) :: apparentMagnitudeThreshold

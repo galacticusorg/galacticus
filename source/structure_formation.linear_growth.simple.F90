@@ -285,7 +285,7 @@ contains
 
   double precision function simpleLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (linearGrowthSimple     ), intent(inout)           :: self
     double precision                         , intent(in   ), optional :: time               , expansionFactor

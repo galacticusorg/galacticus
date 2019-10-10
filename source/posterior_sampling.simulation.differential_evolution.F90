@@ -124,7 +124,7 @@ contains
     use MPI_Utilities
     use String_Handling
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
     type   (inputParameters                               ), intent(inout)               :: parameters
@@ -375,12 +375,12 @@ contains
     !% Perform a differential evolution simulation.
     use MPI_Utilities
     use Pseudo_Random
-    use Galacticus_Error
+    use Galacticus_Error            , only : Galacticus_Error_Report, Galacticus_Warn
     use Galacticus_Display
     use String_Handling
     use Models_Likelihoods_Constants
     use Kind_Numbers
-    use File_Utilities              , only : File_Remove, File_Exists
+    use File_Utilities              , only : File_Remove            , File_Exists
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
     integer                                                         , dimension(                    2) :: chainPair
@@ -632,7 +632,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               MPI_Utilities
     use               Sort
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Galacticus_Display
     use               Kind_Numbers
     implicit none

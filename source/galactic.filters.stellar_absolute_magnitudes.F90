@@ -46,7 +46,7 @@ contains
     use Input_Parameters
     use Stellar_Luminosities_Structure
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: stellarAbsoluteMagnitudesConstructorParameters
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -74,7 +74,7 @@ contains
   function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold)
     !% Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
     use Stellar_Luminosities_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: stellarAbsoluteMagnitudesConstructorInternal
     double precision                                         , intent(in   ), dimension(:) :: absoluteMagnitudeThreshold

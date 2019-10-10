@@ -344,7 +344,7 @@ contains
     !% Computes the fraction of accretion occuring in the specified mode.
     use Galacticus_Nodes                  , only : nodeComponentBasic
     use Abundances_Structure              , only : zeroAbundances
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Shocks_1D
     use Numerical_Constants_Atomic
     use Numerical_Constants_Physical

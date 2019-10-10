@@ -164,7 +164,7 @@ contains
     use Memory_Management
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Galacticus_Error
+    use Galacticus_Error                  , only : errorStatusSuccess
     use Galacticus_Display
     use Geometry_Surveys
     use IO_HDF5

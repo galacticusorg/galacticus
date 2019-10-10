@@ -24,7 +24,7 @@ program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.
   !$ use OMP_Lib
   use Galacticus_Banner
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use Galacticus_Output_Open
   use Galacticus_Display_Verbosity
   use Galacticus_HDF5

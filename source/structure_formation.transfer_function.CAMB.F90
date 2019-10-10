@@ -104,7 +104,7 @@ contains
   function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,redshift,lockFileGlobally) result(self)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     use Dark_Matter_Particles
     implicit none

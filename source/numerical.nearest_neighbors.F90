@@ -117,7 +117,7 @@ contains
     !% Constructs a nearest neighor search object.
 #ifndef ANNAVAIL
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type            (nearestNeighbors)                                :: nearestNeighborsConstructor
@@ -136,7 +136,7 @@ contains
   subroutine nearestNeighborsDestructor(self)
     !% Destroys a nearest neighbor search object.
 #ifndef ANNAVAIL
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type(nearestNeighbors), intent(inout) :: self
@@ -153,7 +153,7 @@ contains
   subroutine nearestNeighborsClose()
     !% Closes the ANN (Approximate Nearest Neighbor) library.
 #ifndef ANNAVAIL
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
 
@@ -168,7 +168,7 @@ contains
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     !% Return indices and distances to the (approximate) nearest neighbors.
 #ifndef ANNAVAIL
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     class           (nearestNeighbors)              , intent(inout) :: self
@@ -195,7 +195,7 @@ contains
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
     !% Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
 #ifndef ANNAVAIL
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     use Memory_Management
     implicit none

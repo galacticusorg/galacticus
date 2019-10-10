@@ -95,7 +95,7 @@ contains
   subroutine rotationCurveOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Physical
     use IO_HDF5
   use Pseudo_Random

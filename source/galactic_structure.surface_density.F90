@@ -36,7 +36,7 @@ contains
   double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Coordinate_Systems
     use Galacticus_Nodes  , only : treeNode, optimizeforsurfacedensitysummation, reductionsummation
     implicit none

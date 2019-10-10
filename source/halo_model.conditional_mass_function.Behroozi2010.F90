@@ -244,7 +244,7 @@ contains
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
     !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
     !% \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
     double precision                                     , intent(in   )           :: massHalo        , mass

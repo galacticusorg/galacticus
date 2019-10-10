@@ -66,7 +66,7 @@ contains
   double precision function Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
        &,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use Table_Labels
     implicit none
@@ -178,7 +178,7 @@ contains
   double precision function Interpolate_Derivative(xArray,yArray,interpolationObject,interpolationAccelerator,x&
        &,interpolationType ,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding first derivative of {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use Table_Labels
     implicit none
@@ -250,7 +250,7 @@ contains
 
    function Interpolate_Locate(xArray,interpolationAccelerator,x,reset,closest)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Kind_Numbers
     implicit none
     integer         (c_size_t         )                                        :: Interpolate_Locate

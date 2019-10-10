@@ -53,7 +53,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
@@ -78,7 +78,7 @@ contains
   function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
     use Dark_Matter_Particles
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                        :: self
     class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_

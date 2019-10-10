@@ -45,7 +45,7 @@ contains
   function binaryConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
   
   function binaryConstructorInternal(darkMatterProfileScaleRadiusAccept_,darkMatterProfileScaleRadiusReject_,galacticFilter_) result(self)
     !% Constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
     class(darkMatterProfileScaleRadiusClass ), intent(in   ), target :: darkMatterProfileScaleRadiusAccept_, darkMatterProfileScaleRadiusReject_

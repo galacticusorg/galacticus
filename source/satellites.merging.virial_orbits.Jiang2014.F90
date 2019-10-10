@@ -420,7 +420,7 @@ contains
     !% Return jiang2014 orbital parameters for a satellite.
     use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Root_Finder
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
@@ -595,7 +595,7 @@ contains
 
   function jiang2014VelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -633,7 +633,7 @@ contains
 
   function jiang2014AngularMomentumVectorMean(self,node,host)
     !% Return the mean of the vector angular momentum.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self

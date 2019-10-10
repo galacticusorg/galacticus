@@ -41,7 +41,7 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the fixed fraction star formation feedback in spheroids class which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsFixed)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters

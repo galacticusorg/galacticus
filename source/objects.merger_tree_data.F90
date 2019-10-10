@@ -488,7 +488,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue,doubleValue,textValue)
     !% Add a metadatum.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeData), intent(inout)               :: mergerTrees
     integer                         , intent(in   )               :: metadataType
@@ -654,7 +654,7 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor(mergerTrees,propertyType,conversionFactor)
     !% Set Conversion factor for property type with inconsistent unit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: propertyType
@@ -670,7 +670,7 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
     !% Set the units system.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeData), intent(inout)           :: mergerTrees
     integer                         , intent(in   )           :: unitType
@@ -768,7 +768,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Property_Integer8(mergerTrees,propertyType,property)
     !% Set a property in the merger trees.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeData)              , intent(inout) :: mergerTrees
     integer                              , intent(in   ) :: propertyType
@@ -814,7 +814,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Property_Double(mergerTrees,propertyType,property)
     !% Set a property in the merger trees.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeData)              , intent(inout) :: mergerTrees
     integer                                       , intent(in   ) :: propertyType
@@ -920,7 +920,7 @@ contains
     !% Read in merger tree data from an ASCII file.
     use String_Handling
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use File_Utilities
     implicit none
@@ -1291,7 +1291,7 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees, propertyType, conversionFactor)
     !% Convert the property with inconsistent units.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeData), intent(inout) :: mergerTrees
     integer              , intent(in   ) :: propertyType
@@ -1392,7 +1392,7 @@ contains
     !% Read in particle data from an ASCII file.
     use String_Handling
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use File_Utilities
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
@@ -1528,7 +1528,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,outputFormat,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an HDF5 file.
     use HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     implicit none
     integer  (kind=hsize_t  ), intent(in   )           :: hdfChunkSize
@@ -1562,7 +1562,7 @@ contains
     use String_Handling
     use Memory_Management
     use File_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
     integer                                             , intent(in   ) :: hdfCompressionLevel
@@ -1836,7 +1836,7 @@ contains
     !% Output a set of merger trees to an IRATE-format HDF5 file.
     use HDF5
     use IO_HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Array_Utilities
     use File_Utilities
@@ -2193,7 +2193,7 @@ contains
 
   subroutine Merger_Tree_Data_Validate_Trees(mergerTrees)
     !% Validate the merger trees.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     class(mergerTreeData), intent(in   ) :: mergerTrees
 
     if (.not.mergerTrees%hasForestIndex    ) call Galacticus_Error_Report("merger trees do not have required property 'forestIndex'"    //{introspection:location})
@@ -2206,7 +2206,7 @@ contains
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
     !% Set the masses of any subhalos (which have zero mass by default) based on particle count.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Warn
     class(mergerTreeData), intent(inout) :: mergerTrees
 
     if (mergerTrees%hasParticleCount) then
@@ -2220,7 +2220,7 @@ contains
 
   subroutine Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
     !% If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                                :: foundParticleData

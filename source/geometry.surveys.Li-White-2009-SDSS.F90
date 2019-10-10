@@ -128,7 +128,7 @@ contains
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -175,7 +175,7 @@ contains
 
   double precision function liWhite2009SDSSSolidAngle(self,field)
     !% Return the solid angle of the \cite{li_distribution_2009} sample.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     integer                                        , intent(in   ), optional :: field
@@ -196,7 +196,7 @@ contains
     use Galacticus_Paths
     use Memory_Management
     use System_Command
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Numerical_Constants_Math
     implicit none

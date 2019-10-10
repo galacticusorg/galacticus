@@ -145,7 +145,7 @@ contains
   function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the velocity maximum scaling cooling rate class.
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     implicit none
     type            (coolingRateVelocityMaximumScaling)                        :: self

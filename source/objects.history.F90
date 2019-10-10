@@ -350,7 +350,7 @@ contains
     !% Create a history object.
     use Memory_Management
     use Numerical_Ranges
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history), intent(inout)           :: thisHistory
     integer                  , intent(in   )           :: historyCount   , timesCount
@@ -415,7 +415,7 @@ contains
     !% Create a history object.
     use Memory_Management
     use Numerical_Ranges
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (longIntegerHistory), intent(inout)           :: thisHistory
     integer                             , intent(in   )           :: historyCount   , timesCount
@@ -479,7 +479,7 @@ contains
   subroutine History_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
@@ -492,7 +492,7 @@ contains
   subroutine History_Long_Integer_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
@@ -729,7 +729,7 @@ contains
 
   function History_Add(history1,history2)
     !% Add two history objects.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Add
     class(history), intent(in   )           :: history1
@@ -753,7 +753,7 @@ contains
 
   function History_Subtract(history1,history2)
     !% Subtract two history objects.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Subtract
     class(history), intent(in   )           :: history1
@@ -792,7 +792,7 @@ contains
 
   subroutine History_Deserialize(self,historyArray)
     !% Pack history from an array into a history structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history)              , intent(inout) :: self
     double precision         , dimension(:), intent(in   ) :: historyArray
@@ -822,7 +822,7 @@ contains
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -933,7 +933,7 @@ contains
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -1042,7 +1042,7 @@ contains
   subroutine History_Long_Integer_Append_History(self,append)
     !% Append a history to a long integer history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     type            (longIntegerHistory), intent(in   )                 :: append
@@ -1075,7 +1075,7 @@ contains
   subroutine History_Long_Integer_Append_Epoch(self,time,append)
     !% Append a history to a long integer history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     double precision                    , intent(in   )                 :: time
@@ -1111,7 +1111,7 @@ contains
   subroutine History_Append_History(self,append)
     !% Append a history to a long integer history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history), intent(inout)                 :: self
     type            (history), intent(in   )                 :: append
@@ -1144,7 +1144,7 @@ contains
   subroutine History_Append_Epoch(self,time,append)
     !% Append a history to a long integer history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history), intent(inout)                 :: self
     double precision         , intent(in   )                 :: time
@@ -1183,7 +1183,7 @@ contains
      !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
      use, intrinsic :: ISO_C_Binding
      use Numerical_Interpolation
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      implicit none
      class           (history ), intent(inout) :: thisHistory
      type            (history ), intent(in   ) :: addHistory
@@ -1245,7 +1245,7 @@ contains
      !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
      !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      use Arrays_Search
      use Numerical_Ranges
      use, intrinsic :: ISO_C_Binding
@@ -1372,7 +1372,7 @@ contains
    subroutine History_Extend(thisHistory,timeRange,times)
      !% Extends a history to encompass the given time range.
      use Numerical_Ranges
-     use Galacticus_Error
+     use Galacticus_Error, only : Galacticus_Error_Report
      use ISO_Varying_String
      use String_Handling
      implicit none

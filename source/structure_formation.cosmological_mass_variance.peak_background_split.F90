@@ -109,7 +109,7 @@ contains
 
   double precision function variancePeakBackgroundSplitPowerNormalization(self)
     !% Return the normalization of the power spectrum.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     !GCC$ attributes unused :: self

@@ -124,7 +124,7 @@ contains
   
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} stellar population spectra postprocessor class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
     class(stellarPopulationSpectraPostprocessorClass   ), intent(inout) :: destination
