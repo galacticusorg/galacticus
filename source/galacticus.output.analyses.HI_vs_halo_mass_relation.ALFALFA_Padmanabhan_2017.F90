@@ -144,8 +144,8 @@ contains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial   ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorFilterHighPass      ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassISM            ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                     ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassISM                      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                              ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                         ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                       :: cosmologyFunctionsData
