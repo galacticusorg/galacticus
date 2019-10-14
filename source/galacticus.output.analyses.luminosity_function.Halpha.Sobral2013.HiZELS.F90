@@ -281,24 +281,24 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Build the object.
-    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                         &
-         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                       &
-         &                                        var_str('Sobral2013HiZELSZ'                                                                      )//redshiftInterval , &
-         &                                        var_str('Hα luminosity function for the Sobral et al. (2013) HiZELS analysis; redshift interval ')//redshiftInterval , &
-         &                                        char   (galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'                  //fileName        ), &
-         &                                        .false.                                                                                                              , &
-         &                                        depthOpticalISMCoefficient                                                                                           , &
-         &                                        galacticFilter_                                                                                                      , &
-         &                                        surveyGeometry_                                                                                                      , &
-         &                                        stellarSpectraDustAttenuation_                                                                                       , &
-         &                                        cosmologyFunctions_                                                                                                  , &
-         &                                        cosmologyFunctionsData                                                                                               , &
-         &                                        outputAnalysisPropertyOperator_                                                                                      , &
-         &                                        outputAnalysisDistributionOperator_                                                                                  , &
-         &                                        outputTimes_                                                                                                         , &
-         &                                        covarianceBinomialBinsPerDecade                                                                                      , &
-         &                                        covarianceBinomialMassHaloMinimum                                                                                    , &
-         &                                        covarianceBinomialMassHaloMaximum                                                                                      &
+    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                                &
+         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                              &
+         &                                        var_str('Sobral2013HiZELSZ'                                                                             )//redshiftInterval , &
+         &                                        var_str('H$\alpha$ luminosity function for the Sobral et al. (2013) HiZELS analysis; redshift interval ')//redshiftInterval , &
+         &                                        char   (galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'                         //fileName        ), &
+         &                                        .false.                                                                                                                     , &
+         &                                        depthOpticalISMCoefficient                                                                                                  , &
+         &                                        galacticFilter_                                                                                                             , &
+         &                                        surveyGeometry_                                                                                                             , &
+         &                                        stellarSpectraDustAttenuation_                                                                                              , &
+         &                                        cosmologyFunctions_                                                                                                         , &
+         &                                        cosmologyFunctionsData                                                                                                      , &
+         &                                        outputAnalysisPropertyOperator_                                                                                             , &
+         &                                        outputAnalysisDistributionOperator_                                                                                         , &
+         &                                        outputTimes_                                                                                                                , &
+         &                                        covarianceBinomialBinsPerDecade                                                                                             , &
+         &                                        covarianceBinomialMassHaloMinimum                                                                                           , &
+         &                                        covarianceBinomialMassHaloMaximum                                                                                             &
          &                                       )
     ! Clean up.
     !# <objectDestructor name="surveyGeometry_"                                     />

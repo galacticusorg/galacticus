@@ -257,8 +257,8 @@ contains
     ! Build the object.
     self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                           &
          & outputAnalysisLuminosityFunctionHalpha(                                                                                                                         &
-         &                                  var_str('Gunawardhana2013SDSS'                                                   )                                           , &
-         &                                  var_str('Hα luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                           , &
+         &                                  var_str('Gunawardhana2013SDSS'                                                          )                                    , &
+         &                                  var_str('H$\alpha$ luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                    , &
          &                                  char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
          &                                  .false.                                                                                                                      , &
          &                                  depthOpticalISMCoefficient                                                                                                   , &
