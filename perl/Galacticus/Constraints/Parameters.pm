@@ -274,8 +274,12 @@ sub parameterVectorApply {
     my $parameterVector =   shift() ;
     my %options         = %{shift()};
     # Get a hash of the parameter values.
-    my $xml             = new XML::Simple();
-    my $parameters      = $xml->XMLin(exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'});
+    my $xml            = new XML::Simple();
+    my $parser         = XML::LibXML->new();
+    my $fileName       = exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'};
+    my $dom            = $parser->load_xml(location => $fileName);
+    $parser->process_xincludes($dom);
+    my $parameters     = $xml->XMLin($dom->serialize());
     # Apply vector of parameter values to parameters structure.
     my $i               = -1;  
     foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}) ) {
