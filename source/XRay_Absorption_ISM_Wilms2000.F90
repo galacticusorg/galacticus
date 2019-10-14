@@ -127,7 +127,7 @@ end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
   !% Error message function required by {\normalfont \ttfamily dotbvabs}.
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=*), intent(in   ) :: a, b, c
   integer         , intent(in   ) :: i, j
@@ -141,7 +141,7 @@ end subroutine xermsg
 
 real function fgabnd(c)
   !% Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=2), intent(in   ) :: c
 

@@ -43,7 +43,7 @@ contains
     !% which takes a parameter set as input.
     use Input_Parameters
     use Dark_Matter_Particles
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterDE)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -77,7 +77,7 @@ contains
   function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
     use Dark_Matter_Particles
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterDE)                          :: self
     class           (cosmologyFunctionsClass                     ), target  , intent(in   ) :: cosmologyFunctions_    

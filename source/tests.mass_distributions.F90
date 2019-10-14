@@ -21,7 +21,7 @@
 
 program Test_Mass_Distributions
   !% Tests mass distributions.
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use Unit_Tests
   use Mass_Distributions
   use Coordinates

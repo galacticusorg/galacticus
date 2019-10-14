@@ -80,7 +80,7 @@ contains
 
   function diskSpheroidSelect(self,rateStarFormation,abundances_,component)
     !% Return a diskSpheroid stellar population.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationClass               ), pointer       :: diskSpheroidSelect

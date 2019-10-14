@@ -132,7 +132,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard disk node mass rate of change.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode                           , nodeComponentBasic                , nodeComponentDynamicsStatistics, interruptTask, &
          &                       nodeComponentDynamicsStatisticsBars, defaultDynamicsStatisticsComponent
     implicit none

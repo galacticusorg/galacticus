@@ -48,7 +48,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
     !% input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self

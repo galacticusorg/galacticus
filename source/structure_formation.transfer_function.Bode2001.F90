@@ -53,7 +53,7 @@ contains
   function bode2001ConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (transferFunctionBode2001)                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
@@ -214,8 +214,8 @@ contains
   double precision function bode2001HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
-    use Numerical_Constants_Math
-    use Galacticus_Error
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Error        , only : errorStatusSuccess
     implicit none
     class           (transferFunctionBode2001), intent(inout)           :: self
     integer                                   , intent(  out), optional :: status

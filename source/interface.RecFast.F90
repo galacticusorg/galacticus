@@ -33,7 +33,7 @@ contains
     use File_Utilities    , only : Directory_Make, File_Exists
     use System_Command
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
     logical                  , intent(in   ), optional :: static

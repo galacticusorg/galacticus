@@ -91,7 +91,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     implicit none
     type            (accretionHaloSimple          )                :: self

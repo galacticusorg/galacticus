@@ -230,7 +230,7 @@ contains
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_) result(self)
     !% Constructor for ``gaussianRegression'' posterior sampling likelihood class.
     use File_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self
     class           (posteriorSampleLikelihoodClass             ), intent(in   ), target :: posteriorSampleLikelihood_
@@ -275,7 +275,7 @@ contains
     use Memory_Management
     use MPI_Utilities
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Error_Functions
     use String_Handling
     use Dates_and_Times

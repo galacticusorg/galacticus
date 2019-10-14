@@ -94,7 +94,7 @@ contains
 
   function triaxialityConstructorInternal(cosmologyParameters_) result(self)
     !% Default constructor for the triaxiality hot halo outflow reincorporation class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     implicit none
     type   (haloModelPowerSpectrumModifierTriaxiality)                        :: self
@@ -128,7 +128,7 @@ contains
   subroutine triaxialityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
     !% Applies a triaxiality modification to a halo model power spectrum based on the results of \cite{smith_triaxial_2005}.
     use Vectors
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloModelPowerSpectrumModifierTriaxiality), intent(inout)                           :: self
     double precision                                           , intent(in   ), dimension(:  )           :: wavenumber

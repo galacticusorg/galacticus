@@ -70,7 +70,7 @@ contains
 
   function gordon2003ConstructorInternal(sample) result(self)
     !% Constructor for the ``gordon2003'' stellar spectra dust attenuation class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     implicit none
     type   (stellarSpectraDustAttenuationGordon2003)                :: self

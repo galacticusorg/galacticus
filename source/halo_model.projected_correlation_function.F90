@@ -53,11 +53,11 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use FGSL                                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
+    use FGSL                                    , only : fgsl_function                    , fgsl_integration_workspace, FGSL_Integ_Gauss61
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error                        , only : Galacticus_Error_Report
     use Geometry_Surveys
-    use Galacticus_Nodes                        , only : treeNode     , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
+    use Galacticus_Nodes                        , only : treeNode                         , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
     use Cosmology_Functions
     use Conditional_Mass_Functions
     use Numerical_Integration
@@ -312,6 +312,7 @@ contains
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
       !% Time integrand for the one-halo term in the power spectrum.
       use Galacticus_Display
+      use Galacticus_Error  , only : errorStatusSuccess
       implicit none
       double precision                            , intent(in   ) :: timePrime
       type            (fgsl_function             )                :: integrandFunctionTime
@@ -394,6 +395,7 @@ contains
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
       !% Time integrand for the two-halo term in the power spectrum.
       use Galacticus_Display
+      use Galacticus_Error  , only : errorStatusSuccess
       implicit none
       double precision                            , intent(in   ) :: timePrime
       type            (fgsl_function             )                :: integrandFunctionTime

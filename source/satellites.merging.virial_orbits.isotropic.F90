@@ -122,7 +122,7 @@ contains
 
   function isotropicVelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicVelocityTangentialVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
@@ -146,7 +146,7 @@ contains
 
   function isotropicAngularMomentumVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self

@@ -182,7 +182,7 @@ contains
     use Merger_Trees_Evolve_Node
     use Merger_Trees_Initialize
     use Merger_Trees_Dump
-    use Galacticus_Error
+    use Galacticus_Error                  , only : Galacticus_Error_Report           , errorStatusSuccess
     use Galacticus_Display
     use Input_Parameters
     use String_Handling
@@ -598,7 +598,7 @@ contains
     use Merger_Tree_Timesteps   , only : timestepTask
     use Merger_Trees_Evolve_Node
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use String_Handling
     use Evolve_To_Time_Reports

@@ -98,7 +98,7 @@ contains
     !% Store the complete internal state of a merger tree to file.
     use, intrinsic :: ISO_C_Binding
     use               Functions_Global, only : Galacticus_State_Store_
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Merger_Tree_Walkers
     use               Kind_Numbers
     use               Galacticus_Nodes   , only : treeNode, nodeEvent, nodeEventBuildFromRaw
@@ -215,7 +215,7 @@ contains
 
     integer function nodeArrayPosition(nodeIndex,nodeIndices)
       !% Returns the position of a node in the output list given its index.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       use ISO_Varying_String
       use String_Handling
       use Kind_Numbers
@@ -245,7 +245,7 @@ contains
   subroutine mergerTreeStateFromFile(tree,fileName,deleteAfterRead)
     !% Read the state of a merger tree from file.
     use Galacticus_Nodes, only : mergerTree, treeNodeList, nodeEvent, Galacticus_Nodes_Unique_ID_Set, nodeEventBuildFromRaw
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     use Kind_Numbers
     implicit none

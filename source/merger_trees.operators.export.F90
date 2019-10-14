@@ -97,7 +97,7 @@ contains
   function exportConstructorInternal(outputFileName,exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the export merger tree operator class.
     use Merger_Tree_Data_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (mergerTreeOperatorExport   )                        :: self
     character(len=*                      ), intent(in   )         :: outputFileName

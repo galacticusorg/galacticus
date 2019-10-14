@@ -162,7 +162,7 @@ contains
 
   function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                        :: self
     double precision                                                  , intent(in   )         :: gamma1                   , gamma2            , &
@@ -411,7 +411,7 @@ contains
   double precision function parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral
@@ -565,7 +565,7 @@ contains
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Hypergeometric_Functions
     use FGSL                     , only : FGSL_Int, FGSL_Success
@@ -851,7 +851,7 @@ contains
   subroutine parkinsonColeHellySubresolutionHypergeometricTabulate(self,x,xMinimumIn,xMaximumIn)
     !% Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     use Hypergeometric_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     use Numerical_Constants_Math
     implicit none
@@ -914,7 +914,7 @@ contains
   subroutine parkinsonColeHellyUpperBoundHypergeometricTabulate(self,mass,massResolution,massMinimumIn,massMaximumIn)
     !% Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     use Hypergeometric_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Table_Labels
     use Numerical_Constants_Math
     implicit none

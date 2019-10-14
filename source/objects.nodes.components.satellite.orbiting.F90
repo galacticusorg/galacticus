@@ -584,7 +584,7 @@ contains
 
   subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
     !% Set the initial bound mass of the satellite.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes                    , only : nodeComponentSatellite          , treeNode, nodeComponentSatelliteOrbiting
     use Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
     use Dark_Matter_Profile_Mass_Definitions

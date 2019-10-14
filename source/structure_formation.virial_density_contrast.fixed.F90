@@ -96,7 +96,7 @@ contains
 
   function fixedConstructorInternal(densityContrastValue,densityType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialDensityContrastFixed)                        :: self
     double precision                            , intent(in   )         :: densityContrastValue

@@ -91,7 +91,7 @@ contains
   function multiCounterConstructor(ranges) result (self)
     !% Constructor for multi-counters where the ranges are provided.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (multiCounter)                              :: self
     integer(c_size_t    ), intent(in   ), dimension(:) :: ranges
@@ -127,7 +127,7 @@ contains
 
   function multiCounterCount(self)
     !% Return the number of counters in the multi-counter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterCount
     class  (multiCounter), intent(inout) :: self
@@ -141,7 +141,7 @@ contains
 
   function multiCounterState(self,i)
     !% Return the state of the multi-counter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterState
     class  (multiCounter), intent(inout) :: self
@@ -157,7 +157,7 @@ contains
 
   subroutine multiCounterAppend(self,range)
     !% Append a new counter with the given {\normalfont \ttfamily range}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     class  (multiCounter), intent(inout)               :: self
@@ -185,7 +185,7 @@ contains
 
   logical function multiCounterIncrement(self)
     !% Increment a multi-counter. Return true if increment was possible, false otherwise.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (multiCounter), intent(inout) :: self
     integer(c_size_t    )                :: i
@@ -216,7 +216,7 @@ contains
 
   logical function multiCounterIsFinal(self)
     !% Return true if a multi-counter is in its final state, false otherwise.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(multiCounter), intent(in   ) :: self
 

@@ -107,7 +107,7 @@ contains
     use Linear_Growth
     use Root_Finder
     use Tables
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Input_Parameters
     implicit none

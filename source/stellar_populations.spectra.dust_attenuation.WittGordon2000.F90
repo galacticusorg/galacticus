@@ -69,7 +69,7 @@ contains
 
   function wittGordon2003ConstructorInternal(model) result(self)
     !% Constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Units
     use Numerical_Constants_Astronomical
     use Array_Utilities

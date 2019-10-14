@@ -336,7 +336,7 @@ contains
     use               Memory_Management
     use               Galacticus_Display
     use               File_Utilities
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Dates_and_Times
     use               Galacticus_Paths
     use               Table_Labels

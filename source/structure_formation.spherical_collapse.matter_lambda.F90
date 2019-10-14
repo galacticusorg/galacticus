@@ -108,7 +108,7 @@ contains
     use Root_Finder
     use Tables
     use Kind_Numbers
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                                      , intent(in   ) :: time
     integer                                               , intent(in   ) :: calculationType

@@ -159,7 +159,7 @@ contains
   double precision function Dark_Matter_Profile_Potential_Task(node,radius,componentType,massType,status)
     !% Return the potential due to dark matter.
     use Galactic_Structure_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: node

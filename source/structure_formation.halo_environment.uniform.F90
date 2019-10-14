@@ -99,7 +99,7 @@ contains
 
   double precision function uniformPDF(self,overdensity)
     !% Return the PDF of the environmental overdensity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
@@ -127,7 +127,7 @@ contains
 
   subroutine uniformOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node

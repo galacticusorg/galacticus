@@ -102,7 +102,7 @@ contains
 
   double precision function deltaFunctionDistribution(self,node)
     !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

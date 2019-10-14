@@ -182,7 +182,7 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryFullSky), intent(inout)                                           :: self
     double precision                       , intent(in   )                                           :: mass1                   , mass2

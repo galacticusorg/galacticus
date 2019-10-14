@@ -259,7 +259,7 @@ contains
   
   subroutine Values_{Type¦label}_Scalar(thisHash,values)
     !% Returns an array of all values in {\normalfont \ttfamily thisHash}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 #if {Type¦match¦^generic$¦0¦1}
     {Type¦intrinsic}                        {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
@@ -305,7 +305,7 @@ contains
   function Value_{Type¦label}_Scalar_VS(thisHash,key)
     !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
     use Arrays_Search
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     implicit none
     {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_VS

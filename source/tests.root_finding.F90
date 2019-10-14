@@ -24,7 +24,7 @@ program Test_Root_Finding
   use Unit_Tests
   use Root_Finder
   use Test_Root_Finding_Functions
-  use Galacticus_Error
+  use Galacticus_Error           , only : errorStatusDivideByZero
   use Galacticus_Display
   implicit none
   type            (rootFinder)               :: finder1, finder2

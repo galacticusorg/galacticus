@@ -80,7 +80,7 @@ contains
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Virial_Density_Contrast
     use Numerical_Comparison
     use IO_HDF5

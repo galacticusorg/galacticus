@@ -104,7 +104,7 @@ contains
   subroutine staticUniverseEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
     !% Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
     !% collapsing status.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactorIn , timeIn
@@ -143,7 +143,7 @@ contains
   
   double precision function staticUniverseCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological time at a given expansion factor.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   )           :: expansionFactor
@@ -214,7 +214,7 @@ contains
 
   double precision function staticUniverseOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -240,7 +240,7 @@ contains
 
   double precision function staticUniverseOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -254,7 +254,7 @@ contains
 
   double precision function staticUniverseOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -268,7 +268,7 @@ contains
 
   double precision function staticUniverseTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor      , time
@@ -280,7 +280,7 @@ contains
   end function staticUniverseTemperatureCMBEpochal
 
   subroutine staticUniverseDensityScalingEarlyTime(self,dominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   )           :: dominateFactor
@@ -296,7 +296,7 @@ contains
   end subroutine staticUniverseDensityScalingEarlyTime
 
   double precision function staticUniverseDominationEpochMatter(self,dominateFactor)
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: dominateFactor
@@ -309,7 +309,7 @@ contains
 
   double precision function staticUniverseEqualityEpochMatterDarkEnergy(self,requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
@@ -322,7 +322,7 @@ contains
 
   double precision function staticUniverseEqualityEpochMatterCurvature(self,requestType)
     !% Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
@@ -335,7 +335,7 @@ contains
 
   double precision function staticUniverseEqualityEpochMatterRadiation(self,requestType)
     !% Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
@@ -348,7 +348,7 @@ contains
 
   double precision function staticUniverseTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: comovingDistance
@@ -361,7 +361,7 @@ contains
 
   double precision function staticUniverseDistanceComoving(self,time)
     !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -375,7 +375,7 @@ contains
   double precision function staticUniverseDistanceLuminosity(self,time)
     !% Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -388,7 +388,7 @@ contains
   double precision function staticUniverseDistanceAngular(self,time)
     !% Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -400,7 +400,7 @@ contains
 
   double precision function staticUniverseDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self

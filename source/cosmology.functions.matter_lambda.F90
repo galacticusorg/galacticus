@@ -356,7 +356,7 @@ contains
   subroutine matterLambdaEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
     !% Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
     !% collapsing status.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactorIn , timeIn
@@ -409,7 +409,7 @@ contains
   
   double precision function matterLambdaCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Interpolation
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -494,7 +494,7 @@ contains
   double precision function matterLambdaExpansionFactor(self,time)
     !% Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -581,7 +581,7 @@ contains
 
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -629,7 +629,7 @@ contains
 
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -661,7 +661,7 @@ contains
 
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -687,7 +687,7 @@ contains
 
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -717,7 +717,7 @@ contains
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -743,7 +743,7 @@ contains
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -768,7 +768,7 @@ contains
 
   double precision function matterLambdaTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -1050,7 +1050,7 @@ contains
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: comovingDistance
@@ -1092,7 +1092,7 @@ contains
   double precision function matterLambdaDistanceComoving(self,time)
     !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1137,7 +1137,7 @@ contains
   double precision function matterLambdaDistanceLuminosity(self,time)
     !% Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1150,7 +1150,7 @@ contains
   double precision function matterLambdaDistanceAngular(self,time)
     !% Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1163,7 +1163,7 @@ contains
   double precision function matterLambdaDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert between different measures of distance.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self

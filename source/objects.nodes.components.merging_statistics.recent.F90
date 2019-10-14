@@ -73,7 +73,7 @@ contains
     !% Initializes the recent merging statistics component.
     use ISO_Varying_String
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_

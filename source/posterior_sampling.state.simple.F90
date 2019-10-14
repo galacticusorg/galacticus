@@ -132,7 +132,7 @@ contains
 
   function simpleMean(self)
     !% Return the mean over state history.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleMean
@@ -144,7 +144,7 @@ contains
 
   function simpleVariance(self)
     !% Return the mean over state history.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleVariance
@@ -183,7 +183,7 @@ contains
     !% Restore the state object.
     use MPI_Utilities
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(:) :: stateVector

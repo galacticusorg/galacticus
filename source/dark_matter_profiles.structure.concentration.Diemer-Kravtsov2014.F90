@@ -52,10 +52,10 @@
           &                                                      timePrevious                              , massPrevious, &
           &                                                      concentrationMeanPrevious
    contains
-     final     ::                                diemerKravtsov2014Destructor
-     procedure :: concentration               => diemerKravtsov2014Concentration
-     procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
-     procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
+     final     ::                                   diemerKravtsov2014Destructor
+     procedure :: concentration                  => diemerKravtsov2014Concentration
+     procedure :: concentrationMean              => diemerKravtsov2014ConcentrationMean
+     procedure :: densityContrastDefinition      => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => diemerKravtsov2014DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
@@ -175,7 +175,7 @@ contains
   function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
     !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
     !% concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
       use Dark_Matter_Halo_Scales
   implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014  )                         :: self

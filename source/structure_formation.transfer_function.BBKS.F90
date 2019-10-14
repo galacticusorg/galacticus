@@ -75,7 +75,7 @@ contains
 
   function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``BBKS'' transfer function class.
-    use Galacticus_Error    
+    use Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
@@ -215,7 +215,7 @@ contains
   double precision function bbksHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionBBKS), intent(inout)           :: self
     integer                      , intent(  out), optional :: status

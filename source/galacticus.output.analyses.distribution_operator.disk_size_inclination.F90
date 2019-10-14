@@ -206,7 +206,7 @@ contains
 
   function diskSizeInclinationOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a disk size inclination output analysis distribution operator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution

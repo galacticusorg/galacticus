@@ -140,7 +140,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} task class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(taskMulti    ), intent(inout) :: self
     class(taskClass    ), intent(inout) :: destination

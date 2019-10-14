@@ -24,7 +24,7 @@ program Tests_IO_XML
   use FoX_DOM
   use IO_XML
   use Unit_Tests
-  use Galacticus_Error  
+  use Galacticus_Error  , only : Galacticus_Error_Report
   use System_Command
   use Galacticus_Display
   implicit none

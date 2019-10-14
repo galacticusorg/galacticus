@@ -140,7 +140,7 @@ contains
 
     double precision function gammaIncomplete(x)
       !% Evaluate the incomplete gamma function, possibly for a negative exponent.
-      use Galacticus_Error
+      use Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       double precision, intent(in   ) :: x
 

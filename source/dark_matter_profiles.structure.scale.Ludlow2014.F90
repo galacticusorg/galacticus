@@ -67,7 +67,7 @@ contains
   
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &
@@ -75,7 +75,7 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
 
     self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
     return

@@ -39,7 +39,7 @@ contains
          &                         File_Exists
     use System_Command
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
@@ -126,7 +126,7 @@ contains
     use IO_HDF5
     use Dates_and_Times
     use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1D       ), intent(inout)                              :: imf
     type            (varying_string), intent(in   )                              :: imfName             , spectraFileName

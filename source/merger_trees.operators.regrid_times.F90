@@ -60,7 +60,7 @@ contains
 
   function regridTimesConstructorParameters(parameters) result(self)
     !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                              :: self
     type            (inputParameters              ), intent(inout)               :: parameters
@@ -154,7 +154,7 @@ contains
   function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the regrid times merger tree operator class.
     use Numerical_Ranges
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Sort
     implicit none
@@ -242,9 +242,9 @@ contains
   subroutine regridTimesOperate(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes       , only : treeNode              , treeNodeList, nodeComponentBasic, nodeEvent, &
+    use               Galacticus_Nodes       , only : treeNode               , treeNodeList   , nodeComponentBasic, nodeEvent, &
          &                                            nodeComponentSatellite
-    use               Galacticus_Error
+    use               Galacticus_Error       , only : Galacticus_Error_Report, Galacticus_Warn
     use               FGSL                   , only : fgsl_interp_accel
     use               Numerical_Interpolation
     use               Numerical_Comparison

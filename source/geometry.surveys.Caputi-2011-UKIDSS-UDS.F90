@@ -71,7 +71,7 @@ contains
 
   function caputi2011UKIDSSUDSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{caputi_stellar_2011} conditional mass function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     type            (surveyGeometryCaputi2011UKIDSSUDS)                        :: self
@@ -131,7 +131,7 @@ contains
   double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -158,7 +158,7 @@ contains
 
   double precision function caputi2011UKIDSSUDSVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
@@ -183,7 +183,7 @@ contains
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
     !% constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     integer                                            , intent(in   ), optional :: field
@@ -205,7 +205,7 @@ contains
     use String_Handling
     use Galacticus_Paths
     use System_Command
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use IO_HDF5
     use File_Utilities
     implicit none

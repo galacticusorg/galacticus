@@ -289,7 +289,7 @@ contains
   subroutine historyWrite(self)
     !% Store the global history data to the \glc\ output file.
     use Galacticus_HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     implicit none
     class           (*         ), intent(inout)               :: self

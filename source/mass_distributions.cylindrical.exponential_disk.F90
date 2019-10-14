@@ -160,7 +160,7 @@ contains
     !% Internal constructor for ``exponentialDisk'' mass distribution class.
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (massDistributionExponentialDisk)                          :: self
     double precision                                 , intent(in   ), optional :: scaleRadius                                 , scaleHeight                                 , &
@@ -284,7 +284,7 @@ contains
 
   double precision function exponentialDiskDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Coordinates
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
@@ -629,7 +629,7 @@ contains
   double precision function exponentialDiskSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Compute radial moments of the exponential disk mass distribution surface density profile.
     use Gamma_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment 

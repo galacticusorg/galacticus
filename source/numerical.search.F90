@@ -152,8 +152,8 @@ contains
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
     !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     !% within which the two values must match.
-    use FGSL, only : fgsl_size_t, FGSL_Interp_BSearch
-    use Galacticus_Error
+    use FGSL                , only : fgsl_size_t            , FGSL_Interp_BSearch
+    use Galacticus_Error    , only : Galacticus_Error_Report, errorStatusSuccess , errorStatusFail
     use Numerical_Comparison
     implicit none
     integer         (c_size_t)                                        :: Search_Array_For_Closest

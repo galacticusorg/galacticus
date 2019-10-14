@@ -23,7 +23,7 @@
 module Galacticus_Nodes
   !% Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   use Memory_Management
   use ISO_Varying_String
   use Kepler_Orbits
@@ -137,7 +137,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Index(self)
     !% Returns the index of a {\normalfont \ttfamily treeNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -170,7 +170,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Unique_ID(self)
     !% Returns the unique ID of a {\normalfont \ttfamily treeNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -288,7 +288,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(inout) :: self
 
@@ -308,7 +308,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -335,7 +335,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -362,7 +362,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -388,7 +388,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -414,7 +414,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_On_Main_Branch(self)
     !% Returns true if {\normalfont \ttfamily self} is on the main branch.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(inout), target :: self
     type (treeNode), pointer               :: workNode
@@ -437,7 +437,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Satellite(self)
     !% Returns true if {\normalfont \ttfamily self} is a satellite.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target :: self
     type (treeNode), pointer               :: childNode, parentNode, selfActual
@@ -483,7 +483,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
     !% Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (treeNode), pointer       :: progenitorNode
     class(treeNode), intent(inout) :: self
@@ -521,7 +521,7 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_From_Host(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -565,7 +565,7 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_from_Mergee(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self

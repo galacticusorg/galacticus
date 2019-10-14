@@ -221,7 +221,7 @@ contains
 
   recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
-    use Galacticus_Error
+    use Galacticus_Error  , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusOutOfRange
     use Galacticus_Display
     use ISO_Varying_String
     implicit none
@@ -591,7 +591,7 @@ contains
 
   subroutine Root_Finder_Range_Expand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
     !% Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (rootFinder), intent(inout)           :: self
     integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &

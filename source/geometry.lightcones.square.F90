@@ -128,7 +128,7 @@ contains
     use Input_Parameters
     use Cosmology_Parameters
     use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none            
     type            (geometryLightconeSquare )                            :: squareConstructorParameters
     type            (inputParameters         ), intent(inout)             :: parameters
@@ -263,7 +263,7 @@ contains
     use Numerical_Constants_Math
     use Trigonometric_Functions
     use Vectors
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use String_Handling
     implicit none
@@ -428,13 +428,13 @@ contains
     !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
-    use               Galacticus_Error
+    use               Galacticus_Error    , only : Galacticus_Error_Report , Galacticus_Component_List
     use               ISO_Varying_String
     use               String_Handling
     use               Vectors
     use               Numerical_Comparison
     use               Memory_Management
-    use               Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, nodeComponentSatellite, defaultSatelliteComponent, &
+    use               Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition    , nodeComponentSatellite, defaultSatelliteComponent, &
          &                                         defaultPositionComponent
     implicit none
     class           (geometryLightconeSquare), intent(inout)               :: self
@@ -617,7 +617,7 @@ contains
     use               Arrays_Search
     use               String_Handling
     use               Numerical_Comparison
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentPosition
     implicit none
     double precision                         , dimension(3)  :: squarePosition
@@ -673,7 +673,7 @@ contains
     !% Compute quantities related to the number of replicants in which a node appears.
     use, intrinsic :: ISO_C_Binding
     use               Vectors
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (geometryLightconeSquare), intent(inout)                           :: self
     integer         (c_size_t               ), intent(in   )                           :: output

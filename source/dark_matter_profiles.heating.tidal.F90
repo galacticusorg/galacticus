@@ -57,7 +57,7 @@ contains
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
@@ -79,7 +79,7 @@ contains
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
@@ -102,7 +102,7 @@ contains
     implicit none
     class(darkMatterProfileHeatingTidal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    class(darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentSatellite       ), pointer       :: satellite
     !GCC$ attributes unused :: self, darkMatterProfileDMO_
 

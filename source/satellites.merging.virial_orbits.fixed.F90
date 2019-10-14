@@ -87,7 +87,7 @@ contains
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialOrbitFixed          )                        :: self
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
@@ -111,7 +111,7 @@ contains
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
     use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Dark_Matter_Profile_Mass_Definitions
     use ISO_Varying_String
@@ -199,7 +199,7 @@ contains
 
   function fixedVelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
@@ -237,7 +237,7 @@ contains
 
   function fixedAngularMomentumVectorMean(self,node,host)
     !% Return the mean of the vector angular momentum.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
     class           (virialOrbitFixed), intent(inout) :: self

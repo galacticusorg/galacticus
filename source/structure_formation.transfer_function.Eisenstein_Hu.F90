@@ -112,7 +112,7 @@ contains
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Dark_Matter_Particles
     implicit none
     type            (transferFunctionEisensteinHu1999)                        :: self
@@ -517,7 +517,7 @@ contains
   double precision function eisensteinHu1999HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status

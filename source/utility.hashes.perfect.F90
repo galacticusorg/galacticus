@@ -98,7 +98,7 @@ contains
   subroutine Hash_Perfect_Create(hash,keys,values,keepInverseTable)
     !% Create a perfect hash for a given set of keys.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (hashPerfect   )                             , intent(inout)           :: hash
     integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys
@@ -252,7 +252,7 @@ contains
 
  function Hash_Perfect_Size(hash)
    !% Return the size of the hash table.
-   use Galacticus_Error
+   use Galacticus_Error, only : Galacticus_Error_Report
    implicit none
    integer(c_size_t   )                :: Hash_Perfect_Size
    class  (hashPerfect), intent(in   ) :: hash
@@ -264,7 +264,7 @@ contains
 
  function Hash_Perfect_Index(hash,key)
    !% Return the index corresponding to a hash key.
-   use Galacticus_Error
+   use Galacticus_Error, only : Galacticus_Error_Report
    implicit none
    integer(c_size_t      )                :: Hash_Perfect_Index
    class  (hashPerfect   ), intent(in   ) :: hash
@@ -280,7 +280,7 @@ contains
 
  logical function Hash_Perfect_Is_Present(hash,key)
    !% Returns true if the hash contains the key.
-   use Galacticus_Error
+   use Galacticus_Error, only : Galacticus_Error_Report
    implicit none
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
@@ -294,7 +294,7 @@ contains
 
  function Hash_Perfect_Value(hash,key)
    !% Returns the value for a specified key.
-   use Galacticus_Error
+   use Galacticus_Error, only : Galacticus_Error_Report
    implicit none
    integer(kind=kind_int8)                :: Hash_Perfect_Value
    class  (hashPerfect   ), intent(in   ) :: hash

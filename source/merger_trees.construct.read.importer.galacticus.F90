@@ -202,7 +202,7 @@ contains
     !% Validate a \glc\ format merger tree file.
     use Numerical_Comparison
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Warn
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
     type            (varying_string               ), intent(in   ) :: fileName
@@ -456,7 +456,7 @@ contains
 
   logical function galacticusMassesIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloMassesIncludeSubhalosInteger
@@ -478,7 +478,7 @@ contains
 
   logical function galacticusAngularMomentaIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloAngularMomentaIncludeSubhalosInteger
@@ -566,7 +566,7 @@ contains
     !% Return the length of the simulation cube.
     use Numerical_Constants_Boolean
     use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)           :: self
     double precision                              , intent(in   )           :: time
@@ -641,7 +641,7 @@ contains
 
   subroutine galacticusForestIndicesRead(self)
     !% Read the tree indices.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use HDF5
     use Sort
     use Numerical_Constants_Astronomical
@@ -756,7 +756,7 @@ contains
     !% Return the weight to assign to trees.
     use Numerical_Constants_Boolean
     use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
@@ -883,7 +883,7 @@ contains
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Astronomical
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                 :: self
@@ -924,7 +924,7 @@ contains
 
   function galacticusSubhaloTraceCount(self,node)
     !% Returns the length of a subhalo trace.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -945,7 +945,7 @@ contains
     !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
     use HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Warn
     use Galacticus_Display
     use Vectors
     use Numerical_Constants_Astronomical

@@ -143,7 +143,7 @@ contains
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Interpolation
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -193,7 +193,7 @@ contains
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -299,7 +299,7 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -347,7 +347,7 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -682,7 +682,7 @@ contains
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: comovingDistance
@@ -695,7 +695,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
     !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
@@ -708,7 +708,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   )           :: output
@@ -723,7 +723,7 @@ contains
 
   double precision function matterDarkEnergyEquationOfStateDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy equation of state.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -749,7 +749,7 @@ contains
 
   double precision function matterDarkEnergyExponentDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy exponent.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -773,7 +773,7 @@ contains
 
   double precision function matterDarkEnergyExponentDarkEnergyDerivative(self,time,expansionFactor)
     !% Return the derivative of the dark energy exponent with respect to expansion factor.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time

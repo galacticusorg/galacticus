@@ -128,7 +128,7 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Virial_Density_Contrast
     use IO_HDF5
     use Galacticus_Paths
@@ -490,7 +490,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Reduce(self,reduced)
     !% Implement reduction for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self
     class(outputAnalysisClass                                 ), intent(inout) :: reduced

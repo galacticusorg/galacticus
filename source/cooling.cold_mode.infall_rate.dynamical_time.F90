@@ -69,7 +69,7 @@ contains
   function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
     !% Internal constructor for the dynamical time cooling time class.
     use Galacticus_Nodes, only : defaultHotHaloComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
     class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_

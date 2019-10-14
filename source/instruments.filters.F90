@@ -101,7 +101,7 @@ contains
   subroutine Filter_Response_Load(filterName)
     !% Load a filter response curve.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use FoX_dom
     use Galacticus_Paths
     use IO_XML
@@ -326,7 +326,7 @@ contains
 
   double precision function Filter_Vega_Offset(filterIndex)
     !% Return the Vega to AB magnitude offset for the specified filter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 
@@ -337,7 +337,7 @@ contains
 
   double precision function Filter_Wavelength_Effective(filterIndex)
     !% Return the effective wavelength for the specified filter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 

@@ -69,7 +69,7 @@ contains
 
   function whiteFrenk1991ConstructorInternal(ageFactor,darkMatterHaloScale_) result(self)
     !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                        :: self
     double precision                                    , intent(in   )         :: ageFactor

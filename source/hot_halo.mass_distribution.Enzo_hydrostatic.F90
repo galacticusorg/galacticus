@@ -82,7 +82,7 @@ contains
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Array_Utilities
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self

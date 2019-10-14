@@ -37,22 +37,22 @@
   type, extends(taskClass) :: taskHaloMassFunction
      !% Implementation of a task which computes and outputs the halo mass function and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
-     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_ => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_ => null()
-     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_ => null()
-     class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
-     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_ => null()
-     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_ => null()
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_          => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_                 => null()
+     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_             => null()
+     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_              => null()
      class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_ => null()
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_ => null()
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_ => null()
-     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_ => null()
-     class           (transferFunctionClass            ), pointer :: transferFunction_ => null()
-     class           (outputTimesClass                 ), pointer :: outputTimes_ => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_     => null()
+     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_           => null()
+     class           (transferFunctionClass            ), pointer :: transferFunction_             => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_                  => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     double precision                                             :: haloMassMinimum              , haloMassMaximum
+     double precision                                             :: haloMassMinimum                        , haloMassMaximum
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
    contains
@@ -274,9 +274,9 @@ contains
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use               Galacticus_Error                , only : errorStatusSuccess
     use               Galacticus_Display    
-    use               Galacticus_Nodes                , only : mergerTree   , nodeComponentBasic        , nodeComponentDarkMatterProfile
+    use               Galacticus_Nodes                , only : mergerTree         , nodeComponentBasic        , nodeComponentDarkMatterProfile
     use               Galacticus_Calculations_Resets
     use               Galacticus_HDF5
     use               Numerical_Constants_Astronomical

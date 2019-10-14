@@ -123,7 +123,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution normalizer operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
     class(outputAnalysisDistributionNormalizerClass   ), intent(inout) :: destination

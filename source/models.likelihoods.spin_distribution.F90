@@ -32,19 +32,19 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_ => null()
-     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_ => null()
-     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_ => null()
-     class           (darkMatterProfileDMOClass           ), pointer                     :: darkMatterProfileDMO_ => null()
-     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_ => null()
+     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_           => null()
+     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
+     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
+     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
+     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
-     double precision                                   , dimension(:  ), allocatable :: spin                         , distribution                      , &
-          &                                                                              spinMinimum                  , spinMaximum                       , &
+     double precision                                   , dimension(:  ), allocatable :: spin                                   , distribution                      , &
+          &                                                                              spinMinimum                            , spinMaximum                       , &
           &                                                                              distributionError
-     double precision                                                                 :: time                         , massParticle                      , &
-          &                                                                              massHaloMinimum              , energyEstimateParticleCountMaximum, &
+     double precision                                                                 :: time                                   , massParticle                      , &
+          &                                                                              massHaloMinimum                        , energyEstimateParticleCountMaximum, &
           &                                                                              redshift
-     integer                                                                          :: particleCountMinimum         , distributionType
+     integer                                                                          :: particleCountMinimum                   , distributionType
      type            (varying_string                   )                              :: fileName
    contains
      final     ::                    spinDistributionDestructor
@@ -78,7 +78,7 @@ contains
     class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     class           (haloMassFunctionClass                    ), pointer       :: haloMassFunction_
     class           (nbodyHaloMassErrorClass                  ), pointer       :: nbodyHaloMassError_
-    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass        ), pointer       :: darkMatterProfileScaleRadius_
     type            (varying_string                           )                :: fileName                     , distributionType
@@ -138,7 +138,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     self=posteriorSampleLikelihoodSpinDistribution(char(fileName),enumerationSpinDistributionTypeEncode(char(distributionType),includesPrefix=.false.),redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
@@ -146,7 +146,7 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="haloMassFunction_"            />
     !# <objectDestructor name="nbodyHaloMassError_"          />
-    !# <objectDestructor name="darkMatterProfileDMO_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="darkMatterHaloScale_"         />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
@@ -157,7 +157,7 @@ contains
     use IO_HDF5
     use Memory_Management
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -167,7 +167,7 @@ contains
     class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class           (haloMassFunctionClass                    ), intent(in   ), target :: haloMassFunction_
     class           (nbodyHaloMassErrorClass                  ), intent(in   ), target :: nbodyHaloMassError_
-    class           (darkMatterProfileDMOClass                   ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5Object                               )                        :: spinDistributionFile
@@ -215,7 +215,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"          />
     !# <objectDestructor name="self%haloMassFunction_"            />
     !# <objectDestructor name="self%nbodyHaloMassError_"          />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"           />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%darkMatterHaloScale_"         />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     return
@@ -229,7 +229,7 @@ contains
     use               Posterior_Sampling_State
     use               Models_Likelihoods_Constants
     use               Posterior_Sampling_Convergence
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Halo_Spin_Distributions
     use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin
     use               FGSL                          , only : fgsl_function, fgsl_integration_workspace
@@ -291,7 +291,7 @@ contains
                &                                                self%nbodyHaloMassError_                   , &
                &                                                self%haloMassFunction_                     , &
                &                                                self%darkMatterHaloScale_                  , &
-               &                                                self%darkMatterProfileDMO_                    , &
+               &                                                self%darkMatterProfileDMO_                 , &
                &                                                self%darkMatterProfileScaleRadius_           &
                &                                               )
        end select
@@ -317,7 +317,7 @@ contains
                &                                                self%nbodyHaloMassError_                   , &
                &                                                self%haloMassFunction_                     , &
                &                                                self%darkMatterHaloScale_                  , &
-               &                                                self%darkMatterProfileDMO_                    , &
+               &                                                self%darkMatterProfileDMO_                 , &
                &                                                self%darkMatterProfileScaleRadius_           &
                &                                               )
        end select

@@ -132,7 +132,7 @@ contains
 
   double precision function sphericalCollapseMatterLambdaDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
@@ -170,7 +170,7 @@ contains
 
   double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass

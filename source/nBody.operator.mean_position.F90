@@ -85,7 +85,7 @@ contains
   subroutine meanPositionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Pseudo_Random
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self

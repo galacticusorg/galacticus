@@ -162,7 +162,7 @@ contains
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
     !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   )           :: in_file
     character(len=1), intent(in   ), optional :: comment_char
@@ -217,7 +217,7 @@ contains
 
   subroutine File_Unlock(lock)
     !% Remove a lock from a file.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (lockDescriptor), intent(inout) :: lock
     integer                                :: fileUnit, errorStatus

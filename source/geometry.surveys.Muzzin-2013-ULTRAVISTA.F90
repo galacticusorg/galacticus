@@ -80,7 +80,7 @@ contains
 
   function muzzin2013ULTRAVISTAConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{muzzin_evolution_2013} mass function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions_Options
     implicit none
     type            (surveyGeometryMuzzin2013ULTRAVISTA)                        :: self
@@ -163,7 +163,7 @@ contains
   double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -197,7 +197,7 @@ contains
 
   double precision function muzzin2013ULTRAVISTAVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   )           :: mass

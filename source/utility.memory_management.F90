@@ -24,7 +24,7 @@ module Memory_Management
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
   use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,allocateArray,deallocateArray,Memory_Usage_Record

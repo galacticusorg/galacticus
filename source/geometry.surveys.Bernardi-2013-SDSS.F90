@@ -80,7 +80,7 @@ contains
 
   double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity

@@ -604,7 +604,7 @@ contains
     !% Reverse a 1D table (i.e. swap $x$ and $y$ components). Optionally allows specification of
     !% which $y$ table to swap with.
     use Array_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (table1D)             , intent(in   )           :: self
     class  (table1D), allocatable, intent(inout)           :: reversedSelf
@@ -670,7 +670,7 @@ contains
 
   function Table1D_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1D                        ), intent(inout)                               :: self
     double precision                                 , intent(in   )                               :: x0, x1
@@ -700,7 +700,7 @@ contains
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
     !% Create a 1-D generic table.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DGeneric  )              , intent(inout)           :: self
     double precision                  , dimension(:), intent(in   )           :: x
@@ -747,7 +747,7 @@ contains
 
   subroutine Table_Generic_1D_Populate(self,y,table)
     !% Populate a 1-D generic table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DGeneric)              , intent(inout)           :: self
     double precision                , dimension(:), intent(in   )           :: y
@@ -769,7 +769,7 @@ contains
 
   subroutine Table_Generic_1D_Populate_Single(self,y,i,table)
     !% Populate a single element of a 1-D generic table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: y
@@ -824,7 +824,7 @@ contains
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearLinear), intent(inout)                         :: self
     double precision                     , intent(in   )                         :: xMaximum         , xMinimum
@@ -858,7 +858,7 @@ contains
   
   subroutine Table_Linear_1D_Populate(self,y,table)
     !% Populate a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearLinear)              , intent(inout)           :: self
     double precision                     , dimension(:), intent(in   )           :: y
@@ -884,7 +884,7 @@ contains
 
   subroutine Table_Linear_1D_Populate_Single(self,y,i,table)
     !% Populate a single element of a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: y
@@ -1048,7 +1048,7 @@ contains
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLogarithmicLinear               ), intent(inout)                               :: self
     double precision                                         , intent(in   )                               :: x0, x1
@@ -1148,7 +1148,7 @@ contains
     !% Reverse a 1D logarithmic-linear table (i.e. swap $x$ and $y$ components). Optionally allows specification of
     !% which $y$ table to swap with.
     use Array_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (table1DLogarithmicLinear)             , intent(in   )           :: self
     class  (table1D                 ), allocatable, intent(inout)           :: reversedSelf
@@ -1185,7 +1185,7 @@ contains
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearCSpline), intent(inout)                         :: self
     double precision                      , intent(in   )                         :: xMaximum         , xMinimum
@@ -1241,7 +1241,7 @@ contains
 
   subroutine Table_Linear_CSpline_1D_Populate(self,y,table,computeSpline)
     !% Populate a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearCSpline)              , intent(inout)           :: self
     double precision                      , dimension(:), intent(in   )           :: y
@@ -1270,7 +1270,7 @@ contains
 
   subroutine Table_Linear_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
     !% Populate a single element of a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: y
@@ -1498,7 +1498,7 @@ contains
 
   function Table_Linear_CSpline_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearCSpline           ), intent(inout)                               :: self
     double precision                                 , intent(in   )                               :: x0, x1
@@ -1513,7 +1513,7 @@ contains
   
   double precision function Table1D_Find_Effective_X(self,x)
     !% Return the effective value of $x$ to use in table interpolations.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1D), intent(inout) :: self
     double precision         , intent(in   ) :: x
@@ -1546,7 +1546,7 @@ contains
 
   subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate(self,y,table)
     !% Populate a 1-D linear-logarihtmic table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DNonUniformLinearLogarithmic)              , intent(inout)           :: self
     double precision                                    , dimension(:), intent(in   )           :: y
@@ -1558,7 +1558,7 @@ contains
 
   subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single(self,y,i,table)
     !% Populate a single element of a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
     double precision                                    , intent(in   )           :: y
@@ -1593,7 +1593,7 @@ contains
 
   function Table_NonUniform_Linear_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for integration on a linear-logarithmic table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DNonUniformLinearLogarithmic ), intent(inout)                               :: self
     double precision                                     , intent(in   )                               :: x0, x1
@@ -1756,7 +1756,7 @@ contains
 
   subroutine Table_2DLogLogLin_Populate(self,z,table)
     !% Populate a 2-D log-log-linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLogLogLin)                , intent(inout)           :: self
     double precision                  , dimension(:,:), intent(in   )           :: z
@@ -1782,7 +1782,7 @@ contains
 
   subroutine Table_2DLogLogLin_Populate_Single(self,z,i,j,table)
     !% Populate a single element of a 2-D log-log-linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLogLogLin), intent(inout)           :: self
     double precision                  , intent(in   )           :: z
@@ -1806,7 +1806,7 @@ contains
 
   integer function Table_2DLogLogLin_Size(self,dim)
     !% Return the size of a 2D log-log-linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (table2DLogLogLin), intent(in   ) :: self
     integer                  , intent(in   ) :: dim
@@ -1850,7 +1850,7 @@ contains
 
   double precision function Table_2DLogLogLin_Interpolate_Gradient(self,x,y,dim,table)
     !% Perform linear interpolation in a logarithmic 1D table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLogLogLin), intent(inout)           :: self
     double precision                  , intent(in   )           :: x          , y
@@ -1956,7 +1956,7 @@ contains
 
   subroutine Table_Linear_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Numerical_Ranges
     implicit none
@@ -2007,7 +2007,7 @@ contains
 
   subroutine Table_Linear_Monotone_CSpline_1D_Populate(self,y,table,computeSpline)
     !% Populate a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearMonotoneCSpline)              , intent(inout)           :: self
     double precision                              , dimension(:), intent(in   )           :: y
@@ -2036,7 +2036,7 @@ contains
 
   subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
     !% Populate a single element of a 1-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearMonotoneCSpline), intent(inout)           :: self
     double precision                              , intent(in   )           :: y
@@ -2181,7 +2181,7 @@ contains
 
   function Table_Linear_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table1DLinearMonotoneCSpline   ), intent(inout)                               :: self
     double precision                                 , intent(in   )                               :: x0, x1
@@ -2277,7 +2277,7 @@ contains
   subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount)
     !% Create a 2-D generic table.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLinLinLin)              , intent(inout)           :: self
     double precision                  , dimension(:), intent(in   )           :: x                , y
@@ -2317,7 +2317,7 @@ contains
 
   subroutine Table_2D_LinLinLin_Populate(self,z,table)
     !% Populate a 2-D linear table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLinLinLin)                , intent(inout)           :: self
     double precision                  , dimension(:,:), intent(in   )           :: z
@@ -2340,7 +2340,7 @@ contains
 
   subroutine Table_2D_LinLinLin_Populate_Single(self,z,i,j,table)
     !% Populate a single element of a 2-D generic table.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLinLinLin), intent(inout)           :: self
     double precision                  , intent(in   )           :: z

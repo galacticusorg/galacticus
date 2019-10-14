@@ -180,7 +180,7 @@ contains
 
   double precision function logNormalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -245,7 +245,7 @@ contains
 
   subroutine logNormalOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node

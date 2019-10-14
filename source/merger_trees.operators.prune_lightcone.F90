@@ -98,7 +98,7 @@ contains
   subroutine pruneLightconeValidate(self)
     !% Validate the lightcone pruning operator.
     use Galacticus_Nodes, only : defaultSatelliteComponent, defaultPositionComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report  , Galacticus_Component_List
     use Array_Utilities
     implicit none
     class(mergerTreeOperatorPruneLightcone), intent(inout) :: self

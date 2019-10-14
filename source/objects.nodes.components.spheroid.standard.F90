@@ -207,7 +207,7 @@ contains
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
     use Abundances_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes    , only : nodeComponentSpheroidStandard, defaultSpheroidComponent
     implicit none
     type(inputParameters              ), intent(inout) :: globalParameters_
@@ -278,7 +278,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the standard spheroid module for each thread.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
     type            (inputParameters), intent(inout) :: globalParameters_
@@ -541,7 +541,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate(self,rate,interrupt,interruptProcedure)
     !% Account for a sink of gaseous material in the standard spheroid.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Galacticus_Nodes    , only : nodeComponentSpheroid, interruptTask
     implicit none
@@ -575,7 +575,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate(self,rate,interrupt,interruptProcedure)
     !% Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
     !% units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Galacticus_Nodes    , only : treeNode, nodeComponentSpheroid, nodeComponentHotHalo, interruptTask
     implicit none
@@ -821,7 +821,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
     !% Adjust the rates for the star formation history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes , only : nodeComponentSpheroid, nodeComponentSpheroidStandard, interruptTask
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
@@ -862,7 +862,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate(self,rate,interrupt,interruptProcedure)
     !% Adjust the rates for the stellar properties history.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes , only : nodeComponentSpheroid, nodeComponentSpheroidStandard, interruptTask
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
@@ -1018,7 +1018,7 @@ contains
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Sizes
     use Satellite_Merging_Remnant_Properties
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Galacticus_Nodes                    , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentDisk, defaultSpheroidComponent

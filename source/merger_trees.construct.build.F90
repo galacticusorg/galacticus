@@ -76,7 +76,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeConstructorBuild)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -301,7 +301,7 @@ contains
     !% Construct the set of tree masses to be built.
     use Memory_Management
     use Sort
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast

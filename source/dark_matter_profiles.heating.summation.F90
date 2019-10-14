@@ -171,7 +171,7 @@ contains
 
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} dark matter halo profile heating class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     class(darkMatterProfileHeatingClass    ), intent(inout) :: destination

@@ -410,7 +410,7 @@ contains
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
           end if
        class is (nodePropertyExtractorIntegerScalar)
-          if (elementType == elementTypeDouble ) then
+          if (elementType == elementTypeInteger) then
              elementCount=1
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
           end if

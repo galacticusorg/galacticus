@@ -112,7 +112,7 @@ module Node_Component_Disk_Very_Simple
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
   class(starFormationFeedbackDisksClass ), pointer :: starFormationFeedbackDisks_
   class(starFormationTimescaleDisksClass), pointer :: starFormationTimescaleDisks_
-  class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
+  class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
   !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfileDMO_)
 
   ! Record of whether to use the simple disk analytic solver.
@@ -522,7 +522,7 @@ contains
     use Histories
     use Abundances_Structure
     use Stellar_Luminosities_Structure
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentDisk, nodeComponentHotHalo, nodeComponentSatellite
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
@@ -840,7 +840,7 @@ contains
     !% Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentSpheroid

@@ -164,7 +164,7 @@ contains
     use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_

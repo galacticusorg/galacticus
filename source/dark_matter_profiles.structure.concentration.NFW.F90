@@ -42,12 +42,12 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_           => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                         :: f                                         , C
    contains
-     final     ::                                nfw1996Destructor
-     procedure :: concentration               => nfw1996Concentration
-     procedure :: densityContrastDefinition   => nfw1996DensityContrastDefinition
+     final     ::                                   nfw1996Destructor
+     procedure :: concentration                  => nfw1996Concentration
+     procedure :: densityContrastDefinition      => nfw1996DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => nfw1996DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationNFW1996
   

@@ -73,7 +73,7 @@ contains
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
     use, intrinsic :: ISO_C_Binding
     use               Memory_Management
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc)                        :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
@@ -134,7 +134,7 @@ contains
   
   double precision function csmlgyAngularDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an csmlgyAngularDistance output analysis property operator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout)           :: self
     double precision                                                , intent(in   )           :: propertyValue

@@ -74,7 +74,7 @@ contains
 
   double precision function fastExponentiatorExponentiate(self,x)
     !% Evaluate the result of an exponentiation operation.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (fastExponentiator), intent(inout) :: self
     double precision                   , intent(in   ) :: x

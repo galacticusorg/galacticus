@@ -66,7 +66,7 @@ contains
   function fcfsForestNumber(self,utilizeOpenMPThreads)
     !% Return the number of the next forest to process.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     integer(c_size_t                  )                :: fcfsForestNumber

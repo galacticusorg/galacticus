@@ -42,7 +42,7 @@ contains
 
   subroutine FFTLog(r,k,f,ft,mu,direction)
     !% Perform a discrete FFT on logarithmically spaced data.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Math
     implicit none
     double precision, intent(in   ), dimension(:                          ) :: r, f

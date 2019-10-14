@@ -102,7 +102,7 @@ contains
     !% Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
     use Numerical_Constants_Math
     use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Linear_Growth
     implicit none
     class(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self

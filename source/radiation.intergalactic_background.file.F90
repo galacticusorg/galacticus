@@ -91,7 +91,7 @@ contains
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Array_Utilities
     use Galacticus_Paths

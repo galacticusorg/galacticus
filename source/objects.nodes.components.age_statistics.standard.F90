@@ -225,7 +225,7 @@ contains
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
     use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes                    , only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard
     implicit none
     type   (treeNode                  ), intent(inout), pointer :: node

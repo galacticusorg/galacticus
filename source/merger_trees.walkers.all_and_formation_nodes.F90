@@ -41,7 +41,7 @@ contains
 
   function allAndFormationNodesParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Input_Parameters
     implicit none
     type(mergerTreeWalkerAllAndFormationNodes)                :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine allAndFormationNodesPrevious(self,node)
     !% Step back to the previously visited node.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeWalkerAllAndFormationNodes), intent(inout)          :: self
     type (treeNode                            ), intent(inout), pointer :: node

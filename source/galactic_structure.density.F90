@@ -37,7 +37,7 @@ contains
     !% been computed.
     use Galacticus_Nodes          , only : treeNode, optimizeForDensitySummation, reductionSummation
     use Galactic_Structure_Options
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Coordinate_Systems
     !# <include directive="densityTask" type="moduleUse">
     include 'galactic_structure.density.tasks.modules.inc'

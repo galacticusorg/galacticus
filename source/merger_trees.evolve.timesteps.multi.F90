@@ -142,7 +142,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
     class(mergerTreeEvolveTimestepClass    ), intent(inout) :: destination

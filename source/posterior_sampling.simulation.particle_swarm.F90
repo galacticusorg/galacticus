@@ -75,7 +75,7 @@ contains
     use MPI_Utilities
     use String_Handling
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleSimulationParticleSwarm        )                              :: self
     type            (inputParameters                               ), intent(inout)               :: parameters
@@ -304,7 +304,7 @@ contains
     !% Perform a particle swarm simulation.
     use MPI_Utilities
     use Pseudo_Random
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use String_Handling
     use Models_Likelihoods_Constants
@@ -578,7 +578,7 @@ contains
     use               Models_Likelihoods_Constants
     use               MPI_Utilities
     use               Sort
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               Galacticus_Display
     use               Kind_Numbers
     implicit none

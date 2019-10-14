@@ -50,7 +50,7 @@ contains
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
 
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfileDMO_)
@@ -63,7 +63,7 @@ contains
     !% Internal constructor for the enzoHydrostatic cooling rate class.
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                        :: self
-    class(darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="*darkMatterProfileDMO_"/>
 
     return
@@ -94,9 +94,9 @@ contains
        enzoHydrostaticTemperature=enzoHydrostaticTemperatureMinimum
     else
        enclosedMass              =self%darkMatterProfileDMO_%enclosedMass(        &
-            &                                                          node  , &
-            &                                                          radius  &
-            &                                                         )
+            &                                                             node  , &
+            &                                                             radius  &
+            &                                                            )
        enzoHydrostaticTemperature=max(                                     &
             &                         +kilo                           **2  &
             &                         *gravitationalConstantGalacticus     &
@@ -126,13 +126,13 @@ contains
        enzoHydrostaticTemperatureLogSlope=0.0d0
     else
        enclosedMass                      =  self%darkMatterProfileDMO_%enclosedMass(        &
-            &                                                                    node  , &
-            &                                                                    radius  &
-            &                                                                   )
+            &                                                                       node  , &
+            &                                                                       radius  &
+            &                                                                      )
        density                           =  self%darkMatterProfileDMO_%density     (        &
-            &                                                                    node  , &
-            &                                                                    radius  &
-            &                                                                   )
+            &                                                                       node  , &
+            &                                                                       radius  &
+            &                                                                      )
        enzoHydrostaticTemperatureLogSlope=+4.0d0           &
             &                             *Pi              &
             &                             *radius      **3 &

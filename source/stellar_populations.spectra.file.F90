@@ -141,7 +141,7 @@ contains
   
   function fileConstructorInternal(forceZeroMetallicity,fileName) result(self)
     !% Internal constructor for the file stellar spectra class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (stellarPopulationSpectraFile)                :: self
     logical                                , intent(in   ) :: forceZeroMetallicity
@@ -194,7 +194,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
     use               Numerical_Interpolation
-    use               Galacticus_Error
+    use               Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusInputDomain
     implicit none
     class           (stellarPopulationSpectraFile), intent(inout)            :: self
     type            (abundances                  ), intent(in   )            :: abundancesStellar
@@ -323,7 +323,7 @@ contains
 
   subroutine fileReadFile(self)
     !% Read a file of simple stellar population spectra.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use IO_HDF5
     use File_Utilities

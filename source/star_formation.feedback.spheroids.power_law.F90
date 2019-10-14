@@ -50,7 +50,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !% Constructor for the power-law star formation feedback in spheroids class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters

@@ -141,7 +141,7 @@ contains
   
   function sequenceOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorSequence), intent(inout)                                        :: self
     double precision                                            , intent(in   ), dimension(:)                          :: distribution
@@ -177,7 +177,7 @@ contains
   
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution operator class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
     class(outputAnalysisDistributionOperatorClass   ), intent(inout) :: destination

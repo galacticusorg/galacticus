@@ -36,9 +36,9 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                                schneider2015Destructor
-    procedure :: concentration               => schneider2015Concentration
-    procedure :: densityContrastDefinition   => schneider2015DensityContrastDefinition
+    final     ::                                   schneider2015Destructor
+    procedure :: concentration                  => schneider2015Concentration
+    procedure :: densityContrastDefinition      => schneider2015DensityContrastDefinition
     procedure :: darkMatterProfileDMODefinition => schneider2015DarkMatterProfileDefinition
  end type darkMatterProfileConcentrationSchneider2015
 
@@ -59,7 +59,7 @@ contains
  function schneider2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationSchneider2015)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
@@ -222,7 +222,7 @@ contains
     !% \cite{schneider_structure_2015} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
  
     schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDMODefinition()

@@ -92,7 +92,7 @@ contains
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
     !% Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                          :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target   :: cosmologyFunctions_

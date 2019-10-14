@@ -154,7 +154,7 @@ contains
 
   function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
     class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
@@ -214,7 +214,7 @@ contains
     use ISO_Varying_String
     use Root_Finder
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
@@ -379,10 +379,10 @@ contains
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use Numerical_Integration
-    use Galacticus_Error
+    use Galacticus_Error     , only : Galacticus_Warn, errorStatusSuccess
     use ISO_Varying_String
     use Galacticus_Display
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use FGSL                 , only : fgsl_function  , fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &

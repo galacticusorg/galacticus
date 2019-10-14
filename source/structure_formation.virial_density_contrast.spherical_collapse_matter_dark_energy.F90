@@ -124,7 +124,7 @@ contains
   double precision function sphericalCollapseMatterDETurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Spherical_Collapse_Matter_Dark_Energy
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout)           :: self

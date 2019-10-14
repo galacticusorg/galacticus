@@ -76,7 +76,7 @@ contains
 
   function cyclicForestNumber(self,utilizeOpenMPThreads)
     !% Return the number of the next forest to process.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: cyclicForestNumber
     class  (evolveForestsWorkShareCyclic), intent(inout) :: self

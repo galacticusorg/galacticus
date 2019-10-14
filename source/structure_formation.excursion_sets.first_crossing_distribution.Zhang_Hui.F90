@@ -263,7 +263,7 @@ contains
 
   double precision function zhangHuiRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time. This method is not implemented.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: variance, varianceProgenitor, &
@@ -278,7 +278,7 @@ contains
 
   double precision function zhangHuiRateNonCrossing(self,variance,time,node)
     !% Return the rate for excursion set non-crossing. This method is not implemented.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, variance

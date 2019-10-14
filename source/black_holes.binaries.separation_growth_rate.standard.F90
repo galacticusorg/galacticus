@@ -113,7 +113,7 @@ contains
     use Galactic_Structure_Rotation_Curve_Gradients
     use Galactic_Structure_Velocity_Dispersions
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self
     class           (nodeComponentBlackHole                     ), intent(inout) :: blackHole

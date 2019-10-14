@@ -45,7 +45,7 @@ contains
 
   function creasey2012ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{creasey_how_2012} star formation feedback in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackDisksCreasey2012    )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters

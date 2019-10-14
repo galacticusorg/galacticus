@@ -44,7 +44,7 @@ contains
     !% Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
     use Galacticus_Nodes, only : defaultFormationTimeComponent
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report      , Galacticus_Component_List
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters

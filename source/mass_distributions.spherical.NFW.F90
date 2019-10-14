@@ -115,7 +115,7 @@ contains
     !% Internal constructor for ``nfw'' mass distribution class.
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (massDistributionNFW)                          :: self
     double precision                     , intent(in   ), optional :: scaleLength         , concentration, &

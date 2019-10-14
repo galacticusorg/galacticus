@@ -115,7 +115,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorAugment)                              :: self
     type            (inputParameters          ), intent(inout)               :: parameters
@@ -479,8 +479,8 @@ contains
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
-    use               Galacticus_Nodes    , only : treeNode, nodeComponentBasic
-    use               Galacticus_Error
+    use               Galacticus_Nodes    , only : treeNode               , nodeComponentBasic
+    use               Galacticus_Error    , only : Galacticus_Error_Report, errorStatusSuccess
     use               String_Handling
     use               Numerical_Comparison
     implicit none
@@ -1149,7 +1149,7 @@ contains
 
   subroutine augmentSortChildren(self,node)
     !% Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     class           (mergerTreeOperatorAugment), intent(in   )          :: self
@@ -1261,7 +1261,7 @@ contains
 
   subroutine augmentExtendNonOverlapNodes(self,nodeNonOverlapFirst,tolerance,treeBest,massCutoffScale,massOvershootScale)
     !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
@@ -1326,7 +1326,7 @@ contains
     !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
     !% returns that information.
     use Galacticus_Nodes, only : treeNode
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Tree_Walkers
     implicit none
     type   (mergerTree                   ), intent(in   ), target  :: tree

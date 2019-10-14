@@ -376,12 +376,12 @@ contains
     
     massEnclosed           =+heatedSelf%darkMatterProfileDMO_    %enclosedMass  (heatedNode,                                 radiusInitial)
     heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%darkMatterProfileDMO_,radiusInitial) &
-         &                  +0.5d0                                                                                                    &
-         &                  *gravitationalConstantGalacticus                                                                          &
-         &                  *massEnclosed                                                                                             &
-         &                  *(                                                                                                        &
-         &                    +1.0d0/heatedRadiusFinal                                                                                &
-         &                    -1.0d0/radiusInitial                                                                                    &
+         &                  +0.5d0                                                                                                          &
+         &                  *gravitationalConstantGalacticus                                                                                &
+         &                  *massEnclosed                                                                                                   &
+         &                  *(                                                                                                              &
+         &                    +1.0d0/heatedRadiusFinal                                                                                      &
+         &                    -1.0d0/radiusInitial                                                                                          &
          &                   )
     return
   end function heatedRadiusInitialRoot

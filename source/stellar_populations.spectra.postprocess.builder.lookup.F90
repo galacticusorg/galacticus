@@ -44,7 +44,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class which takes a
     !% parameter list as input.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (inputParameters                                   ), intent(inout)               :: parameters
@@ -77,7 +77,7 @@ contains
   
   function lookupConstructorInternal(names,postprocessors) result(self)
     !% Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (varying_string                                    ), intent(in   ), dimension(:) :: names
@@ -106,7 +106,7 @@ contains
 
   function lookupBuild(self,descriptor)
     !% Return a stellar population spectra postprocessor by lookup via name.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarPopulationSpectraPostprocessorClass        ), pointer       :: lookupBuild
     class  (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self

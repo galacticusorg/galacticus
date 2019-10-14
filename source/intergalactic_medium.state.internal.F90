@@ -316,7 +316,7 @@ contains
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
     !% Set state in the internal intergalatic medium state class.
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (*), intent(inout)               :: self
     double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &

@@ -40,13 +40,13 @@
      class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class  (virialDensityContrastClass   ), pointer :: virialDensityContrastDefinition_ => null()
-     type   (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type   (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
      integer                                         :: virialDensityContrast                     , fittingFunction
      type   (table1DGeneric               )          :: fitParameters
    contains
-     final     ::                                klypin2015Destructor
-     procedure :: concentration               => klypin2015Concentration
-     procedure :: densityContrastDefinition   => klypin2015DensityContrastDefinition
+     final     ::                                   klypin2015Destructor
+     procedure :: concentration                  => klypin2015Concentration
+     procedure :: densityContrastDefinition      => klypin2015DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => klypin2015DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationKlypin2015
   
@@ -104,7 +104,7 @@ contains
   
   function klypin2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -662,14 +662,14 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self

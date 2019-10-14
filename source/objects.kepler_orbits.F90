@@ -496,7 +496,7 @@ contains
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: self
     type (node       ), pointer       :: keplerOrbitDefinition
@@ -832,7 +832,7 @@ contains
 
   double precision function Kepler_Orbits_Theta(orbit)
     !% Return the angle $\theta$ for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -843,7 +843,7 @@ contains
 
   double precision function Kepler_Orbits_Phi(orbit)
     !% Return the angle $\phi$ for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -854,7 +854,7 @@ contains
 
   double precision function Kepler_Orbits_Epsilon(orbit)
     !% Return the angle $\epsilon$ for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -865,7 +865,7 @@ contains
 
   double precision function Kepler_Orbits_Specific_Reduced_Mass(orbit)
     !% Return the specific reduced mass for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -876,7 +876,7 @@ contains
 
   double precision function Kepler_Orbits_Host_Mass(orbit)
     !% Return the host mass for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -887,7 +887,7 @@ contains
 
   double precision function Kepler_Orbits_Radius(orbit)
     !% Return the radius for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -934,7 +934,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Radial(orbit)
     !% Return the radial velocity for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -957,7 +957,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Tangential(orbit)
     !% Return the tangential velocity for this orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1079,7 +1079,7 @@ contains
 
   subroutine Kepler_Orbits_Assert_Is_Defined(orbit)
     !% Assert that an orbit is defined - quit with an error if it is not.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(in   ) :: orbit
 
@@ -1101,7 +1101,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
     !% Return the velocity scale for the orbit.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Physical
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
@@ -1115,7 +1115,7 @@ contains
 
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
     !% Propagate an orbit along its path.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Physical
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit

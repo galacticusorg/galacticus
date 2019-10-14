@@ -94,7 +94,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_     , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), pointer       :: haloEnvironment_
 
     parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
@@ -161,7 +161,7 @@ contains
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"                   source="parameters"             />
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"                   source="parameters"             />
-    !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"                     source="parameters"             />
+    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"                  source="parameters"             />
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
     self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
@@ -172,7 +172,7 @@ contains
     !# <objectDestructor name="criticalOverdensity_"                  />
     !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
     !# <objectDestructor name="darkMatterHaloScale_"                  />
-    !# <objectDestructor name="darkMatterProfileDMO_"                    />
+    !# <objectDestructor name="darkMatterProfileDMO_"                 />
     !# <objectDestructor name="haloEnvironment_"                      />
     return
   end function haloMassFunctionConstructorParameters
@@ -180,7 +180,7 @@ contains
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     use IO_HDF5
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Memory_Management
     use Galacticus_Display
     implicit none
@@ -195,7 +195,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), intent(in   ), target         :: cosmologicalMassVariance_     , cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), intent(in   ), target         :: criticalOverdensity_          , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target         :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                   ), intent(in   ), target         :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), intent(in   ), target         :: haloEnvironment_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                          , &
          &                                                                                        massFunctionOriginal
@@ -322,7 +322,7 @@ contains
     use Posterior_Sampling_State
     use Models_Likelihoods_Constants
     use Posterior_Sampling_Convergence
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Halo_Mass_Functions
     use Statistics_NBody_Halo_Mass_Errors
     implicit none
@@ -443,10 +443,10 @@ contains
        allocate(nbodyHaloMassErrorSOHaloFinder :: nbodyHaloMassError_)
        select type (nbodyHaloMassError_)
        type is (nbodyHaloMassErrorSOHaloFinder)
-          nbodyHaloMassError_=nbodyHaloMassErrorSOHaloFinder(                           &
-               &                                             self%darkMatterHaloScale_, &
-               &                                             self%darkMatterProfileDMO_  , &
-               &                                             self%massParticle          &
+          nbodyHaloMassError_=nbodyHaloMassErrorSOHaloFinder(                            &
+               &                                             self%darkMatterHaloScale_ , &
+               &                                             self%darkMatterProfileDMO_, &
+               &                                             self%massParticle           &
                &                                            )
        end select
        allocate(haloMassFunctionErrorConvolved :: haloMassFunctionConvolved_)

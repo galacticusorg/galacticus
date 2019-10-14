@@ -381,7 +381,7 @@ contains
      use               Galacticus_Nodes                , only : universeEvent, mergerTree, nodeComponentBasic, mergerTreeList
      use               Galacticus_Display
      use               Galactic_Structure_Options
-     use               Galacticus_Error
+     use               Galacticus_Error, only : Galacticus_Error_Report
      use               Arrays_Search
      use               FODEIV2
      use               ODEIV2_Solver

@@ -135,7 +135,7 @@ contains
     use               Memory_Management
     use               Stellar_Luminosities_Structure
     use               IO_HDF5
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               String_Handling               , only : String_Join
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLine)                                        :: self

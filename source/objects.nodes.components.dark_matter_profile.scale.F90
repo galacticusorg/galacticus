@@ -242,7 +242,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Tree_Walkers
     use Galacticus_Nodes   , only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic, defaultDarkMatterProfileComponent
     implicit none
@@ -308,7 +308,7 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node

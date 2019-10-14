@@ -117,7 +117,7 @@ contains
     !% Internal constructor for the isothermal cooling radius class.
     use Galacticus_Nodes              , only : defaultHotHaloComponent
     use ISO_Varying_String
-    use Galacticus_Error
+    use Galacticus_Error              , only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     use String_Handling
     use Abundances_Structure

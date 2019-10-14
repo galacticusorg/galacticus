@@ -354,7 +354,7 @@ contains
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
     use Table_Labels
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (accretionDisksADAF)                          :: self
     integer                             , intent(in   )           :: energyOption                     , fieldEnhancementOption            , &
@@ -494,7 +494,7 @@ contains
   
   double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass)
     !% Computes the radiative efficiency for an ADAF.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
@@ -1253,7 +1253,7 @@ contains
 
   double precision function adafAdiabaticIndexDefault(fieldEnhancementOption)
     !% Returns the default adiabatic index in an ADAF give the field enhancement option.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: fieldEnhancementOption
 

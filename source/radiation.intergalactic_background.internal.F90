@@ -348,7 +348,7 @@ contains
   subroutine intergalacticBackgroundInternalUniversePreEvolve(self,universe_)
     !% Attach an initial event to the universe to cause the background radiation update function to be called.
     use Galacticus_Nodes, only : universe, universeEvent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*                                   ), intent(inout), target :: self
     type (universe                            ), intent(inout)         :: universe_

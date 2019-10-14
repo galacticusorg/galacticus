@@ -88,7 +88,7 @@ contains
        &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use String_Handling
     use Numerical_Integration2
@@ -298,7 +298,7 @@ contains
     
     subroutine latentIntegrator(x)
       !% Wrapper function which performs integration of latent variables.
-      use Galacticus_Error
+      use Galacticus_Error  , only : Galacticus_Error_Report, errorStatusSuccess
       use Galacticus_Display
       implicit none
       double precision, intent(in   )     :: x

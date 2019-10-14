@@ -90,7 +90,7 @@ contains
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
     use Numerical_Constants_Physical
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     use Galacticus_Display
     use Galactic_Structure_Options

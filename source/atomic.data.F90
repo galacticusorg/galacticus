@@ -155,7 +155,7 @@ contains
     !% Ensure that the module is initialized by reading in data.
     use FoX_dom
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     use Galacticus_Paths
     use ISO_Varying_String
@@ -277,7 +277,7 @@ contains
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
     !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer          , intent(in   ), optional :: atomicNumber
     character(len=* ), intent(in   ), optional :: name         , shortLabel
@@ -323,7 +323,7 @@ contains
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
     !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     use String_Handling
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer           , intent(in   ), optional :: abundanceIndex
     character(len=*  ), intent(in   ), optional :: abundanceName

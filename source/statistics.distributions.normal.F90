@@ -127,7 +127,7 @@ contains
 
   double precision function normalMinimum(self)
     !% Return the minimum possible value of a uniform distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -142,7 +142,7 @@ contains
 
   double precision function normalMaximum(self)
     !% Return the maximum possible value of a uniform distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -214,7 +214,7 @@ contains
 
   double precision function normalInverse(self,p)
     !% Return the inverse of a normal distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DNormal), intent(inout), target :: self
     double precision                              , intent(in   )         :: p
@@ -241,7 +241,7 @@ contains
     !% Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John
     !% Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the alogorithm of
     !% \cite{wichura_percentage_1988}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   )                :: p
     double precision, parameter    , dimension (8) :: a=[                            &

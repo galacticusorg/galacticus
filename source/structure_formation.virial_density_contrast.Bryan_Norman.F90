@@ -74,7 +74,7 @@ contains
   
   function bryanNorman1998ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     type (virialDensityContrastBryanNorman1998)                        :: self
@@ -105,7 +105,7 @@ contains
   
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
@@ -131,7 +131,7 @@ contains
 
   double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none

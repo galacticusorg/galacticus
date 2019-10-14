@@ -80,11 +80,11 @@ module Node_Component_Hot_Halo_Cold_Mode
   !# </component>
   
   ! Objects used by this component.
-  class(accretionHaloClass      ), pointer :: accretionHalo_
-  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_
-  class(coldModeInfallRateClass ), pointer :: coldModeInfallRate_
-  class(cosmologyParametersClass), pointer :: cosmologyParameters_
+  class(accretionHaloClass       ), pointer :: accretionHalo_
+  class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  class(coldModeInfallRateClass  ), pointer :: coldModeInfallRate_
+  class(cosmologyParametersClass ), pointer :: cosmologyParameters_
   !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfileDMO_,coldModeInfallRate_,cosmologyParameters_)
 
   ! Options controlling the behavior of the cold mode gas.
@@ -144,7 +144,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="globalParameters_"/>
        !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="globalParameters_"/>
        !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="globalParameters_"/>
        !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="globalParameters_"/>
@@ -164,7 +164,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectDestructor name="cosmologyParameters_"     />
        !# <objectDestructor name="darkMatterHaloScale_"     />
-       !# <objectDestructor name="darkMatterProfileDMO_"       />
+       !# <objectDestructor name="darkMatterProfileDMO_"    />
        !# <objectDestructor name="accretionHalo_"           />
        !# <objectDestructor name="coldModeInfallRate_"      />
        !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>
@@ -174,7 +174,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
     use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode, interruptTask
@@ -324,7 +324,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Outflow_Return(self,interrupt,interruptProcedure)
     !% Return outflowed gas to the cold mode reservoir.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Numerical_Constants_Atomic
     use Numerical_Constants_Math

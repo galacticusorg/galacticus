@@ -115,7 +115,7 @@ contains
 
   subroutine analyzerReduce(self,reduced)
     !% Reduce over the outputter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterAnalyzer), intent(inout) :: self
     class(mergerTreeOutputterClass   ), intent(inout) :: reduced

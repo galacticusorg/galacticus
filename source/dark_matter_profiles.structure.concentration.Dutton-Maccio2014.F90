@@ -158,7 +158,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     character(len=*                                         ), intent(in   )         :: fitType
@@ -204,7 +204,7 @@ contains
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     !% parameters.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     double precision                                                , intent(in   )         :: a1                  , a2, &

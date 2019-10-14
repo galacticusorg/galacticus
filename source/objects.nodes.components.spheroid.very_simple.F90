@@ -127,7 +127,7 @@ module Node_Component_Spheroid_Very_Simple
   class(stellarPopulationPropertiesClass    ), pointer :: stellarPopulationProperties_
   class(starFormationFeedbackSpheroidsClass ), pointer :: starFormationFeedbackSpheroids_
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_
+  class(darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_
   class(starFormationTimescaleSpheroidsClass), pointer :: starFormationTimescaleSpheroids_
   !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfileDMO_)
  
@@ -218,7 +218,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"               source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="globalParameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="globalParameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="globalParameters_"/>
        !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="globalParameters_"/>
@@ -236,7 +236,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"            />
-       !# <objectDestructor name="darkMatterProfileDMO_"              />
+       !# <objectDestructor name="darkMatterProfileDMO_"           />
        !# <objectDestructor name="stellarPopulationProperties_"    />
        !# <objectDestructor name="starFormationFeedbackSpheroids_" />
        !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
@@ -582,7 +582,7 @@ contains
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Properties
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Histories

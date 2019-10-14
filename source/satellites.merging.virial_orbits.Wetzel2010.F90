@@ -171,7 +171,7 @@ contains
     !% Return wetzel2010 orbital parameters for a satellite.
     use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (keplerOrbit               )                        :: wetzel2010Orbit
     class           (virialOrbitWetzel2010     ), intent(inout), target :: self
@@ -340,7 +340,7 @@ contains
 
   function wetzel2010AngularMomentumVectorMean(self,node,host)
     !% Return the mean of the vector angular momentum.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self

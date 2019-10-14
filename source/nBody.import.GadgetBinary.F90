@@ -127,7 +127,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self

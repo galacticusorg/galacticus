@@ -144,7 +144,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Fields
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen  , temperature
@@ -197,7 +197,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Fields
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen                       , temperature
@@ -267,7 +267,7 @@ contains
 
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} cooling function class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(coolingFunctionSummation), intent(inout) :: self
     class(coolingFunctionClass    ), intent(inout) :: destination

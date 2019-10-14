@@ -80,7 +80,7 @@ contains
   subroutine readXMLRead(self,mass,weight)
     !% Read merger tree masses from file.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use IO_XML
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self

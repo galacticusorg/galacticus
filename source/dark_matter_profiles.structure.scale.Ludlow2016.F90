@@ -92,7 +92,7 @@ contains
   function ludlow2016ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -143,7 +143,7 @@ contains
   
   function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &
@@ -178,7 +178,7 @@ contains
     use Galacticus_Calculations_Resets
     use Numerical_Constants_Math
     use Numerical_Comparison
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Dark_Matter_Profile_Mass_Definitions
     use Merger_Tree_Walkers

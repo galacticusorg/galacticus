@@ -89,7 +89,7 @@ contains
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                        :: self
@@ -146,7 +146,7 @@ contains
   double precision function cosmicEmuValue(self,waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
     use Numerical_Interpolation
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Display
     use Numerical_Comparison
     use System_Command

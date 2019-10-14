@@ -114,7 +114,7 @@ contains
 
   double precision function cauchyInverse(self,p)
     !% Return the inverse of a Cauchy distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Constants_Math
     implicit none
     class           (distributionFunction1DCauchy), intent(inout), target :: self

@@ -71,7 +71,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion(node)
     !% Handle node promotion for formation times.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use ISO_Varying_String
     use String_Handling
     implicit none

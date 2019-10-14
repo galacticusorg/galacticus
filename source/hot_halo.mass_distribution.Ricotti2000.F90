@@ -63,7 +63,7 @@ contains
 
   function ricotti2000ConstructorInternal(darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
     use Array_Utilities
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none

@@ -135,7 +135,7 @@ contains
   
   double precision function peakBackgroundMinimum(self)
     !% Return the minimum possible value of a peak-background split distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -147,7 +147,7 @@ contains
 
   double precision function peakBackgroundMaximum(self)
     !% Return the maximum possible value of a peak-background split distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -213,7 +213,7 @@ contains
 
   double precision function peakBackgroundInverse(self,p)
     !% Return the inverse of a normal distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self
     double precision                                      , intent(in   )         :: p

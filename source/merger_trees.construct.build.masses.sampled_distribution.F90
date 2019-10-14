@@ -62,7 +62,7 @@ contains
     !% input.
     use Input_Parameters
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -276,7 +276,7 @@ contains
 
   subroutine sampledDistributionCMF(self,x)
     !% Stub function for cumulative mass function.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
     double precision                                          , intent(  out), dimension(:) :: x

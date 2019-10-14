@@ -181,7 +181,7 @@ contains
 
   function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBuilderCole2000          )                        :: self
     double precision                                     , intent(in   )         :: mergeProbability           , accretionLimit         , &
@@ -217,7 +217,7 @@ contains
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
     use Galacticus_Nodes     , only : treeNode, nodeComponentBasic
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Merger_Tree_Walkers
     use Pseudo_Random
     use Kind_Numbers

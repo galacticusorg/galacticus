@@ -255,7 +255,7 @@ contains
     !% Initialize MPI.
 #ifdef USEMPI
     use Memory_Management
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Hashes
 #endif
     implicit none
@@ -322,7 +322,7 @@ contains
   subroutine mpiFinalize()
     !% Finalize MPI.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer :: iError
     
@@ -824,7 +824,7 @@ contains
 
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
     integer           , intent(in   ), dimension( :          )           :: array
@@ -1300,7 +1300,7 @@ contains
   logical function mpiAnyLogicalScalar(self,boolean,mask)
     !% Return true if any of the given booleans is true over all processes.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1328,7 +1328,7 @@ contains
   logical function mpiAllLogicalScalar(self,boolean,mask)
     !% Return true if all of the given booleans are true over all processes.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1449,7 +1449,7 @@ contains
   function counterConstructor() result(self)
     !% Constructor for MPI counter class.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (mpiCounter      ) :: self
 #ifdef USEMPI
@@ -1494,7 +1494,7 @@ contains
 
   function counterIncrement(self)
     !% Increment an MPI counter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t  )                :: counterIncrement
     class  (mpiCounter), intent(inout) :: self
@@ -1523,7 +1523,7 @@ contains
 
  function counterGet(self)
     !% Return the current value of an MPI counter.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t  )                :: counterGet
     class  (mpiCounter), intent(inout) :: self

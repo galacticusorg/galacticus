@@ -54,7 +54,7 @@ contains
   subroutine Meta_Tree_Timing_Initialize()
     !% Initialize the tree timing meta-data module.
     use Input_Parameters
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 
     ! Check if module is initialized.

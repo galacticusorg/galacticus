@@ -110,7 +110,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
     use FoX_DOM
     use IO_XML
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Paths
     use Table_Labels
     use ISO_Varying_String

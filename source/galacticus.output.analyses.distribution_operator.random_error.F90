@@ -83,7 +83,7 @@ contains
 
   function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution

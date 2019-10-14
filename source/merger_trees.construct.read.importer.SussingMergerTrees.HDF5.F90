@@ -97,7 +97,7 @@ contains
     use Numerical_Comparison
     use Numerical_Constants_Astronomical
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use String_Handling
     use File_Utilities
     use Memory_Management
@@ -211,7 +211,7 @@ contains
     !% Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Display
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Kind_Numbers
     use String_Handling
     use Sort
@@ -455,8 +455,7 @@ contains
 
     function decodeUnits(unitString)
       !% Decode a textual unit definition and construct an importer units object from it.
-      use Galacticus_Display
-      use Galacticus_Error
+      use Galacticus_Error  , only : Galacticus_Error_Report, Galacticus_Warn
       implicit none
       type     (importerUnits)                :: decodeUnits
       character(len=*        ), intent(in   ) :: unitString

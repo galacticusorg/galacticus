@@ -119,7 +119,7 @@ contains
 
   subroutine fileReadData(self)
     !% Read in data describing the state of the intergalactic medium.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use IO_HDF5
     use File_Utilities
     use Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeAbort

@@ -59,7 +59,7 @@ contains
   
   function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     implicit none
     type (virialDensityContrastKitayamaSuto1996)                        :: self

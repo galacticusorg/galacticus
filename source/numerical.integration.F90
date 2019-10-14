@@ -47,8 +47,8 @@ contains
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
     !% Integrates the supplied {\normalfont \ttfamily integrand} function.
-    use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t               , c_ptr
     implicit none
     double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit
     procedure       (integrandTemplate         )                                     :: integrand

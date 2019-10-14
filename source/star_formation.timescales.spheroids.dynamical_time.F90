@@ -83,7 +83,7 @@ contains
 
   function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
     !% Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report , Galacticus_Component_List
     use Array_Utilities
     use Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none

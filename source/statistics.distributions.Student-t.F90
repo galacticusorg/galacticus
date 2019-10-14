@@ -95,7 +95,7 @@ contains
 
   double precision function studentTInverse(self,p)
     !% Return the cumulative probability of a Student-t distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use FGSL            , only : FGSL_CDF_tDist_Pinv
     implicit none
     class           (distributionFunction1DStudentT), intent(inout), target :: self

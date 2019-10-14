@@ -130,7 +130,7 @@ contains
 
   double precision function uniformInverse(self,p)
     !% Return the inverse of a uniform distribution.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DUniform), intent(inout), target :: self
     double precision                               , intent(in   )         :: p

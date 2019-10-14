@@ -565,7 +565,7 @@ contains
     !% \end{itemize}
     !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner. The ionization state
     !% passed to this function should be that of the atom/ion post recombination.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none    
     class           (atomicRecombinationRateRadiativeVerner1996), intent(inout)           :: self
     integer                                                     , intent(in   )           :: atomicNumber     , ionizationState

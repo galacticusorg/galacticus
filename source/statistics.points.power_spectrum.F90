@@ -34,7 +34,7 @@ contains
     use               Meshes
     use               Numerical_Ranges
     use               Galacticus_Display
-    use               Galacticus_Error
+    use               Galacticus_Error, only : Galacticus_Error_Report
     use               FFTW3
     use               ISO_Varying_String
     use               String_Handling

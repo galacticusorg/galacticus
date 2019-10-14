@@ -86,7 +86,7 @@ contains
     use Output_Times
     use Output_Analyses_Options
     use Output_Analysis_Utilities
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Statistics_NBody_Halo_Mass_Errors
     use Cosmology_Parameters
     use Cosmology_Functions

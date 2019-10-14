@@ -527,7 +527,7 @@ contains
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     use FoX_DOM
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout)          :: self
     type   (node               ), intent(in   ), pointer :: stellarLuminositiesDefinition
@@ -654,7 +654,7 @@ contains
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
     !% Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: index
@@ -873,7 +873,7 @@ contains
 
   function Stellar_Luminosities_Name(index)
     !% Return a name for the specified entry in the stellar luminosities structure.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Stellar_Luminosities_Name
     integer                , intent(in   ) :: index
@@ -1056,7 +1056,7 @@ contains
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
     !% Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         , intent(in   )           :: luminosityIndex
     double precision, intent(in   )           :: time
@@ -1130,7 +1130,7 @@ contains
 
   integer function Stellar_Luminosities_Index_From_Name(name)
     !% Return the index of and specified entry in the luminosity list given its name.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
@@ -1149,7 +1149,7 @@ contains
 
   integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
     !% Return the index of and specified entry in the luminosity list given its properties.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Numerical_Comparison
     use ISO_Varying_String
     use String_Handling

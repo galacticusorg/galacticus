@@ -34,7 +34,7 @@ contains
     use Kind_Numbers
     use Galacticus_Display
     use Vectors
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , intent(in   ), dimension(:,:), target      :: dataPosition                    , randomPosition
     double precision                  , intent(in   )                              :: separationMinimum               , separationMaximum

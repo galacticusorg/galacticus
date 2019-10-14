@@ -153,7 +153,7 @@ contains
 
   subroutine multiReduce(self,reduced)
     !% Reduce over the analysis.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: reduced
@@ -176,7 +176,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} analysis class.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: destination

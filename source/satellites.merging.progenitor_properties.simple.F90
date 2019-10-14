@@ -44,7 +44,7 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
     use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     use Array_Utilities
     use Input_Parameters
     implicit none
@@ -121,7 +121,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerProgenitorPropertiesSimple), intent(inout)         :: self
     type            (treeNode                        ), intent(inout), target :: nodeSatellite            , nodeHost

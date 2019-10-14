@@ -109,7 +109,7 @@ logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior
   !% Return whether or not to accept a proposal.
   use Pseudo_Random
   use MPI_Utilities
-  use Galacticus_Error
+  use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
   double precision                                                 , intent(in   ) :: logPosterior                , logPosteriorProposed         , &

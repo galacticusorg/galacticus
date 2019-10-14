@@ -88,7 +88,7 @@ contains
 
   double precision function pressSchechterDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout)           :: self
     double precision                                , intent(in   )           :: time , mass    
