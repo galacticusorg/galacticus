@@ -110,7 +110,11 @@ contains
     call Galacticus_Display_Indent(message)
     open(newUnit=fileUnit,file=fileName,status='old',form='formatted')
     ! Retrieve count of number of polygons.
-    read (fileUnit,*) self%polygonCount
+    self%polygonCount=-1
+    do while (self%polygonCount < 0)
+       read (fileUnit,'(a)') line
+       if (line(1:1) /= "#") read (line,*) self%polygonCount
+    end do
     message='found '
     message=message//self%polygonCount//' polygons'
     call Galacticus_Display_Message(message)
@@ -215,6 +219,7 @@ contains
     ! Ensure that we have the mangle source.
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
+       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"mangle")
        call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle; git clone https://github.com/mollyswanson/mangle.git",iStatus)
        if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
             & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
