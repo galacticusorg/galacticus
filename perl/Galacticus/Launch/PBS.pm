@@ -370,8 +370,9 @@ sub SubmitJobs {
 		    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
-		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";
-		print $scriptFile $newJob->{'command'}."\n";
+		my $mpi = exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes";
+		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
+		print $scriptFile ($mpi ? "mpirun -np ".($nodes*$ppn)." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
