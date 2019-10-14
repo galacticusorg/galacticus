@@ -406,7 +406,7 @@ contains
              galaxyPopulationEvaluate=logImprobable
           end if
        else
-          ! Forst evolution was successful - evaluate the likelihood.
+          ! Forest evolution was successful - evaluate the likelihood.
           ! Extract the log-likelihood. This is evaluated by all chains (as they likely need to perform reduction across MPI
           ! processes), but only stored for the chain of this rank.
           logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
