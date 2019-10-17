@@ -700,7 +700,6 @@ contains
                    self               %functionCovariance     (i,i)=                       &
                         &         self%functionCovariance     (i,i)                        &
                         & +(1.0d0-self%weightMainBranch       (i,m)/weightMainBranchTotal) &
-                        & +       self%weightMainBranch       (i,m)/weightMainBranchTotal  &
                         & *       self%weightSquaredMainBranch(i,m)
                 else
                    ! Special case - only one halo mass bin contributed to this bin of the volume function. We revert to Poisson
@@ -711,13 +710,13 @@ contains
                 end if
                 do j=1,self%binCount
                    if (i == j) cycle
-                   self               %functionCovariance     (i,j)=                       &
-                        &  +      self%functionCovariance     (i,j)                        &
-                        &  -      self%weightMainBranch       (i,m)/weightMainBranchTotal  &
-                        &  *      self%weightMainBranch       (j,m)/weightMainBranchTotal  &
-                        &  *sqrt(                                                          &
-                        &         self%weightSquaredMainBranch(i,m)                        &
-                        &        *self%weightSquaredMainBranch(j,m)                        &
+                   self               %functionCovariance     (i,j)= &
+                        &  +      self%functionCovariance     (i,j)  &
+                        &  -      self%weightMainBranch       (i,m)  &
+                        &  *      self%weightMainBranch       (j,m)  &
+                        &  *sqrt(                                    &
+                        &         self%weightSquaredMainBranch(i,m)  &
+                        &        *self%weightSquaredMainBranch(j,m)  &
                         &       )
                 end do
              end do
