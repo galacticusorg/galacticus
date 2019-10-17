@@ -51,17 +51,19 @@ contains
     return
   end function farahiMidpointConstructorParameters
 
-  function farahiMidpointConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
+    integer                                                  , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
+         &                                                                              timeNumberPerDecade             , varianceNumberPerDecade 
     type            (varying_string                         ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass               ), intent(in   ), target :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
 
-    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     return
   end function farahiMidpointConstructorInternal
 
@@ -134,15 +136,15 @@ contains
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
+       self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
        if (self%tableInitialized) then
-          self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)))
-          self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)))
+          self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
+          self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
        else
-          self%timeMinimum=                     time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
-          self%timeMaximum=                     time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
+          self%timeMinimum=                     time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+          self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
        end if
-       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
+       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
        call allocateArray(self%timeTable                    ,[                          self%timeTableCount]                  )
        call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount,self%timeTableCount],lowerBounds=[0,1])
@@ -435,22 +437,22 @@ contains
        countNewUpper=0
        if (self%tableInitializedRate) then
           varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
-          timeMinimumRate=min(time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)),self%timeMinimumRate)
-          timeMaximumRate=max(time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade)),self%timeMaximumRate)
+          timeMinimumRate=min(time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMinimumRate)
+          timeMaximumRate=max(time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMaximumRate)
           ! Determine how many points the table must be extended by in each direction to span the new required range.
-          if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
-          if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
+          if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(self%timeNumberPerDecade)+1.0d0)
+          if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(self%timeNumberPerDecade)+1.0d0)
           self%timeTableCountRate=self%timeTableCountRate+countNewLower+countNewUpper
           ! Adjust the limits of the table by an integer number of steps.
-          self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(farahiTimeNumberPerDecade))
-          self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(farahiTimeNumberPerDecade))
+          self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(self%timeNumberPerDecade))
+          self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(self%timeNumberPerDecade))
        else
           varianceMaximumChanged =.true.
-          self%timeMinimumRate   =time/10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
-          self%timeMaximumRate   =time*10.0d0**(2.0d0/dble(farahiTimeNumberPerDecade))
-          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+2,2)
+          self%timeMinimumRate   =time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+          self%timeMaximumRate   =time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+2,2)
           ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
-          self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%timeTableCountRate-1)/dble(farahiTimeNumberPerDecade))
+          self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%timeTableCountRate-1)/dble(self%timeNumberPerDecade))
        end if
        ! Set the default minimum variance.
        varianceMinimumRate       =varianceMinimumDefault
@@ -476,8 +478,8 @@ contains
        !# <objectDestructor name="excursionSetBarrier_"     />
        !# <objectDestructor name="cosmologicalMassVariance_"/>
        self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
-       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(farahiVarianceNumberPerDecade))+1
-       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(farahiVarianceNumberPerUnit))
+       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
+       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
        ! Store copies of the current tables if these will be used later.
        if (.not.varianceMaximumChanged) then
           call move_alloc(self%firstCrossingTableRate,firstCrossingTableRate)
@@ -714,9 +716,11 @@ contains
           end do
           !$omp end do
           ! Divide through by the time step to get the rate of barrier crossing.
+          !$omp single
           self%firstCrossingTableRate(:,:,iTime)=+self%firstCrossingTableRate(:,:,iTime) &
                &                                 /self%timeTableRate         (    iTime) &
-               &                                 /self%timeStepFractional          
+               &                                 /self%timeStepFractional
+          !$omp end single
        end do
        !# <objectDestructor name="excursionSetBarrier_"     />
        !# <objectDestructor name="cosmologicalMassVariance_"/>

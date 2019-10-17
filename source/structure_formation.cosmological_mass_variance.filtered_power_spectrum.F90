@@ -77,7 +77,7 @@
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
      class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null()
      type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_  => null()
-     logical                                                                              :: initialized
+     logical                                                                              :: initialized                                  , nonMonotonicIsFatal
      double precision                                                                     :: tolerance                                    , toleranceTopHat            , &
           &                                                                                  sigma8Value                                  , sigmaNormalization         , &
           &                                                                                  massMinimum                                  , massMaximum                , &
@@ -167,9 +167,9 @@ contains
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
-    double precision                                                         :: sigma8Value                        , tolerance, &
+    double precision                                                         :: sigma8Value                        , tolerance          , &
          &                                                                      toleranceTopHat
-    logical                                                                  :: monotonicInterpolation
+    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal 
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -199,11 +199,19 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>nonMonotonicIsFatal</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true any non-monotonicity in the tabulated $\sigma(M)$ is treated as a fatal error. Otherwise a only a warning is issued.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>monotonicInterpolation</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but because a very weak function of $M$ at low masses.</description>
-    !#   <type>real</type>
+    !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
@@ -212,7 +220,7 @@ contains
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>    
     ! Construct the instance.
-    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"               />
     !# <objectDestructor name="cosmologyFunctions_"                />
@@ -222,21 +230,21 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     use Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     use File_Utilities  , only : Directory_Make, File_Path          , File_Lock_Initialize
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: self
-    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
+    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat       , &
          &                                                                              sigma8
-    logical                                                  , intent(in   )         :: monotonicInterpolation
+    logical                                                  , intent(in   )         :: nonMonotonicIsFatal                , monotonicInterpolation
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
     class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="tolerance, toleranceTopHat, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
+    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
 
     allocate(self%powerSpectrumWindowFunctionTopHat_)
     !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
@@ -465,7 +473,7 @@ contains
           else
              interpolantTime=      hTime
           end if
-       if (interpolantTime == 0.0d0) cycle
+          if (interpolantTime == 0.0d0) cycle
           ! Find the largest mass corresponding to this sigma.
           iBoundLeft =1
           iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
@@ -493,8 +501,8 @@ contains
  
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
-    use Numerical_Constants_Math
-    use Galacticus_Error
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Error        , only : Galacticus_Error_Report   , Galacticus_Warn
     use Numerical_Ranges        , only : Make_Range                , rangeTypeLogarithmic
     use File_Utilities          , only : File_Lock                 , File_Unlock
     use Galacticus_Display      , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
@@ -676,14 +684,23 @@ contains
              end if
           end do
           deallocate(rootVarianceIsUnique)
-          ! Warn if σ(M) has no increase below some mass scale.
+          ! Abort or warn if σ(M) has no increase below some mass scale.
           if (massMinimum > 0.0d0) then
+             if (self%nonMonotonicIsFatal) then
+                message=         ""
+             else
+                message=         "WARNING: "
+             end if
              write (label,'(e12.6)') massMinimum
-             message=         "WARNING: σ(M) is non-increasing below mass M="//label//"M☉"
+             message=         "σ(M) is non-increasing below mass M="//label//"M☉"
              write (label,'(e12.6)') self%times(k)
              message=message//" at time t="//label//"Gyr."//char(10)
-             message=message//"         If problems occur consider not attempting to model structure below this mass scale."
-             call Galacticus_Warn(message)
+             if (self%nonMonotonicIsFatal) then
+                call Galacticus_Error_Report(message//{introspection:location})
+             else
+                message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+                call Galacticus_Warn(message)
+             end if
           end if
        end do
        call Galacticus_Display_Unindent("done",verbosityWorking)
@@ -748,8 +765,7 @@ contains
                  &                  varianceIntegrandTopHat                    , &
                  &                  integrandFunction                          , &
                  &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =+self%tolerance      &
-                 &                                          *integrandLow      , &
+                 &                  toleranceAbsolute      =+0.0d0             , &
                  &                  toleranceRelative      =+self%tolerance    , &
                  &                  integrationRule        = FGSL_Integ_Gauss15  &
                  &                 )
@@ -792,8 +808,7 @@ contains
                  &                  varianceIntegrand                          , &
                  &                  integrandFunction                          , &
                  &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =+self%tolerance      &
-                 &                                          *integrandLow      , &
+                 &                  toleranceAbsolute      =0.0d0              , &
                  &                  toleranceRelative      =+self%tolerance    , &
                  &                  integrationRule        = FGSL_Integ_Gauss15  &
                  &                 )

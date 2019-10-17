@@ -103,6 +103,7 @@ program Tests_Sigma
        &                                                                             sigma8                             =1.0d+0                                   , &
        &                                                                             tolerance                          =1.0d-4                                   , &
        &                                                                             toleranceTopHat                    =1.0d-4                                   , &
+       &                                                                             nonMonotonicIsFatal                =.true.                                   , &
        &                                                                             monotonicInterpolation             =.false.                                  , &
        &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
        &                                                                             cosmologyFunctions_                =cosmologyFunctions_                      , &

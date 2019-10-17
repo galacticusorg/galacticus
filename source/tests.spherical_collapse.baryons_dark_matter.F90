@@ -148,6 +148,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      sigma8                             =1.0d+0                                     , &
           &                                                                                                                      tolerance                          =1.0d-4                                     , &
           &                                                                                                                      toleranceTopHat                    =1.0d-4                                     , &
+       &                                                                                                                         nonMonotonicIsFatal                =.true.                                     , &
           &                                                                                                                      monotonicInterpolation             =.false.                                    , &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersBaryons_                , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &

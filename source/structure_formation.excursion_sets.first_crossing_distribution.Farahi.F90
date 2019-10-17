@@ -64,6 +64,9 @@
      ! File name used to store tabulations.
      type            (varying_string               )                                :: fileName
      logical                                                                        :: useFile
+     ! Tabulation resolutions.
+     integer                                                                        :: varianceNumberPerUnitProbability                  , varianceNumberPerUnit                      , &
+          &                                                                            timeNumberPerDecade                               , varianceNumberPerDecade 
      ! The fractional step in time used to compute barrier crossing rates.
      double precision                                                               :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
@@ -121,15 +124,12 @@
      module procedure farahiConstructorInternal
   end interface excursionSetFirstCrossingFarahi
 
-  ! Parameters controlling tabulation range and granularity.
-  integer                         , parameter :: farahiVarianceNumberPerUnitProbability=1000
-  integer                         , parameter :: farahiTimeNumberPerDecade             =  10    , farahiVarianceNumberPerDecade=400    , &
-       &                                         farahiVarianceNumberPerUnit           =  40
-  double precision                , parameter :: farahiRateRedshiftMaximum             =  30.0d0, farahiRateRedshiftMinimum    =  0.0d0
+  ! Parameters controlling tabulation range
+  double precision                , parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
 
   ! Lock used for file access.
   type            (lockDescriptor)            :: farahiFileLock
-  logical                                     :: farahiFileLockInitialized              =.false.
+  logical                                     :: farahiFileLockInitialized=.false.
 
 contains
 
@@ -143,6 +143,8 @@ contains
     class           (excursionSetBarrierClass       ), pointer       :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
     double precision                                                 :: timeStepFractional
+    integer                                                          :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
+         &                                                              timeNumberPerDecade             , varianceNumberPerDecade 
     type            (varying_string                 )                :: fileName
 
     !# <inputParameter>
@@ -161,10 +163,42 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>varianceNumberPerUnitProbability</name>
+    !#   <defaultValue>1000</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per unit variance for first crossing probabilities.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>varianceNumberPerUnit</name>
+    !#   <defaultValue>40</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per unit variance for first crossing rates.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>varianceNumberPerDecade</name>
+    !#   <defaultValue>400</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per decade of progenitor variance for first crossing rates.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeNumberPerDecade</name>
+    !#   <defaultValue>10</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per decade of time.</description>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="excursionSetBarrier_"     />
@@ -172,16 +206,18 @@ contains
     return
   end function farahiConstructorParameters
 
-  function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function farahiConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
+    integer                                          , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
+         &                                                                      timeNumberPerDecade             , varianceNumberPerDecade 
     type            (varying_string                 ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass       ), intent(in   ), target :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="timeStepFractional, fileName, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="timeStepFractional, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, timeNumberPerDecade, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
 
     self%tableInitialized                  =.false.
     self%interpolationResetTime            =.true.
@@ -311,7 +347,7 @@ contains
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
+       self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
        if (self%tableInitialized) then
           self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
           self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
@@ -319,7 +355,7 @@ contains
           self%timeMinimum=                                                                     0.5d0*time
           self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
        end if
-       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
+       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
        call allocateArray(self%timeTable                    ,[                          self%timeTableCount]                  )
        call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount,self%timeTableCount],lowerBounds=[0,1])
@@ -669,13 +705,13 @@ contains
        if (self%tableInitializedRate) then
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1
+          self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1
        else
           self%timeMinimumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMaximum))
           self%timeMaximumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMinimum))
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1,2)
+          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1,2)
        end if
        ! Set the default minimum variance.
        varianceMinimumRate       =varianceMinimumDefault
@@ -701,8 +737,8 @@ contains
        !# <objectDestructor name="excursionSetBarrier_"     />
        !# <objectDestructor name="cosmologicalMassVariance_"/>
        self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
-       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(farahiVarianceNumberPerDecade))+1
-       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(farahiVarianceNumberPerUnit))
+       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
+       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
        call allocateArray(self%varianceTableRate     ,[1+self%varianceTableCountRate                                                          ],lowerBounds=[0    ])
        call allocateArray(self%varianceTableRateBase ,[                              1+self%varianceTableCountRateBase                        ],lowerBounds=[0    ])
        call allocateArray(self%timeTableRate         ,[                                                                self%timeTableCountRate]                    )

@@ -1522,6 +1522,7 @@
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.817"/>
       <monotonicInterpolation value="false"/>
+      <nonMonotonicIsFatal value="false"/>
       <powerSpectrumWindowFunctionMethod value="sharpKSpace">
 	<normalization value="2.5"/>
       </powerSpectrumWindowFunctionMethod>
