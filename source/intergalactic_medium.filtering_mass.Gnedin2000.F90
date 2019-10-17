@@ -276,9 +276,17 @@ contains
     end if
     if (self%remakeTable(time)) then
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.false.)
+       ! Evaluate a suitable starting time for filtering mass calculations.
+       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                             redshiftMaximumNaozBarkana &
+            &                                                            )                           &
+            &                                                           )
+       ! Abort if time is too early.
+       if (time <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
        ! Find minimum and maximum times to tabulate.
-       self%timeMaximum=max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
-       self%timeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
        ! Decide how many points to tabulate and allocate table arrays.
        self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(gnedin2000TablePointsPerDecade))+1
        ! Create the tables.
@@ -288,34 +296,28 @@ contains
             &                  self%timeMaximum , &
             &                  self%countTimes    &
             &                 )
-       ! Evaluate a suitable starting time for filtering mass calculations.
-       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
-            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
-            &                                                             redshiftMaximumNaozBarkana &
-            &                                                            )                           &
-            &                                                           )
        ! Loop over times and populate tables.
        do iTime=1,self%countTimes
-          ! Abort if time is too early.
-          if (self%table%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
           ! Set the composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
           odeReset   =.true.
           timeCurrent=timeInitial
-          call ODEIV2_Solve(                                                     &
-               &            ode2Driver                                         , &
-               &            ode2System                                         , &
-               &            timeCurrent                                        , &
-               &            self%table%x(iTime)                                , &
-               &            3                                                  , &
-               &            massFiltering                                      , &
-               &            massFilteringODEs                                  , &
-               &            odeToleranceAbsolute                               , &
-               &            odeToleranceRelative                               , &
-               &            yScale                         =massFilteringScales, &
-               &            reset                          =odeReset             &
-               &           )
+          if (self%table%x(iTime) > timeInitial) then
+             call ODEIV2_Solve(                                                     &
+                  &            ode2Driver                                         , &
+                  &            ode2System                                         , &
+                  &            timeCurrent                                        , &
+                  &            self%table%x(iTime)                                , &
+                  &            3                                                  , &
+                  &            massFiltering                                      , &
+                  &            massFilteringODEs                                  , &
+                  &            odeToleranceAbsolute                               , &
+                  &            odeToleranceRelative                               , &
+                  &            yScale                         =massFilteringScales, &
+                  &            reset                          =odeReset             &
+                  &           )
+          end if
           call self%table%populate(massFiltering(3),iTime)
        end do
        ! Specify that tabulation has been made.
