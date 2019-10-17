@@ -127,13 +127,18 @@ contains
     if (present(lockType)) lockType = ""
     mergerTreeEvolveTimestep_ => self%mergerTreeEvolveTimesteps
     do while (associated(mergerTreeEvolveTimestep_))
-       timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report,lockNode_,lockType_)
+       timeEvolveTo=huge(0.0d0)
+       !# <conditionalCall>
+       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report{conditions})</call>
+       !#  <argument name="lockNode" value="lockNode_" condition="present(lockNode)"/>
+       !#  <argument name="lockType" value="lockType_" condition="present(lockType)"/>
+       !# </conditionalCall>
        if (timeEvolveTo < multiTimeEvolveTo) then
-          multiTimeEvolveTo =  timeEvolveTo
-          task              => task_
-          taskSelf          => taskSelf_
-          lockNode          => lockNode_
-          lockType          =  lockType_
+          multiTimeEvolveTo               =  timeEvolveTo
+          task                            => task_
+          taskSelf                        => taskSelf_
+          if (present(lockNode)) lockNode => lockNode_
+          if (present(lockType)) lockType =  lockType_
        end if
        mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
     end do
