@@ -76,6 +76,14 @@ module Node_Component_Merging_Statistics_Standard
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
+  !#     <name>nodeHierarchyLevelDepth</name>
+  !#     <type>integer</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy that could possibly be reached."/>
+  !#     <classDefault>-1.0d0</classDefault>
+  !#   </property>
+  !#   <property>
   !#     <name>massWhenFirstIsolated</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
@@ -258,25 +266,27 @@ contains
     type   (treeNode                      )               , pointer :: nodeHost
     class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
     class  (nodeComponentBasic            )               , pointer :: basic
-    integer                                                         :: nodeHierarchyLevel
+    integer                                                         :: nodeHierarchyLevel, nodeHierarchyLevelDepth
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
     ! Find the initial hierarchy level.
     nodeHierarchyLevel =  0
-    nodeHost       => node
+    nodeHost           => node
     do while (nodeHost%isSatellite())
        nodeHierarchyLevel =  nodeHierarchyLevel       +1
        nodeHost           => nodeHost          %parent
     end do    
+    nodeHierarchyLevelDepth=nodeHierarchyLevel
     ! Create a merger statistics component and initialize it. 
     mergingStatistics => node%mergingStatistics(autoCreate=.true.)
     basic             => node%basic            (                 )
-    call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
-    call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
-    call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
-    call mergingStatistics%    galaxyMajorMergerTimeSet(            -1.0d0)
-    call mergingStatistics%      nodeMajorMergerTimeSet(            -1.0d0)
+    call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel     )
+    call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel     )
+    call mergingStatistics%  nodeHierarchyLevelDepthSet(nodeHierarchyLevelDepth)
+    call mergingStatistics%    massWhenFirstIsolatedSet(           basic%mass())
+    call mergingStatistics%    galaxyMajorMergerTimeSet(                 -1.0d0)
+    call mergingStatistics%      nodeMajorMergerTimeSet(                 -1.0d0)
     call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(node,nodeFormationMassFraction,darkMatterHaloMassAccretionHistory_))
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
@@ -289,8 +299,10 @@ contains
     use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , basic
+    type (treeNode                      ),                pointer :: satelliteNode
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent   , mergingStatistics, &
+         &                                                           mergingStatisticsSatellite
+    class(nodeComponentBasic            )               , pointer :: parentBasicComponent      , basic
     
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -305,12 +317,20 @@ contains
     ! Increment the hierarchy level of the merging node.
     call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     call mergingStatistics%nodeHierarchyLevelSet       (    mergingStatistics%nodeHierarchyLevel       ()+1)
-    call mergingStatistics%nodeHierarchyLevelMaximumSet(                                                                   &
-         &                                                           max(                                                               &
-         &                                                               mergingStatistics%nodeHierarchyLevel       ()   , &
-         &                                                               mergingStatistics%nodeHierarchyLevelMaximum()     &
-         &                                                              )                                                               &
-         &                                                          )
+    call mergingStatistics%nodeHierarchyLevelMaximumSet(                                                      &
+         &                                              max(                                                  &
+         &                                                  mergingStatistics%nodeHierarchyLevel       ()   , &
+         &                                                  mergingStatistics%nodeHierarchyLevelMaximum()     &
+         &                                                 )                                                  &
+         &                                             )
+    call mergingStatistics%nodeHierarchyLevelDepthSet  (    mergingStatistics%nodeHierarchyLevelDepth  ()+1)
+    ! Increment the hierarchy level of the satellite nodes in the merging node.
+    satelliteNode => node%firstSatellite
+    do while (associated(satelliteNode))
+       mergingStatisticsSatellite => satelliteNode%mergingStatistics()
+       call mergingStatisticsSatellite%nodeHierarchyLevelDepthSet(mergingStatisticsSatellite%nodeHierarchyLevelDepth()+1)
+       satelliteNode => satelliteNode%sibling
+    end do
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Merger
 
