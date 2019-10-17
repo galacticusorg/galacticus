@@ -20,7 +20,7 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization, and the Bertschinger mass to define available mass.
 
-  use Dark_Matter_Profiles_DMO
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <accretionHalo name="accretionHaloBertschinger">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.</description>
@@ -42,10 +42,10 @@
   end interface accretionHaloBertschinger
 
 contains
-  
+
   function bertschingerConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionHaloBertschinger)                :: self
     type (inputParameters          ), intent(inout) :: parameters
@@ -55,11 +55,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function bertschingerConstructorParameters
-       
+
   function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
-    use Galacticus_Error
-    use Atomic_Data
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (accretionHaloBertschinger    )                        :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
@@ -91,7 +90,7 @@ contains
     implicit none
     class(accretionHaloBertschinger), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node
-    
+
     bertschingerVelocityScale=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
     return
   end function bertschingerVelocityScale

@@ -19,10 +19,10 @@
 
   !% Implements a class for ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
 
-  use Dark_Matter_Halo_Scales
-  use Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass, hotHaloRamPressureForce
-  use Hot_Halo_Mass_Distributions
-  use Kind_Numbers
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForce     , hotHaloRamPressureForceClass
+  use :: Kind_Numbers                , only : kind_int8
 
   !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
   !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
@@ -54,10 +54,10 @@
   !$omp threadprivate(font2008Self,font2008Node,font2008ForceRamPressure)
 
 contains
-  
+
   function font2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloRamPressureStrippingFont2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -88,7 +88,6 @@ contains
 
   function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
-    use Input_Parameters
     implicit none
     type            (hotHaloRamPressureStrippingFont2008)                        :: self
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
@@ -113,9 +112,9 @@ contains
 
   double precision function font2008RadiusStripped(self,node)
     !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
-    use Root_Finder
-    use Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
-    use Galacticus_Display, only : Galacticus_Display_Message, verbositySilent
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbositySilent
+    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -128,7 +127,7 @@ contains
     integer                                                                      :: status
     type            (varying_string                     )                        :: message
     character       (len=16                             )                        :: label
- 
+
     ! Get the virial radius of the satellite.
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     ! Test whether node is a satellite.
@@ -180,7 +179,7 @@ contains
                 self%uniqueIDLast=node%uniqueID()
              end if
              font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
-             if (status /= errorStatusSuccess) then                
+             if (status /= errorStatusSuccess) then
                 message='virial radius / root function at virial radius = '
                 write (label,'(e12.6)') radiusVirial
                 message=message//trim(adjustl(label))
@@ -211,9 +210,9 @@ contains
 
   double precision function font2008RadiusSolver(radius)
     !% Root function used in finding the ram pressure stripping radius.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: massEnclosed  , forceBindingGravitational, &

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger mass movements class which uses a simple calculation.
-  
+
   !# <mergerMassMovements name="mergerMassMovementsVerySimple">
   !#  <description>A merger mass movements class which uses a simple calculation.</description>
   !# </mergerMassMovements>
@@ -40,7 +40,7 @@ contains
 
   function verySimpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily verySimple} merger mass movements class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -65,14 +65,14 @@ contains
     type            (mergerMassMovementsVerySimple)                :: self
     double precision                               , intent(in   ) :: massRatioMajorMerger
     !# <constructorAssign variables="massRatioMajorMerger"/>
-    
+
     return
   end function verySimpleConstructorInternal
 
   subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a very simple algorithm.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none
     class           (mergerMassMovementsVerySimple), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -89,7 +89,7 @@ contains
     else
        nodeHost      => node%mergesWith()
        massSatellite =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
-       massHost      =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)    
+       massHost      =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)
        mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
     end if
     destinationGasSatellite  =destinationMergerDisk

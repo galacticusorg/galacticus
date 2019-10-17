@@ -64,8 +64,8 @@ contains
 
   function localGroupMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the ``localGroupMassFunction'' output analysis class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter  , inputParameters
-    use Output_Times    , only : outputTimesClass, outputTimes
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Output_Times    , only : outputTimes   , outputTimesClass
     implicit none
     type            (outputAnalysisLocalGroupMassFunction)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
@@ -168,21 +168,23 @@ contains
 
   function localGroupMassFunctionConstructorInternal(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
-    use Node_Property_Extractors    , only : nodePropertyExtractorMassStellar
-    use Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorLog10                , outputAnalysisPropertyOperatorAntiLog10       , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorSequence      , &
-         &                                               propertyOperatorList
-    use Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
-    use Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
-    use Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
-    use Galactic_Filters                        , only : galacticFilterHaloIsolated                         , galacticFilterHaloNotIsolated                 , galacticFilterHostMassRange                    , galacticFilterAll                           , &
-         &                                               filterList                                         , galacticFilterSurveyGeometry
-    use Geometry_Surveys                        , only : surveyGeometryLocalGroupClassical
-    use Output_Times                            , only : outputTimesClass
-    use Numerical_Ranges                        , only : Make_Range                                         , rangeTypeLinear
-    use Numerical_Comparison                    , only : Values_Agree
-    use Numerical_Constants_Astronomical        , only : massSolar
-    use Interface_Local_Group_DB                , only : localGroupDB                                       , comparisonEquals                              , comparisonLessThan                             , setOperatorUnion                            , &
-         &                                               setOperatorIntersection                            , setOperatorRelativeComplement
+    use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
+          &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry
+    use :: Geometry_Surveys                        , only : surveyGeometryCombined                             , surveyGeometryList                 , surveyGeometryLocalGroupClassical     , surveyGeometryLocalGroupDES                    , &
+          &                                                 surveyGeometryLocalGroupSDSS
+    use :: Interface_Local_Group_DB                , only : comparisonEquals                                   , comparisonLessThan                 , localGroupDB                          , setOperatorIntersection                        , &
+          &                                                 setOperatorRelativeComplement                      , setOperatorUnion
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar
+    use :: Numerical_Comparison                    , only : Values_Agree
+    use :: Numerical_Constants_Astronomical        , only : massSolar
+    use :: Numerical_Ranges                        , only : Make_Range                                         , rangeTypeLinear
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
+          &                                                 propertyOperatorList
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisLocalGroupMassFunction               )                                :: self
     integer                                                              , intent(in   )                 :: covarianceBinomialBinsPerDecade
@@ -224,7 +226,7 @@ contains
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
     !# <constructorAssign variables="negativeBinomialScatterFractional"/>
-    
+
     ! Initialize.
     self%finalized=.false.
     ! Compute failure count for the negative binomial distribution used in likelihood calculations.
@@ -251,7 +253,7 @@ contains
     do i=1,size(massesTarget)
        j=int((massesTarget(i)-log10(massSatelliteMinimum))/(massesSatellites(2)-massesSatellites(1))+0.5d0,kind=c_size_t)+1_c_size_t
        if (j > 0 .and. j <= binCountSatellites) self%massFunctionTarget(j)=self%massFunctionTarget(j)+1.0d0
-    end do    
+    end do
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
     !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
@@ -442,7 +444,7 @@ contains
     nullify(surveyGeometryList_)
     return
   end function localGroupMassFunctionConstructorInternal
-  
+
   subroutine localGroupMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily localGroupMassFunction} output analysis class.
     implicit none
@@ -452,7 +454,7 @@ contains
     !# <objectDestructor name="self%volumeFunctionCentrals"  />
     return
   end subroutine localGroupMassFunctionDestructor
-  
+
   subroutine localGroupMassFunctionAnalyze(self,node,iOutput)
     !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis.
     implicit none
@@ -468,7 +470,7 @@ contains
 
   subroutine localGroupMassFunctionReduce(self,reduced)
     !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis reduction.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
     class(outputAnalysisClass                 ), intent(inout) :: reduced
@@ -514,12 +516,12 @@ contains
     end do
     return
   end subroutine localGroupMassFunctionFinalizeAnalysis
-  
+
   subroutine localGroupMassFunctionFinalize(self)
     !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis finalization.
-    use IO_HDF5                         , only : hdf5Object
-    use Galacticus_HDF5                 , only : galacticusOutputFile, hdf5Access
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
     type (hdf5Object                          )                :: analysesGroup, analysisGroup, &
@@ -545,7 +547,7 @@ contains
     call dataset      %writeAttribute('M☉'                               ,'units'                                                                                        )
     call dataset      %writeAttribute(massSolar                          ,'unitsInSI'                                                                                    )
     call dataset      %close         (                                                                                                                                   )
-    call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    ) 
+    call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    )
     call analysisGroup%writeDataset  (self%covariance                    ,'massFunctionCovariance','Satellite number per bin [model; covariance]'                        )
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )
     call analysisGroup%writeAttribute(self%logLikelihood     ()          ,'logLikelihood'                                                                                )
@@ -561,13 +563,13 @@ contains
     !% distribution as was found for dark matter subhalos \citep[][see also
     !% \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     !% tree realizations, although it in principal could be model-dependent.
-    use Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
+    use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
     class           (outputAnalysisLocalGroupMassFunction          ), intent(inout) :: self
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: distribution
     integer                                                                         :: i
     double precision                                                                :: negativeBinomialProbabilitySuccess
-    
+
     call self%finalizeAnalysis()
     localGroupMassFunctionLogLikelihood=0.0d0
     do i=1,size(self%masses)

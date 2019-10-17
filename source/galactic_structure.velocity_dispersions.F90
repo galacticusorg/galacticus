@@ -24,7 +24,7 @@
 
 module Galactic_Structure_Velocity_Dispersions
   !% Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galactic_Structure_Velocity_Dispersion
@@ -37,11 +37,11 @@ contains
 
   double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
-    use FGSL                              , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
-    use Galactic_Structure_Options
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Enclosed_Masses
+    use :: FGSL                              , only : fgsl_function                   , fgsl_integration_workspace
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : radiusLarge
+    use :: Numerical_Integration             , only : Integrate                       , Integrate_Done
     type            (treeNode                  ), intent(inout), target   :: thisNode
     double precision                            , intent(in   )           :: radius              , radiusOuter
     integer                                     , intent(in   )           :: componentType       , massType
@@ -77,9 +77,9 @@ contains
 
   double precision function Velocity_Dispersion_Integrand(radius)
     !% Integrand function used for finding velocity dispersions using Jeans equation.
-    use Numerical_Constants_Physical
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Enclosed_Masses
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 

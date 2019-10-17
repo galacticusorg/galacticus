@@ -42,8 +42,7 @@ contains
 
   subroutine FFTLog(r,k,f,ft,mu,direction)
     !% Perform a discrete FFT on logarithmically spaced data.
-    use Galacticus_Error
-    use Numerical_Constants_Math
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ), dimension(:                          ) :: r, f
     double precision, intent(inout), dimension(:                          ) :: k
@@ -56,7 +55,7 @@ contains
     double precision                                                        :: deltaLogR , krCentral, kCentralLogarithmic, iCentral, rCentralLogarithmic, normalization
     integer                                                                 :: i
     logical                                                                 :: errorCode
-    
+
     ! Compute point separation.
     deltaLogR=log(r(size(r))/r(1))/dble(size(r))
     ! Compute central points.

@@ -43,12 +43,12 @@ contains
 
   function nodeMajorMergerRecentConstructorParameters(parameters) result(self)
     !% Constructor for the ``nodeMajorMergerRecent'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterNodeMajorMergerRecent)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     double precision                                                     :: timeRecent
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>timeRecent</name>
@@ -74,7 +74,7 @@ contains
 
   logical function nodeMajorMergerRecentPasses(self,node)
     !% Implement a low-pass filter for time since the last major node merger.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class(galacticFilterNodeMajorMergerRecent), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node

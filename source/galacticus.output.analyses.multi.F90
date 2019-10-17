@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger trees analysis class which combines multiple other analyses.
-  
+
   type, public :: multiAnalysisList
      class(outputAnalysisClass), pointer :: analysis_
      type (multiAnalysisList  ), pointer :: next      => null()
   end type multiAnalysisList
-  
+
   !# <outputAnalysis name="outputAnalysisMulti">
   !#  <description>A merger tree analysis class which combines multiple other analyses.</description>
   !# </outputAnalysis>
@@ -50,7 +50,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multi} merger tree analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisMulti)                :: self
     type   (inputParameters    ), intent(inout) :: parameters
@@ -71,7 +71,7 @@ contains
     end do
     return
   end function multiConstructorParameters
-  
+
   function multiConstructorInternal(analyses) result(self)
     !% Internal constructor for the {\normalfont \ttfamily multi} analysis class.
     implicit none
@@ -87,7 +87,7 @@ contains
     end do
     return
   end function multiConstructorInternal
-  
+
   subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} analysis class.
     implicit none
@@ -113,7 +113,7 @@ contains
     type   (treeNode           ), intent(inout) :: node
     integer(c_size_t           ), intent(in   ) :: iOutput
     type   (multiAnalysisList  ), pointer       :: analysis_
- 
+
     analysis_ => self%analyses
     do while (associated(analysis_))
        call analysis_%analysis_%analyze(node,iOutput)
@@ -121,7 +121,7 @@ contains
     end do
     return
   end subroutine multiAnalyze
-  
+
   subroutine multiFinalize(self)
     !% Finalize all analyses.
     implicit none
@@ -153,7 +153,7 @@ contains
 
   subroutine multiReduce(self,reduced)
     !% Reduce over the analysis.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: reduced
@@ -176,7 +176,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} analysis class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: destination
@@ -193,7 +193,7 @@ contains
           allocate(analysisNew_)
           if (associated(analysisDestination_)) then
              analysisDestination_%next     => analysisNew_
-             analysisDestination_          => analysisNew_             
+             analysisDestination_          => analysisNew_
           else
              destination         %analyses => analysisNew_
              analysisDestination_          => analysisNew_
@@ -201,7 +201,7 @@ contains
           allocate(analysisNew_%analysis_,mold=analysis_%analysis_)
           !# <deepCopy source="analysis_%analysis_" destination="analysisNew_%analysis_"/>
           analysis_ => analysis_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

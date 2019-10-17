@@ -37,8 +37,8 @@ contains
 
   function correlationFunctionHearin2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
-    use            :: Input_Parameters, only : inputParameter, inputParameters
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
@@ -146,10 +146,16 @@ contains
 
   function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
     !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
-    use, intrinsic :: ISO_C_Binding                     , only : c_size_t
-    use            :: Galacticus_Paths                  , only : galacticusPath                                 , pathTypeDataStatic
-    use            :: Cosmology_Parameters              , only : cosmologyParametersSimple
-    use            :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
+    use            :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use            :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use            :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use            :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
+    use            :: Geometry_Surveys                      , only : surveyGeometryHearin2014SDSS
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
+    use            :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar
+    use            :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCsmlgyAnglrDstnc     , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
+          &                                                          outputAnalysisPropertyOperatorSystmtcPolynomial    , propertyOperatorList
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS    )                                :: self
     double precision                                                     , intent(in   )  , dimension(:) :: randomErrorPolynomialCoefficient              , systematicErrorPolynomialCoefficient

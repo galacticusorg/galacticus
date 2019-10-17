@@ -21,12 +21,13 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use Cosmology_Functions, only : cosmologyFunctionsClass
-  use Linear_Growth      , only : linearGrowthClass
-  use Galacticus_Nodes   , only : treeNode
-  use Tables             , only : table1DLinearLinear
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Linear_Growth      , only : linearGrowthClass
+  use :: Galacticus_Nodes   , only : treeNode
+  use :: Tables             , only : table1DLinearLinear
+
   private
-    
+
   !# <functionClass>
   !#  <name>criticalOverdensity</name>
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
@@ -231,7 +232,7 @@ module Cosmological_Density_Field
   !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
-  
+
   !# <functionClass>
   !#  <name>cosmologicalMassVariance</name>
   !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
@@ -289,23 +290,22 @@ contains
 
   double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node)
     !% Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
-    use Root_Finder
+    use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
+    use :: Root_Finder        , only : rootFinder                    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
     implicit none
-    class           (criticalOverdensityClass), intent(inout)          , target :: self
-    double precision                          , intent(in   )                   :: criticalOverdensity
-    double precision                          , intent(in   ), optional         :: mass
-    type            (treeNode                ), intent(inout), optional, target :: node
-    double precision                          , parameter                       :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
-    integer                                   , parameter                       :: countPerUnit     =1000
-    double precision                                                            :: timeBigCrunch
-    type            (rootFinder              )                                  :: finder
-    logical                                                                     :: updateResult             , remakeTable
-    integer                                                                     :: i                        , countThresholds
-
-
-    double precision :: collapseThresholdMinimum, collapseThresholdMaximum
-    integer :: countNewLower, countNewUpper
-    double precision, allocatable, dimension(:) :: threshold
+    class           (criticalOverdensityClass), intent(inout)              , target :: self
+    double precision                          , intent(in   )                       :: criticalOverdensity
+    double precision                          , intent(in   ), optional             :: mass
+    type            (treeNode                ), intent(inout), optional    , target :: node
+    double precision                          , parameter                           :: toleranceRelative=1.0d-12, toleranceAbsolute       =0.0d0
+    integer                                   , parameter                           :: countPerUnit     =1000
+    double precision                          , allocatable  , dimension(:)         :: threshold
+    double precision                                                                :: timeBigCrunch            , collapseThresholdMinimum      , &
+         &                                                                             collapseThresholdMaximum
+    type            (rootFinder              )                                      :: finder
+    logical                                                                         :: updateResult             , remakeTable
+    integer                                                                         :: i                        , countThresholds               , &
+         &                                                                             countNewLower            , countNewUpper
 
     ! Determine dependencies.
     if (.not.self%dependenciesInitialized) then
@@ -471,7 +471,7 @@ contains
   double precision function collapsingMassRoot(mass)
     !% Function used in root finding for the collapsing mass at a given time.
     implicit none
-    double precision, intent(in   ) :: mass        
+    double precision, intent(in   ) :: mass
 
     if (globalSelf%nodePresent) then
        collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass,globalSelf%time)-globalSelf%value(time=globalSelf%time,mass=mass,node=globalSelf%node)
@@ -490,5 +490,5 @@ contains
     self%lastUniqueID=node%uniqueID()
     return
   end subroutine criticalOverdensityCalculationReset
-  
+
 end module Cosmological_Density_Field

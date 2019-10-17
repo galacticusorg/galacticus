@@ -21,7 +21,7 @@
 
 module Dark_Matter_Profiles_Shape
   !% Provides a class that implements shape parameters of dark matter halo profiles.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -36,5 +36,5 @@ module Dark_Matter_Profiles_Shape
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Dark_Matter_Profiles_Shape

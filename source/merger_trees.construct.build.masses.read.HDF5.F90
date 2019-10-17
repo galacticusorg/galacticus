@@ -33,19 +33,19 @@
      module procedure readHDF5ConstructorParameters
      module procedure readHDF5ConstructorInternal
   end interface mergerTreeBuildMassesReadHDF5
-  
+
 contains
 
   function readHDF5ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily readHDF5} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassesReadHDF5)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     type            (varying_string               )                :: fileName
     double precision                                              :: massIntervalFractional
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <cardinality>1</cardinality>
@@ -79,13 +79,13 @@ contains
 
   subroutine readHDF5Read(self,mass,weight)
     !% Read merger tree masses from file.
-    use Galacticus_Error
-    use IO_HDF5
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
     type            (hdf5Object                   )                                           :: treeFile
-    
+
     call        hdf5Access%set        (                                                     )
     call        treeFile  %openFile   (char(self%fileName),overWrite=.false.,readOnly=.true.)
     call        treeFile  %readDataset('treeRootMass'     ,          mass                   )
@@ -95,4 +95,4 @@ contains
     call        hdf5Access%unset      (                                                     )
     return
   end subroutine readHDF5Read
-  
+

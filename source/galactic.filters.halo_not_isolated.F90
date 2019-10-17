@@ -38,7 +38,7 @@ contains
 
   function haloNotIsolatedConstructorParameters(parameters) result(self)
     !% Constructor for the ``haloNotIsolated'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterHaloNotIsolated)                :: self
     type(inputParameters              ), intent(inout) :: parameters

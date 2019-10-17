@@ -21,7 +21,7 @@
 
 module Galactic_Structure_Solvers
   !% Implements a class for calculations of sizes of galactic components (or more general components).
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -43,14 +43,14 @@ module Galactic_Structure_Solvers
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
   abstract interface
      double precision function solverGet(node)
        import treeNode
        type(treeNode), intent(inout) :: node
      end function solverGet
   end interface
-  
+
   abstract interface
      subroutine solverSet(node,value)
        import treeNode

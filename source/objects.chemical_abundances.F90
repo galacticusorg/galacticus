@@ -21,7 +21,7 @@
 
 module Chemical_Abundances_Structure
   !% Defines the structure used for describing chemical abundances in \glc.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   implicit none
   private
   public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count, operator(*)
@@ -223,9 +223,9 @@ contains
 
   subroutine Chemical_Abundances_Initialize
     !% Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
-    use Input_Parameters
-    use Memory_Management
-    use Chemical_Structures
+    use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
+    use :: Input_Parameters   , only : globalParameters           , inputParameter
+    use :: Memory_Management  , only : allocateArray
     implicit none
     integer                    :: iChemical
     type   (chemicalStructure) :: thisChemical
@@ -294,7 +294,7 @@ contains
 
   function Chemicals_Names(index)
     !% Return a name for the specified entry in the chemicals structure.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Chemicals_Names
     integer                , intent(in   ) :: index
@@ -508,20 +508,20 @@ contains
 
   subroutine Chemicals_Builder(self,chemicalsDefinition)
     !% Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(chemicalAbundances), intent(inout) :: self
     type (node              ), pointer       :: chemicalsDefinition
     !GCC$ attributes unused :: self, chemicalsDefinition
-    
+
     call Galacticus_Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
     return
   end subroutine Chemicals_Builder
 
   subroutine Chemicals_Dump(chemicals)
     !% Dump all chemical values.
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
     implicit none
     class    (chemicalAbundances), intent(in   ) :: chemicals
     integer                                      :: i
@@ -551,7 +551,7 @@ contains
 
   subroutine Chemicals_Read_Raw(chemicals,fileHandle)
     !% Read all chemical values in binary.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (chemicalAbundances), intent(inout) :: chemicals
     integer                    , intent(in   ) :: fileHandle
@@ -616,7 +616,7 @@ contains
 
   subroutine Chemicals_Abundances_Destroy(chemicals)
     !% Destroy a chemical abundances object.
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
 
@@ -626,7 +626,7 @@ contains
 
   subroutine Chemical_Abundances_Allocate_Values(chemicals)
     !% Ensure that the {\normalfont \ttfamily chemicalValue} array in an {\normalfont \ttfamily chemicalsStructure} is allocated.
-    use Memory_Management
+    use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
 
@@ -691,5 +691,5 @@ contains
     end if
     return
   end function Chemicals_Non_Static_Size_Of
-  
+
 end module Chemical_Abundances_Structure

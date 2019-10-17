@@ -38,7 +38,7 @@ contains
 
   function magnitudeConstructorParameters(parameters)
     !% Constructor for the ``magnitude'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
@@ -51,7 +51,7 @@ contains
   double precision function magnitudeOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an magnitude output analysis property operator.
     use, intrinsic :: ISO_C_Binding
-    use            :: Output_Analyses_Options
+    use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeMagnitude, outputAnalysisPropertyTypeUnknown
     implicit none
     class           (outputAnalysisPropertyOperatorMagnitude), intent(inout)           :: self
     double precision                                         , intent(in   )           :: propertyValue

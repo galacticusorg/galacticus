@@ -24,16 +24,12 @@
 
 module Node_Component_Spin_Vitvitska
   !% Implements a node spin component using the approach of \cite{vitvitska_origin_2002}.
-  use Kepler_Orbits
-  use Vectors
-  use Dark_Matter_Halo_Spins
-  use Dark_Matter_Halo_Scales
-  use Virial_Orbits
-  use Numerical_Constants_Physical
-  use Dark_Matter_Profiles_DMO
-  use ISO_Varying_String
-  use Halo_Spin_Distributions
-  use Dark_Matter_Profile_Scales  , only : darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
+  use :: Halo_Spin_Distributions   , only : haloSpinDistributionClass
+  use :: ISO_Varying_String
+  use :: Virial_Orbits             , only : virialOrbitClass
   implicit none
   private
   public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
@@ -69,7 +65,7 @@ module Node_Component_Spin_Vitvitska
   !#   </property>
   !#  </properties>
   !# </component>
-  
+
   ! Objects used by this component.
   class(haloSpinDistributionClass        ), pointer :: haloSpinDistribution_
   class(darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_
@@ -77,10 +73,10 @@ module Node_Component_Spin_Vitvitska
   class(darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
   class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
   !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
-  
+
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
   double precision :: spinVitvitskaMassExponent
-  
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -88,8 +84,8 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Bindings(globalParameters_)
     !% Initializes the ``Vitvitskae'' implementation of the spin component.
-    use Input_Parameters
-    use Galacticus_Nodes, only : nodeComponentspinVitvitska
+    use :: Galacticus_Nodes, only : nodeComponentspinVitvitska
+    use :: Input_Parameters, only : inputParameter            , inputParameters
     implicit none
     type(inputParameters           ), intent(inout) :: globalParameters_
     type(nodeComponentspinVitvitska)                :: spin
@@ -108,15 +104,15 @@ contains
     call spin%spinGrowthRateFunction(Node_Component_Spin_Vitvitska_Spin_Growth_Rate)
     return
   end subroutine Node_Component_Spin_Vitvitska_Bindings
-  
+
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
-    use Input_Parameters
-    use Galacticus_Nodes          , only : defaultSpinComponent
-    use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
+    use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
+    use :: Galacticus_Nodes          , only : defaultSpinComponent
+    use :: Input_Parameters          , only : inputParameter              , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -135,7 +131,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize()
     !% Uninitializes the tree node Vitvitsake spin module.
-    use Galacticus_Nodes, only : defaultSpinComponent
+    use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
@@ -154,9 +150,12 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
-    use ISO_Varying_String
-    use Galacticus_Nodes, only : treeNode              , nodeComponentBasic  , nodeComponentSpin             , nodeComponentSpinVitvitska, &
-         &                       nodeComponentSatellite, defaultSpinComponent, nodeComponentDarkMatterProfile
+    use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Spin
+    use :: Galacticus_Nodes        , only : defaultSpinComponent             , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentSatellite, &
+          &                                 nodeComponentSpin                , nodeComponentSpinVitvitska, treeNode
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Vectors                 , only : Vector_Magnitude
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     type            (treeNode                      )               , pointer :: nodeChild                  , nodeSibling          , &
@@ -187,7 +186,7 @@ contains
              if (.not.associated(node%firstChild)) then
                 theta     =acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
                 phi       =     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()
-                spinValue =haloSpinDistribution_%sample(node)             
+                spinValue =haloSpinDistribution_%sample(node)
                 spinVector=spinValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
              else
                 nodeChild      =>  node      %firstChild
@@ -229,7 +228,7 @@ contains
                      &                                                  darkMatterProfileDMO_  &
                      &                                                 )                       &
                      &               *spinChild%spinVector()                                   &
-                     &               /spinChild%spin      ()                
+                     &               /spinChild%spin      ()
                 ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular momentum averaged over the distribution of virial orbits.
                 nodeUnresolved              => treeNode                                       (                         )
                 basicUnresolved             => nodeUnresolved               %basic            (autoCreate=.true.        )
@@ -261,8 +260,8 @@ contains
 
   subroutine Node_Component_Spin_Vitvitska_Branch_Initialize(self)
     !% Ensure a branch of a merger tree is initialized with spins in the Vitvitska model.
-    use Merger_Tree_Walkers
-    use Galacticus_Nodes   , only : treeNode, nodeComponentSpinVitvitska
+    use :: Galacticus_Nodes   , only : nodeComponentSpinVitvitska         , treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodesBranch
     implicit none
     class  (nodeComponentSpinVitvitska         ), intent(inout) :: self
     type   (treeNode                           ), pointer       :: node
@@ -274,13 +273,13 @@ contains
     end do
     return
   end subroutine Node_Component_Spin_Vitvitska_Branch_Initialize
-  
+
   double precision function Node_Component_Spin_Vitvitska_Spin(self)
     !% Return the spin parameter.
-    use Galacticus_Nodes, only : nodeComponentSpinVitvitska
+    use :: Galacticus_Nodes, only : nodeComponentSpinVitvitska
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
-    
+
     if (self%spinValue() == 0.0d0) call Node_Component_Spin_Vitvitska_Branch_Initialize(self)
     Node_Component_Spin_Vitvitska_Spin=self%spinValue()
     return
@@ -288,11 +287,11 @@ contains
 
   function Node_Component_Spin_Vitvitska_Spin_Vector(self)
     !% Return the spin parameter vector.
-    use Galacticus_Nodes, only : nodeComponentSpinVitvitska
+    use :: Galacticus_Nodes, only : nodeComponentSpinVitvitska
     implicit none
     double precision                            , dimension(:) , allocatable :: Node_Component_Spin_Vitvitska_Spin_Vector
     class           (nodeComponentSpinVitvitska), intent(inout)              :: self
-    
+
     if (all(self%spinVectorValue() == 0.0d0)) call Node_Component_Spin_Vitvitska_Branch_Initialize(self)
     Node_Component_Spin_Vitvitska_Spin_Vector=self%spinVectorValue()
     return
@@ -300,7 +299,7 @@ contains
 
   double precision function Node_Component_Spin_Vitvitska_Spin_Growth_Rate(self)
     !% Return the growth rate of the spin parameter.
-    use Galacticus_Nodes, only : nodeComponentSpinVitvitska, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpinVitvitska
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
     class(nodeComponentBasic        ), pointer       :: basic
@@ -327,8 +326,8 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this
     !% case, we simply update the spin of {\normalfont \ttfamily node} to be consistent with the
     !% merging event.
-    use Galacticus_Error
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentBasic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, nodeComponentSpinVitvitska, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent
@@ -344,20 +343,21 @@ contains
        basicParent => nodeParent%basic ()
        spinParent  => nodeParent%spin  ()
        if (basic%time() /= basicParent%time()) &
-            & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})   
+            & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
        ! Adjust the spin to that of the parent node.
        call spin%spinSet      (spinParent%spin      ())
        call spin%spinVectorSet(spinParent%spinVector())
     end select
     return
   end subroutine Node_Component_Spin_Vitvitska_Promote
-   
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Rate_Compute</unitName>
   !# </rateComputeTask>
   subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska, defaultSpinComponent, propertyTypeInactive
+    use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpin, nodeComponentSpinVitvitska, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     logical                            , intent(in   )          :: odeConverged
@@ -368,7 +368,7 @@ contains
     double precision                                            :: spinMagnitude     , spinGrowthRate
     double precision                   , dimension(3)           :: spinVector
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -395,7 +395,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Vitvitska_Scale_Set(node)
     !% Set scales for properties in the Vitvitska implementation of the spin component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska 
+    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentSpinVitvitska , treeNode
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     double precision                   , parameter              :: spinScaleAbsolute=1.0d-4
@@ -416,8 +416,10 @@ contains
     !% Returns the orbital angular momentum vector associated with a satellite by drawing a
     !% random position towards the host at virial radius distance and a random velocity vector
     !% consistent with the orbital parameters of the satellite.
-    use Coordinates     , only : coordinateCartesian, assignment(=)
-    use Galacticus_Nodes, only : treeNode     , nodeComponentSatellite, nodeComponentBasic 
+    use :: Coordinates     , only : assignment(=)     , coordinateCartesian
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasic , nodeComponentSatellite, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Vectors         , only : Vector_Product
     implicit none
     double precision                        , dimension(3)                :: Orbital_Angular_Momentum
     type            (treeNode              ), pointer     , intent(inout) :: node
@@ -441,7 +443,7 @@ contains
          &                                   haloPosition, &
          &                                   haloVelocity  &
          &                                  )
-    return   
+    return
   end function Orbital_Angular_Momentum
 
 end module Node_Component_Spin_Vitvitska

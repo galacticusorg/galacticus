@@ -19,7 +19,7 @@
 
   !% An implementation of dark matter halo profile shapes  using the \cite{klypin_multidark_2014} algorithm.
 
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015">
   !#  <description>Dark matter halo shape parameters are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
@@ -41,7 +41,7 @@
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
   end interface darkMatterProfileShapeKlypin2015
-  
+
   !# <enumeration>
   !#  <name>klypin2015Sample</name>
   !#  <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
@@ -50,20 +50,20 @@
   !#  <entry label="all"    />
   !#  <entry label="relaxed"/>
   !# </enumeration>
-  
+
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
     !% shape class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileShapeKlypin2015)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
-    class(criticalOverdensityClass        ), pointer       :: criticalOverdensity_     
+    class(criticalOverdensityClass        ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     type (varying_string                  )                :: sampleText
-    
+
     !# <inputParameter>
     !#   <name>sample</name>
     !#   <cardinality>1</cardinality>
@@ -85,11 +85,11 @@ contains
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
     !% shape class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (darkMatterProfileShapeKlypin2015)                        :: self
     integer                                  , intent(in   )         :: sample
-    class  (criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_     
+    class  (criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
     class  (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables="sample, *criticalOverdensity_, *cosmologicalMassVariance_"/>
 
@@ -101,7 +101,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape class.
     implicit none
     type(darkMatterProfileShapeKlypin2015), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%criticalOverdensity_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
@@ -110,14 +110,14 @@ contains
   double precision function klypin2015Shape(self,node)
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentBasic              )               , pointer :: basic
     double precision                                                           :: nu
-    
+
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.

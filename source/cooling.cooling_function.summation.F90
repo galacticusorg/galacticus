@@ -51,7 +51,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !% Constructor for the ``summation'' cooling function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (coolingFunctionSummation)                :: self
     type   (inputParameters         ), intent(inout) :: parameters
@@ -71,7 +71,7 @@ contains
     end do
     return
   end function summationConstructorParameters
-  
+
   function summationConstructorInternal(coolants) result(self)
     !% Internal constructor for the ``summation'' cooling function class.
     implicit none
@@ -87,7 +87,7 @@ contains
     end do
     return
   end function summationConstructorInternal
-  
+
   subroutine summationDestructor(self)
     !% Destructor for the ``summation'' cooling function class.
     implicit none
@@ -108,10 +108,9 @@ contains
 
   double precision function summationCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function summed over other cooling functions.
-    use Chemical_States
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen, temperature
@@ -119,7 +118,7 @@ contains
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (coolantList             ), pointer       :: coolant
-    
+
     summationCoolingFunction =  0.0d0
     coolant                  => self%coolants
     do while (associated(coolant))
@@ -140,11 +139,10 @@ contains
   double precision function summationCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
     !% photons.
-    use Chemical_States
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
-    use Galacticus_Error
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen  , temperature
@@ -190,14 +188,14 @@ contains
     end if
     return
   end function summationCoolingFunctionDensityLogSlope
-  
+
   double precision function summationCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
     !% \gls{cmb} photons.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
-    use Galacticus_Error
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen                       , temperature
@@ -246,8 +244,8 @@ contains
 
   subroutine summationDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
-    use FoX_DOM
+    use :: FoX_DOM
+    use :: Input_Parameters, only : inputParameters
     implicit none
     class  (coolingFunctionSummation), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
@@ -267,7 +265,7 @@ contains
 
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} cooling function class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(coolingFunctionSummation), intent(inout) :: self
     class(coolingFunctionClass    ), intent(inout) :: destination
@@ -284,7 +282,7 @@ contains
           allocate(coolantNew_)
           if (associated(coolantDestination_)) then
              coolantDestination_%next       => coolantNew_
-             coolantDestination_            => coolantNew_             
+             coolantDestination_            => coolantNew_
           else
              destination          %coolants => coolantNew_
              coolantDestination_            => coolantNew_
@@ -292,7 +290,7 @@ contains
           allocate(coolantNew_%coolingFunction,mold=coolant_%coolingFunction)
           !# <deepCopy source="coolant_%coolingFunction" destination="coolantNew_%coolingFunction"/>
           coolant_ => coolant_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

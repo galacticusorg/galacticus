@@ -42,7 +42,7 @@
      procedure :: magnificationCDF => baryonicModifierMagnificationCDF
      procedure :: renormalize      => baryonicModifierRenormalize
   end type gravitationalLensingBaryonicModifier
-  
+
   interface gravitationalLensingBaryonicModifier
      !% Constructors for the ``baryonic modifier'' gravitational lensing class.
      module procedure baryonicModifierConstructorParameters
@@ -53,7 +53,7 @@ contains
 
   function baryonicModifierConstructorParameters(parameters) result(self)
     !% Default constructor for the ``baryonic modifier'' gravitational lensing class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (gravitationalLensingBaryonicModifier)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -92,7 +92,7 @@ contains
     class           (gravitationalLensingClass           ), intent(in   ), target :: gravitationalLensing_
     double precision                                      , intent(in   )         :: alpha                , beta
     !# <constructorAssign variables="*gravitationalLensing_, alpha, beta"/>
-    
+
     ! Initialize
     self%redshiftPrevious   =-1.0d0
     self%scaleSourcePrevious=-1.0d0
@@ -110,14 +110,14 @@ contains
 
   subroutine baryonicModifierRenormalize(self,redshift,scaleSource)
     !% Renormlize for \gls{pdf} for baryonic modification.
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self
     double precision                                      , intent(in   ) :: redshift               , scaleSource
     double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder                          ), save          :: finder
     !$omp threadprivate(finder)
-    
+
     ! Exit if nothing has changed since the previous call.
     if (redshift == self%redshiftPrevious .and. scaleSource == self%scaleSourcePrevious) return
     ! Trap case of no modification.
@@ -165,7 +165,7 @@ contains
     self%scaleSourcePrevious=scaleSource
 
   contains
-    
+
     double precision function magnificationTransition(magnification)
       !% Root finding function used in the ``baryonic modifier'' gravitational lensing class.
       implicit none
@@ -195,10 +195,10 @@ contains
     baryonicModifierMagnificationPDF=baryonicModifierMagnificationPDF*self%renormalization
     return
   end function baryonicModifierMagnificationPDF
-  
+
   double precision function baryonicModifierMagnificationCDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} by modifying
-    !% another distribution for the effects of baryons. 
+    !% another distribution for the effects of baryons.
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self
     double precision                                      , intent(in   ) :: magnification, redshift, &
@@ -221,6 +221,6 @@ contains
             &                           *(               magnification-1.0d0)
     end if
     baryonicModifierMagnificationCDF=baryonicModifierMagnificationCDF*self%renormalization
-    return    
+    return
   end function baryonicModifierMagnificationCDF
-  
+

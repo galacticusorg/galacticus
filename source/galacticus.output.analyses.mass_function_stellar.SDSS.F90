@@ -19,8 +19,7 @@
 
 !% Contains a module which implements a stellar mass function output analysis class.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarSDSS">
   !#  <description>An SDSS stellar mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -39,7 +38,7 @@ contains
 
   function massFunctionStellarSDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarSDSS)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
@@ -149,10 +148,14 @@ contains
 
   function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
     type            (outputAnalysisMassFunctionStellarSDSS              )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_

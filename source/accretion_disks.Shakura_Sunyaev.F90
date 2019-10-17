@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a \cite{shakura_black_1973} accretion disk.
-  
+
   !# <accretionDisks name="accretionDisksShakuraSunyaev">
   !#  <description>A \cite{shakura_black_1973} accretion disk class.</description>
   !# </accretionDisks>
@@ -37,10 +37,10 @@
   end interface accretionDisksShakuraSunyaev
 
 contains
-  
+
   function shakuraSunyaevConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{shakura_black_1973} accretion disk class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionDisksShakuraSunyaev)                :: self
     type(inputParameters             ), intent(inout) :: parameters
@@ -49,10 +49,10 @@ contains
     self=accretionDisksShakuraSunyaev()
     return
   end function shakuraSunyaevConstructorParameters
-  
+
   double precision function shakuraSunyaevEfficiencyRadiative(self,blackHole,accretionRateMass)
     !% Return the radiative efficiency of a \cite{shakura_black_1973} accretion disk.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Specific_Energy, orbitPrograde, unitsGravitational
     implicit none
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
@@ -67,9 +67,10 @@ contains
   double precision function shakuraSunyaevPowerJet(self,blackHole,accretionRateMass)
     !% Computes the jet power for a \cite{shakura_black_1973} (thin) accretion disk, using the expressions from
     !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
-    use Black_Hole_Fundamentals
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
+    use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
+    use :: Numerical_Constants_Astronomical, only : gigaYear                           , massSolar
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
@@ -127,7 +128,7 @@ contains
 
   double precision function shakuraSunyaevRateSpinUp(self,blackHole,accretionRateMass)
     !% Compute the rate of spin up of a black hole by a \cite{shakura_black_1973} accretion disk.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_ISCO_Specific_Energy, orbitPrograde, unitsGravitational
     implicit none
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole

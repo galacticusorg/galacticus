@@ -19,10 +19,10 @@
 
   !% A simple transferred primordial power spectrum class.
 
-  use Power_Spectra_Primordial, only : powerSpectrumPrimordial, powerSpectrumPrimordialClass
-  use Transfer_Functions      , only : transferFunction       , transferFunctionClass
-  use Linear_Growth           , only : linearGrowth           , linearGrowthClass
-  
+  use :: Power_Spectra_Primordial, only : powerSpectrumPrimordialClass
+  use :: Transfer_Functions      , only : transferFunctionClass
+  use :: Linear_Growth           , only : linearGrowthClass
+
   !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>
   !# </powerSpectrumPrimordialTransferred>
@@ -51,12 +51,12 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the ``simple'' transferred primordial power spectrum class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
     class(transferFunctionClass                   ), pointer       :: transferFunction_
-    class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_ 
+    class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_
     class(linearGrowthClass                       ), pointer       :: linearGrowth_
 
     !# <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>

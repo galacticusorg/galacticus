@@ -42,7 +42,7 @@ contains
 
   function spinConstructorParameters(parameters) result(self)
     !% Constructor for the ``spin'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorSpin)                :: self
     type (inputParameters          ), intent(inout) :: parameters
@@ -55,7 +55,7 @@ contains
 
   double precision function spinExtract(self,node,instance)
     !% Implement a spin output property extractor.
-    use Galacticus_Nodes, only : nodeComponentSpin
+    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none
     class(nodePropertyExtractorSpin), intent(inout)           :: self
     type (treeNode                 ), intent(inout), target   :: node
@@ -70,7 +70,7 @@ contains
 
   integer function spinType(self)
     !% Return the type of the spin parameter property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSpin), intent(inout) :: self
     !GCC$ attributes unused :: self

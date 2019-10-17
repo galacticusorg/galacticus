@@ -17,9 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Halo_Spin_Distributions, only : haloSpinDistribution, haloSpinDistributionClass
-  use Output_Times           , only : outputTimes         , outputTimesClass
-  use Cosmology_Functions    , only : cosmologyFunctions  , cosmologyFunctionsClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions  , cosmologyFunctionsClass
+  use :: Halo_Spin_Distributions, only : haloSpinDistribution, haloSpinDistributionClass
+  use :: Output_Times           , only : outputTimes         , outputTimesClass
 
   !# <task name="taskHaloSpinDistribution">
   !#  <description>A task which computes and outputs the halo spin distribution.</description>
@@ -48,9 +48,9 @@ contains
 
   function haloSpinDistributionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
-    use Galacticus_Nodes, only : treeNode, nodeClassHierarchyInitialize
-    use Node_Components
-    use Input_Parameters
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type            (taskHaloSpinDistribution )                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
     type            (varying_string           )                :: outputGroup
     double precision                                           :: spinMinimum          , spinMaximum    , &
          &                                                        spinPointsPerDecade  , haloMassMinimum
-    
+
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
@@ -120,7 +120,7 @@ contains
     !#   <description>The HDF5 output group within which to write spin distribution data.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -143,16 +143,16 @@ contains
     double precision                           , intent(in   )         :: spinMinimum          , spinMaximum    , &
          &                                                                spinPointsPerDecade  , haloMassMinimum
     !# <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
-    
+
     return
   end function haloSpinDistributionConstructorInternal
-  
+
   subroutine haloSpinDistributionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloSpinDistribution} task class.
-    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskHaloSpinDistribution), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%haloSpinDistribution_"/>
     !# <objectDestructor name="self%outputTimes_"         />
     !# <objectDestructor name="self%cosmologyFunctions_"  />
@@ -163,14 +163,21 @@ contains
 
   subroutine haloSpinDistributionPerform(self,status)
     !% Compute and output the halo spin distribution.
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Galacticus_Nodes       , only : treeNode                       , nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report        , errorStatusSuccess
-    use            :: IO_HDF5                , only : hdf5Object
-    use            :: Galacticus_HDF5        , only : galacticusOutputFile
-    use            :: String_Handling        , only : operator(//)
-    use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
     use            :: Galacticus_Display     , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report        , errorStatusSuccess
+    use            :: Galacticus_HDF5        , only : galacticusOutputFile
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
+    use            :: IO_HDF5                , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: String_Handling        , only : operator(//)
+    use            :: Galacticus_Display     , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report        , errorStatusSuccess
+    use            :: Galacticus_HDF5        , only : galacticusOutputFile
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
+    use            :: IO_HDF5                , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     implicit none
     class           (taskHaloSpinDistribution      ), intent(inout), target       :: self
     integer                                         , intent(  out), optional     :: status

@@ -19,8 +19,7 @@
 
 !% Contains a module which implements a stellar mass function output analysis class for the VIPERS survey of \cite{davidzon_vimos_2013}.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarVIPERS">
   !#  <description>A VIPERS stellar mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -39,7 +38,7 @@ contains
 
   function massFunctionStellarVIPERSConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarVIPERS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarVIPERS)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -157,13 +156,17 @@ contains
 
   function massFunctionStellarVIPERSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarVIPERS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Galacticus_Error
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use ISO_Varying_String
-    use String_Handling
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryDavidzon2013VIPERS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: ISO_Varying_String
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: String_Handling                       , only : operator(//)
     implicit none
     type            (outputAnalysisMassFunctionStellarVIPERS            )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
@@ -187,7 +190,7 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName
     double precision                                                                                   :: massThreshold
-    
+
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )

@@ -21,8 +21,8 @@
 
 module Node_Component_Disk_Standard_Data
   !% Stores data for the standard disk node component.
-  use Kind_Numbers
-  use Mass_Distributions
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public
 
@@ -44,7 +44,7 @@ module Node_Component_Disk_Standard_Data
   ! The mass distribution object.
   class           (massDistributionClass), pointer :: diskMassDistribution
   !$omp threadprivate(diskMassDistribution)
-  
+
 contains
 
   subroutine Node_Component_Disk_Standard_Reset(uniqueID)

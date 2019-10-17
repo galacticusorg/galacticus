@@ -19,8 +19,8 @@
 
   !% Implementation of a posterior sampling convergence class which resume converges.
 
-  use ISO_Varying_String
-  
+  use :: ISO_Varying_String
+
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
   !#  <description>A posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.</description>
   !# </posteriorSampleStateInitialize>
@@ -43,7 +43,7 @@ contains
 
   function resumeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self
     type   (inputParameters                     ), intent(inout) :: parameters
@@ -76,18 +76,18 @@ contains
     type   (varying_string                      ), intent(in   ) :: logFileRoot
     logical                                      , intent(in   ) :: restoreState
     !# <constructorAssign variables="logFileRoot, restoreState"/>
-    
+
     return
   end function resumeConstructorInternal
-  
+
   subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use Posterior_Sampling_State
-    use Models_Likelihoods_Constants
-    use MPI_Utilities
-    use String_Handling
-    use Galacticus_Display
-    use Galacticus_Error            , only :  Galacticus_Error_Report
+    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: MPI_Utilities               , only : mpiSelf
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
+    use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
     class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
@@ -121,7 +121,7 @@ contains
             &                               converged           , &
             &                               logPosterior_       , &
             &                               logLikelihood_      , &
-            &                               stateVector     
+            &                               stateVector
        if (ioStatus == 0) then
           ! Map the state.
           do i=1,size(stateVector)
@@ -137,7 +137,7 @@ contains
           first=.false.
        end if
     end do
-    close(logFileUnit)    
+    close(logFileUnit)
     ! Set the simulation state.
     call simulationState%update(stateVectorMapped,.false.,.false.)
     ! Check that all chains reached the same state.

@@ -22,24 +22,25 @@
 
 program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.
-  !$ use OMP_Lib
-  use Galacticus_Banner
-  use Galacticus_Error
-  use Galacticus_Output_Open
-  use Galacticus_Display_Verbosity
-  use Galacticus_HDF5
-  use Tasks
-  use ISO_Varying_String
-  use Input_Parameters
-  use Functions_Global_Utilities
-  use Galacticus_Error_Wait
-  use System_Limits
-  use Galacticus_Function_Classes_Destroys
-  use Events_Hooks
+  use    :: Events_Hooks                        , only : eventsHooksInitialize
+  use    :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use    :: Galacticus_Banner                   , only : Galacticus_Banner_Show
+  use    :: Galacticus_Display_Verbosity        , only : Galacticus_Verbosity_Set_From_Parameters
+  use    :: Galacticus_Error                    , only : Galacticus_Error_Handler_Register        , Galacticus_Error_Report
+  use    :: Galacticus_Error_Wait               , only : Galacticus_Error_Wait_Set_From_Parameters
+  use    :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use    :: Galacticus_Output_Open              , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
+  use    :: ISO_Varying_String
+  use    :: Input_Parameters                    , only : inputParameter                           , inputParameters
 #ifdef USEMPI
-  use MPI
-  use MPI_Utilities
+  use    :: MPI
 #endif
+#ifdef USEMPI
+  use    :: MPI_Utilities                       , only : mpiFinalize                              , mpiInitialize
+#endif
+  !$ use :: OMP_Lib
+  use    :: System_Limits                       , only : System_Limits_Set
+  use    :: Tasks                               , only : task                                     , taskClass                  , taskDoDestroy
   implicit none
 #ifdef USEMPI
   integer                                         :: status
@@ -49,7 +50,7 @@ program Galacticus
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
-  
+
   ! Initialize MPI.
 #ifdef USEMPI
   !$ if (OMP_Get_Max_Threads() > 1) then

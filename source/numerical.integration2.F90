@@ -23,14 +23,14 @@ module Numerical_Integration2
   !% Implements a variety of numerical integrators.
   private
   public :: integrand1D                                     , integrandVectorized1D                          , &
-       &    integratorCompositeTrapezoidal1D                , integratorVectorizedCompositeTrapezoidal1D     , & 
+       &    integratorCompositeTrapezoidal1D                , integratorVectorizedCompositeTrapezoidal1D     , &
        &    integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
        &    integratorVectorizedCompositeGaussKronrod1D     , integrator                                     , &
        &    integrator1D                                    , integratorVectorized1D                         , &
        &    integratorMulti1D                               , integratorMultiVectorized1D                    , &
        &    integratorMultiVectorizedCompositeGaussKronrod1D, integrandMulti1D                               , &
        &    integratorMulti                                 , integratorMultiVectorizedCompositeTrapezoidal1D
-  
+
   ! Interval types.
   type :: interval
      private
@@ -53,7 +53,7 @@ module Numerical_Integration2
   type :: intervalMultiList
      type(intervalMulti), pointer :: interval_
   end type intervalMultiList
-  
+
   ! Generic integrator.
   type :: integrator
      !% Generic numerical integrator class.
@@ -313,7 +313,7 @@ module Numerical_Integration2
        double precision, dimension(n)  :: integrandMulti1D
      end function integrandMulti1D
   end interface
-  
+
   ! Generic one-dimensional multi-integrand vectorized integrator.
   type, abstract, extends(integratorMulti) :: integratorMultiVectorized1D
      !% Generic one-dimensional multi-integrand vectorized numerical integrator class.
@@ -414,7 +414,7 @@ contains
   ! Generic functions.
   subroutine toleranceSetGeneric(self,toleranceAbsolute,toleranceRelative)
     !% Initialize the tolerances for numerical integrators.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integrator), intent(inout)           :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
@@ -451,7 +451,7 @@ contains
   ! Composite trapezoidal 1D integrator.
   subroutine compositeTrapezoidalInitialize1D(self,iterationsMaximum)
     !% Initialize a one-dimensional, composite trapezoidal numerical integrator.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (integratorCompositeTrapezoidal1D), intent(inout) :: self
     integer                                  , intent(in   ) :: iterationsMaximum
@@ -467,8 +467,8 @@ contains
 
   double precision function compositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (integratorCompositeTrapezoidal1D), intent(inout) :: self
     double precision                                  , intent(in   ) :: a,b
@@ -515,8 +515,8 @@ contains
   subroutine compositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
     !% Initialize a one-dimensional, composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from
     !% those used in the \gls{gsl}.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorCompositeGaussKronrod1D), intent(inout) :: self
     integer                                   , intent(in   ) :: iterationsMaximum, order
@@ -654,8 +654,7 @@ contains
 
   double precision function compositeGaussKronrod1DEvaluate(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -726,7 +725,7 @@ contains
           if (associated(head)) then
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack.
              current  => head
-             previous => null() 
+             previous => null()
              do while (associated(current%next).and.abs(current%error) > abs(newInterval%error))
                 previous => current
                 current  => current%next
@@ -803,7 +802,7 @@ contains
     integer                                                                               :: pointCountKronrod                          , pointCountGauss , &
          &                                                                                   jtw                                        , jtwm1           , &
          &                                                                                   j
-    
+
     pointCountKronrod =size(self%wKronrod)
     pointCountGauss   =size(self%wGauss  )
     xCenter           =0.5d0*(b+a)
@@ -845,7 +844,7 @@ contains
     ! the evaluation of the conditional (no need to compute an expensive function if we don't really need to). Additionally, the
     ! expression for the error in the case where the conditional evaluates true is modified so that it involves a sqrt() instead
     ! of a ()**1.5 as this is better optimized.
-    if (integralAsc /= 0.0d0 .and. error /= 0.0d0) then       
+    if (integralAsc /= 0.0d0 .and. error /= 0.0d0) then
        scale=errorScaleFactor*error
        if (scale < integralAsc) then
           error=errorScaleFactorPow*error*sqrt(error/integralAsc)
@@ -862,8 +861,8 @@ contains
   subroutine vectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
     !% Initialize a one-dimensional, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are
     !% taken from those used in the \gls{gsl}.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                             , intent(in   ) :: iterationsMaximum, order
@@ -1001,8 +1000,7 @@ contains
 
   double precision function vectorizedCompositeGaussKronrod1DEvaluate(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -1073,7 +1071,7 @@ contains
           if (associated(head)) then
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack.
              current  => head
-             previous => null() 
+             previous => null()
              do while (associated(current%next).and.abs(current%error) > abs(newInterval%error))
                 previous => current
                 current  => current%next
@@ -1182,7 +1180,7 @@ contains
          &                  +abs(fvalue1(1:pointCountKronrod-1)) &
          &                  +abs(fvalue2(1:pointCountKronrod-1)) &
          &                 )                                     &
-         &               ) 
+         &               )
     mean       =integralKronrod*0.5d0
     integralAsc=+sum(self%wKronrod                   *(abs(fValue1  -mean)+abs(fValue2-mean))) &
          &      +    self%wKronrod(pointCountKronrod)* abs(fUnion(1)-mean)
@@ -1206,13 +1204,12 @@ contains
     if (integralAbsolute > tiny(1.0d0)/(50.0d0*epsilon(1.0d0))) error=max(error,50.0d0*epsilon(1.0d0)*integralAbsolute)
     return
   end subroutine vectorizedCompositeGaussKronrod1DEvaluateInterval
-  
+
   ! Adaptive composite trapezoidal integrator.
 
   double precision function adaptiveCompositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (integratorAdaptiveCompositeTrapezoidal1D), intent(inout) :: self
     double precision                                          , intent(in   ) :: a,b
@@ -1292,7 +1289,7 @@ contains
        if (associated(head)) then
           ! Stack is not empty. Perform an insertion sort to insert our new subintervals into the sorted stack.
           current  => head
-          previous => head 
+          previous => head
           do while (associated(current%next).and.abs(current%error) > abs(newInterval1%error))
              previous => current
              current  => current%next
@@ -1342,8 +1339,8 @@ contains
   ! Vectorized composite trapezoidal 1D integrator.
   subroutine vectorizedCompositeTrapezoidalInitialize1D(self,iterationsMaximum)
     !% Initialize a one-dimensional, vectorized composite trapezoidal numerical integrator.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout) :: self
     integer                                                     , intent(in   ) :: iterationsMaximum
@@ -1372,12 +1369,14 @@ contains
 
   double precision function vectorizedCompositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
+    use            :: Numerical_Comparison, only : Values_Agree
 #ifdef YEPPP
-    use yepCore
-    use yepMath
+    use            :: yepCore
+#endif
+#ifdef YEPPP
+    use            :: yepMath
 #endif
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
@@ -1391,7 +1390,7 @@ contains
     double precision                                                                                   :: summand
     double precision                                            , dimension(2**self%iterationsMaximum) :: functionValues
 #endif
-    
+
     cumulant =0.5d0*sum(self%integrand([b,a]))
     iteration=1
     converged=.false.
@@ -1430,7 +1429,7 @@ contains
 
   subroutine integratorMultiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily integratorMulti} class.
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     type(integratorMulti), intent(inout) :: self
 
@@ -1441,8 +1440,8 @@ contains
 
   subroutine tolerancesSetGeneric(self,toleranceAbsolute,toleranceRelative)
     !% Initialize the tolerances for multi-integrand numerical integrators.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (integratorMulti), intent(inout)                         :: self
     double precision                 , intent(in   ), dimension(:), optional :: toleranceAbsolute, toleranceRelative
@@ -1480,7 +1479,7 @@ contains
     end if
     return
   end subroutine tolerancesSetGeneric
-  
+
   ! Generic one-dimensional, multi-integrand integrator.
 
   subroutine integrandMulti1DSet(self,integrandCount,integrand)
@@ -1496,7 +1495,7 @@ contains
   end subroutine integrandMulti1DSet
 
   ! Generic one-dimensional, multi-integrand vectorized integrator.
-  
+
   subroutine integrandMultiVectorizedSet1D(self,integrandCount,integrand)
     !% Initialize the integrand for one-dimensional numerical integrators.
     implicit none
@@ -1508,14 +1507,14 @@ contains
     self%integrand      => integrand
     return
   end subroutine integrandMultiVectorizedSet1D
-  
+
   ! Vectorized composite Gauss-Kronrod 1D integrator.
 
   subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,intervalsMaximum,order)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
     !% and weights are taken from those used in the \gls{gsl}.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                                  , intent(in   ) :: intervalsMaximum, order
@@ -1653,10 +1652,9 @@ contains
 
   function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Comparison
-    use               Galacticus_Error
-    use               Sort
+    use            :: Sort            , only : Sort_Index_Do
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
     double precision                                                  , intent(in   )                              :: a                , b
@@ -1673,7 +1671,7 @@ contains
          &                                                                                                            newInterval2     , current      , &
          &                                                                                                            previous         , newInterval
     integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
-    
+
     ! If the interval has zero size, return a zero result.
     if (a == b) then
        integral=0.0d0
@@ -1687,10 +1685,10 @@ contains
     allocate(head%integral(self%integrandCount))
     allocate(head%error   (self%integrandCount))
     head%a       =  a
-    head%b       =  b    
+    head%b       =  b
     head%next    => null()
     mustEvaluate =  .true.
-    call self%evaluateInterval(head%a,head%b,head%integral,head%error,mustEvaluate)    
+    call self%evaluateInterval(head%a,head%b,head%integral,head%error,mustEvaluate)
     ! Initialize current integral and error estimates, and flag that we're not converged.
     integral =head%integral
     error    =head%error
@@ -1929,7 +1927,7 @@ contains
             &                     +abs(fvalue1(i,1:pointCountKronrod-1)) &
             &                     +abs(fvalue2(i,1:pointCountKronrod-1)) &
             &                    )                                       &
-            &                  ) 
+            &                  )
        mean       (i)=+0.5d0                                                                                           &
             &         *integralKronrod(i)
        integralAsc(i)=+sum(self%wKronrod(1:pointCountKronrod-1)*(abs(fValue1(i,:)-mean(i))+abs(fValue2(i,:)-mean(i)))) &
@@ -1962,8 +1960,7 @@ contains
 
   subroutine multiVectorizedCompositeTrapezoidal1DInitialize(self,intervalsMaximum)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite trapezoidal numerical integrator.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout) :: self
     integer                                                 , intent(in   ) :: intervalsMaximum
@@ -1979,12 +1976,12 @@ contains
 
   function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
-    use, intrinsic :: ISO_C_Binding
-    use               ISO_Varying_String
-    use               Numerical_Comparison
-    use               Galacticus_Error
-    use               Sort
-    use               Galacticus_Display
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report       , errorStatusFail           , errorStatusSuccess
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : varying_string                , assignment(=)             , operator(//)
+    use            :: Sort              , only : Sort_Index_Do
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
     double precision                                                 , intent(in   )                                :: a                                      , b
@@ -2016,7 +2013,7 @@ contains
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
     !$GLC attributes initialized :: previous
-    
+
     ! If the interval has zero size, return a zero result.
     if (a == b) then
        integral=0.0d0
@@ -2036,7 +2033,7 @@ contains
     lastInsertCurrent => null()
     head%next         => null()
     head%a            =  a
-    head%b            =  b    
+    head%b            =  b
     mustEvaluate      =  .true.
     xUnion=[head%a,head%b]
     call self%integrand(self%integrandCount,xUnion,mustEvaluate,fUnion)
@@ -2107,7 +2104,7 @@ contains
           call Galacticus_Display_Message(message)
           do i=1,size(current%fa)
              message="  (i="
-             write (label,'(i12)') i             
+             write (label,'(i12)') i
              message=message//adjustl(trim(label))//")"
              write (label,'(e32.12)') current%fa(i)
              message=message//" : "//label
@@ -2117,7 +2114,7 @@ contains
              message=message//" (converged="//adjustl(trim(label))//")"
              call Galacticus_Display_Message(message)
           end do
-          current => head          
+          current => head
           do while (associated(current))
              message="a/b : f(a)/f(b) ="
              write (label,'(e32.12)') current%a
@@ -2127,7 +2124,7 @@ contains
              call Galacticus_Display_Message(message)
              do i=1,size(current%fa)
                 message="  (i="
-                write (label,'(i12)') i             
+                write (label,'(i12)') i
                 message=message//adjustl(trim(label))//")"
                 write (label,'(e32.12)') current%fa(i)
                 message=message//" : "//label
@@ -2143,7 +2140,7 @@ contains
           call Galacticus_Display_Indent  ('current integrals:')
           do i=1,size(current%fa)
              message="integral : error  (i="
-             write (label,'(i12)') i             
+             write (label,'(i12)') i
              message=message//adjustl(trim(label))//")"
              write (label,'(e32.12)') integral (i)
              message=message//" : "//label
@@ -2162,7 +2159,7 @@ contains
        xUnion(1)=midpoint
        call self%integrand(self%integrandCount,xUnion(1:1),mustEvaluate,fUnion(:,1))
        fm=fUnion(:,1)
-       ! Compute the integral and error estimate at the midpoint.       
+       ! Compute the integral and error estimate at the midpoint.
        convergedPrevious=converged
        ! In cases where the integrand was not evaluated at the midpoint (i.e. the integral is already converged), estimate the
        ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
@@ -2226,7 +2223,7 @@ contains
           do iInterval=2_c_size_t,intervalCount
              newInterval%next => list(listRank(intervalCount+1_c_size_t-iInterval))%interval_
              newInterval      => newInterval%next
-          end do          
+          end do
           newInterval%next => null()
        end if
        ! Destroy the old interval.
@@ -2248,7 +2245,7 @@ contains
                 errorScale(i)=max(                                            &
                      &            self%toleranceAbsolute(i)                 , &
                      &            self%toleranceRelative(i)*abs(integral(i))  &
-                     &           )              
+                     &           )
                 errorMaximum =max(errorMaximum,newInterval1%error(i)/errorScale(i))
              end if
           end do
@@ -2261,14 +2258,14 @@ contains
              if (any(.not.converged .and. lastInsertCurrent%error > errorsMaximum)) then
                 current   => lastInsertCurrent
                 previous  => lastInsertPrevious
-             else               
+             else
                 current   => head
                 previous  => head
              end if
           else
              current   => head
              previous  => head
-          end if 
+          end if
           ! Determine whether to do a simple search through the list (stepping one interval at a time and checking the error
           ! measure), or doing a bisection search. The simple search requires more evaluations of the error measure, but the
           ! bisection search requires construction of an array of pointers to intervals. The optimal strategy depends on the
@@ -2283,7 +2280,7 @@ contains
                   &   )
                 previous => current
                 current  => current%next
-             end do          
+             end do
           else
              ! Bisection search.
              indexStart  = 1_c_size_t
@@ -2386,5 +2383,5 @@ contains
     end if
     return
   end function multiVectorizedCompositeTrapezoidal1DEvaluate
-  
+
 end module Numerical_Integration2

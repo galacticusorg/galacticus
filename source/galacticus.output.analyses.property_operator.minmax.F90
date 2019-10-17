@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a min-max analysis property operator class.
-  
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax">
   !#  <description>A min-max analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
@@ -40,7 +40,7 @@ contains
 
   function minMaxConstructorParameters(parameters) result(self)
     !% Constructor for the ``minMax'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorMinMax)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
@@ -68,7 +68,6 @@ contains
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
     !% Internal constructor for the ``minMax'' output analysis distribution operator class.
-    use Input_Parameters
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self
     double precision                                      , intent(in   ) :: thresholdMinimum, thresholdMaximum

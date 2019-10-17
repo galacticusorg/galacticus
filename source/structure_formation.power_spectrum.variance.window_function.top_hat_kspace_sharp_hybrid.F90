@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a hybrid top-hat/sharp $k$-space power spectrum window function class.
-  use Cosmology_Parameters
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatSharpKHybrid">
   !#  <description>A hybrid top-hat/sharp $k$-space window function for filtering of power spectra.</description>
@@ -55,7 +55,7 @@ contains
 
   function topHatSharpKHybridConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -63,7 +63,7 @@ contains
     type            (varying_string                               )                :: normalization
     character       (len=32                                       )                :: normalizationChar
     double precision                                                               :: normalizationValue                     , radiiRatio
-    
+
     ! Check parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -105,14 +105,14 @@ contains
 
   function topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio) result(self)
     !% Internal constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                        :: self
-    class           (cosmologyParametersClass                     ), target, intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass                     ), target, intent(in   ) :: cosmologyParameters_
     double precision                                                                       :: normalization                        , radiiRatio
     character       (len=18                                       )                        :: normalizationText
     !# <constructorAssign variables="radiiRatio, *cosmologyParameters_"/>
-    
+
     ! Compute normalization.
     if (normalization <= 0.0d0) then
        ! Compute the "natural" normalization.
@@ -135,7 +135,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
     implicit none
     type(powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine topHatSharpKHybridDestructor
@@ -187,10 +187,10 @@ contains
     end if
     ! Compute the convolution (which is just the multiplication in k-space).
     topHatSharpKHybridValue=+kSpaceSharpWindowFunction &
-         &                  *     topHatWindowFunction      
+         &                  *     topHatWindowFunction
     return
   end function topHatSharpKHybridValue
-  
+
   double precision function topHatSharpKHybridWavenumberMaximum(self,smoothingMass)
     !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
@@ -213,7 +213,7 @@ contains
     !% sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is
     !% $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
     !% r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass

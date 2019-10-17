@@ -22,7 +22,7 @@
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
   use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
+  use            :: ISO_Varying_String
   implicit none
 
   !# <generic identifier="Type">
@@ -135,7 +135,7 @@ module Hashes
   interface {Type¦label}ScalarHash
      module procedure {Type¦label}ScalarHashConstructor
   end interface {Type¦label}ScalarHash
-  
+
   ! The number of new elements by which to extend hashes that need to grow.
   integer, parameter :: hashSizeIncrement=128
 
@@ -149,7 +149,7 @@ contains
      call Initialize_{Type¦label}_Scalar(self)
      return
    end function {Type¦label}ScalarHashConstructor
-  
+
   subroutine Initialize_{Type¦label}_Scalar(thisHash)
     !% Routine to initialize (or re-initialize) a hash.
     implicit none
@@ -211,16 +211,16 @@ contains
 
   subroutine Delete_{Type¦label}_Scalar_VS(thisHash,key)
     !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+    use            :: Arrays_Search   , only : Search_Array
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Arrays_Search
-    use            :: Galacticus_Error
     implicit none
     type   (varying_string        ), intent(in   ) :: key
     class  ({Type¦label}ScalarHash), intent(inout) :: thisHash
     integer(c_size_t              ), save          :: iKey
     !$omp threadprivate(iKey)
     integer(c_size_t              )                :: i
-    
+
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
        iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
        do i=iKey,thisHash%elementCount-1
@@ -256,10 +256,10 @@ contains
     keys=thisHash%hashKeys(1:thisHash%elementCount)
     return
   end subroutine Keys_{Type¦label}_Scalar
-  
+
   subroutine Values_{Type¦label}_Scalar(thisHash,values)
     !% Returns an array of all values in {\normalfont \ttfamily thisHash}.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 #if {Type¦match¦^generic$¦0¦1}
     {Type¦intrinsic}                        {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
@@ -272,7 +272,7 @@ contains
     integer                                 , allocatable, dimension(:), intent(inout) :: values
     class           ({Type¦label}ScalarHash)                           , intent(in   ) :: thisHash
     !GCC$ attributes unused :: thisHash, values
-    
+
     call Galacticus_Error_Report('values method is not supported for generic hashes'//{introspection:location})
 #endif
     return
@@ -304,8 +304,8 @@ contains
 
   function Value_{Type¦label}_Scalar_VS(thisHash,key)
     !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
-    use Arrays_Search
-    use Galacticus_Error
+    use            :: Arrays_Search   , only : Search_Array
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     implicit none
     {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_VS
@@ -331,7 +331,7 @@ contains
     class           ({Type¦label}ScalarHash)                         , intent(inout) :: thisHash
     type            (varying_string        )                         , save          :: key
     !$omp threadprivate(key)
-    
+
     key=trim(keyCH)
     call Set_{Type¦label}_Scalar_VS(thisHash,key,value)
     return
@@ -339,7 +339,7 @@ contains
 
   subroutine Set_{Type¦label}_Scalar_VS(thisHash,key,value)
     !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
-    use Arrays_Search
+    use            :: Arrays_Search, only : Search_Array
     use, intrinsic :: ISO_C_Binding
     implicit none
     {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   )               :: Value

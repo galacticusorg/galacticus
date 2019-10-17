@@ -423,9 +423,9 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
 
 # Rules for version routines.
-$(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
-	@if [ -f .hg/branch ] ; then hg parent | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@if [ -f .hg/branch ] ; then hg branch | awk '{print "character(len=128), parameter :: hgBranch=\""$$1"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: hgBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+$(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .git/refs/heads/master)
+	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
 	@date --utc | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
 
 # Rules for build information routines.
@@ -444,11 +444,11 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 
 # Rules for changeset creation.
-Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
-$(BUILDPATH)/galacticus.hg.patch:
-	hg diff > $(BUILDPATH)/galacticus.hg.patch || echo unknown > $(BUILDPATH)/galacticus.hg.patch
-$(BUILDPATH)/galacticus.hg.bundle:
-	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://bitbucket.org/galacticusdev/galacticus || echo unknown > $(BUILDPATH)/galacticus.hg.bundle
+Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
+$(BUILDPATH)/galacticus.git.patch:
+	git diff > $(BUILDPATH)/galacticus.git.patch || echo unknown > $(BUILDPATH)/galacticus.git.patch
+$(BUILDPATH)/galacticus.git.bundle:
+	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin || echo unknown > $(BUILDPATH)/galacticus.git.bundle
 
 # Rules for cleaning up.
 clean: tidy

@@ -45,17 +45,17 @@ contains
 
   function tinker2008GenericConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tinker2008Generic} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionTinker2008Generic)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
-    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
     class           (linearGrowthClass                ), pointer       :: linearGrowth_
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     double precision                                                   :: normalization            , a, &
          &                                                                b                        , c
-    
+
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <defaultValue>0.150d0</defaultValue>
@@ -118,14 +118,14 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
     implicit none
     type            (haloMassFunctionTinker2008Generic)                             :: self
-    class           (cosmologyParametersClass         ), target     , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass         ), target     , intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass    ), target     , intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass                ), target     , intent(in   ) :: linearGrowth_
     class           (cosmologyFunctionsClass          ), target     , intent(in   ) :: cosmologyFunctions_
     double precision                                                , intent(in   ) :: normalization            , a, &
          &                                                                             b                        , c
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_"/>
-    
+
     self%time              =-1.0d0
     self%mass              =-1.0d0
     self%normalizationValue=normalization
@@ -134,7 +134,7 @@ contains
     self%            cValue=c
     return
   end function tinker2008GenericConstructorInternal
-  
+
   subroutine tinker2008GenericDestructor(self)
     !% Destructor for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
     implicit none
@@ -157,7 +157,7 @@ contains
     tinker2008GenericNormalization=self%normalizationValue
     return
   end function tinker2008GenericNormalization
-  
+
   double precision function tinker2008GenericA(self,time,mass)
     !% Return the $a$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
     implicit none
@@ -168,7 +168,7 @@ contains
     tinker2008GenericA=self%aValue
     return
   end function tinker2008GenericA
-  
+
   double precision function tinker2008GenericB(self,time,mass)
     !% Return the $b$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
     implicit none
@@ -179,7 +179,7 @@ contains
     tinker2008GenericB=self%bValue
     return
   end function tinker2008GenericB
-  
+
   double precision function tinker2008GenericC(self,time,mass)
     !% Return the $c$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
     implicit none
@@ -190,4 +190,4 @@ contains
     tinker2008GenericC=self%cValue
     return
   end function tinker2008GenericC
-  
+

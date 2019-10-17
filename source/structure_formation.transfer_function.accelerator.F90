@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
-  
-  use Tables
-  
+
+  use :: Tables, only : table1DLinearLinear
+
   !# <transferFunction name="transferFunctionAccelerator">
   !#  <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
   !# </transferFunction>
@@ -33,7 +33,7 @@
      integer                                          :: tablePointsPerDecade
      logical                                          :: tableInitialized
    contains
-  
+
      final     ::                          acceleratorDestructor
      procedure :: value                 => acceleratorValue
      procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative
@@ -71,7 +71,7 @@ contains
     !# <objectDestructor name="transferFunction_"/>
     return
   end function acceleratorConstructorParameters
-  
+
   function acceleratorConstructorInternal(transferFunction_,tablePointsPerDecade) result(self)
     !% Internal constructor for the accelerator transfer function class.
     implicit none
@@ -85,7 +85,7 @@ contains
     self%wavenumberLogarithmicMaximum=log(1.0d+6)
     return
   end function acceleratorConstructorInternal
-  
+
   subroutine acceleratorDestructor(self)
     !% Destructor for the accelerator transfer function class.
     implicit none
@@ -102,7 +102,7 @@ contains
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
     double precision                                             :: wavenumberLogarithmic
-    
+
     wavenumberLogarithmic=log(wavenumber)
     call acceleratorTabulate(self,wavenumberLogarithmic)
     acceleratorValue=exp(self%transferTable%interpolate(wavenumberLogarithmic))
@@ -115,13 +115,13 @@ contains
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
     double precision                                             :: wavenumberLogarithmic
-    
+
     wavenumberLogarithmic=log(wavenumber)
     call acceleratorTabulate(self,wavenumberLogarithmic)
     acceleratorLogarithmicDerivative=+self%transferTable%interpolateGradient(wavenumberLogarithmic)
     return
   end function acceleratorLogarithmicDerivative
-  
+
   double precision function acceleratorEpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.
     implicit none
@@ -167,4 +167,4 @@ contains
     end if
     return
   end subroutine acceleratorTabulate
-  
+

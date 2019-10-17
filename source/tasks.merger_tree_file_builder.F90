@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
-  use Power_Spectra_Primordial  , only : powerSpectrumPrimordial , powerSpectrumPrimordialClass
-  use Transfer_Functions        , only : transferFunction        , transferFunctionClass
-  use Stateful_Types            , only : statefulLogical         , statefulDouble               , statefulInteger
+  use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordial , powerSpectrumPrimordialClass
+  use :: Stateful_Types            , only : statefulDouble          , statefulInteger              , statefulLogical
+  use :: Transfer_Functions        , only : transferFunction        , transferFunctionClass
 
   type :: mergerTreeMetaData
      !% Type used for metadata in merger tree files.
@@ -34,7 +34,7 @@
      integer                 :: property        , column
      type   (statefulDouble) :: conversionFactor
   end type propertyColumn
-  
+
   !# <task name="taskMergerTreeFileBuilder">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
@@ -74,15 +74,16 @@
      module procedure mergerTreeFileBuilderConstructorParameters
      module procedure mergerTreeFileBuilderConstructorInternal
   end interface taskMergerTreeFileBuilder
-  
+
 contains
-  
+
   function mergerTreeFileBuilderConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily mergerTreeFileBuilder} task class which takes a parameter set as input.
-    use Input_Parameters                , only : inputParameter                   , inputParameters
-    use Merger_Tree_Data_Structure      , only : enumerationMergerTreeFormatEncode, enumerationPropertyTypeEncode, enumerationMetaDataTypeEncode
-    use Numerical_Constants_Astronomical, only : massSolar                        , megaParsec
-    use Numerical_Constants_Prefixes    , only : kilo
+    use :: Input_Parameters                , only : inputParameter                   , inputParameters
+    use :: Merger_Tree_Data_Structure      , only : enumerationMergerTreeFormatEncode, enumerationMetaDataTypeEncode, enumerationPropertyTypeEncode, unitsLength, &
+          &                                         unitsMass                        , unitsVelocity
+    use :: Numerical_Constants_Astronomical, only : massSolar                        , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type            (taskMergerTreeFileBuilder    )                              :: self
     type            (inputParameters              ), intent(inout)               :: parameters
@@ -144,7 +145,7 @@ contains
     !#   <description>The format to use for merger tree output.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnHeaders</name>
     !#   <cardinality>1</cardinality>
@@ -152,7 +153,7 @@ contains
     !#   <description>If true, the file is assumed to contain a single line of column headers, which will be skipped.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnSeparator</name>
     !#   <cardinality>1</cardinality>
@@ -484,16 +485,17 @@ contains
     !# <objectDestructor name="self%transferFunction_"        />
     return
   end subroutine mergerTreeFileBuilderDestructor
-  
+
   subroutine mergerTreeFileBuilderPerform(self,status)
     !% Compute and output the halo mass function.
-    use HDF5                            , only : hsize_t
-    use Merger_Tree_Data_Structure      , only : mergerTreeData           , metaDataTypeCosmology      , metaDataTypeProvenance, metaDataTypeSimulation, &
-         &                                       unitsMass                , unitsLength                , unitsVelocity
-    use Dates_and_Times                 , only : Formatted_Date_and_Time
-    use Input_Parameters                , only : inputParameters
-    use Galacticus_Error                , only : errorStatusSuccess
-    use Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
+    use :: Dates_and_Times           , only : Formatted_Date_and_Time
+    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error          , only : errorStatusSuccess
+    use :: HDF5                      , only : hsize_t
+    use :: Input_Parameters          , only : inputParameters
+    use :: Merger_Tree_Data_Structure, only : mergerTreeData           , metaDataTypeCosmology      , metaDataTypeProvenance, metaDataTypeSimulation, &
+          &                                   unitsLength              , unitsMass                  , unitsVelocity
     implicit none
     class           (taskMergerTreeFileBuilder), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
@@ -504,7 +506,7 @@ contains
          &                                                                  metaDataValueInteger
     double precision                                                     :: metaDataValueFloat
     character       (len=1024                 )                          :: metaDataText
-    
+
     call Galacticus_Display_Indent('Begin task: merger tree file builder')
     ! Set columns to read.
     do i=1,size(self%properties)
@@ -520,7 +522,7 @@ contains
     ! Specify that we do not want to create individual merger tree reference datasets.
     call mergerTrees%makeReferences          (.false.)
     ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
-    call mergerTrees%setSelfContained        (.true. )    
+    call mergerTrees%setSelfContained        (.true. )
     call mergerTrees%setUnits(unitsMass    ,unitsInSI=self%unitsMassInSI    ,hubbleExponent=self%unitsMassHubbleExponent    ,scaleFactorExponent=self%unitsMassScaleFactorExponent    ,name=char(self%unitsMassName    ))
     call mergerTrees%setUnits(unitsLength  ,unitsInSI=self%unitsLengthInSI  ,hubbleExponent=self%unitsLengthHubbleExponent  ,scaleFactorExponent=self%unitsLengthScaleFactorExponent  ,name=char(self%unitsLengthName  ))
     call mergerTrees%setUnits(unitsVelocity,unitsInSI=self%unitsVelocityInSI,hubbleExponent=self%unitsVelocityHubbleExponent,scaleFactorExponent=self%unitsVelocityScaleFactorExponent,name=char(self%unitsVelocityName))
@@ -550,7 +552,7 @@ contains
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',char(     descriptorPowerSpectrum   %serializeToString(                  )))
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'transferFunction'  ,char(     descriptorTransferFunction%serializeToString(                  )))
     call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,     'Galacticus'                                                          )
-    call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time                          (                  )))    
+    call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time                          (                  )))
     do i=1,size(self%metaData)
        ! Determine the metadata type.
        metaDataText=self%metaData(i)%content
@@ -567,7 +569,7 @@ contains
           cycle
        end if
        !! Assume a string.
-       call    mergerTrees%addMetadata(self%metaData(i)%type,char(self%metaData(i)%name),trim(metaDataText        ))       
+       call    mergerTrees%addMetadata(self%metaData(i)%type,char(self%metaData(i)%name),trim(metaDataText        ))
     end do
     ! Process particles if necessary.
     if (self%traceParticles) then
@@ -587,7 +589,7 @@ contains
   logical function mergerTreeFileBuilderRequiresOutputFile(self)
     !% Specifies that this task does not require the main output file.
     implicit none
-    class(taskMergerTreeFileBuilder), intent(inout) :: self    
+    class(taskMergerTreeFileBuilder), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     mergerTreeFileBuilderRequiresOutputFile=.false.

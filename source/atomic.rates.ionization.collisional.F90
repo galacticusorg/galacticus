@@ -33,7 +33,7 @@ module Atomic_Rates_Ionization_Collisional
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer         , intent(in   ) :: atomicNumber, ionizationState</argument>
-  !#   <argument>double precision, intent(in   ) :: temperature</argument>                     
+  !#   <argument>double precision, intent(in   ) :: temperature</argument>
   !#  </method>
   !# </functionClass>
 

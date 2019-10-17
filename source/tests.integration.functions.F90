@@ -21,8 +21,7 @@
 
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
-  use FGSL              , only : fgsl_function, fgsl_integration_workspace
-  use Galacticus_Display
+  use :: FGSL, only : fgsl_function, fgsl_integration_workspace
   implicit none
   private
   public :: Integrand1, Integrand2, Integrand3, Integrand4
@@ -62,7 +61,7 @@ contains
 
   double precision function Integrand4(x)
     !% Integral for unit testing.
-    use Numerical_Integration
+    use :: Numerical_Integration, only : Integrate
     implicit none
     double precision, intent(in   ) :: x
 

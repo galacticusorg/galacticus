@@ -40,12 +40,12 @@ contains
 
   function unescapedConstructorParameters(parameters) result(self)
     !% Constructor for the unescaped spectrum postprocessor class which accepts a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationSpectraPostprocessorUnescaped)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     double precision                                                                :: timescale
-    
+
     !# <inputParameter>
     !#   <name>timescale</name>
     !#   <cardinality>1</cardinality>
@@ -75,7 +75,7 @@ contains
     double precision                                                , intent(in   ) :: age       , redshift, &
          &                                                                             wavelength
     !GCC$ attributes unused :: redshift, wavelength
-    
+
     unescapedMultiplier=exp(-age/self%timescale)
     return
   end function unescapedMultiplier

@@ -37,7 +37,7 @@
   end interface galacticStructureSolverNull
 
 contains
-  
+
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} galactic structure solver class which takes a
     !% parameter set as input.
@@ -46,7 +46,7 @@ contains
     type(galacticStructureSolverNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=galacticStructureSolverNull()
     return
   end function nullConstructorParameters
@@ -92,7 +92,7 @@ contains
     end select
     return
   end subroutine nullSolveHook
-  
+
   subroutine nullSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver.
     use Galacticus_Error, only : Galacticus_Error_Report
@@ -110,7 +110,7 @@ contains
     end select
     return
   end subroutine nullSolvePreDeriativeHook
-  
+
   subroutine nullSolve(self,node)
     !% Solve for the structure of galactic components.
     include 'galactic_structure.radius_solver.plausible.modules.inc'
@@ -118,9 +118,9 @@ contains
     class(galacticStructureSolverNull), intent(inout)         :: self
     type (treeNode                   ), intent(inout), target :: node
     !GCC$ attributes unused :: self
-    
+
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'    
+    include 'galactic_structure.radius_solver.plausible.inc'
     return
   end subroutine nullSolve

@@ -20,8 +20,8 @@
   !% Contains a module which implements a random error output analysis distribution operator class providing errors in $\log_{10}$
   !% of N-body halo concentration.
 
-  use Node_Property_Extractors
-  
+  use :: Node_Property_Extractors, only : nodePropertyExtractorClass
+
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc">
   !#  <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo concentration.</description>
   !# </outputAnalysisDistributionOperator>
@@ -46,7 +46,7 @@ contains
 
   function randomErrorNbdyCncConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorNbdyCnc'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
@@ -85,7 +85,8 @@ contains
 
   function randomErrorNbdyCncConstructorInternal(a,b,massParticle,nodePropertyExtractor_) result(self)
     !% Internal constructor for the ``randomErrorNbdyCnc'' output analysis distribution operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     double precision                                                  , intent(in   ), dimension(:) :: a
@@ -105,14 +106,15 @@ contains
   subroutine randomErrorNbdyCncDestructor(self)
     !% Destructor for  the ``nbodyConcentration'' output analysis distribution operator class.
     type(outputAnalysisDistributionOperatorRndmErrNbdyCnc), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%nodePropertyExtractor_" />
     return
   end subroutine randomErrorNbdyCncDestructor
 
   double precision function randomErrorNbdyCncRootVariance(self,propertyValue,node)
     !% Computes errors on $\log_{10}($halo concentration$)$ for N-body halos.
-    implicit none
+   use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
+   implicit none
     class           (outputAnalysisDistributionOperatorRndmErrNbdyCnc), intent(inout) :: self
     double precision                                                  , intent(in   ) :: propertyValue
     type            (treeNode                                        ), intent(inout) :: node
@@ -134,6 +136,6 @@ contains
     do i=1,size(self%a)
        randomErrorNbdyCncRootVariance=randomErrorNbdyCncRootVariance+self%a(i)*propertyValue**(i-1)
     end do
-    randomErrorNbdyCncRootVariance=10.0d0**randomErrorNbdyCncRootVariance    
+    randomErrorNbdyCncRootVariance=10.0d0**randomErrorNbdyCncRootVariance
     return
   end function randomErrorNbdyCncRootVariance

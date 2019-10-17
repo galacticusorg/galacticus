@@ -13,9 +13,11 @@ $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceIntrospection'} = \&P
 
 sub ReadFile {
     # Read a file and add instrumentation to assist in source introspection.
-    my $fileName = shift();
-    my $code     = slurp($fileName);
-    $code        = &Instrument($code);
+    my $fileName  = shift();
+    my (%options) = @_;
+    my $code      = slurp($fileName);
+    $code         = &Instrument($code)
+	unless ( exists($options{'instrument'}) && ! $options{'instrument'} );
     return $code;
 }
 

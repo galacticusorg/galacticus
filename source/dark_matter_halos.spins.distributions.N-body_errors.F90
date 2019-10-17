@@ -19,13 +19,12 @@
 
   !% An implementation of the dark matter halo spin distribution which modifies another spin distribution to account for the
   !% effects of particle noise errors in spins measured in N-body simulations.
-  
-  use Statistics_NBody_Halo_Mass_Errors
-  use Cosmology_Functions
-  use Halo_Mass_Functions
-  use Dark_Matter_Profiles_DMO
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+
+  use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO         , only : darkMatterProfileDMOClass
+  use :: Halo_Mass_Functions              , only : haloMassFunctionClass
+  use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !# <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
   !#  <description>
@@ -98,13 +97,14 @@
   ! Module-scope variable used in root finding.
   double precision :: nbodyErrorsNonCentralChiSquareChi
   !$omp threadprivate(nbodyErrorsNonCentralChiSquareChi)
-  
+
 contains
 
   function nbodyErrorsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -216,14 +216,13 @@ contains
 
   subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
     !% Tabulate the halo spin distribution.
+    use            :: FGSL                          , only : fgsl_function                , fgsl_integration_workspace
+    use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Integration
-    use               Memory_Management
-    use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin, nodeComponentDarkMatterProfile
-    use               FGSL                          , only : fgsl_function, fgsl_integration_workspace
-    use               Galacticus_Error
-    use               Numerical_Constants_Math
-    use               Galacticus_Calculations_Resets
+    use            :: Memory_Management             , only : allocateArray                , deallocateArray
+    use            :: Numerical_Integration         , only : Integrate                    , Integrate_Done
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
@@ -250,7 +249,7 @@ contains
          &                                                                        particleNumber                      , massEnergyEstimateMaximum  , &
          &                                                                        energyEstimateErrorCorrection       , massAverage                , &
          &                                                                        massSpinAverage
-    
+
     ! Validate optional parameter combinations.
     if     (          (present(massRequired).or. present(spinRequired))                                                                      &
          &  .and.                                                                                                                            &
@@ -387,7 +386,7 @@ contains
        end if
        do iSpin=1,self%spinCount
           ! Evaluate the spin at this grid point - this corresponds to the measured spin in the N-body simulation.
-          spinMeasured=10.0d0**(dble(iSpin-1)*self%spinDelta+log10(self%spinMinimum))      
+          spinMeasured=10.0d0**(dble(iSpin-1)*self%spinDelta+log10(self%spinMinimum))
           ! Compute the distribution at the current value of mass and spin.
           if (self%fixedPoint) then
              self%distributionTable(iMass,iSpin)=massSpinIntegral(massMeasured)
@@ -445,8 +444,9 @@ contains
 
     double precision function massSpinIntegral(massIntrinsic)
       !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
-      use Galacticus_Error
-      use Input_Parameters
+      use :: Galacticus_Error        , only : Galacticus_Error_Report, Galacticus_Warn, errorStatusFail, errorStatusSuccess
+      use :: Input_Parameters        , only : inputParameters
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision                , intent(in   ) :: massIntrinsic
       double precision                , parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.
@@ -460,7 +460,7 @@ contains
       character       (len=8          )               :: label         , labelMass     , &
            &                                             labelSpin
       type            (inputParameters)               :: descriptor
-      
+
       ! Evaluate the halo mass part of the integrand, unless evaluating the distribution at a fixed point.
       if (self%fixedPoint) then
          massSpinIntegral          =1.0d0
@@ -473,7 +473,7 @@ contains
       ! space. Note that the root-variance that goes into non-central χ-square distribution is the width of the Gaussian for a
       ! single dimension, leading to a factor of √3 in the following.
       errorSpinIndependent         =+radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum &
-           &                        /sqrt(particleNumber)       
+           &                        /sqrt(particleNumber)
       errorSpinIndependent1D       =+errorSpinIndependent                                        &
            &                        /sqrt(3.0d0)
       ! Get the outer radius of the halo.
@@ -533,7 +533,7 @@ contains
                  &                      toleranceAbsolute       =1.0d-9*spinMeasured, &
                  &                      toleranceRelative       =tolerance          , &
                  &                      errorStatus             =errorStatus          &
-                 &                    )                                               & 
+                 &                    )                                               &
                  &           /2.0d0                                                   & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
                  &           /Pi                                                      & !    outside of integrand since constant. Each contributes √(2π).
                  &           *2.0d0                                                   & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
@@ -574,7 +574,7 @@ contains
       ! Set the intrinsic spin.
       call nodeSpin%spinSet(spinIntrinsic)
       call Galacticus_Calculations_Reset(node)
-      ! Compute the integrand.      
+      ! Compute the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node         ) & ! Weight by the intrinsic spin distribution.
            &       *spinIntrinsic                                          & ! Multiply by spin since our integration variable is log(spin).
            &       *spinErrorIntegral                      (spinIntrinsic)   ! Multiply by the integral over the product distribution of spin-dependent and spin-independent errors.
@@ -591,7 +591,7 @@ contains
       double precision                :: logSpinMinimum                                      , logSpinMaximum                     , &
            &                             nonCentralChiSquaredMode                            , nonCentralChiSquaredModeLogarithmic, &
            &                             nonCentralChiSquaredRootVarianceLogarithmic
-      
+
       ! Evaluate the root-variance of the spin-dependent error term which arises from errors in the measurement of mass and
       ! energy.
       errorSpinDependent=errorsSpinDependent(spinIntrinsic)
@@ -616,7 +616,7 @@ contains
            &                )
       logNormalLogMean=+log(logNormalMean)               &
            &           -0.5d0                            &
-           &           *logNormalWidth**2       
+           &           *logNormalWidth**2
       ! Find the logarithm of the spin corresponding to the mode of the non-central chi-squared distribution.
       nonCentralChiSquaredMode                   =nbodyErrorsNonCentralChiSquareMode(nonCentrality)
       nonCentralChiSquaredModeLogarithmic        =log (sqrt(nonCentralChiSquaredMode)*errorSpinIndependent1D)
@@ -643,7 +643,7 @@ contains
            &                       integrationWorkspaceProduct                   , &
            &                       toleranceAbsolute       =+1.0d-9*spinIntrinsic, &
            &                       toleranceRelative       =+1.0d-3                &
-           &                      )                                                & 
+           &                      )                                                &
            &            /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
            &            /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
       call Integrate_Done(integrandFunctionProduct,integrationWorkspaceProduct)
@@ -775,7 +775,7 @@ contains
 
   double precision function nbodyErrorsSample(self,node)
     !% Sample from the halo spin distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionNbodyErrors), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -788,7 +788,7 @@ contains
 
   double precision function nbodyErrorsDistribution(self,node)
     !% Compute the spin distribution.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -825,7 +825,7 @@ contains
 
   double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured,spinMeasuredMinimum,spinMeasuredMaximum)
     !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -857,8 +857,8 @@ contains
 
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
-    use Galacticus_Calculations_Resets
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -868,7 +868,7 @@ contains
          &                                                              massLow  , massHigh    , &
          &                                                              weight   , weightTotal
     integer                                                          :: iMass
-    
+
     ! Sum the spin distribution over all tabulated points in mass, weighting by the number of halos in that mass range.
     nodeBasic                       => node     %basic()
     massOriginal                    =  nodeBasic%mass ()
@@ -895,7 +895,7 @@ contains
 
   double precision function nbodyErrorsNonCentralChiSquareMode(chi)
     !% Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     double precision            , intent(in   ) :: chi
     type            (rootFinder)                :: finder

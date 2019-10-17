@@ -65,7 +65,7 @@ program Tests_Merger_Tree_Branching
   double precision                                                               , parameter    :: massParent                                                    =1.0d12             , massResolution            =1.0d11
   integer                                                                                       :: i
   character       (len=16                                                       )               :: label
-  
+
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityWorking)
   ! Initialize event hooks.
@@ -93,7 +93,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       wavenumberReference                    =+1.0d0                                                          &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
-       &                                                                                                                       time                                   =13.8d0                                                          & 
+       &                                                                                                                       time                                   =13.8d0                                                          &
        &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
        &                                                                                                                       powerSpectrumPrimordial_               =powerSpectrumPrimordialPowerLaw_                              , &

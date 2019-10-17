@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the SDSS survey used by \cite{gunawardhana_galaxy_2013}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryGunawardhana2013SDSS">
   !#  <description>Implements the geometry of the SDSS survey of \cite{gunawardhana_galaxy_2013}.</description>
@@ -43,22 +42,22 @@ contains
 
   function gunawardhana2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{gunawardhana_galaxy_2013} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (surveyGeometryGunawardhana2013SDSS)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
-    
+
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=surveyGeometryGunawardhana2013SDSS(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function gunawardhana2013SDSSConstructorParameters
-  
+
   function gunawardhana2013SDSSConstructorInternal(cosmologyFunctions_) result (self)
     !% Default constructor for the \cite{gunawardhana_galaxy_2013} survey geometry class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (surveyGeometryGunawardhana2013SDSS)                        :: self
     class(cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
@@ -73,11 +72,11 @@ contains
     !% Destructor for the ``gunawardhana2013SDSS'' survey geometry class.
     implicit none
     type(surveyGeometryGunawardhana2013SDSS), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine gunawardhana2013SDSSDestructor
-  
+
   double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
@@ -99,10 +98,11 @@ contains
 
   double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Units
+    use :: Cosmology_Functions_Options     , only : distanceTypeComoving
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Units       , only : ergs
+    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &
@@ -112,7 +112,7 @@ contains
     double precision                                                              :: distanceMaximumRedshift        , distanceMaximumLuminosity, &
          &                                                                           distanceLuminosity
     !GCC$ attributes unused :: field, mass, magnitudeAbsolute
-    
+
     ! Validate input.
     if (.not.present(luminosity)) call Galacticus_Error_Report('luminosity must be supplied '//{introspection:location})
     ! Compute limiting distances. We find the luminosity distance from the supplied luminosity and the limiting flux of the survey.

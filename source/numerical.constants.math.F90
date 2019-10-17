@@ -21,14 +21,15 @@
 
 module Numerical_Constants_Math
   !% Contains various useful mathematical constants.
-  use FGSL        , only : m_e, m_pi, m_ln10, m_ln2, m_euler
-  use Kind_Numbers
+  use :: FGSL        , only : m_e      , m_euler, m_ln10, m_ln2, &
+          &                   m_pi
+  use :: Kind_Numbers, only : kind_quad
   implicit none
   public
-  
+
   ! e.
   double precision                , parameter :: e              =m_e
-  
+
   ! Pi.
   double precision                , parameter :: Pi             =m_pi
   real            (kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad

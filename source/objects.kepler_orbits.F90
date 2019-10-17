@@ -59,7 +59,7 @@ module Kepler_Orbits
      logical          :: angularMomentumIsSet
      logical          :: energyIsSet
      logical          :: eccentricityIsSet
-     logical          :: semimajorAxisIsSet     
+     logical          :: semimajorAxisIsSet
    contains
      ! Orbit methods.
      !@ <objectMethods>
@@ -386,10 +386,10 @@ module Kepler_Orbits
      !% Constructors for Kepler orbits.
      module procedure keplerOrbitConstructorNull
   end interface keplerOrbit
-  
+
   ! A null orbit.
   type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
-  
+
 contains
 
   function keplerOrbitConstructorNull() result(self)
@@ -399,13 +399,13 @@ contains
     self=zeroKeplerOrbit
     return
   end function keplerOrbitConstructorNull
-  
+
   subroutine Kepler_Orbits_Destroy(orbit)
     !% Destroy an orbit.
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
     !GCC$ attributes unused :: orbit
-    
+
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
@@ -413,8 +413,8 @@ contains
   subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time,outputInstance)
     !% Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.
-    use Kind_Numbers
-    use Multi_Counters
+    use :: Kind_Numbers  , only : kind_int8
+    use :: Multi_Counters, only : multiCounter
     implicit none
     class           (keplerOrbit   )                , intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -424,7 +424,7 @@ contains
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter  )                , intent(in   ) :: outputInstance
     !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
-    
+
     if (self%isDefined()) then
        doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
        doubleBuffer(doubleBufferCount,doubleProperty+2)=self%angularMomentum()
@@ -443,7 +443,7 @@ contains
     class           (keplerOrbit), intent(inout) :: self
     double precision             , intent(in   ) :: time
     !GCC$ attributes unused :: self, time
-    
+
     return
   end subroutine Kepler_Orbits_Post_Output
 
@@ -454,7 +454,7 @@ contains
     integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision             , intent(in   ) :: time
     !GCC$ attributes unused :: self, integerPropertyCount, time
-    
+
     doublePropertyCount=doublePropertyCount+4
     return
   end subroutine Kepler_Orbits_Output_Count
@@ -462,7 +462,8 @@ contains
   subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
     !% Assign names to output buffers for a {\normalfont \ttfamily keplerOrbit} object.
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (keplerOrbit)              , intent(in   ) :: self
     double precision                           , intent(in   ) :: time
@@ -473,7 +474,7 @@ contains
     character       (len=*      )              , intent(in   ) :: comment                , prefix
     double precision                           , intent(in   ) :: unitsInSI
     !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
-    
+
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
     doublePropertyComments(doubleProperty)=trim(comment)//' [specific energy]'
@@ -495,8 +496,8 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: self
     type (node       ), pointer       :: keplerOrbitDefinition
@@ -547,8 +548,8 @@ contains
 
   subroutine Kepler_Orbits_Dump(self)
     !% Reset an orbit to a null state.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String
     implicit none
     class    (keplerOrbit   ), intent(in   ) :: self
     character(len=22        )                :: label
@@ -832,7 +833,7 @@ contains
 
   double precision function Kepler_Orbits_Theta(orbit)
     !% Return the angle $\theta$ for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -843,7 +844,7 @@ contains
 
   double precision function Kepler_Orbits_Phi(orbit)
     !% Return the angle $\phi$ for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -854,7 +855,7 @@ contains
 
   double precision function Kepler_Orbits_Epsilon(orbit)
     !% Return the angle $\epsilon$ for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -865,7 +866,7 @@ contains
 
   double precision function Kepler_Orbits_Specific_Reduced_Mass(orbit)
     !% Return the specific reduced mass for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -876,7 +877,7 @@ contains
 
   double precision function Kepler_Orbits_Host_Mass(orbit)
     !% Return the host mass for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -887,7 +888,7 @@ contains
 
   double precision function Kepler_Orbits_Radius(orbit)
     !% Return the radius for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -934,7 +935,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Radial(orbit)
     !% Return the radial velocity for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -957,7 +958,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Tangential(orbit)
     !% Return the tangential velocity for this orbit.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -984,7 +985,7 @@ contains
 
   double precision function Kepler_Orbits_Energy(orbit)
     !% Return the energy for this orbit.
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1009,7 +1010,7 @@ contains
     if (.not.orbit%angularMomentumIsSet) then
        orbit%angularMomentumValue=orbit%radius()*orbit%velocityTangential()*orbit%specificReducedMass()
        orbit%angularMomentumIsSet=.true.
-    end if   
+    end if
     Kepler_Orbits_Angular_Momentum=orbit%angularMomentumValue
     return
   end function Kepler_Orbits_Angular_Momentum
@@ -1026,7 +1027,7 @@ contains
        orbit%eccentricityValue=sqrt(1.0d0+2.0d0*orbit%energy()*orbit%angularMomentum()**2/orbit%radius()**2&
             &/orbit%velocityScale()**4/orbit%specificReducedMass())
        orbit%eccentricityIsSet=.true.
-    end if    
+    end if
     Kepler_Orbits_Eccentricity=orbit%eccentricityValue
     return
   end function Kepler_Orbits_Eccentricity
@@ -1079,7 +1080,7 @@ contains
 
   subroutine Kepler_Orbits_Assert_Is_Defined(orbit)
     !% Assert that an orbit is defined - quit with an error if it is not.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(in   ) :: orbit
 
@@ -1101,8 +1102,8 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
     !% Return the velocity scale for the orbit.
-    use Galacticus_Error
-    use Numerical_Constants_Physical
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1115,8 +1116,8 @@ contains
 
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
     !% Propagate an orbit along its path.
-    use Galacticus_Error
-    use Numerical_Constants_Physical
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius
@@ -1155,11 +1156,11 @@ contains
 
   function Kepler_Orbits_Position(orbit) result(position)
     !% Return the position of the orbit in Cartesian coordinates.
-    use Coordinates
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
     type (coordinateCartesian)                :: position
     class(keplerOrbit        ), intent(inout) :: orbit
-    
+
     position=+      orbit%radius()                    &
          &   *[                                       &
          &     +sin(orbit%theta ())*cos(orbit%phi()), &
@@ -1168,11 +1169,11 @@ contains
          &    ]
     return
   end function Kepler_Orbits_Position
-  
+
   function Kepler_Orbits_Velocity(orbit) result(velocity)
     !% Return the position of the orbit in Cartesian coordinates.
-    use Coordinates
-    use Vectors
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
+    use :: Vectors    , only : Vector_Product
     implicit none
     type            (coordinateCartesian)                :: velocity
     class           (keplerOrbit        ), intent(inout) :: orbit
@@ -1201,9 +1202,9 @@ contains
     integer(c_size_t   )                :: Kepler_Orbits_Non_Static_Size_Of
     class  (keplerOrbit), intent(in   ) :: self
     !GCC$ attributes unused :: self
-    
+
     Kepler_Orbits_Non_Static_Size_Of=0_c_size_t
     return
   end function Kepler_Orbits_Non_Static_Size_Of
-  
+
 end module Kepler_Orbits

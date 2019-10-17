@@ -34,9 +34,12 @@
      procedure :: densityContrastDefinition       => spinCorrelatedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => spinCorrelatedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => spinCorrelatedVelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => spinCorrelatedAngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => spinCorrelatedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => spinCorrelatedVelocityTotalRootMeanSquared
+     procedure :: energyMean                      => spinCorrelatedEnergyMean
   end type virialOrbitSpinCorrelated
-  
+
   interface virialOrbitSpinCorrelated
      !% Constructors for the {\normalfont \ttfamily spinCorrelated} virial orbit class.
      module procedure spinCorrelatedConstructorParameters
@@ -47,7 +50,7 @@ contains
 
   function spinCorrelatedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily spinCorrelated} satellite virial orbit class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialOrbitSpinCorrelated)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -91,11 +94,11 @@ contains
 
   function spinCorrelatedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return spinCorrelated orbital parameters for a satellite.
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Nodes        , only : nodeComponentSpin
-    use Vectors                 , only : Vector_Magnitude       , Vector_Product
-    use Coordinates             , only : coordinateCartesian    , assignment(=)
-    use Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Coordinates             , only : assignment(=)          , coordinateCartesian
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes        , only : nodeComponentSpin      , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Vectors                 , only : Vector_Magnitude       , Vector_Product
     implicit none
     type            (keplerOrbit              )                         :: spinCorrelatedOrbit
     class           (virialOrbitSpinCorrelated), intent(inout), target  :: self
@@ -110,7 +113,7 @@ contains
     logical                                                             :: retain
     integer                                                             :: trial
     type            (coordinateCartesian      )                         :: coordinates
-    
+
     ! Get the underlying orbit.
     spinCorrelatedOrbit=self%virialOrbit_%orbit(node,host,acceptUnboundOrbits)
     ! Generate orbital positions until we find one that is acceptable.
@@ -171,7 +174,7 @@ contains
 
   function spinCorrelatedVelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Nodes, only : nodeComponentSpin
+    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedVelocityTangentialVectorMean
     class           (virialOrbitSpinCorrelated), intent(inout) :: self
@@ -186,12 +189,49 @@ contains
     return
   end function spinCorrelatedVelocityTangentialVectorMean
 
+  double precision function spinCorrelatedAngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node, host
+
+    spinCorrelatedAngularMomentumMagnitudeMean=self%virialOrbit_%angularMomentumMagnitudeMean(node,host)
+    return
+  end function spinCorrelatedAngularMomentumMagnitudeMean
+
+  function spinCorrelatedAngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
+    implicit none
+    double precision                           , dimension(3)  :: spinCorrelatedAngularMomentumVectorMean
+    class           (virialOrbitSpinCorrelated), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node                                       , host
+    class           (nodeComponentSpin        ), pointer       :: spinHost
+
+    spinHost                                =>  host    %spin                        (         )
+    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                   &
+         &                                     *self    %angularMomentumMagnitudeMean(node,host) &
+         &                                     *spinHost%spinVector                  (         ) &
+         &                                     /3.0d0
+    return
+  end function spinCorrelatedAngularMomentumVectorMean
+
   double precision function spinCorrelatedVelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared of the total velocity.
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node, host
-    
+
     spinCorrelatedVelocityTotalRootMeanSquared=self%virialOrbit_%velocityTotalRootMeanSquared(node,host)
     return
   end function spinCorrelatedVelocityTotalRootMeanSquared
+
+  double precision function spinCorrelatedEnergyMean(self,node,host)
+    !% Return the mean of the total energy.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node, host
+
+    spinCorrelatedEnergyMean=self%virialOrbit_%energyMean(node,host)
+    return
+  end function spinCorrelatedEnergyMean

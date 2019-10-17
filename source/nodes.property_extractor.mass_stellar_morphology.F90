@@ -42,7 +42,7 @@ contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
     !% Constructor for the ``massStellarMorphology'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellarMorphology)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
@@ -54,8 +54,8 @@ contains
 
   double precision function massStellarMorphologyExtract(self,node,instance)
     !% Implement a stellar mass-weighted morphology output analysis.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
     class           (nodePropertyExtractorMassStellarMorphology), intent(inout)           :: self
     type            (treeNode                                  ), intent(inout), target   :: node
@@ -79,7 +79,7 @@ contains
 
   integer function massStellarMorphologyType(self)
     !% Return the type of the stellar mass-weighted morphology property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
     !GCC$ attributes unused :: self

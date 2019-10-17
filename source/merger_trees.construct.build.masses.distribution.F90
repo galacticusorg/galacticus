@@ -22,7 +22,7 @@
 module Merger_Trees_Build_Masses_Distributions
   !% Implements a class providing mass distributions for merger trees to be built.
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeBuildMassDistribution</name>
   !#  <descriptiveName>Merger Tree Mass Distributions</descriptiveName>

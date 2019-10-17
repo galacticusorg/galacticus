@@ -26,7 +26,7 @@ module Sorting_Topological
   public :: Sort_Topological
 
 contains
-  
+
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
     !% Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
     !% \begin{description}
@@ -37,7 +37,7 @@ contains
     !%  \item[{\normalfont \ttfamily countOrdered}\argout] a count of the objects which were ordered by the sort, such that {\normalfont \ttfamily order(1:countOrdered)} contains the ordered objects, while the remainder of {\normalfont \ttfamily order()} contains objects that were unordered (i.e. had no dependencies).
     !% \end{description}
     !% The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if {\normalfont \ttfamily order}$<${\normalfont \ttfamily countObjects} then one or more circular dependencies existed in the graph.
-    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     integer                                , intent(in   ) :: countObjects
     integer                                , intent(in   ) :: countDependencies
@@ -84,5 +84,5 @@ contains
     end if
     return
   end subroutine Sort_Topological
-  
+
 end module Sorting_Topological

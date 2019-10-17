@@ -21,7 +21,7 @@
 
 module Mass_Distributions
   !% Implements a class that provides mass distributions.
-  use Coordinates
+  use :: Coordinates, only : coordinate
   private
 
   !# <functionClass>

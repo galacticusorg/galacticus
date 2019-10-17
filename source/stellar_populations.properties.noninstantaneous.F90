@@ -19,8 +19,8 @@
 
   !% Implements a stellar population properties class based on the noninstantaneous recycling approximation.
 
-  use Stellar_Population_Selectors
-  use Output_Times
+  use :: Output_Times                , only : outputTimesClass
+  use :: Stellar_Population_Selectors, only : stellarPopulationSelectorClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
   !#  <description>A stellar population properties class based on the noninstantaneous recycling approximation.</description>
@@ -59,7 +59,7 @@ contains
   function noninstantaneousConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class which takes a parameter list
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                :: self
     type   (inputParameters                            ), intent(inout) :: parameters
@@ -86,6 +86,7 @@ contains
 
   function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                        :: self
     integer                                             , intent(in   )         :: countHistoryTimes
@@ -117,7 +118,7 @@ contains
     !# <objectDestructor name="self%outputTimes_"              />
     return
   end subroutine noninstantaneousDestructor
- 
+
   integer function noninstantaneousHistoryCount(self)
     !% Returns the number of histories required by the noninstantaneous stellar populations properties class.
     implicit none
@@ -130,12 +131,12 @@ contains
   subroutine noninstantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Stellar_Luminosities_Structure
-    use            :: Stellar_Populations
-    use            :: Numerical_Interpolation
     use            :: FGSL                          , only : fgsl_interp_accel
-    use            :: Galacticus_Nodes              , only : nodeComponentBasic
+    use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
+    use, intrinsic :: ISO_C_Binding
+    use            :: Numerical_Interpolation       , only : Interpolate_Done      , Interpolate_Locate
+    use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities
+    use            :: Stellar_Populations           , only : stellarPopulationClass
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
     double precision                                             , intent(  out)                 :: rateEnergyInput              , rateMassFuel          , &
@@ -218,8 +219,8 @@ contains
 
   subroutine noninstantaneousScales(self,massStellar,abundancesStellar,history_)
     !% Set the scalings for error control on the absolute values of stellar population properties.
-    use Stellar_Feedback
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
+    use :: Stellar_Feedback , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                                :: self
     double precision                                             , intent(in   )                                :: massStellar
@@ -254,8 +255,8 @@ contains
 
   subroutine noninstantaneousHistoryCreate(self,node,history_)
     !% Create any history required for storing stellar population properties.
-    use Numerical_Ranges
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
+    use :: Numerical_Ranges, only : rangeTypeLogarithmic
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node

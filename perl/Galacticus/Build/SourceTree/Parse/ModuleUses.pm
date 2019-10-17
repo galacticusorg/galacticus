@@ -55,7 +55,7 @@ sub Parse_ModuleUses {
 		    }
 		    if ( $only && ! exists($moduleUses->{$moduleName}->{'all'}) ) {
 			chomp($only);
-			map {$moduleUses->{$moduleName}->{'only'}->{$_} = 1} split(/\s*,\s*/,$only);
+			map {(my $symbol = $_) =~ s/\s//g; $moduleUses->{$moduleName}->{'only'}->{$symbol} = 1} split(/\s*,\s*/,$only);
 		    } else {
 			$moduleUses->{$moduleName}->{'all'} = 1;
 		    }
@@ -154,7 +154,6 @@ sub Parse_ModuleUses {
 }
 
 sub AddUses {
-    # Grab the node to add uses to, and the new uses to add.
     my $node       = shift();
     my $moduleUses = shift();
     # Locate a moduleUses node.
@@ -198,24 +197,80 @@ sub AddUses {
 	    }
 	}
     }
+    # Cause contained code to be updated.
+    &UpdateUses($usesNode);
+}
+
+sub UpdateUses {    
     # Update the contained code.
-    $usesNode->{'firstChild'}->{'content'} = undef();
+    my $usesNode = shift();
+    # Find the indent level.
+    my $indent = "";
+    if ( $usesNode->{'firstChild'}->{'content'} =~ m/^(\s*)/ ) {
+	$indent = $1;
+    }
+    # Check for OpenMP.
+    my $openMP    = grep {$usesNode->{'moduleUse'}->{$_}->{'openMP'   }} keys(%{$usesNode->{'moduleUse'}});
+    # Check for intrinsic.
+    my $intrinsic = grep {$usesNode->{'moduleUse'}->{$_}->{'intrinsic'}} keys(%{$usesNode->{'moduleUse'}});
+    # Determine name and column widths.
+    my $nameLengthMax = 0;
+    my @columnLengthMax = ( 0, 0, 0, 0 );
     foreach my $moduleName ( keys(%{$usesNode->{'moduleUse'}}) ) {
+	$nameLengthMax = length($moduleName)
+	    if ( length($moduleName) > $nameLengthMax );
+	if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} ) {
+	    my $i = -1;
+	    foreach my $symbol ( sort(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
+		++$i;
+		my $j = $i % 4;
+		$columnLengthMax[$j] = length($symbol)
+		    if ( length($symbol) > $columnLengthMax[$j] );
+	    }
+	}
+    }
+    # Clear previous content.
+    $usesNode->{'firstChild'}->{'content'} = undef();
+    foreach my $moduleName ( sort(keys(%{$usesNode->{'moduleUse'}})) ) {
 	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
 	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
 		$usesNode->{'firstChild'}->{'content'} .= ($_->{'invert'} ? "#ifndef" : "#ifdef")." ".$_->{'name'}."\n";
 	    }
 	}
-	$usesNode->{'firstChild'}->{'content'} .= "   ";
-	$usesNode->{'firstChild'}->{'content'} .= "!\$ "
+	my $useLine = "";
+	$useLine .= $indent;
+	$useLine .= "!\$ "
 	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
-	$usesNode->{'firstChild'}->{'content'} .= "use";
-	$usesNode->{'firstChild'}->{'content'} .= ", intrinsic"
-	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} );
-	$usesNode->{'firstChild'}->{'content'} .= " :: ".$moduleName;
-	$usesNode->{'firstChild'}->{'content'} .= ", only : ".join(", ",keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}}))
-	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} );
-  	$usesNode->{'firstChild'}->{'content'} .= "\n";
+	$useLine .= "use";
+	$useLine .= "   "
+	    if ( $openMP && ! $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
+	if ( $usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} ) {
+	    $useLine .= ", intrinsic";
+	} elsif ( $intrinsic ) {
+	    $useLine .= "           ";
+	}
+	$useLine .= " :: ".$moduleName;
+	my $symbolCount  = scalar(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}}));
+	if ( $symbolCount > 0 ) {
+	    $useLine .= (" " x ($nameLengthMax-length($moduleName))).", only : ";
+	    my $i            = -1;
+	    my $offsetLength = length($useLine);
+	    foreach my $symbol ( sort(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
+		++$i;
+		my $j = $i % 4;
+		$useLine .= $symbol.(" " x ($columnLengthMax[$j]-length($symbol)));
+		--$symbolCount;
+		if ( $symbolCount > 0 ) {
+		    $useLine .= ", ";
+		    if ( $j == 3 ) {
+			$useLine .= "&\n";
+			$useLine .= "          &".(" " x ($offsetLength-11));
+		    }
+		}
+	    }
+	}
+  	$useLine .= "\n";
+	$usesNode->{'firstChild'}->{'content'} .= $useLine;
 	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
 	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
 		$usesNode->{'firstChild'}->{'content'} .= "#endif\n";

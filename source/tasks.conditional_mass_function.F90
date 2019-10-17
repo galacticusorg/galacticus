@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass 
-  use Geometry_Surveys              , only : surveyGeometry            , surveyGeometryClass 
-  use Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass 
-  use Conditional_Mass_Functions    , only : conditionalMassFunction   , conditionalMassFunctionClass 
-  use Halo_Mass_Functions           , only : haloMassFunction          , haloMassFunctionClass 
+  use :: Conditional_Mass_Functions    , only : conditionalMassFunction   , conditionalMassFunctionClass   , conditionalMassFunctionClass
+  use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass        , cosmologyFunctionsClass
+  use :: Geometry_Surveys              , only : surveyGeometry            , surveyGeometryClass            , surveyGeometryClass
+  use :: Halo_Mass_Functions           , only : haloMassFunction          , haloMassFunctionClass          , haloMassFunctionClass
+  use :: Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass, massFunctionIncompletenessClass
 
   !# <task name="taskConditionalMassFunction">
   !#  <description>A task which computes the conditional mass function in bins of mass for a fixed halo mass.</description>
@@ -57,8 +57,8 @@ contains
 
   function conditionalMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter         , inputParameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (taskConditionalMassFunction    )                              :: self
     type            (inputParameters                ), intent(inout)               :: parameters
@@ -77,7 +77,7 @@ contains
     logical                                                                        :: useSurveyLimits            , integrateOverHaloMassFunction
     type            (varying_string                 )                              :: outputGroupName            , massHaloText
     character       (len=32                         )                              :: text
-    
+
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <cardinality>1</cardinality>
@@ -238,9 +238,9 @@ contains
 
   function conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_,countMass,massMinimum,massMaximum,massBinCenters,massLogarithmDelta,massHalo,massHaloMinimum,massHaloMaximum) result(self)
     !% Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
-    use Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
-    use Galacticus_Error , only : Galacticus_Error_Report
-    use Memory_Management, only : allocateArray
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
     implicit none
     type            (taskConditionalMassFunction    )                                        :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target                 :: cosmologyFunctions_
@@ -258,7 +258,7 @@ contains
     type            (varying_string                 ), intent(in   )                         :: outputGroupName
 
     !# <constructorAssign variables="outputGroupName,massMinimum,massMaximum,countMass,timeMinimum,timeMaximum,useSurveyLimits,massHalo,massHaloMinimum,massHaloMaximum,massBinCenters,massLogarithmDelta,*cosmologyFunctions_,*conditionalMassFunction_,*surveyGeometry_,*massFunctionIncompleteness_, *haloMassFunction_"/>
-    
+
     if (present(massHalo)) then
        if (     present(massHaloMinimum).or.     present(massHaloMaximum)) call Galacticus_Error_Report('ambiguous halo mass selection'//{introspection:location})
     else
@@ -275,7 +275,7 @@ contains
     end if
     return
   end function conditionalMassFunctionConstructorInternal
-  
+
   subroutine conditionalMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily conditionalMassFunction} task class.
     implicit none
@@ -291,15 +291,23 @@ contains
 
   subroutine conditionalMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use FGSL                 , only : fgsl_function            , fgsl_integration_workspace
-    use IO_HDF5              , only : hdf5Object
-    use Galacticus_HDF5      , only : galacticusOutputFile
-    use Memory_Management    , only : allocateArray
-    use Numerical_Integration, only : Integrate
-    use ISO_Varying_String   , only : char                     , var_str
-    use Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
+    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: IO_HDF5              , only : hdf5Object
+    use :: ISO_Varying_String   , only : char                     , var_str
+    use :: Memory_Management    , only : allocateArray
+    use :: Numerical_Integration, only : Integrate
     use String_Handling      , only : operator(//)
-    use Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
+    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: IO_HDF5              , only : hdf5Object
+    use :: ISO_Varying_String   , only : char                     , var_str
+    use :: Memory_Management    , only : allocateArray
+    use :: Numerical_Integration, only : Integrate
     implicit none
     class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status
@@ -438,7 +446,7 @@ contains
     return
 
   contains
-    
+
     double precision function integrandTime(timePrime)
       !% Integral over time.
       implicit none

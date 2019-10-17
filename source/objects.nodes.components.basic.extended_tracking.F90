@@ -50,7 +50,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Extended_Tree_Tracking_Initialize(node)
     !% Set the mass accretion rate for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicExtendedTracking
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicExtendedTracking, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeProgenitor
@@ -81,8 +81,8 @@ contains
   subroutine Node_Component_Basic_Extended_Tracking_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum
     !% mass of {\normalfont \ttfamily node} to be that of its parent.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicExtendedTracking
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicExtendedTracking, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

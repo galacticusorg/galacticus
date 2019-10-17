@@ -21,9 +21,9 @@
 
 function PositionPresetPosition(self)
   !% Return the position of the node.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Numerical_Interpolation
   use            :: FGSL                   , only : fgsl_interp_accel
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : Interpolate_Done , Interpolate_Locate
   implicit none
   double precision                             , allocatable  , dimension(:) :: PositionPresetPosition
   class           (nodeComponentPositionPreset), intent(inout)               :: self
@@ -56,9 +56,9 @@ end function PositionPresetPosition
 
 function PositionPresetVelocity(self)
   !% Return the velocity of the node.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Numerical_Interpolation
   use            :: FGSL                   , only : fgsl_interp_accel
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : Interpolate_Done , Interpolate_Locate
   implicit none
   double precision                             , allocatable  , dimension(:) :: PositionPresetVelocity
   class           (nodeComponentPositionPreset), intent(inout)               :: self

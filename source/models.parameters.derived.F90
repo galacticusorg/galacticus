@@ -49,7 +49,7 @@ contains
 
   function derivedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily derived} model parameter class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(modelParameterDerived)                :: self
     type(inputParameters      ), intent(inout) :: parameters
@@ -83,7 +83,7 @@ contains
 
     return
   end function derivedConstructorInternal
-  
+
   function derivedDefinition(self)
     !% Return the definition of this parameter.
     implicit none
@@ -93,4 +93,4 @@ contains
     derivedDefinition=self%definition_
     return
   end function derivedDefinition
-  
+

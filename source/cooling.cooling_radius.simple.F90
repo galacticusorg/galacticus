@@ -18,16 +18,16 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a simple cooling radius class.
-  
-  use Kind_Numbers
-  use Cosmology_Functions          , only : cosmologyFunctions, cosmologyFunctionsClass
-  use Cooling_Times
-  use Cooling_Times_Available
-  use Hot_Halo_Mass_Distributions
-  use Hot_Halo_Temperature_Profiles
-  use Radiation_Fields
-  use Abundances_Structure
-  use Chemical_Abundances_Structure
+
+  use :: Abundances_Structure         , only : abundances
+  use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Cooling_Times                , only : coolingTimeClass
+  use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
+  use :: Kind_Numbers                 , only : kind_int8
+  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
 
   !# <coolingRadius name="coolingRadiusSimple">
   !#  <description>
@@ -93,7 +93,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the simple cooling radius class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRadiusSimple           )                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -120,13 +120,12 @@ contains
 
   function simpleConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the simple cooling radius class.
-    use Galacticus_Nodes              , only : defaultHotHaloComponent
-    use ISO_Varying_String
-    use Galacticus_Error
-    use Array_Utilities
-    use String_Handling
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
+    use :: Array_Utilities              , only : operator(.intersection.)
+    use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
+    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
+    use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes             , only : defaultHotHaloComponent
+    use :: ISO_Varying_String
     implicit none
     type (coolingRadiusSimple           )                        :: self
     class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
@@ -171,20 +170,20 @@ contains
          & )
     return
   end function simpleConstructorInternal
-  
+
   subroutine simpleAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusSimple), intent(inout) :: self
 
     call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine simpleAutoHook
-  
+
   subroutine simpleDestructor(self)
     !% Destructor for the simple cooling radius class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusSimple), intent(inout) :: self
 
@@ -212,9 +211,7 @@ contains
 
   double precision function simpleRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
-    use Galacticus_Nodes             , only : nodeComponentBasic, nodeComponentHotHalo
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusSimple ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -277,9 +274,9 @@ contains
 
   double precision function simpleRadius(self,node)
     !% Return the cooling radius in the simple model.
-    use Chemical_Reaction_Rates_Utilities
-    use Root_Finder
-    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
+    use :: Root_Finder                      , only : rootFinder
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node

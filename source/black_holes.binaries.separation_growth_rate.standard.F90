@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
-  
+
   !% Implements a black hole binary separation growth class which follows a modified version of \cite{volonteri_assembly_2003},
   !% including terms for dynamical friction, hardening due to scattering of stars and emission of gravitational waves.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateStandard">
   !#  <description>A black hole binary separation growth class which follows a modified version of \cite{volonteri_assembly_2003}, including terms for dynamical friction, hardening due to scattering of stars and emission of gravitational waves.</description>
@@ -37,7 +37,7 @@
      final     ::               standardDestructor
      procedure :: growthRate => standardGrowthRate
   end type blackHoleBinarySeparationGrowthRateStandard
-  
+
   interface blackHoleBinarySeparationGrowthRateStandard
      !% Constructors for the {\normalfont \ttfamily standard} black hole binary recoil class.
      module procedure standardConstructorParameters
@@ -49,7 +49,7 @@ contains
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} black hole binary separation growth rate class which takes a parameter
     !% set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (blackHoleBinarySeparationGrowthRateStandard)                :: self
     type   (inputParameters                            ), intent(inout) :: parameters
@@ -88,7 +88,7 @@ contains
     class  (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     logical                                             , intent(in   )         :: stellarDensityChangeBinaryMotion, computeVelocityDispersion
     !# <constructorAssign variables="stellarDensityChangeBinaryMotion,computeVelocityDispersion,*darkMatterHaloScale_"/>
-    
+
     return
   end function standardConstructorInternal
 
@@ -104,16 +104,19 @@ contains
   double precision function standardGrowthRate(self,blackHole)
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
-    use Galacticus_Nodes                           , only : treeNode, nodeComponentSpheroid
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Options
-    use Galactic_Structure_Rotation_Curves
-    use Galactic_Structure_Rotation_Curve_Gradients
-    use Galactic_Structure_Velocity_Dispersions
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Galactic_Structure_Densities               , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options                 , only : componentTypeDarkHalo                     , componentTypeSpheroid     , coordinateSystemCylindrical, massTypeDark, &
+          &                                                    massTypeGalactic                          , massTypeStellar
+    use :: Galactic_Structure_Rotation_Curve_Gradients, only : Galactic_Structure_Rotation_Curve_Gradient
+    use :: Galactic_Structure_Rotation_Curves         , only : Galactic_Structure_Rotation_Curve
+    use :: Galactic_Structure_Velocity_Dispersions    , only : Galactic_Structure_Velocity_Dispersion
+    use :: Galacticus_Display                         , only : Galacticus_Display_Indent                 , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error                           , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                           , only : nodeComponentBlackHole                    , nodeComponentSpheroid     , treeNode
+    use :: Numerical_Constants_Astronomical           , only : Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Math                   , only : Pi
+    use :: Numerical_Constants_Physical               , only : gravitationalConstantGalacticus           , speedLight
+    use :: Numerical_Constants_Prefixes               , only : milli
     implicit none
     class           (blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self
     class           (nodeComponentBlackHole                     ), intent(inout) :: blackHole

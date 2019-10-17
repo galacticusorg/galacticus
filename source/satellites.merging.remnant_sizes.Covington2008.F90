@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
-  
-  use Satellite_Merging_Progenitor_Properties
-  use Dark_Matter_Halo_Scales
+
+  use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass
+  use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCovington2008">
   !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
@@ -47,14 +47,14 @@ contains
 
   function covington2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily covington2008} merger remnant size class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerRemnantSizeCovington2008 )                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
     class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
     double precision                                                 :: energyOrbital              , efficiencyRadiative
-    
+
     !# <inputParameter>
     !#   <name>energyOrbital</name>
     !#   <cardinality>1</cardinality>
@@ -80,7 +80,7 @@ contains
     !# <objectDestructor name="mergerProgenitorProperties_"/>
     return
   end function covington2008ConstructorParameters
-  
+
   function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily covington2008} merger remnant size class.
     implicit none
@@ -106,11 +106,11 @@ contains
 
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
-    use Numerical_Constants_Physical
-    use Numerical_Comparison
-    use Galacticus_Error
-    use String_Handling
-    use Galacticus_Display
+    use :: Galacticus_Display          , only : Galacticus_Display_Message     , Galacticus_Verbosity_Level, verbosityWarn
+    use :: Galacticus_Error            , only : Galacticus_Error_Report        , Galacticus_Warn
+    use :: Numerical_Comparison        , only : Values_Agree
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: String_Handling             , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node

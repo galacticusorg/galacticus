@@ -21,7 +21,7 @@
 
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
-  use FGSL, only : FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1, FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1
+  use :: FGSL, only : FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1, FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1
   implicit none
   private
   public :: Bessel_Function_K0, Bessel_Function_K1, Bessel_Function_I0, Bessel_Function_I1

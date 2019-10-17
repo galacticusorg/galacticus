@@ -21,9 +21,9 @@
 
 module Excursion_Sets_Barriers
   !% Provides a class that implements barriers for the excursion set problem.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>excursionSetBarrier</name>
   !#  <descriptiveName>Excursion Set Barrier</descriptiveName>
@@ -46,7 +46,7 @@ module Excursion_Sets_Barriers
   !#   <argument>logical                   , intent(in   ) :: rateCompute</argument>
   !#  </method>
   !# </functionClass>
-  
+
   ! Enumeration for whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.
   !# <enumeration>
   !#  <name>excursionSetRemap</name>

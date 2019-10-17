@@ -19,10 +19,12 @@
 
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{zhao_accurate_2009} algorithm.
-  
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory, darkMatterHaloMassAccretionHistoryClass
+
+  use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters                     , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory, darkMatterHaloMassAccretionHistoryClass
+  use :: Dark_Matter_Profiles_DMO                 , only : darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast                  , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
@@ -43,9 +45,9 @@
      type (virialDensityContrastBryanNorman1998   ), pointer :: virialDensityContrastDefinition_    => null()
      type (darkMatterProfileDMONFW                ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
-     final     ::                                zhao2009Destructor
-     procedure :: concentration               => zhao2009Concentration
-     procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
+     final     ::                                   zhao2009Destructor
+     procedure :: concentration                  => zhao2009Concentration
+     procedure :: densityContrastDefinition      => zhao2009DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => zhao2009DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationZhao2009
 
@@ -61,12 +63,12 @@ contains
   function zhao2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
     !% concentration class which takes an input parameter list.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationZhao2009 )                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass               ), pointer       :: cosmologyParameters_     
+    class(cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class(darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
 
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
@@ -83,11 +85,11 @@ contains
   function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
     !% concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
     type (darkMatterProfileConcentrationZhao2009            )                         :: self
     class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
-    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_     
+    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class(darkMatterHaloMassAccretionHistoryClass           ), intent(in   ), target  :: darkMatterHaloMassAccretionHistory_
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *darkMatterHaloMassAccretionHistory_"/>
@@ -106,7 +108,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"                />
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
@@ -118,8 +120,8 @@ contains
   double precision function zhao2009Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{zhao_accurate_2009} algorithm.
-    use Dark_Matter_Halo_Formation_Times
-    use Galacticus_Nodes                , only : nodeComponentBasic
+    use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), target  :: node
@@ -128,7 +130,7 @@ contains
     double precision                                        , parameter              :: formationMassFraction=0.04d0
     double precision                                                                 :: timeFormation               , timeNode
     !GCC$ attributes unused :: self
-    
+
     ! Get the basic component.
     basic => node%basic()
     ! Compute the concentration.
@@ -145,18 +147,18 @@ contains
     implicit none
     class(virialDensityContrastClass            ), pointer       :: zhao2009DensityContrastDefinition
     class(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
-    
+
     zhao2009DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function zhao2009DensityContrastDefinition
-  
+
   function zhao2009DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of
     !% concentration in the \cite{zhao_accurate_2009} algorithm.
     implicit none
     class(darkMatterProfileDMOClass             ), pointer       :: zhao2009DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
-    
+
     zhao2009DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function zhao2009DarkMatterProfileDefinition

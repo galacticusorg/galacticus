@@ -25,7 +25,7 @@
 
 module Interface_GSL
   !% Interfaces with low-level aspects of the GSL library.
-  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_funptr
+  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr
   private
   public :: gslFunction, gslFunctionDestroy, gslFunctionTemplate
 
@@ -51,7 +51,7 @@ module Interface_GSL
         type(c_funptr), value :: f
       end subroutine gslFunctionDestructor
    end interface
-  
+
 contains
 
   function gslFunction(f)
@@ -64,7 +64,7 @@ contains
     gslFunction=gslFunctionConstructor(c_funloc(f))
     return
   end function gslFunction
-  
+
   subroutine gslFunctionDestroy(f)
     !% Destroy a {\normalfont \ttfamily c\_ptr} to a {\normalfont \ttfamily gsl\_function} object.
     implicit none
@@ -73,5 +73,5 @@ contains
     call gslFunctionDestructor(f)
     return
   end subroutine gslFunctionDestroy
-  
+
 end module Interface_GSL

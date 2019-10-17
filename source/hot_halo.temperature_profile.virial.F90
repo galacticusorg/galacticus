@@ -19,7 +19,7 @@
 
 !% An implementation of the hot halo temperature class which uses an isothermal virial temperature.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
   !#  <description>Provides an implementation of the hot halo temperature profile class which uses an isothermal virial temperature.</description>
@@ -44,7 +44,7 @@ contains
 
   function virialConstructorParameters(parameters) result(self)
     !% Constructor for the virial cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloTemperatureProfileVirial)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -83,11 +83,11 @@ contains
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
     !GCC$ attributes unused :: radius
-    
+
     virialTemperature=self%darkMatterHaloScale_%virialTemperature(node)
     return
   end function virialTemperature
-  
+
   double precision function virialTemperatureLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
     !% distribution.
@@ -96,8 +96,8 @@ contains
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
-    
+
     virialTemperatureLogSlope=0.0d0
     return
   end function virialTemperatureLogSlope
-  
+

@@ -19,9 +19,9 @@
 
 !% Implements a merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
 
-  use Cosmological_Density_Field
-  use Tables
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Tables                    , only : table1DLogarithmicLinear
+
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
   !#  <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008}..</description>
   !# </mergerTreeBranchingProbability>
@@ -76,7 +76,7 @@
   ! Module-scope pointer to self used for root-finding.
   class           (mergerTreeBranchingProbabilityParkinsonColeHelly), pointer   :: parkinsonColeHellySelf
   !$omp threadprivate(parkinsonColeHellySelf)
-  
+
   ! Branching probability integrand integration tolerance.
   double precision                                                  , parameter :: parkinsonColeHellyIntegrandToleranceRelative=1.0d-3
 
@@ -89,7 +89,7 @@ contains
     !% Constructor for the ``parkinsonColeHelly'' merger tree branching probability class which reads parameters from a provided
     !% parameter list.
     implicit none
-    type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                :: self    
+    type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
     class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
     class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_
@@ -167,7 +167,7 @@ contains
 
   function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !% Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                        :: self
     double precision                                                  , intent(in   )         :: gamma1                   , gamma2            , &
@@ -198,7 +198,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine parkinsonColeHellyDestructor
-  
+
   double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator,node)
     !% A merger tree branch split mass function.
     implicit none
@@ -233,7 +233,6 @@ contains
       !% \cite{parkinson_generating_2008} is that here the normalization of their function $S(q)$ (eqn. A2) is irrelevant, since a
       !% branch split has already been decided to have occcurred---all that remains necessary is to determine its mass. Variable and
       !% function names follow \cite{parkinson_generating_2008}.
-      use Pseudo_Random
       implicit none
       logical :: reject
 
@@ -297,7 +296,7 @@ contains
       double precision, intent(in   ) :: massFraction
       double precision                :: massFractionSigma, massFractionAlpha
 
-      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)   
+      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)
       R      =+(                   &
            &    +massFractionAlpha &
            &    /halfMassAlpha     &
@@ -336,9 +335,8 @@ contains
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use FGSL         , only : FGSL_Root_fSolver_Brent
-      use Pseudo_Random
-      use Root_Finder
+      use :: FGSL       , only : FGSL_Root_fSolver_Brent
+      use :: Root_Finder, only : rootFinder
       implicit none
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
@@ -383,11 +381,11 @@ contains
     end function massBranchGeneric
 
   end function parkinsonColeHellyMassBranch
-    
+
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use Numerical_Integration
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     double precision                            , intent(in   ) :: logMassMaximum
     type            (fgsl_function             )                :: integrandFunction
@@ -419,8 +417,7 @@ contains
 
   double precision function parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use Numerical_Integration
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral
@@ -468,8 +465,8 @@ contains
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use Numerical_Integration
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical       , haloMass   , &
@@ -525,7 +522,7 @@ contains
          &                             childHaloMass
 
     childHaloMass=exp(logChildHaloMass)
-    call parkinsonColeHellySelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,parkinsonColeHellySelf%timeParent,childSigma,childAlpha)    
+    call parkinsonColeHellySelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,parkinsonColeHellySelf%timeParent,childSigma,childAlpha)
     parkinsonColeHellyProbabilityIntegrandLogarithmic=+parkinsonColeHellyProgenitorMassFunction(childHaloMass,childSigma,childAlpha)&
          &                                            *                                         childHaloMass
     return
@@ -574,12 +571,11 @@ contains
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use Galacticus_Error
-    use Galacticus_Display
-    use Hypergeometric_Functions
-    use FGSL                     , only : FGSL_Int, FGSL_Success
-    use Numerical_Comparison
-    use Numerical_Constants_Math
+    use :: FGSL                    , only : FGSL_Int                  , FGSL_Success
+    use :: Galacticus_Display      , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)         :: self
     double precision                                                  , intent(in   )         :: deltaCritical                                , haloMass                 , &
@@ -624,7 +620,7 @@ contains
                   &               abs(self%resolutionAlpha) >  parkinsonColeHellyAlphaMinimum &
                   &              .and.                                                        &
                   &               abs(     halfParentAlpha) >  parkinsonColeHellyAlphaMinimum
-             ! Compute the effective value of gamma.             
+             ! Compute the effective value of gamma.
              gammaEffective=self%gamma1
              if (usingCDMAssumptions) then
                 select case (bound)
@@ -642,17 +638,17 @@ contains
              ! Set status to success by default.
              statusLower=FGSL_Success
              statusUpper=FGSL_Success
-             ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors, 
+             ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors,
              if (.not.usingCDMAssumptions.and.self%hypergeometricTabulate) then
                 ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
                 ! subresolution merger fraction.
                 call parkinsonColeHellySubresolutionHypergeometricTabulate(self,resolutionSigmaOverParentSigma)
                 call parkinsonColeHellySubresolutionHypergeometricTabulate(self,halfParentSigma   /self%sigmaParent)
                 probabilityIntegrandLower=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma  -1.0d0)/self%sigmaParent
-                probabilityIntegrandUpper=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+halfParentSigma/self%sigmaParent-1.0d0)/self%sigmaParent                
+                probabilityIntegrandUpper=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+halfParentSigma/self%sigmaParent-1.0d0)/self%sigmaParent
              else
                 ! Next, check if CDM assumptions are being used, we're allowed to tabulate hypergeometric factors, and the bound
-                ! requested is the upper bound.                
+                ! requested is the upper bound.
                 if     ( usingCDMAssumptions                    &
                      &  .and.                                   &
                      &   self%hypergeometricTabulate            &
@@ -695,7 +691,7 @@ contains
                         &                    *(self%factorG0Gamma2/self%sigmaParent)                   &
                         &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0)) &
                         &                    /(1.0d0-gammaEffective)                                   &
-                        &                    *hyperGeometricFactorLower         
+                        &                    *hyperGeometricFactorLower
                    ! Check if we can use a table to compute the upper factor.
                    hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
                         &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]    , &
@@ -725,7 +721,7 @@ contains
                         &                    *(self%factorG0Gamma2/self%sigmaParent)                       &
                         &                    *((halfParentSigma/self%sigmaParent)**(gammaEffective-1.0d0)) &
                         &                    /(1.0d0-gammaEffective)                                       &
-                        &                    *hyperGeometricFactorUpper   
+                        &                    *hyperGeometricFactorUpper
                 end if
              end if
              ! Compute the bound.
@@ -789,8 +785,8 @@ contains
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
     !% terms of the $_2F_1$ hypergeometric function.
-    use Hypergeometric_Functions
-    use Numerical_Constants_Math
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical                      , haloMass                      , &
@@ -838,7 +834,7 @@ contains
 
   subroutine parkinsonColeHellyComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
     double precision                                                  , intent(in   ) :: deltaParent                 , massHaloParent, &
@@ -858,10 +854,10 @@ contains
 
   subroutine parkinsonColeHellySubresolutionHypergeometricTabulate(self,x,xMinimumIn,xMaximumIn)
     !% Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
-    use Hypergeometric_Functions
-    use Galacticus_Error
-    use Table_Labels
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Table_Labels            , only : extrapolationTypeAbort
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
     double precision                                                  , intent(in   )           :: x
@@ -871,7 +867,7 @@ contains
     double precision                                                                            :: xMinimum                      , xMaximum
     integer                                                                                     :: xCount                        , i
     logical                                                                                     :: tabulate
-    
+
     tabulate=.false.
     if (.not.self%subresolutionHypergeometricInitialized) then
        tabulate=.true.
@@ -921,10 +917,10 @@ contains
 
   subroutine parkinsonColeHellyUpperBoundHypergeometricTabulate(self,mass,massResolution,massMinimumIn,massMaximumIn)
     !% Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
-    use Hypergeometric_Functions
-    use Galacticus_Error
-    use Table_Labels
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Table_Labels            , only : extrapolationTypeAbort
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
     double precision                                                  , intent(in   )           :: mass                              , massResolution
@@ -977,7 +973,7 @@ contains
           call self%upperBoundHypergeometric%populate(                                                                           &
                &                                      +sqrtTwoOverPi                                                             &
                &                                      *resolutionMassSigma                                                       &
-               &                                      /massSigma                                                                 & 
+               &                                      /massSigma                                                                 &
                &                                      *(                                                                         &
                &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                      &
                &                                        /                           (-gammaEffective+1.0d0)                      &
@@ -1003,4 +999,4 @@ contains
     end if
     return
   end subroutine parkinsonColeHellyUpperBoundHypergeometricTabulate
- 
+

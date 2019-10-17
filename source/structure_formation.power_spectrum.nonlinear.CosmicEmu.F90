@@ -20,12 +20,12 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% code of \cite{lawrence_coyote_2010}.
 
-  use FGSL                      , only : fgsl_interp, fgsl_interp_accel
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Power_Spectra_Primordial
-  use File_Utilities
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: FGSL                      , only : fgsl_interp                  , fgsl_interp_accel
+  use :: File_Utilities            , only : lockDescriptor
+  use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of \cite{lawrence_coyote_2010}.</description>
@@ -62,7 +62,7 @@ contains
 
   function cosmicEmuConstructorParameters(parameters) result(self)
     !% Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -89,8 +89,9 @@ contains
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
-    use Galacticus_Error
-    use Numerical_Comparison
+    use :: File_Utilities      , only : File_Lock_Initialize
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                        :: self
     class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
@@ -145,15 +146,18 @@ contains
 
   double precision function cosmicEmuValue(self,waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
-    use Numerical_Interpolation
-    use Galacticus_Error
-    use Galacticus_Display
-    use Numerical_Comparison
-    use System_Command
-    use ISO_Varying_String
-    use Galacticus_Paths
-    use Memory_Management
-    use Table_Labels
+    use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
+    use :: Galacticus_Display     , only : Galacticus_Display_Message  , verbosityWorking
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataDynamic
+    use :: ISO_Varying_String
+    use :: Memory_Management      , only : allocateArray               , deallocateArray
+    use :: Numerical_Comparison   , only : Values_Differ
+    use :: Numerical_Interpolation, only : Interpolate                 , Interpolate_Done
+    use :: System_Command         , only : System_Command_Do
+    use :: Table_Labels           , only : extrapolationTypeExtrapolate
+    use :: File_Utilities         , only : File_Name_Temporary         , Directory_Make     , File_Lock  , File_Unlock, &
+         &                                 File_Exists                 , Count_Lines_In_File, File_Remove
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
     double precision                                 , intent(in   ) :: time             , waveNumber
@@ -210,7 +214,7 @@ contains
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
           call Directory_Make(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then    
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then
              ! Check for presence of the source code.
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.

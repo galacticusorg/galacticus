@@ -21,7 +21,7 @@
 
 module Dark_Matter_Profile_Scales
   !% Provides a class that implements scale radii dark matter halo profiles.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -38,5 +38,5 @@ module Dark_Matter_Profile_Scales
   !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Dark_Matter_Profile_Scales

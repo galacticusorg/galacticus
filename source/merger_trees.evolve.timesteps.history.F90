@@ -19,9 +19,9 @@
 
 !% Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
 
-  use FGSL               , only : fgsl_interp_accel
-  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: FGSL               , only : fgsl_interp_accel
+
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
   !#  <description>A merger tree evolution timestepping class which limits the step the next epoch at which to store global history.</description>
   !# </mergerTreeEvolveTimestep>
@@ -55,7 +55,7 @@ contains
 
   function historyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepHistory)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -63,7 +63,7 @@ contains
     integer                                                          :: historyCount
     double precision                                                 :: timeBegin          , timeEnd, &
          &                                                              ageUniverse
-    
+
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !# <inputParameter>
@@ -101,15 +101,15 @@ contains
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
-    use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
-    use            :: Memory_Management
-    use            :: Numerical_Ranges
+    use, intrinsic :: ISO_C_Binding
+    use            :: Memory_Management, only : allocateArray
+    use            :: Numerical_Ranges , only : Make_Range          , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeEvolveTimestepHistory)                        :: self
     integer                                          , intent(in   )         :: historyCount
     double precision                                 , intent(in   )         :: timeBegin          , timeEnd
-    class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                       )                        :: timeIndex
     !# <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_"/>
 
@@ -147,10 +147,10 @@ contains
 
   subroutine historyAutoHook(self)
     !% Create a hook to the HDF5 pre-close event to allow us to finalize and write out our data.
-    use Events_Hooks
+    use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     class(mergerTreeEvolveTimestepHistory), intent(inout) :: self
-    
+
     call hdf5PreCloseEvent%attach(self,historyWrite)
     return
   end subroutine historyAutoHook
@@ -166,11 +166,11 @@ contains
 
   double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic
+    use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Interpolation
-    use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
+    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self
     type            (treeNode                       ), intent(inout), target            :: node
@@ -204,12 +204,14 @@ contains
 
   subroutine historyStore(self,tree,node,deadlockStatus)
     !% Store various properties in global arrays.
-    use            :: Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
+    use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use            :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
+          &                                                      massTypeStellar
+    use            :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
+          &                                                      treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Interpolation
-    use            :: Galactic_Structure_Options
-    use            :: Galactic_Structure_Enclosed_Masses
-    use            :: Galacticus_Error
+    use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                    ), intent(inout)          :: self
     type            (mergerTree           ), intent(in   )          :: tree
@@ -288,9 +290,10 @@ contains
 
   subroutine historyWrite(self)
     !% Store the global history data to the \glc\ output file.
-    use Galacticus_HDF5
-    use Galacticus_Error
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Object             , hdf5Access
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar , megaParsec
     implicit none
     class           (*         ), intent(inout)               :: self
     double precision            , allocatable  , dimension(:) :: rateStarFormationDisk , rateStarFormationSpheroid, &
@@ -298,7 +301,7 @@ contains
          &                                                       densityStellarSpheroid, densityColdGas           , &
          &                                                       densityHotHaloGas     , densityNode
     type            (hdf5Object)                              :: historyDataset        , historyGroup
-    
+
     select type (self)
     class is (mergerTreeEvolveTimestepHistory)
       !$ call hdf5Access%set()

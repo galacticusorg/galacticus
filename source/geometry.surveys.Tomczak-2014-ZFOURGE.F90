@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE">
   !#  <description>Implements the geometry of the ZFOURGE survey of \cite{tomczak_galaxy_2014}.</description>
@@ -57,13 +56,13 @@ contains
 
   function tomczak2014ZFOURGEConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{tomczak_galaxy_2014} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryTomczak2014ZFOURGE)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     integer                                                  :: redshiftBin
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
@@ -81,8 +80,8 @@ contains
 
   function tomczak2014ZFOURGEConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{tomczak_galaxy_2014} mass function class.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type   (surveyGeometryTomczak2014ZFOURGE)                        :: self
     integer                                  , intent(in   )         :: redshiftBin
@@ -131,7 +130,7 @@ contains
     call self%initialize()
     return
   end function tomczak2014ZFOURGEConstructorInternal
-  
+
   subroutine tomczak2014ZFOURGEDestructor(self)
     !% Destructor for the ``tomczak2014ZFOURGE'' survey geometry class.
     implicit none
@@ -140,13 +139,13 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine tomczak2014ZFOURGEDestructor
-  
+
   integer function tomczak2014ZFOURGEFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     tomczak2014ZFOURGEFieldCount=tomczak2014ZFOURGEFields
     return
   end function tomczak2014ZFOURGEFieldCount
@@ -158,15 +157,15 @@ contains
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     tomczak2014ZFOURGEDistanceMinimum=self%binDistanceMinimum
     return
   end function tomczak2014ZFOURGEDistanceMinimum
 
   double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions_Options
-    use Galacticus_Error
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -201,7 +200,7 @@ contains
 
   double precision function tomczak2014ZFOURGEVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
@@ -223,15 +222,16 @@ contains
 
   function tomczak2014ZFOURGEMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
     return
   end function tomczak2014ZFOURGEMangleDirectory
-  
+
   subroutine tomczak2014ZFOURGEMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
@@ -255,8 +255,8 @@ contains
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     tomczak2014ZFOURGEAngularPowerMaximumDegree=tomczak2014AngularPowerMaximumL
     return
   end function tomczak2014ZFOURGEAngularPowerMaximumDegree
-  
+

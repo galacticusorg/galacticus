@@ -30,7 +30,7 @@
    contains
      procedure :: rate => zeroRate
   end type darkMatterHaloMassLossRateZero
-  
+
   interface darkMatterHaloMassLossRateZero
      !% Constructors for the zero dark matter halo mass loss rate class.
      module procedure zeroConstructorParameters
@@ -40,7 +40,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the zero dark matter halo mass loss rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterHaloMassLossRateZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters

@@ -19,8 +19,6 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
 
-  use Tables
-
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
   !# </virialDensityContrast>

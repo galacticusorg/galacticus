@@ -19,7 +19,7 @@
 
   !% Implements a supernovae type Ia class based on \cite{nagashima_metal_2005}.
 
-  use Stellar_Astrophysics
+  use :: Stellar_Astrophysics, only : stellarAstrophysicsClass
 
   !# <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
   !#  <description>A supernovae type Ia class based on \cite{nagashima_metal_2005}.</description>
@@ -35,7 +35,7 @@
      procedure :: number => nagashima2005Number
      procedure :: yield  => nagashima2005Yield
   end type supernovaeTypeIaNagashima2005
-  
+
   interface supernovaeTypeIaNagashima2005
      !% Constructors for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
      module procedure nagashima2005ConstructorParameters
@@ -46,7 +46,7 @@ contains
 
   function nagashima2005ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (supernovaeTypeIaNagashima2005)                :: self
     type (inputParameters              ), intent(inout) :: parameters
@@ -58,15 +58,15 @@ contains
     !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function nagashima2005ConstructorParameters
-  
+
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
-    use Galacticus_Error
-    use FoX_dom
-    use IO_XML
-    use Atomic_Data
-    use Memory_Management
-    use Galacticus_Paths
+    use :: Atomic_Data      , only : Atom_Lookup            , Atomic_Data_Atoms_Count
+    use :: FoX_dom
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Galacticus_Paths , only : galacticusPath         , pathTypeDataStatic
+    use :: IO_XML           , only : XML_Array_Length       , XML_Get_First_Element_By_Tag_Name
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (supernovaeTypeIaNagashima2005)                        :: self
     class           (stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
@@ -77,7 +77,7 @@ contains
          &                                                                    iIsotope            , ioErr
     double precision                                                       :: isotopeYield
     !# <constructorAssign variables="*stellarAstrophysics_"/>
-    
+
     ! Allocate an array to store individual element yields.
     call allocateArray(self%elementYield,[Atomic_Data_Atoms_Count()])
     self%elementYield=0.0d0
@@ -114,7 +114,7 @@ contains
     !# <objectDestructor name="self%stellarAstrophysics_"/>
     return
   end subroutine nagashima2005Destructor
-  
+
   double precision function nagashima2005Number(self,initialMass,age,metallicity)
     !% Compute the cumulative number of Type Ia supernovae originating per unit mass of stars that form with given {\normalfont \ttfamily
     !% initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The calculation is based on that of \cite{nagashima_metal_2005}. The
@@ -138,7 +138,7 @@ contains
           nagashima2005Number=typeIaNormalization*(1.0d0-(2.0d0*muMinimum)**(1.0d0+gamma))
        else
           nagashima2005Number=0.0d0
-       end if       
+       end if
     else
        ! Mass is not in range - assume that no Type Ia SNe are produced.
        nagashima2005Number=0.0d0

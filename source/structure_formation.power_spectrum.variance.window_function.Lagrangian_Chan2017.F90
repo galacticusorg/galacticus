@@ -19,8 +19,8 @@
 
   !% Contains a module which provides a power spectrum window function class that implements the Lagrangian filter of
   !% \cite{chan_effective_2017}.
-  
-  use Cosmology_Parameters
+
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionLagrangianChan2017">
   !#  <description>A power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}.</description>
@@ -46,7 +46,7 @@ contains
 
   function lagrangianChan2017ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumWindowFunctionLagrangianChan2017)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -70,10 +70,9 @@ contains
 
   function lagrangianChan2017ConstructorInternal(cosmologyParameters_,f) result(self)
     !% Internal constructor for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class.
-    use Numerical_Constants_Math
     implicit none
     type            (powerSpectrumWindowFunctionLagrangianChan2017)                        :: self
-    class           (cosmologyParametersClass                     ), intent(in   ), target :: cosmologyParameters_    
+    class           (cosmologyParametersClass                     ), intent(in   ), target :: cosmologyParameters_
     double precision                                               , intent(in   )         :: f
     !# <constructorAssign variables="f, *cosmologyParameters_"/>
 
@@ -93,8 +92,7 @@ contains
   double precision function lagrangianChan2017Value(self,wavenumber,smoothingMass)
     !% Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
     !% spectrum.
-    use Numerical_Constants_Math
-    use Cosmology_Parameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass          , wavenumber
@@ -114,7 +112,7 @@ contains
     x               =+wavenumber                                    &
          &           *radiusLagrangian
     if (x <= 0.0d0) then
-       lagrangianChan2017Value=+0.0d0                      
+       lagrangianChan2017Value=+0.0d0
     else
        if (x <= xSeriesMaximum) then
           ! Use a series expansion of the window function for small x.
@@ -156,7 +154,7 @@ contains
     double precision                                               , intent(in   ) :: smoothingMass
     double precision                                               , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !GCC$ attributes unused :: self, smoothingMass
-    
+
     lagrangianChan2017WavenumberMaximum=wavenumberLarge
     return
   end function lagrangianChan2017WavenumberMaximum

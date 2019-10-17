@@ -19,7 +19,7 @@
 
   !% Implements a chemical state class which utilizes the {\normalfont \scshape Cloudy} code to
   !% compute state in collisional ionization equilibrium.
-  
+
   !# <chemicalState name="chemicalStateAtomicCIECloudy">
   !#  <description>
   !#   Class providing chemical state by utilizing the {\normalfont \scshape Cloudy} code to compute state in collisional
@@ -75,18 +75,19 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters)
     !% Constructor for the ``atomic CIE Cloudy'' chemical state class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(chemicalStateAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
   end function atomicCIECloudyConstructorParameters
-  
+
   function atomicCIECloudyConstructorInternal()
     !% Internal constructor for the ``atomic CIE Cloudy'' chemical state class.
+    use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
     type(chemicalStateAtomicCIECloudy) :: atomicCIECloudyConstructorInternal
 
@@ -105,31 +106,29 @@ contains
     atomicCIECloudyConstructorInternal%initialized                    =.false.
    return
   end function atomicCIECloudyConstructorInternal
-  
+
   subroutine atomicCIECloudyDestructor(self)
     !% Destructor for the ``atomic CIE Cloudy'' chemical state class.
-    use Numerical_Interpolation
     implicit none
     type(chemicalStateAtomicCIECloudy), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine atomicCIECloudyDestructor
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !% Create the chemical state.
-    use System_Command
-    use Galacticus_Paths
-    use String_Handling
-    use Galacticus_Display
-    use Interfaces_Cloudy_CIE
+    use :: Abundances_Structure , only : Abundances_Get_Metallicity   , metallicityTypeLinearByMassSolar
+    use :: File_Utilities       , only : File_Remove
+    use :: Galacticus_Paths     , only : galacticusPath               , pathTypeDataStatic
+    use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
+    use :: String_Handling      , only : operator(//)
     implicit none
     class  (chemicalStateAtomicCIECloudy), intent(inout) :: self
     type   (abundances                  ), intent(in   ) :: gasAbundances
     logical                                              :: makeFile
-    type   (varying_string              )                :: command
-    
+
     ! Determine if we need to retabulate the chemical state.
     if (.not.self%initialized) then
        makeFile=.true.
@@ -146,11 +145,8 @@ contains
        else
           makeFile=.false.
        end if
-       if (makeFile) then
-          ! Remove the chemical state file so that a new one will be created.
-          command='rm -f '//char(galacticusPath(pathTypeDataStatic))//trim(atomicCIECloudyChemicalStateFileName)
-          call System_Command_Do(command)
-       end if
+       ! Remove the chemical state file so that a new one will be created.
+       if (makeFile) call File_Remove(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName))
     end if
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
@@ -181,7 +177,7 @@ contains
     end if
     return
   end subroutine atomicCIECloudyTabulate
-  
+
   double precision function atomicCIECloudyElectronDensity(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the electron density for collisional ionization equilibrium as computed by
     !% {\normalfont \scshape Cloudy}.

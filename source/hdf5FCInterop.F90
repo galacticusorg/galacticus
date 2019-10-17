@@ -25,8 +25,8 @@
 program hdf5FCInterop
   !% Determine C interoperable types corresponding to HDF5 types. This allows us to avoid compiler warnings about possible C
   !% non-interoperability if we were to use the types provided directly by HDF5.
-  use, intrinsic :: ISO_C_Binding
   use            :: HDF5
+  use, intrinsic :: ISO_C_Binding
   implicit none
   integer(hid_t      ) :: type_hid_t
   integer(hsize_t    ) :: type_hsize_t
@@ -67,4 +67,4 @@ program hdf5FCInterop
      write (*,*) "size_t = c_long_long"
   end if
 end program hdf5FCInterop
-  
+

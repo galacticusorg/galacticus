@@ -21,17 +21,17 @@
 
 program Test_Hashes
   !% Tests features of the hashes (i.e. associative arrays) module.
-  use Unit_Tests
-  use Hashes
-  use Galacticus_Display
-  use Input_Parameters
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Hashes            , only : genericScalarHash             , integerScalarHash
+  use :: Input_Parameters  , only : inputParameter                , inputParameters
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type (integerScalarHash)              :: myHash
   type (genericScalarHash)              :: genericHash
   class(inputParameters  ), allocatable :: inputParameters_
   type (inputParameter   )              :: inputParameter_
   class(*                ), pointer     :: generic_
-  
+
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Begin unit tests.
@@ -79,7 +79,7 @@ program Test_Hashes
   generic_ => genericHash%value("class")
   call Assert("correct class for polymoprhic object"    ,same_type_as(generic_,inputParameters_),.true.)
   generic_ => genericHash%value("type" )
-  call Assert("correct class for non-polymoprhic object",same_type_as(generic_,inputParameter_ ),.true.)  
+  call Assert("correct class for non-polymoprhic object",same_type_as(generic_,inputParameter_ ),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

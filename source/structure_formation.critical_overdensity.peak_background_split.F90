@@ -43,10 +43,10 @@
   end interface criticalOverdensityPeakBackgroundSplit
 
 contains
-  
+
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -54,7 +54,7 @@ contains
     class(haloEnvironmentClass                  ), pointer       :: haloEnvironment_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
-    class(linearGrowthClass                     ), pointer       :: linearGrowth_    
+    class(linearGrowthClass                     ), pointer       :: linearGrowth_
 
     ! Check and read parameters.
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -76,13 +76,13 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
-    class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_    
-    class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_    
-    class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_    
+    class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_
+    class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_
+    class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass         ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(linearGrowthClass                     ), target, intent(in   ) :: linearGrowth_    
+    class(linearGrowthClass                     ), target, intent(in   ) :: linearGrowth_
     !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_"/>
-    
+
     return
   end function peakBackgroundSplitConstructorInternal
 
@@ -115,7 +115,7 @@ contains
     ! overdensity function provides the overdensity at the current epoch.
     if (present(node))                                                                &
          & peakBackgroundSplitValue=+peakBackgroundSplitValue                         &
-         &                          -self%haloEnvironment_   %overdensityLinear(node)       
+         &                          -self%haloEnvironment_   %overdensityLinear(node)
     return
   end function peakBackgroundSplitValue
 

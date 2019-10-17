@@ -33,7 +33,7 @@
      !% Constructors for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class.
      module procedure inoue2014ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorInoue2014
-    
+
   ! Fitting function coefficients.
   double precision, dimension(3,2:40) :: inoue2014aLAF=reshape(                                        &
        &                                                       [                                       &
@@ -130,21 +130,19 @@ contains
   function inoue2014ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorInoue2014)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarPopulationSpectraPostprocessorInoue2014()
     return
   end function inoue2014ConstructorParameters
-  
+
   double precision function inoue2014Multiplier(self,wavelength,age,redshift)
     !% Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
-    use Numerical_Constants_Atomic
-    use Factorials
-    use Gamma_Functions
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class           (stellarPopulationSpectraPostprocessorInoue2014), intent(inout) :: self
     double precision                                                , intent(in   ) :: age                      , redshift                        , &
@@ -199,7 +197,7 @@ contains
                   &           +2.5450d-2*(1.0d0+redshift)**(+1.6d0)*(wavelengthObservedLymanContinuum)**2.1d0 &
                   &           +0.3248d+0                           *(wavelengthObservedLymanContinuum)**1.2d0 &
                   &           -0.2496d+0                           *(wavelengthObservedLymanContinuum)**2.1d0
-          else if (wavelengthObservedLymanContinuum< 1.0d0+redshift) then         
+          else if (wavelengthObservedLymanContinuum< 1.0d0+redshift) then
              opticalDepth    =+opticalDepth                                                                   &
                   &           +2.5450d-2                                                                      &
                   &           *(                                                                              &
@@ -218,7 +216,7 @@ contains
                   &           +5.2210d-4*(1.0d0+redshift)**(+3.4d0)*(wavelengthObservedLymanContinuum)**2.1d0 &
                   &           +0.2182d+0                           *(wavelengthObservedLymanContinuum)**2.1d0 &
                   &           -2.5450d-2                           *(wavelengthObservedLymanContinuum)**3.7d0
-          else if (wavelengthObservedLymanContinuum< 1.0d0+redshift) then         
+          else if (wavelengthObservedLymanContinuum< 1.0d0+redshift) then
              opticalDepth    =+opticalDepth                                                                   &
                   &           +5.2210d-4                                                                      &
                   &           *(                                                                              &
@@ -226,7 +224,7 @@ contains
                   &             -                                   (wavelengthObservedLymanContinuum)**5.5d0 &
                   &            )
           end if
-       end if       
+       end if
        ! DLA continuum absorption.
        if (redshift < 2.0d0) then
           if      (wavelengthObservedLymanContinuum< 1.0d0+redshift)                                          &
@@ -254,4 +252,4 @@ contains
     inoue2014Multiplier=exp(-opticalDepth)
     return
   end function inoue2014Multiplier
-  
+

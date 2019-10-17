@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a transfer function class based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
 
-  use Cosmology_Parameters
-  use Dark_Matter_Particles
+  use :: Cosmology_Parameters , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBBKSWDM">
   !#  <description>Provides a transfer function based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.</description>
@@ -50,13 +50,13 @@ contains
 
   function bbksWDMConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (transferFunctionBBKSWDM )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(transferFunctionClass   ), pointer       :: transferFunctionCDM
-    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class(darkMatterParticleClass ), pointer       :: darkMatterParticle_    
+    class(cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -74,16 +74,18 @@ contains
 
   function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
-    use Galacticus_Error
+    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
+    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type            (transferFunctionBBKSWDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
+    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
+    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
     class           (cosmologyFunctionsClass )        , intent(inout) :: cosmologyFunctions_
     double precision                                                  :: degreesOfFreedomEffectiveDecoupling
     !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *darkMatterParticle_"/>
-    
+
     ! Get degrees of freedom at the time at which the dark matter particle decoupled.
     select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
@@ -109,7 +111,7 @@ contains
          &                                          )
     return
   end function bbksWDMConstructorInternal
-  
+
   subroutine bbksWDMDestructor(self)
     !% Destructor for the {\normalfont \ttfamily bbksWDM} transfer function class.
     implicit none
@@ -150,7 +152,7 @@ contains
     class           (transferFunctionBBKSWDM), intent(inout) :: self
     double precision                         , intent(in   ) :: wavenumber
     double precision                                         :: wavenumberScaleFree
-    
+
     wavenumberScaleFree=+wavenumber               &
          &              *self%lengthFreeStreaming
     bbksWDMLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber) &
@@ -158,15 +160,15 @@ contains
          &                       *(                                                          &
          &                         +0.5d0                                                    &
          &                         +wavenumberScaleFree                                      &
-         &                        )    
+         &                        )
     return
   end function bbksWDMLogarithmicDerivative
-  
+
   double precision function bbksWDMHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
-    use Numerical_Constants_Math
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBBKSWDM), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status

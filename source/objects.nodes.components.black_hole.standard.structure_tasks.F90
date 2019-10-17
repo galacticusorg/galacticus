@@ -36,10 +36,11 @@ contains
   double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,componentType,massType)
     !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
     !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
-    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_Gravitational_Radius
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus, speedLight
+    use :: Numerical_Constants_Prefixes, only : milli
     implicit none
     type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
@@ -73,10 +74,11 @@ contains
   !# </potentialTask>
   double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,status)
     !% Compute the gravitational potential due to a black hole.
-    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
-    use Numerical_Constants_Physical
-    use Galactic_Structure_Options
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_Gravitational_Radius
+    use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
+          &                                     weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
@@ -110,10 +112,11 @@ contains
        &,massType)
     !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
     !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
-    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_Gravitational_Radius
+    use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
+          &                                     weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType

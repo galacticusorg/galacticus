@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a cosmological volume corrector analysis weight operator class.
 
-  use Cosmology_Functions
-  use Geometry_Surveys
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Geometry_Surveys   , only : surveyGeometryClass
+
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
   !#  <description>A cosmological volume corrector analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
@@ -45,14 +45,14 @@ contains
 
   function csmlgyVolumeConstructorParameters(parameters) result(self)
     !% Constructor for the ``csmlgyVolume'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                :: self
     type   (inputParameters                         ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class  (surveyGeometryClass                     ), pointer       :: surveyGeometry_
     type   (inputParameters                         )                :: dataAnalysisParameters
-    
+
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
@@ -88,13 +88,13 @@ contains
     !# <objectDestructor name="self%surveyGeometry_"        />
     return
   end subroutine csmlgyVolumeDestructor
-  
+
   double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an csmlgyVolume output analysis weight operator.
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Output_Times
-    use            :: Galacticus_Error
-    use            :: Output_Analyses_Options
+    use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, &
+          &                                           outputAnalysisPropertyTypeMagnitude
     implicit none
     class           (outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
@@ -112,7 +112,7 @@ contains
 
     ! Compute the correction factor - the assumption here is that the volume density was derived from a 1/Vₘₐₓ type approach. To
     ! correct for the distance in model and data cosmological models, we therefore first multiply the weight by Vₘₐₓ for the model
-    ! cosmology (which gives the absolute number of galaxies per survey), then divide by the Vₘₐₓ for the data cosmology.    
+    ! cosmology (which gives the absolute number of galaxies per survey), then divide by the Vₘₐₓ for the data cosmology.
     volumeData =0.0d0
     volumeModel=0.0d0
     do field=1,self%surveyGeometry_%fieldCount()

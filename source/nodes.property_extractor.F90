@@ -21,11 +21,11 @@
 
 module Node_Property_Extractors
   !% Provides a class that implements extraction of properties from nodes.
-  use Galacticus_Nodes       , only : treeNode
-  use Multi_Counters         , only : multiCounter
-  use Output_Analyses_Options
+  use :: Galacticus_Nodes       , only : treeNode
+  use :: Multi_Counters         , only : multiCounter
+  use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityUnknown
   private
-  
+
   !# <functionClass>
   !#  <name>nodePropertyExtractor</name>
   !#  <descriptiveName>Output Analysis Property Extractor</descriptiveName>

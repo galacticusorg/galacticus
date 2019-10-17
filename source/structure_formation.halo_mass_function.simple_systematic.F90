@@ -42,11 +42,11 @@ contains
 
   function simpleSystematicConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionSimpleSystematic)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
-    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (haloMassFunctionClass           ), pointer       :: referenceMassFunction
     double precision                                                  :: alpha                , beta
 
@@ -80,14 +80,14 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
     implicit none
     type            (haloMassFunctionSimpleSystematic)                        :: self
-    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     class           (haloMassFunctionClass           ), target, intent(in   ) :: referenceMassFunction
     double precision                                          , intent(in   ) :: alpha                , beta
     !# <constructorAssign variables="alpha, beta, *cosmologyParameters_, *referenceMassFunction"/>
-    
+
     return
   end function simpleSystematicConstructorInternal
-  
+
   subroutine simpleSystematicDestructor(self)
     !% Destructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
     implicit none
@@ -105,7 +105,7 @@ contains
     double precision                                  , intent(in   )           :: time                , mass
     type            (treeNode                        ), intent(inout), optional :: node
     double precision                                  , parameter               :: massZeroPoint=1.0d12
-    
+
     ! Compute the systematic shift in the halo mass function.
     simpleSystematicDifferential=+self%referenceMassFunction%differential(time,mass,node) &
          &                       *(                                                       &

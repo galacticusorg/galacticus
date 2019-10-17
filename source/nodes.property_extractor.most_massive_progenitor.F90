@@ -44,7 +44,7 @@ contains
 
   function mostMassiveProgenitorConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily mostMassiveProgenitor} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
@@ -67,8 +67,8 @@ contains
 
   function mostMassiveProgenitorExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily mostMassiveProgenitor} node property extractor.
-    use Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
-    use Galacticus_Nodes   , only : nodeComponentBasic
+    use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     integer         (kind_int8                                 )                          :: mostMassiveProgenitorExtract
     class           (nodePropertyExtractorMostMassiveProgenitor), intent(inout)           :: self
@@ -112,7 +112,7 @@ contains
 
   integer function mostMassiveProgenitorType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
     !GCC$ attributes unused :: self

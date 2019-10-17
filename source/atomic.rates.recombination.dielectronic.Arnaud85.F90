@@ -21,7 +21,7 @@
 
   !% Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
   !% \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
-  
+
   !# <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicArnaud1985">
   !#  <description>
   !#   Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
@@ -216,12 +216,12 @@ contains
   function arnaud1985ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potentail class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicRecombinationRateDielectronicArnaud1985)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=atomicRecombinationRateDielectronicArnaud1985()
     return
   end function arnaud1985ConstructorParameters
@@ -231,10 +231,10 @@ contains
     !% fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
     !% {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
     !% {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicRecombinationRateDielectronicArnaud1985), intent(inout) :: self
-    double precision                                               , intent(in   ) :: temperature                     
+    double precision                                               , intent(in   ) :: temperature
     integer                                                        , intent(in   ) :: atomicNumber, electronNumber
     !GCC$ attributes unused :: self
 

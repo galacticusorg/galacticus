@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a depth-first merger tree walker over all all nodes.
-  use Galacticus_Nodes, only : mergerTree, treeNode
+  use :: Galacticus_Nodes, only : mergerTree, treeNode
 
   !# <mergerTreeWalker name="mergerTreeWalkerAllNodes">
   !#  <description>Provides a merger tree walker which iterates depth-first over all all nodes.</description>
@@ -68,13 +68,13 @@ contains
 
   function allNodesParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerAllNodes)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
-    
+
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function allNodesParameters
@@ -86,7 +86,7 @@ contains
     type   (mergerTree              ), intent(in   ), target   :: tree
     logical                          , intent(in   ), optional :: spanForest
     !# <optionalArgument name="spanForest" defaultsTo=".false."/>
-    
+
     self%tree         => tree
     self%node         => null()
     self%treePrevious => null()
@@ -149,7 +149,7 @@ contains
           self%nodesRemain_ =  .false.
           node              => null()
           allNodesNext      =  .false.
-          return  
+          return
        end if
     end if
     ! Walk to the next node in the tree.
@@ -188,11 +188,11 @@ contains
 
   subroutine allNodesPrevious(self,node)
     !% Step back to the previously visited node.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
-    
+
     if (associated(self%treePrevious)) then
        self%tree         => self%treePrevious
        self%node         => self%nodePrevious
@@ -220,7 +220,7 @@ contains
     end do
     return
   end subroutine allNodesDescend
-  
+
   logical function allNodesNodesRemain(self)
     !% Returns true if more nodes remain to be walked to.
     implicit none
@@ -243,4 +243,4 @@ contains
     self%nodePrevious => null()
     return
   end subroutine allNodesSetNode
-  
+

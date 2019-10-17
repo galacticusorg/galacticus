@@ -30,7 +30,7 @@
    contains
      procedure :: velocity => zeroVelocity
   end type blackHoleBinaryRecoilZero
-  
+
   interface blackHoleBinaryRecoilZero
      !% Constructors for the {\normalfont \ttfamily zero} black hole binary recoil class.
      module procedure zeroConstructorParameters
@@ -40,7 +40,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} black hole binary recoil class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryRecoilZero)                :: self
     type(inputParameters          ), intent(inout) :: parameters

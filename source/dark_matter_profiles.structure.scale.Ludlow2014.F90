@@ -19,7 +19,7 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2014}
   !% algorithm.
-  
+
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014">
   !#  <description>Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
   !# </darkMatterProfileScaleRadius>
@@ -56,7 +56,7 @@ contains
 
   function ludlow2014ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2014)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
@@ -64,18 +64,18 @@ contains
     self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(parameters)
     return
   end function ludlow2014ConstructorParameters
-  
+
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &
          &                                                                             timeFormationSeekDelta
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
+    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
 
     self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
     return
@@ -83,7 +83,7 @@ contains
 
   subroutine ludlow2014FormationTimeRootFunctionSet(self,finder)
     !% Initialize the finder object to compute the relevant formation history.
-    use Root_Finder
+    use :: Root_Finder, only : rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusLudlow2014), intent(inout) :: self
     type            (rootFinder                            ), intent(inout) :: finder
@@ -96,11 +96,11 @@ contains
     end if
     return
   end subroutine ludlow2014FormationTimeRootFunctionSet
-  
+
   double precision function ludlow2014FormationTimeRoot(timeFormation)
     !% Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     double precision                    , intent(in   ) :: timeFormation
     type            (treeNode          ), pointer       :: nodeBranch   , nodeChild        , &
@@ -109,7 +109,7 @@ contains
          &                                                 basicSibling
     double precision                                    :: massBranch   , massAccretionRate, &
          &                                                 massSiblings , massProgenitor
-    
+
     nodeBranch => ludlow2016States(ludlow2016StateCount)%node
     massBranch =  0.0d0
     do while (associated(nodeBranch))
@@ -173,7 +173,7 @@ contains
              nodeChild => nodeChild%sibling
           end do
        else if (.not.associated(nodeBranch%firstChild).and.basicBranch%time() == timeFormation) then
-          massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                                             & 
+          massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
                &                                                nodeBranch                                                                                                              , &
                &                                             +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                           &
                &                                             *(                                                                                                                           &
@@ -192,4 +192,4 @@ contains
          &                      -ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic
     return
   end function ludlow2014FormationTimeRoot
-  
+

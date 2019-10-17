@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a switched (ADAF/thin) accretion disk.
-  
+
   !# <accretionDisks name="accretionDisksSwitched">
   !#  <description>An accretion disk class in which accretion switches between thin-disk and ADAF modes.</description>
   !# </accretionDisks>
@@ -67,8 +67,8 @@ contains
 
   function switchedConstructorParameters(parameters) result(self)
     !% Constructor for the switched accretion disk class which takes a parameter set as input.
-    use Galacticus_Error
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (accretionDisksSwitched)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
@@ -144,7 +144,7 @@ contains
          &                                                             accretionRateTransitionWidth
     logical                                 , intent(in   )         :: scaleADAFRadiativeEfficiency
     !# <constructorAssign variables="*accretionDisksADAF_, *accretionDisksShakuraSunyaev_, accretionRateThinDiskMinimum, accretionRateThinDiskMaximum, accretionRateTransitionWidth, scaleADAFRadiativeEfficiency"/>
-    
+
     self%accretionRateThinDiskMinimumExists=accretionRateThinDiskMinimum >      0.0d0
     self%accretionRateThinDiskMaximumExists=accretionRateThinDiskMaximum < huge(0.0d0)
     if (self%accretionRateThinDiskMinimumExists) self%accretionRateThinDiskMinimumLogarithmic=log(self%accretionRateThinDiskMinimum)
@@ -161,7 +161,7 @@ contains
     !# <objectDestructor name="self%accretionDisksShakuraSunyaev_" />
     return
   end subroutine switchedDestructor
-  
+
   double precision function switchedEfficiencyRadiative(self,blackHole,accretionRateMass)
     !% Return the radiative efficiency of a switched (ADAF/thin) accretion disk.
     implicit none
@@ -213,7 +213,7 @@ contains
 
   double precision function switchedFractionADAF(self,blackHole,accretionRateMass)
     !% Decide which type of accretion disk to use.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Eddington_Accretion_Rate
     implicit none
     class           (accretionDisksSwitched), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
@@ -253,7 +253,7 @@ contains
 
   double precision function switchedEfficiencyRadiativeScalingADAF(self,blackHole,accretionRateMass)
     !% Determine the scaling of radiative efficiency of the ADAF component in a switched accretion disk.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Eddington_Accretion_Rate
     implicit none
     class           (accretionDisksSwitched), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole

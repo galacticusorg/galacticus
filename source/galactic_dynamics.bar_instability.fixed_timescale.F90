@@ -41,7 +41,7 @@ contains
   function fixedTimescaleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -69,7 +69,7 @@ contains
 
     return
   end function fixedTimescaleConstructorInternal
-  
+
   subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Assume a constant timescale for depletion of a disk to a pseudo-bulge via bar instability.
     implicit none
@@ -77,7 +77,7 @@ contains
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(  out) :: externalDrivingSpecificTorque, timescale
     !GCC$ attributes unused :: node
-    
+
     timescale                    =self%timescale_
     externalDrivingSpecificTorque=0.0d0
     return

@@ -21,9 +21,9 @@
 
 module Dark_Matter_Profiles_DMO
   !% Provides an object that implements dark matter halo profiles.
-  use Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
-  use Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass, darkMatterHaloScale
-  use Galacticus_Nodes            , only : treeNode
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale     , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
+  use :: Galacticus_Nodes            , only : treeNode
   private
 
   !# <functionClass>
@@ -200,17 +200,17 @@ module Dark_Matter_Profiles_DMO
   !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode                 ), intent(inout) :: node</argument>
   !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
-  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#   <argument>double precision                           , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="specificEnergyGradient" >
   !#   <description>The gradient of the specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode                 ), intent(inout) :: node</argument>
   !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
-  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#   <argument>double precision                           , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="specificEnergyIsEverywhereZero" >
   !#   <description>Returns true if the specific energy is zero everywhere in the given {\normalfont \ttfamily node}.</description>
@@ -226,14 +226,14 @@ module Dark_Matter_Profiles_DMO
   type            (treeNode                 ), pointer :: darkMatterProfileDMONode   => null()
   double precision                                     :: darkMatterProfileDMOMass_
   !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMOMass_)
-  
+
 contains
-  
+
   double precision function darkMatterProfileDMOEnclosedMassRoot(radius)
     !% Root function used in solving for the radius that encloses a given mass.
     implicit none
     double precision,intent(in) :: radius
-    
+
     darkMatterProfileDMOEnclosedMassRoot=darkMatterProfileDMOSelf%enclosedMass(darkMatterProfileDMONode,radius)-darkMatterProfileDMOMass_
     return
   end function darkMatterProfileDMOEnclosedMassRoot

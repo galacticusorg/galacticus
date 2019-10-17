@@ -22,9 +22,9 @@
 module Memory_Management
   !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
-  use, intrinsic :: ISO_C_Binding
-  use Kind_Numbers
-  use Galacticus_Error
+  use            :: Galacticus_Error, only : Galacticus_Error_Report
+  use, intrinsic :: ISO_C_Binding   , only : c_long                 , c_int    , c_double_complex
+  use            :: Kind_Numbers    , only : kind_int8              , kind_quad
   implicit none
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,allocateArray,deallocateArray,Memory_Usage_Record
@@ -34,7 +34,7 @@ module Memory_Management
 
   ! Code memory size initialization status.
   logical                 :: codeMemoryUsageInitialized=.false.
-  
+
   ! Count of number of successive decreases in memory usage.
   integer                 :: successiveDecreaseCount=0
 
@@ -89,7 +89,7 @@ module Memory_Management
        integer(c_int) :: getPageSize
      end function getPageSize
   end interface
-  
+
   ! Include automatically generated inferfaces.
   include 'utility.memory_management.preContain.inc'
 
@@ -98,8 +98,8 @@ contains
   subroutine Memory_Usage_Report()
     !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
     !% units prior to output.
-    use ISO_Varying_String
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String
     implicit none
     double precision                , parameter :: newReportChangeFactor=1.2d0
     logical                                     :: issueNewReport
@@ -151,7 +151,7 @@ contains
 
   subroutine Add_Memory_Component(thisMemoryUsage,headerText,usageText,join)
     !% Add a memory type to the memory reporting strings.
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage
     type     (varying_string        ), intent(inout) :: headerText     , usageText
@@ -231,12 +231,12 @@ contains
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)
     !% Record a change in memory usage.
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
-    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityDebug
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use            :: String_Handling   , only : operator(//)
     implicit none
-    integer  (kind=C_SIZE_T ), intent(in   )           :: elementsUsed
+    integer  (kind=c_size_t ), intent(in   )           :: elementsUsed
     integer                  , intent(in   ), optional :: addRemove      , blockCount      , line            , memoryType
     character(len=*         ), intent(in   ), optional :: file
     integer                                            :: addRemoveActual, blockCountActual, memoryTypeActual

@@ -19,9 +19,9 @@
 
 module Merger_Tree_Operators
   !% Provides an object that implements operators acting on merger trees.
-  use Galacticus_Nodes, only : mergerTree
+  use :: Galacticus_Nodes, only : mergerTree
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeOperator</name>
   !#  <descriptiveName>Merger Tree Operators</descriptiveName>

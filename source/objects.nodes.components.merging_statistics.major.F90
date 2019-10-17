@@ -42,16 +42,15 @@ module Node_Component_Merging_Statistics_Major
   !# </component>
 
 contains
-  
+
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging(node)
     !% Record any major merger of {\normalfont \ttfamily node}.
-    use Satellite_Merging_Remnant_Properties
-    use Satellite_Merging_Mass_Movements
-    use Galacticus_Nodes                    , only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
+    use :: Galacticus_Nodes                    , only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Satellite_Merging_Remnant_Properties, only : mergerIsMajor
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
@@ -63,7 +62,7 @@ contains
     if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
     ! Record the merger time if this is a major merger.
     if (mergerIsMajor) then
-       ! Get required components    
+       ! Get required components
        nodeHost          => node    %mergesWith       ()
        basic             => node    %basic            ()
        basicHost         => nodeHost%basic            ()
@@ -89,7 +88,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Major_Node_Promotion(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer      :: node
     class(nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
@@ -105,7 +104,7 @@ contains
     timeMajorMergerParent   =  mergingStatisticsParent%majorMergerTime  (                 )
     allocate(timeMajorMergerNew(size(timeMajorMerger)+size(timeMajorMergerParent)))
     timeMajorMergerNew(                      1:size(timeMajorMerger)                            )=timeMajorMerger
-    timeMajorMergerNew(size(timeMajorMerger)+1:size(timeMajorMerger)+size(timeMajorMergerParent))=timeMajorMergerParent    
+    timeMajorMergerNew(size(timeMajorMerger)+1:size(timeMajorMerger)+size(timeMajorMergerParent))=timeMajorMergerParent
     call mergingStatistics%majorMergerTimeSet(timeMajorMergerNew)
     return
   end subroutine Node_Component_Merging_Statistics_Major_Node_Promotion
@@ -115,12 +114,13 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\normalfont \ttfamily node}.
+    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree, nodeComponentMergingStatistics, treeNode
+    use            :: IO_HDF5           , only : hdf5Object                       , hdf5Access
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes  , only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent
-    use            :: Galacticus_HDF5
-    use            :: Kind_Numbers
     use            :: ISO_Varying_String
-    use            :: String_Handling
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: String_Handling   , only : operator(//)
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     integer         (kind=kind_int8                ), intent(in   )               :: treeIndex
@@ -157,5 +157,5 @@ contains
     call hdf5Access%unset()
     return
   end subroutine Node_Component_Merging_Statistics_Major_Output
-  
+
 end module Node_Component_Merging_Statistics_Major

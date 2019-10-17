@@ -29,7 +29,7 @@
    contains
      procedure :: merge => rezzolla2008Merge
   end type blackHoleBinaryMergerRezzolla2008
-  
+
   interface blackHoleBinaryMergerRezzolla2008
      !% Constructors for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class.
      module procedure rezzolla2008ConstructorParameters
@@ -40,7 +40,7 @@ contains
   function rezzolla2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily rezzolla2008} black hole bianry merger class which takes a parameter list as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryMergerRezzolla2008)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
@@ -102,7 +102,7 @@ contains
          &                  +                     blackHoleSpin2**2*massRatio**4              &
          &                  +2.0d0*blackHoleSpin1*blackHoleSpin2   *massRatio**2*cosinePhi    &
          &                  +2.0d0                                                            &
-         &                  *(                                                                & 
+         &                  *(                                                                &
          &                    +    blackHoleSpin1                               *cosineTheta  &
          &                    +                   blackHoleSpin2   *massRatio**2*cosineXi     &
          &                   )                                                                &

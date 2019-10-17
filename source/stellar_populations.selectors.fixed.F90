@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar population selector class which returns a fixed population.
-  
+
   !# <stellarPopulationSelector name="stellarPopulationSelectorFixed">
   !#  <description>A fixed stellar population selector class.</description>
   !# </stellarPopulationSelector>
@@ -37,25 +37,25 @@
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface stellarPopulationSelectorFixed
-  
+
 contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} stellar population class which takes a parameter list as input.
-    use Input_Parameters
-    use Stellar_Populations , only : stellarPopulation
+    use :: Input_Parameters   , only : inputParameter   , inputParameters
+    use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
     implicit none
     type (stellarPopulationSelectorFixed)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(stellarPopulationClass        ), pointer       :: stellarPopulation_
-    
+
     !# <objectBuilder class="stellarPopulation" name="stellarPopulation_" source="parameters"/>
     self=stellarPopulationSelectorFixed(stellarPopulation_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="stellarPopulation_"/>
     return
   end function fixedConstructorParameters
-  
+
   function fixedConstructorInternal(stellarPopulation_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fixed} stellar population selector class.
     implicit none
@@ -84,18 +84,18 @@ contains
     type            (abundances                    ), intent(in   ) :: abundances_
     class           (nodeComponent                 ), intent(in   ) :: component
     !GCC$ attributes unused :: rateStarFormation, abundances_, component
-    
+
     fixedSelect => self%stellarPopulation_
     return
   end function fixedSelect
-  
+
   logical function fixedIsStarFormationRateDependent(self)
     !% Return false indicating that stellar population selection is not dependent on star formation rate.
     implicit none
     class(stellarPopulationSelectorFixed), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     fixedIsStarFormationRateDependent=.false.
     return
   end function fixedIsStarFormationRateDependent
-  
+

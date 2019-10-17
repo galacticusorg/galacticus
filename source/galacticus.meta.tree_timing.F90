@@ -21,9 +21,9 @@
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
-  use            :: Kind_Numbers , only : kind_int8
-  !$ use OMP_Lib
+  use   , intrinsic :: ISO_C_Binding, only : c_size_t
+  use               :: Kind_Numbers , only : kind_int8
+  !$ use            :: OMP_Lib
   implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Tree_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
@@ -46,15 +46,15 @@ module Galacticus_Meta_Tree_Timing
   integer                                                :: treesRecordedCount       =0
   double precision           , allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , &
        &                                                    treeMasses
-  integer         (kind_int8), allocatable, dimension(:) :: treeIDs 
+  integer         (kind_int8), allocatable, dimension(:) :: treeIDs
   integer         (c_size_t ), allocatable, dimension(:) :: treeMemoryUsages                 , treeNodeCounts
- 
+
 contains
 
   subroutine Meta_Tree_Timing_Initialize()
     !% Initialize the tree timing meta-data module.
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : globalParameters       , inputParameter
     implicit none
 
     ! Check if module is initialized.
@@ -118,8 +118,8 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Meta_Tree_Timing_Pre_Evolve(tree)
     !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes   , only : mergerTree              , treeNode, nodeComponentBasic
-    use Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     type (mergerTree              ), intent(in   ) :: tree
     type (treeNode                ), pointer       :: node
@@ -158,13 +158,13 @@ contains
   !# </mergerTreePostEvolveTask>
   subroutine Meta_Tree_Timing_Post_Tree_Evolve()
     !% Record the CPU time after evolving a tree.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision           , allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
          &                                                    treeMassesTemporary
     integer         (kind_int8), allocatable, dimension(:) :: treeIDsTemporary
     integer         (c_size_t ), allocatable, dimension(:) :: treeMemoryUsagesTemporary  , treeNodeCountsTemporary
-    
+
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
 
@@ -228,21 +228,21 @@ contains
 
     return
   end subroutine Meta_Tree_Timing_Post_Tree_Evolve
-  
-  !# <postEvolveTask>                                                                                                                                                                                      
-  !#  <unitName>Meta_Tree_Timing_Post_Evolve</unitName>                                                                                                                                                       
-  !# </postEvolveTask>                                                                                                                                                                                     
+
+  !# <postEvolveTask>
+  !#  <unitName>Meta_Tree_Timing_Post_Evolve</unitName>
+  !# </postEvolveTask>
   subroutine Meta_Tree_Timing_Post_Evolve(node)
     !% Record memory usage.
-    use Galacticus_Nodes   , only : treeNode                , mergerTree
-    use Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes   , only : mergerTree              , treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     type   (mergerTree              )               , pointer :: tree       , treeWork
     type   (treeNode                )               , pointer :: nodeWork
     integer(c_size_t                )                         :: memoryUsage
     type   (mergerTreeWalkerAllNodes)                         :: treeWalker
-    
+
      if (metaCollectMemoryUsageData) then
        tree        => node%hostTree%firstTree
        treeWork    => tree
@@ -265,8 +265,9 @@ contains
   !# </hdfPreCloseTask>
   subroutine Meta_Tree_Timing_Output
     !% Outputs collected meta-data on tree evolution.
-    use Galacticus_HDF5
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Object          , hdf5Access
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup
 

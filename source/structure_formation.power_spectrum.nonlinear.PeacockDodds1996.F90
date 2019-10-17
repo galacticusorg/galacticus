@@ -20,8 +20,8 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% algorithm of \cite{peacock_non-linear_1996}.
 
-  use Cosmology_Functions
-  use Power_Spectra
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Power_Spectra      , only : powerSpectrumClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
@@ -29,8 +29,8 @@
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
      !% A linear transfer function class.
      private
-     double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious        
-     double precision                                        :: timePrevious      
+     double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious
+     double precision                                        :: timePrevious
      class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_ => null()
      class           (powerSpectrumClass     ), pointer      :: powerSpectrum_      => null()
   contains
@@ -48,7 +48,7 @@ contains
 
   function peacockDodds1996ConstructorParameters(parameters) result(self)
     !% Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     type (inputParameters                       ), target, intent(inout) :: parameters
@@ -93,10 +93,8 @@ contains
 
   double precision function peacockDodds1996Value(self,wavenumber,time)
     !% Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
-    use Numerical_Constants_Math
-    use Cosmology_Functions
-    use Galacticus_Error
-    use Linear_Growth
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
     double precision                             , intent(in   ) :: time                          , wavenumber
@@ -135,7 +133,7 @@ contains
     ! Iterate until a converged solution is found.
     converged     =.false.
     iterationCount=0
-    do while (.not.converged .and. iterationCount < iterationCountMaximum) 
+    do while (.not.converged .and. iterationCount < iterationCountMaximum)
        ! Find the corresponding linear wavenumber.
        waveNumberLinear=wavenumber/(1.0d0+fNL)**(1.0d0/3.0d0)
        ! Get the dimensionless linear power spectrum and its logarithmic slope.

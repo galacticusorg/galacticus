@@ -40,15 +40,15 @@
   end interface nodePropertyExtractorNodeIndices
 
 contains
-  
+
   function nodeIndicesConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nodeIndices} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorNodeIndices)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=nodePropertyExtractorNodeIndices()
     return
   end function nodeIndicesConstructorParameters
@@ -59,7 +59,7 @@ contains
     class           (nodePropertyExtractorNodeIndices), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
     !GCC$ attributes unused :: self, time
-    
+
     nodeIndicesElementCount=5
     return
   end function nodeIndicesElementCount
@@ -73,7 +73,7 @@ contains
     double precision                                  , intent(in   )              :: time
     type            (multiCounter                    ), intent(inout), optional    :: instance
     !GCC$ attributes unused :: self, time, instance
-    
+
     allocate(nodeIndicesExtract(5))
     nodeIndicesExtract   (1:4)=[                             &
          &                      node               %index(), &
@@ -143,7 +143,7 @@ contains
 
   integer function nodeIndicesType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorNodeIndices), intent(inout) :: self
     !GCC$ attributes unused :: self

@@ -38,7 +38,7 @@ contains
 
   function log10ConstructorParameters(parameters)
     !% Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
@@ -51,7 +51,7 @@ contains
   double precision function log10Operate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an log10 output analysis property operator.
     use, intrinsic :: ISO_C_Binding
-    use            :: Output_Analyses_Options
+    use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none
     class           (outputAnalysisPropertyOperatorLog10), intent(inout)           :: self
     double precision                                     , intent(in   )           :: propertyValue
@@ -59,7 +59,7 @@ contains
     integer                                              , intent(inout), optional :: propertyType
     integer         (c_size_t                           ), intent(in   ), optional :: outputIndex
     !GCC$ attributes unused :: self, outputIndex, node
-    
+
     if (propertyValue > 0.0d0) then
        log10Operate=log10(propertyValue)
     else

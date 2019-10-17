@@ -24,13 +24,13 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-0.8$
   !% cosmology. Compares results to points read from Figure~6 of \cite{horellou_dark_2005} using
   !% \href{http://datathief.org/}{\normalfont \scshape DataThief}.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmology_Functions
-  use Virial_Density_Contrast
-  use Galacticus_Display
-  use Events_Hooks
+  use :: Cosmology_Functions    , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters       , only : inputParameters
+  use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast, only : virialDensityContrast         , virialDensityContrastClass
+  use :: Events_Hooks              , only : eventsHooksInitialize
   implicit none
   double precision                            , dimension(3) :: redshift                     =[  0.00d0,  1.00d0,  2.00d0]
   double precision                            , dimension(3) :: virialDensityContrastExpected=[367.81d0,217.63d0,192.72d0]

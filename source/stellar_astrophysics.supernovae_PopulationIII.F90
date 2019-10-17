@@ -23,7 +23,7 @@ module Supernovae_Population_III
   !% Implements a class for calculations of Population III supernovae.
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>supernovaePopulationIII</name>
   !#  <descriptiveName>Supernovae Type Ia</descriptiveName>

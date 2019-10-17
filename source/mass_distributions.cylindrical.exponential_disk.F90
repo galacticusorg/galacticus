@@ -19,9 +19,9 @@
 
   !% Implementation of an exponential disk mass distribution class.
 
-  use Tables
-  !$ use OMP_Lib
-  
+  !$ use :: OMP_Lib
+  use    :: Tables , only : table1DLogarithmicLinear
+
   !# <massDistribution name="massDistributionExponentialDisk">
   !#  <description>The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.</description>
   !# </massDistribution>
@@ -104,8 +104,7 @@ contains
   function exponentialDiskConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily exponentialDisk} mass distribution class which builds the object from a parameter
     !% set.
-    use Numerical_Constants_Math
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionExponentialDisk)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -158,9 +157,9 @@ contains
 
   function exponentialDiskConstructorInternal(scaleRadius,scaleHeight,mass,dimensionless) result(self)
     !% Internal constructor for ``exponentialDisk'' mass distribution class.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Comparison    , only : Values_Differ
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionExponentialDisk)                          :: self
     double precision                                 , intent(in   ), optional :: scaleRadius                                 , scaleHeight                                 , &
@@ -239,8 +238,8 @@ contains
 
   subroutine exponentialDiskTabulate(self)
     !% Build tables used for exponential disk mass distributions.
-    use Bessel_Functions
-    use Table_Labels
+    use :: Bessel_Functions, only : Bessel_Function_I0    , Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
+    use :: Table_Labels    , only : extrapolationTypeAbort
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     integer                                                          :: i   , potentialPointsCount
@@ -284,8 +283,8 @@ contains
 
   double precision function exponentialDiskDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use Galacticus_Error
-    use Coordinates
+    use :: Coordinates     , only : coordinateCylindrical  , assignment(=)
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -312,7 +311,7 @@ contains
 
   double precision function exponentialDiskMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass distributions.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (massDistributionExponentialDisk), intent(inout), target :: self
     double precision                                 , intent(in   )         :: radius
@@ -337,7 +336,7 @@ contains
 
   double precision function exponentialDiskSurfaceDensity(self,coordinates)
     !% Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use Coordinates
+    use :: Coordinates, only : coordinate
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -351,9 +350,8 @@ contains
   end function exponentialDiskSurfaceDensity
 
   double precision function exponentialDiskRotationCurve(self,radius)
-    !% Return the mid-plane rotation curve for an exponential disk.  
-    use Coordinates
-    use Numerical_Constants_Physical
+    !% Return the mid-plane rotation curve for an exponential disk.
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -395,8 +393,7 @@ contains
 
   double precision function exponentialDiskRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use Numerical_Constants_Physical
-    use Coordinates
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -427,9 +424,8 @@ contains
 
   double precision function exponentialDiskPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use Bessel_Functions
-    use Numerical_Constants_Physical
-    use Coordinates
+    use :: Coordinates                 , only : coordinateCylindrical          , assignment(=)
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -459,12 +455,12 @@ contains
                &                                    -self%massEnclosedBySphere(radius) &
                &                                    /radius
        end if
-       ! Compute the potential including the correction to small radii. 
+       ! Compute the potential including the correction to small radii.
        exponentialDiskPotential=                                  &
             &             -self%mass                              &
             &             /self%scaleRadius                       &
             &             *self%besselFactorPotential(halfRadius) &
-            &             +correctionSmallRadius     
+            &             +correctionSmallRadius
     end if
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) exponentialDiskPotential= &
@@ -476,8 +472,7 @@ contains
   double precision function exponentialDiskBesselFactorPotential(self,halfRadius)
     !% Compute Bessel function factors appearing in the expression for an razor-thin exponential
     !% disk gravitational potential.
-    use Numerical_Constants_Math
-    use Bessel_Functions
+    use :: Numerical_Constants_Math, only : eulersConstant, ln2
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: halfRadius
@@ -498,8 +493,8 @@ contains
 
   double precision function exponentialDiskBesselFactorRotationCurve(self,halfRadius)
     !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
-    use Numerical_Constants_Math
-    use Bessel_Functions
+    use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
+    use :: Numerical_Constants_Math, only : eulersConstant    , ln2
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: halfRadius
@@ -557,8 +552,8 @@ contains
 
   double precision function exponentialDiskBesselFactorRotationCurveGradient(self,halfRadius)
     !% Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
-    use Numerical_Constants_Math
-    use Bessel_Functions
+    use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
+    use :: Numerical_Constants_Math, only : eulersConstant    , ln2
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: halfRadius
@@ -628,11 +623,11 @@ contains
 
   double precision function exponentialDiskSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Compute radial moments of the exponential disk mass distribution surface density profile.
-    use Gamma_Functions
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Gamma_Functions , only : Gamma_Function         , Gamma_Function_Incomplete
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: moment 
+    double precision                                 , intent(in   )           :: moment
     double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                          , intent(  out), optional :: isInfinite
     double precision                                                           :: integralLow  , integralHigh

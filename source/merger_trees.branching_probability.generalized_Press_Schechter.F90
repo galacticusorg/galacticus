@@ -19,10 +19,10 @@
 
 !% Implements a merger tree branching probability class using a generalized Press-Schechter approach.
 
-  use Cosmological_Density_Field
-  use Cosmology_Functions
-  use Excursion_Sets_First_Crossings
-  use Merger_Tree_Branching_Modifiers
+  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass              , criticalOverdensityClass
+  use :: Cosmology_Functions            , only : cosmologyFunctionsClass
+  use :: Excursion_Sets_First_Crossings , only : excursionSetFirstCrossingClass
+  use :: Merger_Tree_Branching_Modifiers, only : mergerTreeBranchingProbabilityModifierClass
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
   !#  <description>Merger tree branching probabilities using a generalized Press-Schechter approach.</description>
@@ -47,7 +47,7 @@
      ! The maximum sigma that we expect to find.
      double precision                                          :: sigmaMaximum
      ! Record of whether we have tested the excursion set routines.
-     logical                                                   :: excursionSetsTested                        
+     logical                                                   :: excursionSetsTested
      ! Control for inclusion of smooth accretion rates.
      logical                                                   :: smoothAccretion
      ! Record of issued warnings.
@@ -87,11 +87,11 @@
      module procedure generalizedPressSchechterConstructorParameters
      module procedure generalizedPressSchechterConstructorInternal
   end interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
-  
+
   ! Module-scope pointer to self used for root-finding.
   class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), pointer   :: generalizedPressSchechterSelf
   !$omp threadprivate(generalizedPressSchechterSelf)
-  
+
   ! Module-scope variables used in integrands.
   type            (treeNode                                       ), pointer   :: generalizedPressSchechterNode
   !$omp threadprivate(generalizedPressSchechterNode)
@@ -105,7 +105,7 @@ contains
     !% Constructor for the ``generalizedPressSchechter'' merger tree branching probability class which reads parameters from a
     !% provided parameter list.
     implicit none
-    type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self    
+    type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self
     type            (inputParameters                                ), intent(inout) :: parameters
     class           (criticalOverdensityClass                       ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                  ), pointer       :: cosmologicalMassVariance_
@@ -156,7 +156,7 @@ contains
 
   function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
     class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
@@ -212,11 +212,11 @@ contains
     !% \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
-    use Pseudo_Random
-    use ISO_Varying_String
-    use Root_Finder
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Pseudo_Random     , only : pseudoRandom
+    use :: Root_Finder       , only : rootFinder
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
@@ -288,8 +288,8 @@ contains
 
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
     !% Root function used in solving for the branch mass.
-    use Numerical_Integration
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     double precision                            , intent(in   ) :: massMaximum
     type            (fgsl_function             )                :: integrandFunction
@@ -318,7 +318,7 @@ contains
     double precision                                                 , intent(in   ) :: deltaCritical , haloMass, &
          &                                                                              massResolution, time
     !GCC$ attributes unused :: deltaCritical, haloMass, massResolution, time
-    
+
     generalizedPressSchechterStepMaximum=self%deltaStepMaximum
     return
   end function generalizedPressSchechterStepMaximum
@@ -343,8 +343,8 @@ contains
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
-    use Numerical_Integration
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical       , haloMass   , &
@@ -381,11 +381,10 @@ contains
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
-    use Numerical_Integration
-    use Galacticus_Error
-    use ISO_Varying_String
-    use Galacticus_Display
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function     , fgsl_integration_workspace
+    use :: Galacticus_Error     , only : Galacticus_Warn   , errorStatusSuccess
+    use :: ISO_Varying_String
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &
@@ -543,7 +542,7 @@ contains
     type            (treeNode                                       ), intent(inout), target :: node
     double precision                                                 , intent(in   )         :: haloMass, deltaCritical, &
          &                                                                                      time
-    
+
     generalizedPressSchechterNode  =>                                                                                                                                           node
     self%parentHaloMass            =                                                                                                                        haloMass
     self%parentDelta               =                                                                                                deltaCritical
@@ -563,4 +562,4 @@ contains
          &                            )
     return
   end subroutine generalizedPressSchechterComputeCommonFactors
-  
+

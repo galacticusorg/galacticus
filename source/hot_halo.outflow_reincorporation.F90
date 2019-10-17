@@ -21,7 +21,7 @@
 
 module Hot_Halo_Outflows_Reincorporations
   !% Provides a class that implements reincorporation of outflowed mass into the hot halo.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

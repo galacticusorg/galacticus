@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger trees outputter class which does no output.
-  
+
   !# <mergerTreeOutputter name="mergerTreeOutputterNull">
   !#  <description>A merger tree outputter which does no output.</description>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterNull
      !% Implementation of a merger tree outputter which does no output.
      private
-   contains 
+   contains
      procedure :: output   => nullOutput
      procedure :: finalize => nullFinalize
   end type mergerTreeOutputterNull
@@ -39,12 +39,12 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOutputterNull)                :: self
     type(inputParameters        ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeOutputterNull()
     return
   end function nullConstructorParameters

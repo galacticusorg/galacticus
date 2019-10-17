@@ -69,7 +69,7 @@ contains
 
   function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type   (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                :: self
     type   (inputParameters                                                ), intent(inout) :: parameters
@@ -113,7 +113,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
     type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    
+
     if (self%tableInitialized) then
        call self%deltaVirial%destroy()
        deallocate(self%deltaVirial)
@@ -151,7 +151,7 @@ contains
 
   double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass
@@ -160,7 +160,7 @@ contains
     logical                                                                                                    :: collapsingActual
     double precision                                                                                           :: timeActual
     !GCC$ attributes unused :: mass
-    
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
@@ -189,7 +189,7 @@ contains
 
   double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass
@@ -228,7 +228,6 @@ contains
   double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
-    use Galacticus_Error
     implicit none
     class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass

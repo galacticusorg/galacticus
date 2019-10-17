@@ -29,7 +29,7 @@
    contains
      procedure :: operate => pruneBranchTipsOperate
   end type mergerTreeOperatorPruneBranchTips
-  
+
   interface mergerTreeOperatorPruneBranchTips
      !% Constructors for the prune-branchTips merger tree operator class.
      module procedure pruneBranchTipsConstructorParameters
@@ -43,15 +43,15 @@ contains
     type   (mergerTreeOperatorPruneBranchTips)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeOperatorPruneBranchTips()
     return
   end function pruneBranchTipsConstructorParameters
 
   subroutine pruneBranchTipsOperate(self,tree)
     !% Perform a prune-branchTips operation on a merger tree.
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none
     class(mergerTreeOperatorPruneBranchTips), intent(inout), target  :: self
     type (mergerTree                       ), intent(inout), target  :: tree

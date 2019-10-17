@@ -21,7 +21,7 @@ program Tests_Linear_Growth_EdS_Baryons
   !% Tests linear growth calculations.
   use Unit_Tests                , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
   use Linear_Growth             , only : linearGrowthBaryonsDarkMatter , componentDarkMatter
-  use Cosmology_Functions       , only : cosmologyFunctionsMatterLambda  
+  use Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use Cosmology_Parameters      , only : cosmologyParametersSimple
   use Intergalactic_Medium_State, only : intergalacticMediumStateSimple
   use Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
@@ -84,9 +84,9 @@ program Tests_Linear_Growth_EdS_Baryons
           &                    )                                      &
           &               -1.0d0                                      &
           &              )                                            &
-          &             /6.0d0     
+          &             /6.0d0
      linearGrowthFactorExpected=+expansionFactor**(1.5d0*exponent)
-     write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ ∞ ; z = ",redshift(i),"]"     
+     write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ ∞ ; z = ",redshift(i),"]"
      call Assert(trim(message),linearGrowthFactor,linearGrowthFactorExpected,relTol=1.0d-3)
      ! For an Einstein-de Sitter universe in the small wavenumber limit (such that baryons do cluster) the growing mode in the
      ! dark matter grows as δ ∝ a.
@@ -103,9 +103,9 @@ program Tests_Linear_Growth_EdS_Baryons
           &                    )                                      &
           &               -1.0d0                                      &
           &              )                                            &
-          &             /6.0d0     
+          &             /6.0d0
      linearGrowthFactorExpected=+expansionFactor
-     write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ 0 ; z = ",redshift(i),"]"     
+     write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ 0 ; z = ",redshift(i),"]"
      call Assert(trim(message),linearGrowthFactor,linearGrowthFactorExpected,relTol=1.0d-3)
   end do
   ! End unit tests.

@@ -18,11 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-1}.
-  
+
   !# <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
   !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
   !# </surveyGeometry>
-  use Galacticus_Paths
 
   type, extends(surveyGeometryBaldry2012GAMA) :: surveyGeometryKelvin2014GAMAnear
      double precision :: distanceMinimumSurvey
@@ -41,7 +40,7 @@ contains
 
   function kelvin2014GAMAnearConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (surveyGeometryKelvin2014GAMAnear)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
@@ -58,7 +57,7 @@ contains
 
   function kelvin2014GAMAnearConstructorInternal(cosmologyFunctions_) result (self)
     !% Internal constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryKelvin2014GAMAnear)                        :: self
     class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
@@ -74,20 +73,20 @@ contains
 
   double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included in the survey.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     kelvin2014GAMAnearDistanceMinimum=self%distanceMinimumSurvey
     return
   end function kelvin2014GAMAnearDistanceMinimum
-  
+
   double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -103,7 +102,7 @@ contains
          & =10.0d0**(                                      &
          &           -0.521147071716417d0                  &
          &           +0.318557607893107d0*logarithmicMass  &
-         &          )    
+         &          )
     kelvin2014GAMAnearDistanceMaximum=min(kelvin2014GAMAnearDistanceMaximum,self%distanceMaximumSurvey)
     return
   end function kelvin2014GAMAnearDistanceMaximum

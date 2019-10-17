@@ -21,10 +21,10 @@
 
 module Output_Analysis_Property_Operators
   !% Provides a class that implements operators on properties for on-the-fly analyses.
-  use               Galacticus_Nodes, only : treeNode
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
   private
-  
+
   !# <functionClass>
   !#  <name>outputAnalysisPropertyOperator</name>
   !#  <descriptiveName>Output Analysis Property Operator</descriptiveName>
@@ -40,5 +40,5 @@ module Output_Analysis_Property_Operators
   !#   <argument>integer         (c_size_t), intent(in   ), optional :: outputIndex</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Output_Analysis_Property_Operators

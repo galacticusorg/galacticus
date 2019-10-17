@@ -19,8 +19,8 @@
 
   !% Implementation of halo bias using the algorithm of \cite{sheth_ellipsoidal_2001}.
 
-  use Cosmological_Density_Field
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+
   !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
@@ -35,7 +35,7 @@
      final     ::               sheth2001Destructor
      procedure :: biasByMass => sheth2001BiasByMass
   end type darkMatterHaloBiasSheth2001
-  
+
   interface darkMatterHaloBiasSheth2001
      !% Constructors for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
      module procedure sheth2001ConstructorParameters
@@ -46,7 +46,7 @@ contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sheth2001} dark matter halo mass bias which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasSheth2001)                :: self
     type(inputParameters                 ), intent(inout) :: parameters

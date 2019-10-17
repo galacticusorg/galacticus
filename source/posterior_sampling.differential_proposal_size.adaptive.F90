@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
-  
+
   !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
   !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is adaptive.</description>
   !# </posteriorSampleDffrntlEvltnProposalSize>
@@ -45,7 +45,7 @@ contains
   function adaptiveConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
     !% builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                 :: self
     type            (inputParameters                                ), intent(inout)  :: parameters
@@ -117,7 +117,7 @@ contains
          &                                                                              acceptanceRateMinimum, acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
     !# <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount"/>
-    
+
     self%gammaCurrent   =gammaInitial
     self%lastUpdateCount=0
     return
@@ -125,10 +125,10 @@ contains
 
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
     !% Return the proposal size.
-    use MPI_Utilities
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: ISO_Varying_String
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleDffrntlEvltnProposalSizeAdaptive), intent(inout) :: self
     class           (posteriorSampleStateClass                      ), intent(inout) :: simulationState
@@ -168,7 +168,7 @@ contains
           end if
        end if
     end if
-    ! Return the current adaptive size. 
+    ! Return the current adaptive size.
     adaptiveGamma=self%gammaCurrent
     return
   end function adaptiveGamma

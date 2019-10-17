@@ -21,10 +21,21 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 int mkdir_C(const char *name) {
-  //% Fortran-callable wrapper around the kmdir() function to make a directory.
+  //% Fortran-callable wrapper around the mkdir() function to make a directory.
   int status;
   status = mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  return status;
+  if ( status == -1 ) {
+    int err = errno;
+    if ( err == EEXIST ) {
+      /* Path already exists - this is acceptable */
+      return 0;
+    } else {
+      return err;
+    }
+  } else {
+    return status;
+  }
 }

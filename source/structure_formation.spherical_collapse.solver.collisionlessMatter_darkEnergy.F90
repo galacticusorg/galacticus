@@ -59,7 +59,7 @@
   ! Variables used in root finding.
   double precision                                     :: cllsnlssMttrDarkEnergyPerturbationRadiusInitial
   !$omp threadprivate(cllsnlssMttrDarkEnergyPerturbationRadiusInitial)
-  
+
 contains
 
   function cllsnlssMttrDarkEnergyConstructorParameters(parameters) result(self)
@@ -443,7 +443,7 @@ contains
   end function cllsnlssMttrDarkEnergyPerturbationODEs
 
   subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
-    !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model. 
+    !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self

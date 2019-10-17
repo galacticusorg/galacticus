@@ -19,7 +19,7 @@
 
   !% An implementation of the accretion disk spectra class using the model of \cite{hopkins_observational_2007}.
 
-  use File_Utilities
+  use :: File_Utilities, only : lockDescriptor
 
   !# <accretionDiskSpectra name="accretionDiskSpectraHopkins2007">
   !#  <description>Accretion disk spectra using the model of \cite{hopkins_observational_2007}.</description>
@@ -40,30 +40,31 @@
      !@ </objectMethods>
      procedure :: buildFile => hopkins2007BuildFile
   end type accretionDiskSpectraHopkins2007
-  
+
   interface accretionDiskSpectraHopkins2007
      !% Constructors for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
      module procedure hopkins2007ConstructorParameters
      module procedure hopkins2007ConstructorInternal
   end interface accretionDiskSpectraHopkins2007
-  
+
 contains
 
   function hopkins2007ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: self
     type(inputParameters                ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=accretionDiskSpectraHopkins2007()
     return
   end function hopkins2007ConstructorParameters
 
   function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use Galacticus_Paths
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: File_Utilities  , only : File_Lock     , File_Unlock       , File_Lock_Initialize
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
@@ -85,17 +86,21 @@ contains
 
   subroutine hopkins2007BuildFile(self)
     !% Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
+    use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                                     verbosityWorking
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
+    use            :: Galacticus_Paths                , only : galacticusPath            , pathTypeDataDynamic             , pathTypeDataStatic
+    use            :: File_Utilities                  , only : File_Lock                 , File_Unlock                     , File_Exists              , Directory_Make             , &
+         &                                                     Count_Lines_in_File
+    use            :: IO_HDF5                         , only : hdf5Access                , hdf5Object
     use, intrinsic :: ISO_Fortran_Env
-    use               Galacticus_Paths
-    use               System_Command
-    use               Galacticus_Error
-    use               Galacticus_Display
-    use               String_Handling
-    use               IO_HDF5
-    use               Dates_and_Times
-    use               Numerical_Constants_Units
-    use               Numerical_Constants_Astronomical
-    use               Numerical_Ranges
+    use            :: Numerical_Constants_Astronomical, only : luminositySolar
+    use            :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use            :: Numerical_Constants_Physical    , only : speedLight
+    use            :: Numerical_Ranges                , only : Make_Range                , rangeTypeLogarithmic
+    use            :: String_Handling                 , only : operator(//)
+    use            :: System_Command                  , only : System_Command_Do
     implicit none
     class           (accretionDiskSpectraHopkins2007), intent(inout)               :: self
     double precision                                 , dimension(:  ), allocatable :: wavelength                        , luminosityBolometric
@@ -111,7 +116,7 @@ contains
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
-    
+
     ! Determine if we need to make the file.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
     makeFile=.false.

@@ -21,10 +21,10 @@
 
 module Freefall_Radii
   !% Provides a class that implements calculations of the freefall radius.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>freefallRadius</name>
   !#  <descriptiveName>Freefall radii.</descriptiveName>

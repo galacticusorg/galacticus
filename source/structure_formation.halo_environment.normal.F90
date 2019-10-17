@@ -19,12 +19,12 @@
 
 !% Contains a module which implements a normally-distributed halo environment.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Linear_Growth
-  use Tables
-  use Statistics_Distributions
-  use Kind_Numbers
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Kind_Numbers            , only : kind_int8
+  use :: Linear_Growth           , only : linearGrowthClass
+  use :: Statistics_Distributions, only : distributionFunction1DNormal, distributionFunction1DPeakBackground
+  use :: Tables                  , only : table2DLinLinLin
   use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   !# <haloEnvironment name="haloEnvironmentNormal">
@@ -73,10 +73,10 @@
   end interface haloEnvironmentNormal
 
 contains
-  
+
   function normalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily normal} halo environment class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloEnvironmentNormal        )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -113,8 +113,8 @@ contains
 
   function normalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily normal} halo mass function class.
-    use Numerical_Constants_Math
-    use Error_Functions
+    use :: Error_Functions         , only : Error_Function
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (haloEnvironmentNormal        )                        :: self
     class           (cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
@@ -188,8 +188,7 @@ contains
 
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Kind_Numbers
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (haloEnvironmentNormal               ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
@@ -206,7 +205,7 @@ contains
           ! Choose an overdensity.
           basic    => node%hostTree%baseNode        %basic       (                                                       )
           variance =  self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))**2
-          if (variance > self%variance) then             
+          if (variance > self%variance) then
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is
              ! drawn from the distribution expected for the background scale given that it hasn't collapsed to become a halo on
              ! any larger scale.
@@ -257,7 +256,7 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node
@@ -285,7 +284,7 @@ contains
 
   double precision function normalEnvironmentMass(self)
     !% Return the mass of the environment.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
 
@@ -332,7 +331,7 @@ contains
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node

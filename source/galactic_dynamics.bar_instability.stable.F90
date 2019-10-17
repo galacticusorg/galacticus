@@ -39,12 +39,12 @@ contains
   function stableConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily stable} model for galactic disk bar instability class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticDynamicsBarInstabilityStable)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=galacticDynamicsBarInstabilityStable()
     return
   end function stableConstructorParameters
@@ -52,8 +52,6 @@ contains
   subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
     implicit none
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node

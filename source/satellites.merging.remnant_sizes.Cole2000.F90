@@ -19,7 +19,7 @@
 
   !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
 
-  use Satellite_Merging_Progenitor_Properties
+  use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCole2000">
   !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
@@ -44,7 +44,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cole2000} merger remnant size class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerRemnantSizeCole2000      )                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -88,13 +88,13 @@ contains
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
-    use Numerical_Constants_Physical
-    use Numerical_Comparison
-    use Galacticus_Error
-    use String_Handling
-    use Galacticus_Display
-    use Galactic_Structure_Options
-    use Galactic_Structure_Enclosed_Masses
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeDark
+    use :: Galacticus_Display                , only : Galacticus_Display_Message
+    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Numerical_Comparison              , only : Values_Agree
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: String_Handling                   , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCole2000), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node

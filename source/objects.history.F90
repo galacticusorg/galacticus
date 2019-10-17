@@ -21,7 +21,7 @@
 
 module Histories
   !% Defines the history object type.
-  use Kind_Numbers
+  use :: Kind_Numbers, only : kind_int8
   implicit none
   private
   public :: history, longIntegerHistory, operator(*)
@@ -348,9 +348,9 @@ contains
 
   subroutine History_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !% Create a history object.
-    use Memory_Management
-    use Numerical_Ranges
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (history), intent(inout)           :: thisHistory
     integer                  , intent(in   )           :: historyCount   , timesCount
@@ -386,7 +386,7 @@ contains
 
   subroutine History_Destroy(thisHistory,recordMemory)
     !% Destroy a history.
-    use Memory_Management
+    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class  (history), intent(inout)           :: thisHistory
     logical         , intent(in   ), optional :: recordMemory
@@ -413,9 +413,9 @@ contains
 
   subroutine History_Long_Integer_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !% Create a history object.
-    use Memory_Management
-    use Numerical_Ranges
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (longIntegerHistory), intent(inout)           :: thisHistory
     integer                             , intent(in   )           :: historyCount   , timesCount
@@ -451,7 +451,7 @@ contains
 
   subroutine History_Long_Integer_Destroy(thisHistory,recordMemory)
     !% Destroy a history.
-    use Memory_Management
+    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class  (longIntegerHistory), intent(inout)           :: thisHistory
     logical                    , intent(in   ), optional :: recordMemory
@@ -478,8 +478,8 @@ contains
 
   subroutine History_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
@@ -491,21 +491,21 @@ contains
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
     !GCC$ attributes unused :: self, historyDefinition
-    
+
     call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
   end subroutine History_Long_Integer_Builder
 
   subroutine History_Dump(self)
     !% Dumps a history object.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
     implicit none
     class    (history       ), intent(in   ) :: self
     integer                                  :: i      , j
@@ -546,7 +546,7 @@ contains
 
   subroutine History_Read_Raw(self,fileHandle)
     !% Read a history object in binary.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (history), intent(inout) :: self
     integer         , intent(in   ) :: fileHandle
@@ -576,8 +576,8 @@ contains
 
   subroutine History_Long_Integer_Dump(self)
     !% Dumps a history object.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
     implicit none
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
@@ -618,7 +618,7 @@ contains
 
   subroutine History_Long_Integer_Read_Raw(self,fileHandle)
     !% Read a history object in binary.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     class  (longIntegerHistory), intent(inout) :: self
     integer                    , intent(in   ) :: fileHandle
@@ -666,7 +666,7 @@ contains
 
   subroutine History_Clone(self,historyToClone)
     !% Clone a history object.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(history), intent(inout) :: self
     type (history), intent(in   ) :: historyToClone
@@ -696,7 +696,7 @@ contains
 
   subroutine History_Long_Integer_Clone(self,historyToClone)
     !% Clone a longIntegerHistory object.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (longIntegerHistory), intent(in   ) :: historyToClone
@@ -729,7 +729,7 @@ contains
 
   function History_Add(history1,history2)
     !% Add two history objects.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Add
     class(history), intent(in   )           :: history1
@@ -753,7 +753,7 @@ contains
 
   function History_Subtract(history1,history2)
     !% Subtract two history objects.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Subtract
     class(history), intent(in   )           :: history1
@@ -792,7 +792,7 @@ contains
 
   subroutine History_Deserialize(self,historyArray)
     !% Pack history from an array into a history structure.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history)              , intent(inout) :: self
     double precision         , dimension(:), intent(in   ) :: historyArray
@@ -822,9 +822,9 @@ contains
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
-    use Galacticus_Error
-    use Memory_Management
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
+    use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
     class           (history), intent(inout)           :: thisHistory
     double precision         , intent(in   )           :: currentTime
@@ -885,9 +885,9 @@ contains
   subroutine History_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
+    use            :: Arrays_Search    , only : Search_Array
     use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    use               Arrays_Search
+    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history ), intent(inout)           :: self
     double precision          , intent(in   )           :: time
@@ -927,15 +927,15 @@ contains
     call deallocateArray(temporaryHistory%data)
     return
   end subroutine History_Trim_Forward
-  
+
   subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
-    use Galacticus_Error
-    use Memory_Management
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
+    use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
     class           (longIntegerHistory), intent(inout)           :: thisHistory
     double precision                    , intent(in   )           :: currentTime
@@ -996,9 +996,9 @@ contains
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
+    use            :: Arrays_Search    , only : Search_Array
     use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    use               Arrays_Search
+    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)           :: self
     double precision                    , intent(in   )           :: time
@@ -1038,17 +1038,17 @@ contains
     call deallocateArray(temporaryHistory%data)
     return
   end subroutine History_Long_Integer_Trim_Forward
-  
+
   subroutine History_Long_Integer_Append_History(self,append)
     !% Append a history to a long integer history.
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     type            (longIntegerHistory), intent(in   )                 :: append
     double precision                    , allocatable  , dimension(:  ) :: timeTmp
     integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
-    
+
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
        self%time=append%time
@@ -1067,22 +1067,22 @@ contains
        call deallocateArray(        self%time)
        call deallocateArray(        self%data)
        call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)       
+       call Move_Alloc   (dataTmp,self%data)
     end if
     return
   end subroutine History_Long_Integer_Append_History
-  
+
   subroutine History_Long_Integer_Append_Epoch(self,time,append)
     !% Append a history to a long integer history.
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     double precision                    , intent(in   )                 :: time
     integer         (kind=kind_int8    ), intent(in   ), dimension(:  ) :: append
     double precision                    , allocatable  , dimension(:  ) :: timeTmp
     integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
-    
+
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
        call allocateArray(self%time,[1              ])
@@ -1103,21 +1103,21 @@ contains
        call deallocateArray(        self%time)
        call deallocateArray(        self%data)
        call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)       
+       call Move_Alloc   (dataTmp,self%data)
     end if
     return
   end subroutine History_Long_Integer_Append_Epoch
-  
+
   subroutine History_Append_History(self,append)
     !% Append a history to a long integer history.
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     type            (history), intent(in   )                 :: append
     double precision         , allocatable  , dimension(:  ) :: timeTmp
     double precision         , allocatable  , dimension(:,:) :: dataTmp
-    
+
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
        self%time=append%time
@@ -1136,22 +1136,22 @@ contains
        call deallocateArray(        self%time)
        call deallocateArray(        self%data)
        call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)       
+       call Move_Alloc   (dataTmp,self%data)
     end if
     return
   end subroutine History_Append_History
-  
+
   subroutine History_Append_Epoch(self,time,append)
     !% Append a history to a long integer history.
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     double precision         , intent(in   )                 :: time
     double precision         , intent(in   ), dimension(:  ) :: append
     double precision         , allocatable  , dimension(:  ) :: timeTmp
     double precision         , allocatable  , dimension(:,:) :: dataTmp
-    
+
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
        call allocateArray(self%time,[1              ])
@@ -1172,18 +1172,18 @@ contains
        call deallocateArray(        self%time)
        call deallocateArray(        self%data)
        call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)       
+       call Move_Alloc   (dataTmp,self%data)
     end if
     return
   end subroutine History_Append_Epoch
-  
+
    subroutine History_Interpolated_Increment(thisHistory,addHistory)
      !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is
      !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
      !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
+     use            :: Galacticus_Error       , only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding
-     use Numerical_Interpolation
-     use Galacticus_Error
+     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors
      implicit none
      class           (history ), intent(inout) :: thisHistory
      type            (history ), intent(in   ) :: addHistory
@@ -1245,9 +1245,9 @@ contains
      !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
      !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
-     use Galacticus_Error
-     use Arrays_Search
-     use Numerical_Ranges
+     use            :: Arrays_Search   , only : Search_Array
+     use            :: Galacticus_Error, only : Galacticus_Error_Report
+     use            :: Numerical_Ranges, only : rangeTypeUndefined
      use, intrinsic :: ISO_C_Binding
      implicit none
      class           (history ), intent(inout)           :: thisHistory
@@ -1259,7 +1259,7 @@ contains
      double precision                                    :: fractionContributed, timeBegin               , &
           &                                                 timeEnd
      !# <optionalArgument name="autoExtend" defaultsTo=".false." />
-     
+
      select type (thisHistory)
      type is (history)
 
@@ -1371,10 +1371,10 @@ contains
 
    subroutine History_Extend(thisHistory,timeRange,times)
      !% Extends a history to encompass the given time range.
-     use Numerical_Ranges
-     use Galacticus_Error
-     use ISO_Varying_String
-     use String_Handling
+     use :: Galacticus_Error  , only : Galacticus_Error_Report
+     use :: ISO_Varying_String, only : varying_string         , operator(//)        , assignment(=)
+     use :: String_Handling   , only : operator(//)
+     use :: Numerical_Ranges  , only : rangeTypeLinear        , rangeTypeLogarithmic, rangeTypeUndefined
      implicit none
      class           (history       )                             , intent(inout)           :: thisHistory
      double precision                             , dimension(2  ), intent(in   ), optional :: timeRange
@@ -1434,7 +1434,7 @@ contains
               addCountStart =int(log(timeBegin/timeRangeActual(1))/timeDelta)+1
               timeBegin=timeBegin*exp(-dble(addCountStart)*timeDelta)
            case default
-              addCountStart=0              
+              addCountStart=0
               call Galacticus_Error_Report('unknown range type'//{introspection:location})
            end select
            timeBeginIndex=timeBeginIndex+addCountStart
@@ -1499,8 +1499,8 @@ contains
 
   subroutine History_Timesteps(thisHistory,timeSteps)
     !% Return an array of time intervals in {\normalfont \ttfamily thisHistory}.
-    use Memory_Management
-    use Numerical_Ranges
+    use :: Memory_Management, only : allocateArray  , memoryTypeNodes
+    use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (history)                           , intent(in   ) :: thisHistory
     double precision         , allocatable, dimension(:), intent(inout) :: timeSteps
@@ -1554,5 +1554,5 @@ contains
     end if
     return
   end function History_Long_Integer_Non_Static_Size_Of
-    
+
 end module Histories

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a ``superwind'' expulsive outflow rate due to star formation feedback in galactic disks.
-  
+
   !# <starFormationExpulsiveFeedbackDisks name="starFormationExpulsiveFeedbackDisksSuperWind">
   !#  <description>A superwind expulsive outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationExpulsiveFeedbackDisks>
@@ -40,7 +40,7 @@ contains
 
   function superWindConstructorParameters(parameters) result(self)
     !% Constructor for the superwind expulsive star formation feedback in disks class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationExpulsiveFeedbackDisksSuperWind)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
     type            (starFormationExpulsiveFeedbackDisksSuperWind)                :: self
     double precision                                              , intent(in   ) :: velocityCharacteristic, massLoading
     !# <constructorAssign variables="velocityCharacteristic, massLoading"/>
-    
+
     return
   end function superWindConstructorInternal
 
@@ -87,8 +87,8 @@ contains
     !% [massLoadnig]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
     !% method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     !% except that they specifically used the circular velocity at half-mass radius.
-    use Stellar_Feedback
-    use Galacticus_Nodes, only : nodeComponentDisk
+    use :: Galacticus_Nodes, only : nodeComponentDisk                     , treeNode
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationExpulsiveFeedbackDisksSuperWind), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -107,7 +107,7 @@ contains
             &                         *(                                      &
             &                           +    self%velocityCharacteristic      &
             &                           /max(                                 &
-            &                                     velocityDisk          ,     & 
+            &                                     velocityDisk          ,     &
             &                                self%velocityCharacteristic      &
             &                               )                                 &
             &                         )**2

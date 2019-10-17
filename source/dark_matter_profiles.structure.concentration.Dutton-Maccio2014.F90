@@ -19,8 +19,8 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{dutton_cold_2014} algorithm.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
@@ -59,7 +59,7 @@
      module procedure duttonMaccio2014ConstructorInternalType
      module procedure duttonMaccio2014ConstructorInternalDefined
   end interface darkMatterProfileConcentrationDuttonMaccio2014
-  
+
   ! Density contrast methods.
   !# <enumeration>
   !#  <name>duttonMaccio2014DensityContrastMethod</name>
@@ -77,7 +77,7 @@
   !#  <entry label="NFW"    />
   !#  <entry label="einasto"/>
   !# </enumeration>
-  
+
 contains
 
   function duttonMaccio2014ConstructorParameters(parameters) result(self)
@@ -158,7 +158,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     character(len=*                                         ), intent(in   )         :: fitType
@@ -200,11 +200,11 @@ contains
     call self%definitions()
     return
   end function duttonMaccio2014ConstructorInternalType
-  
+
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     !% parameters.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     double precision                                                , intent(in   )         :: a1                  , a2, &
@@ -218,10 +218,11 @@ contains
     return
   end function duttonMaccio2014ConstructorInternalDefined
 
-  
+
   subroutine duttonMaccio2014Definitions(self)
     !% Establish virial density contrast and dark matter profile definitions.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout), target  :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
@@ -259,23 +260,23 @@ contains
     !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
     return
   end subroutine duttonMaccio2014Definitions
-  
+
   subroutine duttonMaccio2014Destructor(self)
     !% Destructor for the {\normalfont \ttfamily DuttonMaccio2014} dark matter profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine duttonMaccio2014Destructor
-  
+
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), target  :: node
@@ -312,7 +313,7 @@ contains
     implicit none
     class(virialDensityContrastClass                    ), pointer       :: duttonMaccio2014DensityContrastDefinition
     class(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
-    
+
     duttonMaccio2014DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function duttonMaccio2014DensityContrastDefinition

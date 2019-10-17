@@ -19,8 +19,8 @@
 
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
 
-  use FGSL                , only : fgsl_interp        , fgsl_interp_accel
-  use Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
+  use :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
+  use :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
   !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
@@ -38,7 +38,7 @@
      final     ::                     hegerWoosley2002Destructor
      procedure :: energyCumulative => hegerWoosley2002EnergyCumulative
   end type supernovaePopulationIIIHegerWoosley2002
-  
+
   interface supernovaePopulationIIIHegerWoosley2002
      !% Constructors for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
      module procedure hegerWoosley2002ConstructorParameters
@@ -49,7 +49,7 @@ contains
 
   function hegerWoosley2002ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (supernovaePopulationIIIHegerWoosley2002)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -61,15 +61,17 @@ contains
     !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function hegerWoosley2002ConstructorParameters
-  
+
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
-    use Numerical_Constants_Astronomical
-    use ISO_Varying_String
-    use Galacticus_Error
-    use FoX_dom
-    use IO_XML
-    use Galacticus_Paths
+    use :: FoX_dom
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataStatic
+    use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Units       , only : ergs
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type   (supernovaePopulationIIIHegerWoosley2002)                         :: self
     class  (stellarAstrophysicsClass               ), intent(in   ), target  :: stellarAstrophysics_
@@ -107,11 +109,11 @@ contains
     !# <objectDestructor name="self%stellarAstrophysics_"/>
     return
   end subroutine hegerWoosley2002Destructor
-  
+
   double precision function hegerWoosley2002EnergyCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from Population III star pair instability supernovae using the results of
     !% \cite{heger_nucleosynthetic_2002}.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self
     double precision                                         , intent(in   ) :: age        , initialMass   , &

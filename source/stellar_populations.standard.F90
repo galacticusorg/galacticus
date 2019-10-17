@@ -18,21 +18,21 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a standard stellar population class.
-  
-  use FGSL                                      , only : fgsl_interp_accel            , fgsl_interp
-  use Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass     , initialMassFunction
-  use Stellar_Astrophysics                      , only : stellarAstrophysicsClass     , stellarAstrophysics
-  use Stellar_Feedback                          , only : stellarFeedbackClass         , stellarFeedback
-  use Supernovae_Type_Ia                        , only : supernovaeTypeIaClass        , supernovaeTypeIa
-  use Stellar_Population_Spectra                , only : stellarPopulationSpectraClass, stellarPopulationSpectra
-  
+
+  use :: FGSL                                      , only : fgsl_interp             , fgsl_interp_accel
+  use :: Stellar_Astrophysics                      , only : stellarAstrophysics     , stellarAstrophysicsClass
+  use :: Stellar_Feedback                          , only : stellarFeedback         , stellarFeedbackClass
+  use :: Stellar_Population_Spectra                , only : stellarPopulationSpectra, stellarPopulationSpectraClass
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction     , initialMassFunctionClass
+  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIa        , supernovaeTypeIaClass
+
   abstract interface
      !% Interface for stellar population property integrands.
      double precision function integrandTemplate(massInitial)
        double precision, intent(in   ) :: massInitial
      end function integrandTemplate
   end interface
-  
+
   type :: populationTable
      !% Table used to store properties of the stellar population as a function of age and metallicity.
      type            (varying_string   )                              :: label
@@ -102,7 +102,7 @@
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface stellarPopulationStandard
-  
+
   ! Module-scope variabes used in integrations.
   class           (stellarPopulationStandard), pointer     :: standardSelf
   double precision                                         :: standardLifetime            , standardMetallicity
@@ -132,7 +132,7 @@ contains
     type            (populationTable)                :: self
     character       (len=*          ), intent(in   ) :: label
     double precision                 , external      :: integrand
-    double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative          
+    double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative
     !# <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
 
     self%computed        =.false.
@@ -143,7 +143,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationStandard    )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -156,7 +156,7 @@ contains
     double precision                                               :: massLongLived                      , ageEffective           , &
          &                                                            recycledFraction                   , metalYield
     !$GLC attributes initialized :: self
-    
+
     !# <inputParameter>
     !#   <name>instantaneousRecyclingApproximation</name>
     !#   <defaultValue>.false.</defaultValue>
@@ -204,15 +204,15 @@ contains
     !# <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
     !# <conditionalCall>
     !# <call>
-    !#  self=stellarPopulationStandard(                                                                &amp; 
-    !#   &amp;                                                    instantaneousRecyclingApproximation, &amp; 
-    !#   &amp;                                                    massLongLived                      , &amp; 
-    !#   &amp;                                                    ageEffective                       , &amp; 
-    !#   &amp;                          initialMassFunction_     =initialMassFunction_               , &amp; 
-    !#   &amp;                          stellarAstrophysics_     =stellarAstrophysics_               , &amp; 
-    !#   &amp;                          stellarFeedback_         =stellarFeedback_                   , &amp; 
-    !#   &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                  , &amp; 
-    !#   &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_            &amp; 
+    !#  self=stellarPopulationStandard(                                                                &amp;
+    !#   &amp;                                                    instantaneousRecyclingApproximation, &amp;
+    !#   &amp;                                                    massLongLived                      , &amp;
+    !#   &amp;                                                    ageEffective                       , &amp;
+    !#   &amp;                          initialMassFunction_     =initialMassFunction_               , &amp;
+    !#   &amp;                          stellarAstrophysics_     =stellarAstrophysics_               , &amp;
+    !#   &amp;                          stellarFeedback_         =stellarFeedback_                   , &amp;
+    !#   &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                  , &amp;
+    !#   &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_            &amp;
     !#   &amp;                          {conditions}                                                   &amp;
     !#   &amp;                         )
     !#  </call>
@@ -230,13 +230,14 @@ contains
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} stellar population.
+    use :: Abundances_Structure, only : Abundances_Property_Count, Abundances_Names
     implicit none
     type            (stellarPopulationStandard    )                          :: self
     logical                                        , intent(in   )           :: instantaneousRecyclingApproximation
     double precision                               , intent(in   )           :: massLongLived                      , ageEffective
     double precision                               , intent(in   ), optional :: recycledFraction                   , metalYield
     class           (initialMassFunctionClass     ), intent(in   ), target   :: initialMassFunction_
-    class           (stellarAstrophysicsClass     ), intent(in   ), target   :: stellarAstrophysics_         
+    class           (stellarAstrophysicsClass     ), intent(in   ), target   :: stellarAstrophysics_
     class           (stellarFeedbackClass         ), intent(in   ), target   :: stellarFeedback_
     class           (supernovaeTypeIaClass        ), intent(in   ), target   :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), intent(in   ), target   :: stellarPopulationSpectra_
@@ -299,6 +300,7 @@ contains
     !% Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
     !% the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
     !% and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    use :: Abundances_Structure, only : Abundances_Atomic_Index
     implicit none
     class           (stellarPopulationStandard), intent(inout)           :: self
     double precision                           , intent(in   )           :: ageMinimum  , ageMaximum
@@ -323,31 +325,33 @@ contains
     standardRateEnergy=self%interpolate(abundances_,ageMinimum,ageMaximum,self%energyOutput)
     return
   end function standardRateEnergy
-    
+
   double precision function standardInterpolate(self,abundances_,ageMinimum,ageMaximum,property)
     !% Return the rate at which at cumulative property is being produced from this stellar population. The cumulative property is
     !% computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent runs. This is
     !% useful as computation of the table is relatively slow.
+    use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
+    use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Lock_Initialize       , &
+          &                                                    File_Path                        , File_Unlock                        , lockDescriptor
+    use            :: Galacticus_Display              , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                                     verbosityWorking
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
+    use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
+    use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
-    use               Numerical_Ranges
-    use               Numerical_Constants_Astronomical
-    use               Numerical_Integration2
-    use               Memory_Management
-    use               Galacticus_Display
-    use               File_Utilities
-    use               Galacticus_Error
-    use               Dates_and_Times
-    use               Galacticus_Paths
-    use               Table_Labels
-    use               System_Command
-    use               IO_HDF5
-    use               Input_Parameters
+    use            :: Input_Parameters                , only : inputParameters
+    use            :: Memory_Management               , only : allocateArray
+    use            :: Numerical_Constants_Astronomical, only : metallicitySolar
+    use            :: Numerical_Integration2          , only : integratorCompositeGaussKronrod1D
+    use            :: Numerical_Interpolation         , only : Interpolate                      , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
     class           (stellarPopulationStandard        ), intent(inout), target :: self
     double precision                                   , intent(in   )         :: ageMinimum        , ageMaximum
     type            (abundances                       ), intent(in   )         :: abundances_
-    type            (populationTable                  ), intent(inout)         :: property 
+    type            (populationTable                  ), intent(inout)         :: property
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
     integer         (c_size_t                         )                        :: metallicityIndex
@@ -371,7 +375,7 @@ contains
        fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
 #ifndef OFDAVAIL
        ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-       ! will not block access to the same file by another thread.       
+       ! will not block access to the same file by another thread.
        !$omp critical (stellarPopulationStandardLock)
 #endif
        call Directory_Make(File_Path(fileName))
@@ -384,7 +388,7 @@ contains
           call file%openFile(char(fileName))
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
-             makeFile=.true.         
+             makeFile=.true.
              call file%close()
              call Galacticus_Display_Unindent('done',verbosityWorking)
           end if
@@ -398,7 +402,7 @@ contains
           call file%readDataset("age",property%age)
           call file%readDataset("metallicity",property%metallicity)
           call file%readDataset(char(property%label),property%property)
-          call file%close()         
+          call file%close()
           call hdf5Access%unset()
           call Galacticus_Display_Unindent('done',verbosityWorking)
        else
@@ -425,7 +429,7 @@ contains
           call file%writeDataset(property%metallicity,"metallicity",datasetReturned=dataset)
           call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description')
           call dataset%close()
-          call hdf5Access%unset()          
+          call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
           call Galacticus_Display_Indent('Tabulating property: '//char(property%label),verbosityWorking)
           call Galacticus_Display_Counter(0,.true.,verbosityWorking)
@@ -555,13 +559,13 @@ contains
     end if
     return
   end function standardIntegrandRecycledFraction
-  
+
   double precision function standardIntegrandYield(massInitial)
     !% Integrand used in evaluating metal yields.
     implicit none
     double precision                          , intent(in   ) :: massInitial
     double precision                                          :: sneIaLifetime       , yieldMass
-    
+
     ! Include yields from isolated stars.
     if (standardSelf%starIsEvolved(massInitial,standardMetallicity,standardLifetime)) then
        select case (standardElementIndex)
@@ -597,7 +601,7 @@ contains
          &                 *yieldMass
     return
   end function standardIntegrandYield
-  
+
   double precision function standardIntegrandEnergyOutput(massInitial)
     !% Integrand used in evaluating energy output.
     implicit none
@@ -638,10 +642,10 @@ contains
     end if
     return
   end function standardStarIsEvolved
-  
+
   double precision function standardRecycledFractionInstantaneous(self)
     !% Return the recycled fraction from the stellar population in the instantaneous approximation.
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class(stellarPopulationStandard), intent(inout) :: self
     type (abundances               )                :: abundances_
@@ -649,7 +653,7 @@ contains
     if (.not.self%recycledFractionInitialized) then
        call abundances_%metallicitySet(metallicitySolar)
        self%recycledFraction_          =self%rateRecycling(abundances_,ageMinimum=0.0d0,ageMaximum=self%ageEffective)*self%ageEffective
-       self%recycledFractionInitialized=.true.       
+       self%recycledFractionInitialized=.true.
     end if
     standardRecycledFractionInstantaneous=self%recycledFraction_
     return
@@ -657,7 +661,7 @@ contains
 
   double precision function standardYieldInstantaneous(self)
     !% Return the metal yield from the stellar population in the instantaneous approximation.
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class(stellarPopulationStandard), intent(inout) :: self
     type (abundances               )                :: abundances_
@@ -665,7 +669,7 @@ contains
     if (.not.self%metalYieldInitialized) then
        call abundances_%metallicitySet(metallicitySolar)
        self%metalYield_          =self%rateYield(abundances_,ageMinimum=0.0d0,ageMaximum=self%ageEffective)*self%ageEffective
-       self%metalYieldInitialized=.true.       
+       self%metalYieldInitialized=.true.
     end if
     standardYieldInstantaneous=self%metalYield_
     return

@@ -20,8 +20,7 @@
   !% An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
   !% assigned positions.
 
-  use Statistics_Distributions
-  
+
   !# <satelliteOrphanDistribution name="satelliteOrphanDistributionRandomIsotropic" abstract="yes">
   !#  <description>An abstract orphan satellite distribution which assumes an isotropic, random distribution of positions, and velocities drawn from an isotropic normal distribution. The radial distribution and velocity dispersion must be specified by the child class.</description>
   !# </satelliteOrphanDistribution>
@@ -70,15 +69,14 @@
        type (treeNode                                  ), intent(inout) :: node
      end function randomIsotropicVelocityDispersion
   end interface
-  
+
 contains
 
   function randomIsotropicPosition(self,node)
     !% Return the position of an orphan satellite in a random isotropic distribution.
-    use Galacticus_Nodes        , only : nodeComponentPosition
-    use Pseudo_Random
-    use Numerical_Constants_Math
-    use Coordinates
+    use :: Coordinates             , only : coordinateCartesian  , coordinateSpherical, assignment(=)
+    use :: Galacticus_Nodes        , only : nodeComponentPosition, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision                                            , dimension(3)  :: randomIsotropicPosition
     class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
@@ -87,7 +85,7 @@ contains
     class           (nodeComponentPosition                     ), pointer       :: positionHost
     type            (coordinateSpherical                       )                :: positionSpherical
     type            (coordinateCartesian                       )                :: positionCartesian
-    
+
     ! Select random spherical coordinates.
     positionSpherical=[                                                                                                                   &
          &             self%inverseCumulativeMassFunctionRadial(node,         node%hostTree%randomNumberGenerator%uniformSample()      ), &
@@ -106,10 +104,8 @@ contains
 
   function randomIsotropicVelocity(self,node)
     !% Return the velocity of an orphan satellite in a random isotropic distribution.
-    use Galacticus_Nodes        , only : nodeComponentPosition
-    use Pseudo_Random
-    use Numerical_Constants_Math
-    use Coordinates
+    use :: Galacticus_Nodes        , only : nodeComponentPosition       , treeNode
+    use :: Statistics_Distributions, only : distributionFunction1DNormal
     implicit none
     double precision                                            , dimension(3)  :: randomIsotropicVelocity
     class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
@@ -120,7 +116,7 @@ contains
     type            (distributionFunction1DNormal              )                :: normalDistribution
     double precision                                                            :: velocityDispersion
     integer                                                                     :: i
-    
+
     ! Get the 1-D velocity dispersion for the orphan.
     velocityDispersion=self%velocityDispersion(node)
     normalDistribution=distributionFunction1DNormal(0.0d0,velocityDispersion**2,-limitDistribution*velocityDispersion,+limitDistribution*velocityDispersion)

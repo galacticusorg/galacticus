@@ -20,9 +20,9 @@
   !% Contains a module which implements a merger tree operator which exports merger trees to
   !% file.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorExport">
   !#  <description>
@@ -42,7 +42,7 @@
      final     ::             exportDestructor
      procedure :: operate  => exportOperate
   end type mergerTreeOperatorExport
-  
+
   interface mergerTreeOperatorExport
      !% Constructors for the export merger tree operator class.
      module procedure exportConstructorParameters
@@ -54,8 +54,8 @@ contains
   function exportConstructorParameters(parameters) result(self)
     !% Constructor for the export merger tree operator class which takes a
     !% parameter set as input.
-    use Merger_Tree_Data_Structure
-    use Input_Parameters
+    use :: Input_Parameters          , only : inputParameter                   , inputParameters
+    use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatEncode
     implicit none
     type   (mergerTreeOperatorExport     )                :: self
     type   (inputParameters              ), intent(inout) :: parameters
@@ -96,8 +96,8 @@ contains
 
   function exportConstructorInternal(outputFileName,exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the export merger tree operator class.
-    use Merger_Tree_Data_Structure
-    use Galacticus_Error
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatIsValid, mergerTreeFormatIrate
     implicit none
     type     (mergerTreeOperatorExport   )                        :: self
     character(len=*                      ), intent(in   )         :: outputFileName
@@ -106,7 +106,7 @@ contains
     class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables="outputFileName, exportFormat, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
-    
+
     ! Validate the export format.
     if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
     ! Construct the object.
@@ -118,7 +118,7 @@ contains
     !% Destructor for the export merger tree operator function class.
     implicit none
     type(mergerTreeOperatorExport), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"     />
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
@@ -127,19 +127,23 @@ contains
 
   subroutine exportOperate(self,tree)
     !% Output the structure of {\normalfont \ttfamily thisTree}.
-    use HDF5
-    use Dates_and_Times
-    use Numerical_Constants_Astronomical
-    use Numerical_Interpolation
-    use Merger_Tree_Data_Structure
-    use Merger_Tree_Walkers
-    use Galacticus_Nodes                , only : treeNode         , nodeComponentBasic, nodeComponentPosition, defaultPositionComponent
-    use FGSL                            , only : fgsl_interp_accel
-    use Input_Parameters
-    use Memory_Management
-    use Sort
-    use File_Utilities
-    use System_Command
+    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use :: FGSL                            , only : fgsl_interp_accel
+    use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &
+          &                                         treeNode
+    use :: HDF5
+    use :: Memory_Management               , only : allocateArray                , deallocateArray
+    use :: Merger_Tree_Data_Structure      , only : mergerTreeData               , metaDataTypeCosmology , metaDataTypeProvenance, propertyTypeDescendentIndex, &
+          &                                         propertyTypeHostIndex        , propertyTypeNodeIndex , propertyTypeNodeMass  , propertyTypePositionX      , &
+          &                                         propertyTypePositionY        , propertyTypePositionZ , propertyTypeRedshift  , propertyTypeSnapshot       , &
+          &                                         propertyTypeTreeIndex        , propertyTypeTreeWeight, propertyTypeVelocityX , propertyTypeVelocityY      , &
+          &                                         propertyTypeVelocityZ        , unitsLength           , unitsMass             , unitsVelocity
+    use :: Merger_Tree_Walkers             , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Interpolation         , only : Interpolate_Done             , Interpolate_Locate
+    use :: Sort                            , only : Sort_Do
     implicit none
     class           (mergerTreeOperatorExport     ), intent(inout), target         :: self
     type            (mergerTree                   ), intent(inout), target         :: tree
@@ -188,7 +192,7 @@ contains
        call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                                   )
        ! Set provenance metadata.
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,'Galacticus'                   )
-       call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))       
+       call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))
        ! Count nodes in the tree.
        nodeCount=0
        treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
@@ -203,7 +207,7 @@ contains
        call allocateArray(descendentIndex,[nodeCount])
        call allocateArray(nodeMass       ,[nodeCount])
        call allocateArray(nodeRedshift   ,[nodeCount])
-       if (self%snapshotsRequired                               ) call allocateArray(nodeSnapshot,[nodeCount  ])
+       if (self%snapshotsRequired                       ) call allocateArray(nodeSnapshot,[nodeCount  ])
        if (defaultPositionComponent%positionIsGettable()) call allocateArray(nodePosition,[nodeCount,3])
        if (defaultPositionComponent%velocityIsGettable()) call allocateArray(nodeVelocity,[nodeCount,3])
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
@@ -248,7 +252,7 @@ contains
           if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=position%position()
           if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=position%velocity()
           if (self%snapshotsRequired)                                                                                      &
-               & nodeSnapshot(nodeCount)=Interpolate_Locate(                                                               & 
+               & nodeSnapshot(nodeCount)=Interpolate_Locate(                                                               &
                &                                                    snapshotTime                        (1:snapshotCount), &
                &                                                    snapshotInterpolatorAccelerator                      , &
                &                                                    basic                          %time(               ), &
@@ -278,7 +282,7 @@ contains
        ! Write the tree to file.
        !$omp critical (Merger_Tree_Write)
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
-       !$omp end critical (Merger_Tree_Write)       
+       !$omp end critical (Merger_Tree_Write)
        ! Deallocate arrays.
        call deallocateArray(treeIndex      )
        call deallocateArray(treeWeight     )
@@ -290,6 +294,6 @@ contains
        if (defaultPositionComponent%velocityIsGettable()) call deallocateArray(nodeVelocity)
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
-    end do    
+    end do
     return
   end subroutine exportOperate

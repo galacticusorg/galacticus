@@ -33,6 +33,26 @@ sub parseConfig {
     return $config;
 }
 
+sub stepCount {
+    # Return a count of the number of steps taken.
+    my $config  =   shift() ;
+    my %options = %{shift()};
+    # Read the first chain.
+    my $logFileRoot   = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
+    my $stepCount;
+    open(my $chainFile,$chainFileName);
+    while ( my $line = <$chainFile> ) {
+	unless ( $line =~ m/^\"/ ) {
+	    my @columns = split(" ",$line);
+	    $stepCount = $columns[0];
+	}
+    }
+    die("Galacticus::Constraints::Parameters::parametersCount(): could not determine number of steps")
+	unless ( defined($stepCount) );
+    return $stepCount;
+}
+
 sub chainCount {
     # Return a count of the number of chains used.
     my $config  =   shift() ;
@@ -254,8 +274,12 @@ sub parameterVectorApply {
     my $parameterVector =   shift() ;
     my %options         = %{shift()};
     # Get a hash of the parameter values.
-    my $xml             = new XML::Simple();
-    my $parameters      = $xml->XMLin(exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'});
+    my $xml            = new XML::Simple();
+    my $parser         = XML::LibXML->new();
+    my $fileName       = exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'};
+    my $dom            = $parser->load_xml(location => $fileName);
+    $parser->process_xincludes($dom);
+    my $parameters     = $xml->XMLin($dom->serialize());
     # Apply vector of parameter values to parameters structure.
     my $i               = -1;  
     foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}) ) {
@@ -466,6 +490,12 @@ sub parameterMappings {
 	    if ( $parameter->{'value'} eq "active" );
     }
     return @mappings;
+}
+
+sub step {
+    # Heaviside step function, required for some derived parameter evaluations.
+    my $x = shift();
+    return $x >= 0.0 ? 1.0 : 0.0;
 }
 
 # sub Sample_Matrix {

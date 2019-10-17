@@ -21,8 +21,11 @@
 
 module Numerical_Constants_Astronomical
   !% Contains various useful astronomical constants.
-  use Numerical_Constants_Atomic
-  use Numerical_Constants_Units
+  use :: FGSL                        , only : FGSL_CONST_MKSA_SOLAR_MASS, FGSL_CONST_MKSA_PARSEC
+  use :: Numerical_Constants_Atomic  , only : atomicMassHelium          , atomicMassHydrogen
+  use :: Numerical_Constants_Units   , only : ergs
+  use :: Numerical_Constants_Prefixes, only : kilo                      , mega                  , giga, hecto
+  use :: Numerical_Constants_Math    , only : Pi
   implicit none
   public
 

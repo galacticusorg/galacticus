@@ -19,9 +19,9 @@
 
   !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
 
-  use Cosmology_Functions       , only : cosmologyFunctionsClass , cosmologyFunctions
-  use Cosmological_Density_Field, only : criticalOverdensityClass, criticalOverdensity
-  use Linear_Growth             , only : linearGrowthClass       , linearGrowth
+  use Cosmology_Functions       , only : cosmologyFunctionsClass
+  use Cosmological_Density_Field, only : criticalOverdensityClass
+  use Linear_Growth             , only : linearGrowthClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
@@ -39,7 +39,7 @@
      final     ::            regridTimesDestructor
      procedure :: operate => regridTimesOperate
   end type mergerTreeOperatorRegridTimes
-  
+
   interface mergerTreeOperatorRegridTimes
      !% Constructors for the regrid times merger tree operator class.
      module procedure regridTimesConstructorParameters
@@ -57,12 +57,12 @@
   !#  <entry label="millennium"             />
   !#  <entry label="list"                   />
   !# </enumeration>
-  
+
 contains
 
   function regridTimesConstructorParameters(parameters) result(self)
     !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                              :: self
     type            (inputParameters              ), intent(inout)               :: parameters
@@ -76,7 +76,7 @@ contains
     double precision                                                             :: expansionFactorStart            , expansionFactorEnd, &
          &                                                                          snapTolerance
     type            (varying_string               )                              :: snapshotSpacingText
-        
+
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
@@ -158,10 +158,10 @@ contains
 
   function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_,linearGrowth_) result(self)
     !% Internal constructor for the regrid times merger tree operator class.
-    use Numerical_Ranges
-    use Galacticus_Error
-    use Memory_Management
-    use Sort
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLinear, rangeTypeLogarithmic
+    use :: Sort             , only : Sort_Do
     implicit none
     type            (mergerTreeOperatorRegridTimes)                                        :: self
     integer                                        , intent(in   )                         :: regridCount
@@ -175,7 +175,7 @@ contains
     class           (linearGrowthClass            ), intent(in   ), target                 :: linearGrowth_
     integer                                                                                :: iTime
     !# <constructorAssign variables="dumpTrees, snapTolerance, *cosmologyFunctions_, *criticalOverdensity_, *linearGrowth_"/>
-    
+
     ! Validate arguments.
     if (regridCount < 2) call Galacticus_Error_Report('regridCount > 2 is required'//{introspection:location})
     ! Construct array of grid expansion factors.
@@ -241,7 +241,7 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorRegridTimes), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%linearGrowth_"       />
     !# <objectDestructor name="self%criticalOverdensity_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
@@ -250,16 +250,16 @@ contains
 
   subroutine regridTimesOperate(self,tree)
     !% Perform a regrid times operation on a merger tree.
+    use            :: FGSL                   , only : fgsl_interp_accel
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
+    use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent, &
+          &                                           treeNode                , treeNodeList
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes       , only : treeNode              , treeNodeList, nodeComponentBasic, nodeEvent, &
-         &                                            nodeComponentSatellite
-    use               Galacticus_Error
-    use               FGSL                   , only : fgsl_interp_accel
-    use               Numerical_Interpolation
-    use               Numerical_Comparison
-    use               Kind_Numbers
-    use               Merger_Trees_Dump
-    use               Merger_Tree_Walkers
+    use            :: Kind_Numbers           , only : kind_int8
+    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
+    use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
+    use            :: Numerical_Comparison   , only : Values_Agree
+    use            :: Numerical_Interpolation, only : Interpolate_Done        , Interpolate_Locate
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout), target                :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
@@ -381,10 +381,10 @@ contains
           ! Skip this node if it is the root node.
           if (associated(node%parent)) then
              basic       => node       %basic()
-             basicParent => node%parent%basic()             
+             basicParent => node%parent%basic()
              ! Get the time of this node and its parent.
              timeNow   =basic  %time()
-             timeParent=basicParent%time()             
+             timeParent=basicParent%time()
              ! Get masses of these halos.
              massNow   =basic  %mass()
              massParent=basicParent%mass()
@@ -460,7 +460,7 @@ contains
                 deallocate(newNodes)
              end if
           end if
-       end do       
+       end do
        ! Dump the intermediate tree if required.
        if (self%dumpTrees) then
           allocate(highlightNodes(nodeIndex-firstNewNode+2))
@@ -546,13 +546,13 @@ contains
                    end do
                    nodeSibling%sibling => node%sibling
                 end if
-             end if             
+             end if
              ! Destroy the node.
              call node%destroy()
              deallocate(node)
              call treeWalkerIsolatedNodes%previous(node)
           end if
-       end do       
+       end do
        ! Clean up interpolation objects.
        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
        ! Dump the processed tree if required.

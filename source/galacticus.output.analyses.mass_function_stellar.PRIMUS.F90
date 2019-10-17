@@ -19,8 +19,7 @@
 
 !% Contains a module which implements a stellar mass function output analysis class for the PRIMUS survey of \cite{moustakas_primus:_2013}.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarPRIMUS">
   !#  <description>A PRIMUS stellar mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -39,7 +38,7 @@ contains
 
   function massFunctionStellarPRIMUSConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarPRIMUS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarPRIMUS)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -157,13 +156,17 @@ contains
 
   function massFunctionStellarPRIMUSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarPRIMUS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Galacticus_Error
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use ISO_Varying_String
-    use String_Handling
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryMoustakas2013PRIMUS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: ISO_Varying_String
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: String_Handling                       , only : operator(//)
     implicit none
     type            (outputAnalysisMassFunctionStellarPRIMUS            )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
@@ -187,7 +190,7 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName
     double precision                                                                                   :: massThreshold
-    
+
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )

@@ -45,8 +45,8 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the identity transfer function class which takes a parameter set as input.
-    use Input_Parameters   , only : inputParameter    , inputParameters
-    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (transferFunctionIdentity)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -70,12 +70,11 @@ contains
 
   function identityConstructorInternal(time) result(self)
     !% Internal constructor for the identity transfer function class.
-    use Input_Parameters
     implicit none
     type            (transferFunctionIdentity)                :: self
     double precision                          , intent(in   ) :: time
     !# <constructorAssign variables="time"/>
-    
+
     return
   end function identityConstructorInternal
 
@@ -114,7 +113,7 @@ contains
   double precision function identityHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     integer                          , intent(  out), optional :: status

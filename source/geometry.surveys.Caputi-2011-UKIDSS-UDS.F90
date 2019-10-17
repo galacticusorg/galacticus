@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the survey geometry used by \cite{caputi_stellar_2011}.
-  
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryCaputi2011UKIDSSUDS">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
@@ -47,13 +47,13 @@ contains
 
   function caputi2011UKIDSSUDSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{caputi_stellar_2011} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryCaputi2011UKIDSSUDS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     integer                                                   :: redshiftBin
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
@@ -71,8 +71,8 @@ contains
 
   function caputi2011UKIDSSUDSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{caputi_stellar_2011} conditional mass function class.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryCaputi2011UKIDSSUDS)                        :: self
     integer                                            , intent(in   )         :: redshiftBin
@@ -106,7 +106,7 @@ contains
     self%geometryInitialized=.false.
     return
   end function caputi2011UKIDSSUDSConstructorInternal
-  
+
   subroutine caputi2011UKIDSSUDSDestructor(self)
     !% Destructor for the ``caputi2011UKIDSSUDS'' survey geometry class.
     implicit none
@@ -115,7 +115,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine caputi2011UKIDSSUDSDestructor
-  
+
   double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
@@ -123,15 +123,15 @@ contains
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
   end function caputi2011UKIDSSUDSDistanceMinimum
 
   double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions_Options
-    use Galacticus_Error
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -158,12 +158,12 @@ contains
 
   double precision function caputi2011UKIDSSUDSVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Compute the volume.
@@ -183,13 +183,13 @@ contains
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
     !% constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     integer                                            , intent(in   ), optional :: field
     double precision                                   , parameter               :: solidAngleSurvey=1.59233703487973d-4
     !GCC$ attributes unused :: self
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     caputi2011UKIDSSUDSSolidAngle=solidAngleSurvey
@@ -198,16 +198,13 @@ contains
 
   subroutine caputi2011UKIDSSUDSRandomsInitialize(self)
     !% Load random points for the survey.
-    use Numerical_Constants_Math
-    use Memory_Management
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Paths
-    use System_Command
-    use Galacticus_Error
-    use IO_HDF5
-    use File_Utilities
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec
+    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : operator(//)
+    use :: System_Command    , only : System_Command_Do
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
     type (hdf5Object                       )                :: surveyGeometryRandomsFile
@@ -226,6 +223,6 @@ contains
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )
     call surveyGeometryRandomsFile%close()
-    !$ call hdf5Access%unset()    
+    !$ call hdf5Access%unset()
     return
   end subroutine caputi2011UKIDSSUDSRandomsInitialize

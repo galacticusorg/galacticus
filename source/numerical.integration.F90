@@ -21,9 +21,9 @@
 
 module Numerical_Integration
   !% Implements numerical integration.
-  use FGSL, only : fgsl_function                   , fgsl_integration_workspace, fgsl_error_handler_t   , FGSL_Integ_Gauss61             , &
-       &           FGSL_Integration_Workspace_Alloc, FGSL_Function_Init        , FGSL_Error_Handler_Init, FGSL_Set_Error_Handler         , &
-       &           FGSL_Integration_QAG            , FGSL_Integration_QAGS     , FGSL_Function_Free     , FGSL_Integration_Workspace_Free
+  use :: FGSL, only : FGSL_Error_Handler_Init, FGSL_Function_Free   , FGSL_Function_Init              , FGSL_Integ_Gauss61             , &
+          &           FGSL_Integration_QAG   , FGSL_Integration_QAGS, FGSL_Integration_Workspace_Alloc, FGSL_Integration_Workspace_Free, &
+          &           FGSL_Set_Error_Handler , fgsl_error_handler_t , fgsl_function                   , fgsl_integration_workspace
   implicit none
   private
   public :: Integrate_Done, Integrate
@@ -41,14 +41,14 @@ module Numerical_Integration
   ! Integrand function.
   procedure(integrandTemplate), pointer :: currentIntegrand
   !$omp threadprivate(currentIntegrand)
-  
+
 contains
 
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
     !% Integrates the supplied {\normalfont \ttfamily integrand} function.
-    use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use, intrinsic :: ISO_C_Binding   , only : c_ptr                  , c_size_t
     implicit none
     double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit
     procedure       (integrandTemplate         )                                     :: integrand
@@ -69,7 +69,7 @@ contains
          &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual
     logical                                                                          :: hasSingularitiesActual          , resetActual
     procedure       (integrandTemplate         ), pointer                            :: previousIntegrand
-    
+
     ! Store the current integrand function so that we can restore it on exit. This allows the integration function to be called recursively.
     previousIntegrand => currentIntegrand
     currentIntegrand  => integrand
@@ -148,11 +148,11 @@ contains
     real(c_double), value :: x
     type(c_ptr   ), value :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
-    
+
     integrandWrapper=currentIntegrand(x)
     return
   end function integrandWrapper
-  
+
   subroutine Integrate_Done(integrandFunction,integrationWorkspace)
     !% Frees up integration objects that are no longer required.
     implicit none
@@ -170,7 +170,7 @@ contains
     type   (c_ptr     ), value :: file       , reason
     integer(kind=c_int), value :: errorNumber, line
     !GCC$ attributes unused :: reason, file, line
-    
+
     errorStatusGlobal=errorNumber
     return
   end subroutine Integration_GSL_Error_Handler

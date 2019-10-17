@@ -20,7 +20,7 @@
   !% Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
 
   public :: mergerTreeStateStore, mergerTreeStateFromFile
-  
+
   !# <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
   !#  <description>Merger tree constructor class which constructs a merger tree by restoring state from file.</description>
   !# </mergerTreeConstructor>
@@ -39,10 +39,10 @@
   end interface mergerTreeConstructorStateRestored
 
 contains
-  
+
   function stateRestoredConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeConstructorStateRestored)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
@@ -68,14 +68,14 @@ contains
     type(varying_string                    ), intent(in   ) :: fileName
     !# <constructorAssign variables="fileName"/>
 
-    return    
+    return
   end function stateRestoredConstructorInternal
-  
+
   function stateRestoredConstruct(self,treeNumber) result(tree)
     !% Restores the state of a merger tree from file.
+    use            :: Functions_Global, only : Galacticus_State_Retrieve_
+    use            :: Galacticus_Nodes, only : mergerTree
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes, only : mergerTree
-    use               Functions_Global, only : Galacticus_State_Retrieve_
     implicit none
     type   (mergerTree                        ), pointer       :: tree
     class  (mergerTreeConstructorStateRestored), intent(inout) :: self
@@ -96,12 +96,12 @@ contains
 
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !% Store the complete internal state of a merger tree to file.
+    use            :: Functions_Global   , only : Galacticus_State_Store_
+    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes   , only : mergerTree                          , nodeEvent, nodeEventBuildFromRaw, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Functions_Global, only : Galacticus_State_Store_
-    use               Galacticus_Error
-    use               Merger_Tree_Walkers
-    use               Kind_Numbers
-    use               Galacticus_Nodes   , only : treeNode, nodeEvent, nodeEventBuildFromRaw
+    use            :: Kind_Numbers       , only : kind_int8
+    use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllAndFormationNodes
     implicit none
     type     (mergerTree                          ), intent(in   ), target       :: tree
     character(len=*                               ), intent(in   )               :: storeFile
@@ -128,7 +128,7 @@ contains
     else
        storeFilePrevious=trim(storeFile)
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
-    end if    
+    end if
     !$omp end critical (mergerTreeStateStore)
     ! Count trees and check for events attached to trees.
     treeCount   =  0
@@ -215,10 +215,10 @@ contains
 
     integer function nodeArrayPosition(nodeIndex,nodeIndices)
       !% Returns the position of a node in the output list given its index.
-      use Galacticus_Error
-      use ISO_Varying_String
-      use String_Handling
-      use Kind_Numbers
+      use :: Galacticus_Error  , only : Galacticus_Error_Report
+      use :: ISO_Varying_String
+      use :: Kind_Numbers      , only : kind_int8
+      use :: String_Handling   , only : operator(//)
       implicit none
       integer(kind_int8     )              , intent(in   ) :: nodeIndex
       integer(kind_int8     ), dimension(:), intent(in   ) :: nodeIndices
@@ -234,20 +234,21 @@ contains
          if (nodeIndices(nodeArrayPosition) /= nodeIndex) then
             message="node ["
             message=message//nodeIndex//"] could not be found in merger tree"
-            call Galacticus_Error_Report(message//{introspection:location})          
+            call Galacticus_Error_Report(message//{introspection:location})
          end if
       end if
       return
     end function nodeArrayPosition
 
   end subroutine mergerTreeStateStore
-  
+
   subroutine mergerTreeStateFromFile(tree,fileName,deleteAfterRead)
     !% Read the state of a merger tree from file.
-    use Galacticus_Nodes, only : mergerTree, treeNodeList, nodeEvent, Galacticus_Nodes_Unique_ID_Set, nodeEventBuildFromRaw
-    use Galacticus_Error
-    use String_Handling
-    use Kind_Numbers
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : Galacticus_Nodes_Unique_ID_Set, mergerTree  , nodeEvent, nodeEventBuildFromRaw, &
+          &                         treeNode                      , treeNodeList
+    use :: Kind_Numbers    , only : kind_int8
+    use :: String_Handling , only : operator(//)
     implicit none
     type     (mergerTree    ), intent(inout), target       :: tree
     character(len=*         ), intent(in   )               :: fileName
@@ -292,7 +293,7 @@ contains
     iNode       =  0
     do iTree=1,treeCount
        ! Read basic tree information.
-       read (treeUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex       
+       read (treeUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
        ! Create nodes.
        do iNodeTree=1,nodeCountTree(iTree)
           iNode             =  iNode                         +1
@@ -377,7 +378,7 @@ contains
 
     function nodePointer(nodeArrayIndex,nodes)
       !% Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
-      use Galacticus_Nodes, only : treeNode, treeNodeList
+      use :: Galacticus_Nodes, only : treeNode, treeNodeList
       type   (treeNode    ), pointer                     :: nodePointer
       integer                            , intent(in   ) :: nodeArrayIndex
       type   (treeNodeList), dimension(:), intent(in   ) :: nodes

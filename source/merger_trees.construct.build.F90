@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
-  
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Halo_Mass_Functions
-  use Merger_Trees_Build_Masses
-  use Merger_Trees_Builders
-  use Output_Times
-  
+
+  use :: Cosmology_Functions      , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters     , only : cosmologyParametersClass
+  use :: Halo_Mass_Functions      , only : haloMassFunctionClass
+  use :: Merger_Trees_Build_Masses, only : mergerTreeBuildMassesClass
+  use :: Merger_Trees_Builders    , only : mergerTreeBuilderClass
+  use :: Output_Times             , only : outputTimesClass
+
   !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
   !#  <description>Merger tree constructor class which builds merger trees.</description>
   !# </mergerTreeConstructor>
@@ -41,9 +41,9 @@
      ! Variables giving the mass range and sampling frequency for mass function sampling.
      double precision                                                        :: timeBase                        , timeSnapTolerance
      integer                                                                 :: treeBeginAt
-     ! Direction in which to process trees. 
+     ! Direction in which to process trees.
      logical                                                                 :: processDescending
-     ! Array of halo masses to use. 
+     ! Array of halo masses to use.
      integer         (c_size_t                  )                            :: treeCount                       , treeNumberOffset
      double precision                            , allocatable, dimension(:) :: treeMass                        , treeWeight       , &
           &                                                                     treeMassMinimum                 , treeMassMaximum
@@ -71,12 +71,11 @@
   end interface mergerTreeConstructorBuild
 
 contains
-  
+
   function buildConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (mergerTreeConstructorBuild)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -153,7 +152,7 @@ contains
   function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_) result(self)
     !% Initializes the merger tree building module.
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Comparison
+    use            :: Numerical_Comparison, only : Values_Agree
     implicit none
     type            (mergerTreeConstructorBuild)                        :: self
     double precision                            , intent(in   )         :: timeBase            , timeSnapTolerance
@@ -187,7 +186,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily build} merger tree constructor class.
     implicit none
     type(mergerTreeConstructorBuild), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%mergerTreeBuilder_"    />
@@ -196,16 +195,16 @@ contains
     !# <objectDestructor name="self%outputTimes_"          />
     return
   end subroutine buildDestructor
-  
+
   function buildConstruct(self,treeNumber) result(tree)
     !% Build a merger tree.
-    use    Galacticus_Nodes        , only : nodeComponentBasic
-    use    Functions_Global        , only : Galacticus_State_Store_ , Galacticus_State_Retrieve_
-    use    Kind_Numbers
-    use    String_Handling
-    use    Merger_Tree_State_Store
-    use    Pseudo_Random
-    !$ use OMP_Lib
+    use    :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
+    use    :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
+    use    :: Kind_Numbers           , only : kind_int8
+    use    :: Merger_Tree_State_Store, only : treeStateStoreSequence
+    !$ use :: OMP_Lib
+    use    :: Pseudo_Random          , only : pseudoRandom
+    use    :: String_Handling        , only : operator(//)
     implicit none
     type            (mergerTree                ), pointer       :: tree
     class           (mergerTreeConstructorBuild), intent(inout) :: self
@@ -228,7 +227,7 @@ contains
        else
           self%treeNumberOffset=              +treeStateStoreSequence-1_c_size_t
        end if
-    end if    
+    end if
     ! Determine the index of the tree to process.
     if (self%processDescending) then
        ! Processing trees in descending order, so begin from the final index and work back.
@@ -299,9 +298,9 @@ contains
 
   subroutine buildConstructMasses(self)
     !% Construct the set of tree masses to be built.
-    use Memory_Management
-    use Sort
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
+    use :: Sort             , only : Sort_Index_Do
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast
@@ -344,4 +343,4 @@ contains
     end if
     return
   end subroutine buildConstructMasses
-  
+

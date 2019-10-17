@@ -19,12 +19,12 @@
 
   !% An implementation of the merger tree importer class for \glc\ format merger tree files.
 
-  use IO_HDF5
-  use Stateful_Types
-  use Halo_Mass_Functions
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Cosmology_Parameters
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Halo_Mass_Functions       , only : haloMassFunctionClass
+  use :: IO_HDF5                   , only : hdf5Object
+  use :: Stateful_Types            , only : statefulInteger              , statefulDouble, statefulLogical
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
@@ -52,7 +52,7 @@
      logical                                                                    :: fatalMismatches                    , forestIndicesRead             , &
           &                                                                        angularMomentaIsScalar             , angularMomentaIsVector        , &
           &                                                                        spinIsScalar                       , spinIsVector                  , &
-          &                                                                        reweightTrees
+          &                                                                        reweightTrees                      , validateData
      integer                                                                    :: forestsCount                       , formatVersion
      integer                                        , allocatable, dimension(:) :: firstNodes                         , nodeCounts
      integer         (kind=kind_int8               ), allocatable, dimension(:) :: forestIndices
@@ -107,12 +107,12 @@
   !#  <entry label="expansionFactor"/>
   !#  <entry label="redshift"       />
   !# </enumeration>
-  
+
 contains
 
   function galacticusConstructorParameters(parameters) result(self)
     !% Constructor for the \glc\ format merger tree importer which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeImporterGalacticus )                :: self
     type   (inputParameters              ), intent(inout) :: parameters
@@ -120,7 +120,8 @@ contains
     class  (haloMassFunctionClass        ), pointer       :: haloMassFunction_
     class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    logical                                               :: fatalMismatches          , reweightTrees
+    logical                                               :: fatalMismatches          , reweightTrees, &
+         &                                                   validateData
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -138,12 +139,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>validateData</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true perform some validation of imported data to identify possible problems.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>  
+    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="haloMassFunction_"        />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -151,16 +160,17 @@ contains
     return
   end function galacticusConstructorParameters
 
-  function galacticusConstructorInternal(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
+  function galacticusConstructorInternal(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the \glc\ format merger tree importer.
     implicit none
     type   (mergerTreeImporterGalacticus )                        :: self
-    logical                               , intent(in   )         :: fatalMismatches          , reweightTrees
+    logical                               , intent(in   )         :: fatalMismatches          , reweightTrees, &
+         &                                                           validateData
     class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class  (haloMassFunctionClass        ), intent(in   ), target :: haloMassFunction_
     class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="fatalMismatches, reweightTrees, *cosmologyFunctions_, *haloMassFunction_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="fatalMismatches, reweightTrees, validateData, *cosmologyFunctions_, *haloMassFunction_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
 
     self%hasSubhalos       %isSet=.false.
     self%massesAreInclusive%isSet=.false.
@@ -174,6 +184,7 @@ contains
 
   subroutine galacticusDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -190,9 +201,11 @@ contains
 
   subroutine galacticusOpen(self,fileName)
     !% Validate a \glc\ format merger tree file.
-    use Numerical_Comparison
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Display  , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error    , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: IO_HDF5             , only : hdf5Access
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
     type            (varying_string               ), intent(in   ) :: fileName
@@ -368,7 +381,7 @@ contains
     ! Check for type of angular momenta data available.
     self%angularMomentaIsScalar=.false.
     self%angularMomentaIsVector=.false.
-    if (self%forestHalos%hasDataset("angularMomentum")) then     
+    if (self%forestHalos%hasDataset("angularMomentum")) then
        angularMomentumDataset=self%forestHalos%openDataset("angularMomentum")
        select case (angularMomentumDataset%rank())
        case (1)
@@ -384,7 +397,7 @@ contains
     ! Check for type of spin data available.
     self%spinIsScalar=.false.
     self%spinIsVector=.false.
-    if (self%forestHalos%hasDataset("spin")) then     
+    if (self%forestHalos%hasDataset("spin")) then
        spinDataset=self%forestHalos%openDataset("spin")
        select case (spinDataset%rank())
        case (1)
@@ -403,9 +416,10 @@ contains
 
   subroutine galacticusClose(self)
     !% Validate a \glc\ format merger tree file.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     !$ call hdf5Access%set()
     if (self%particles  %isOpen()) call self%particles  %close()
     if (self%forestHalos%isOpen()) call self%forestHalos%close()
@@ -426,7 +440,8 @@ contains
 
   integer function galacticusTreesHaveSubhalos(self)
     !% Return a Boolean integer specifying whether or not the trees have subhalos.
-    use Numerical_Constants_Boolean
+    use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -446,7 +461,8 @@ contains
 
   logical function galacticusMassesIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloMassesIncludeSubhalosInteger
@@ -468,7 +484,8 @@ contains
 
   logical function galacticusAngularMomentaIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloAngularMomentaIncludeSubhalosInteger
@@ -494,7 +511,8 @@ contains
 
   integer function galacticusTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
-    use Numerical_Constants_Boolean
+    use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -514,7 +532,8 @@ contains
 
   integer function galacticusVelocitiesIncludeHubbleFlow(self)
     !% Return a Boolean integer specifying whether or not velocities include the Hubble flow.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
+    use :: IO_HDF5                    , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -534,7 +553,8 @@ contains
 
   integer function galacticusPositionsArePeriodic(self)
     !% Return a Boolean integer specifying whether or not positions are periodic.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
+    use :: IO_HDF5                    , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -554,9 +574,10 @@ contains
 
   double precision function galacticusCubeLength(self,time,status)
     !% Return the length of the simulation cube.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Boolean     , only : booleanFalse           , booleanTrue, booleanUnknown
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)           :: self
     double precision                              , intent(in   )           :: time
@@ -578,7 +599,7 @@ contains
        else
           self%lengthStatus%value=booleanUnknown
        end if
-       !$ call hdf5Access%unset()   
+       !$ call hdf5Access%unset()
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
@@ -631,10 +652,11 @@ contains
 
   subroutine galacticusForestIndicesRead(self)
     !% Read the tree indices.
-    use Galacticus_Error
-    use HDF5
-    use Sort
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: HDF5
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Sort                            , only : Sort_Index_Do
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -647,7 +669,7 @@ contains
     integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum        , massMaximum
     logical                                                                   :: hasForestWeights
-    
+
     if (self%forestIndicesRead) return
     !$ call hdf5Access%set()
     if (.not.self%file%hasGroup(trim(self%forestIndexGroupName))) &
@@ -744,9 +766,9 @@ contains
 
   double precision function galacticusTreeWeight(self,i)
     !% Return the weight to assign to trees.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Boolean     , only : booleanTrue
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
@@ -776,6 +798,7 @@ contains
 
   logical function galacticusPositionsAvailable(self,positions,velocities)
     !% Return true if positions and/or velocities are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     logical                              , intent(in   ) :: positions, velocities
@@ -790,6 +813,7 @@ contains
 
   logical function galacticusScaleRadiiAvailable(self)
     !% Return true if scale radii are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -804,9 +828,10 @@ contains
 
   logical function galacticusParticleCountAvailable(self)
     !% Return true if particle counts are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     !$ call hdf5Access%set()
     galacticusParticleCountAvailable=self%forestHalos%hasDataset("particleCount")
     !$ call hdf5Access%unset()
@@ -815,6 +840,7 @@ contains
 
   logical function galacticusVelocityMaximumAvailable(self)
     !% Return true if halo rotation curve velocity maxima are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -826,6 +852,7 @@ contains
 
   logical function galacticusVelocityDispersionAvailable(self)
     !% Return true if halo velocity dispersions are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -839,7 +866,7 @@ contains
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     galacticusAngularMomentaAvailable=self%angularMomentaIsScalar.or.self%angularMomentaIsVector
     return
   end function galacticusAngularMomentaAvailable
@@ -848,7 +875,7 @@ contains
     !% Return true if angular momenta vectors are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     galacticusAngularMomenta3DAvailable=self%angularMomentaIsVector
     return
   end function galacticusAngularMomenta3DAvailable
@@ -873,15 +900,17 @@ contains
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
-    use Galacticus_Error
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                 :: self
     class           (nodeData                    ), intent(in   )                 :: node
     double precision                              , intent(  out), dimension(:  ) :: time
     double precision                              , intent(  out), dimension(:,:) :: position, velocity
     integer                                                                       :: i
-    
+
     select type (node)
     type is (nodeDataGalacticus)
        ! Read epoch, position, and velocity data.
@@ -914,13 +943,13 @@ contains
 
   function galacticusSubhaloTraceCount(self,node)
     !% Returns the length of a subhalo trace.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     class  (nodeData                    ), intent(in   ) :: node
     !GCC$ attributes unused :: self
-    
+
     select type (node)
     type is (nodeDataGalacticus)
        galacticusSubhaloTraceCount=node%particleIndexCount
@@ -933,13 +962,13 @@ contains
 
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
-    use Memory_Management
-    use HDF5
-    use Galacticus_Error
-    use Galacticus_Display
-    use Vectors
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
+    use :: HDF5
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Memory_Management               , only : Memory_Usage_Record    , deallocateArray
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar      , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                              :: self
     integer                                       , intent(in   )                              :: i
@@ -1000,7 +1029,7 @@ contains
        call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount                               )
     end if
     ! nodeTime
-    timesAreInternal=.true. 
+    timesAreInternal=.true.
     if      (self%forestHalos%hasDataset("time"           )) then
        ! Time is present, so read it.
        timesAreInternal=.false.
@@ -1008,6 +1037,10 @@ contains
           call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
        else
           call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
+       end if
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)        )) call Galacticus_Error_Report('"nodeTime" dataset contains NaN values'    //{introspection:location})
+          if (any(      nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report('"nodeTime" dataset has non-positive values'//{introspection:location})
        end if
     else if (self%forestHalos%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
@@ -1017,8 +1050,11 @@ contains
           call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate expansion factors.
-       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("expansionFactor dataset values must be >0"//{introspection:location})
-       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)        )) call Galacticus_Error_Report('"expansionFactor" dataset contains NaN values'//{introspection:location})
+          if (any(      nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report('"expansionFactor" dataset values must be >0'  //{introspection:location})
+          if (any(      nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
+       end if
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
@@ -1031,8 +1067,11 @@ contains
           call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate redshifts.
-       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("redshift dataset values must be >-1"//{introspection:location})
-       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
+       if (self%validateData) then
+          if (any(isNaN(nodes%nodeTime)         )) call Galacticus_Error_Report('"redshift" dataset contains NaN values'//{introspection:location})
+          if (any(      nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report('"redshift" dataset values must be >-1' //{introspection:location})
+          if (any(      nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
+       end if
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
@@ -1045,6 +1084,9 @@ contains
        call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass                                ,readSelection=nodeSubsetOffset)
     else
        call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
+    end if
+    if (self%validateData) then
+       if (any(isNaN(nodes%nodeMass))) call Galacticus_Error_Report('"nodeMass" dataset contains NaN values'//{introspection:location})
     end if
     !$ call hdf5Access%unset()
     ! If only structure is requested we are done.
@@ -1061,12 +1103,18 @@ contains
              else
                 call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%scaleRadius))) call Galacticus_Error_Report('"scaleRadius" dataset contains NaN values'//{introspection:location})
+             end if
           else
              nodes%scaleRadius   =-1.0d0
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius                         ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%halfMassRadius))) call Galacticus_Error_Report('"halfMassRadius" dataset contains NaN values'//{introspection:location})
              end if
           end if
        end if
@@ -1078,16 +1126,22 @@ contains
              else
                 call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(angularMomentum3D))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
+             end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
              end forall
-          call deallocateArray(angularMomentum3D)
+             call deallocateArray(angularMomentum3D)
           else if (self%angularMomentaIsScalar) then
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%angularMomentum))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
              end if
           else
              call Galacticus_Error_Report("scalar angular momentum is not available"//{introspection:location})
@@ -1100,6 +1154,9 @@ contains
           else
              call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
+          if (self%validateData) then
+             if (any(isNaN(angularMomentum3D))) call Galacticus_Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
+          end if
        end if
        ! Halo spins.
        if (present(requireSpin).and.requireSpin) then
@@ -1108,6 +1165,9 @@ contains
                 call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
              else
                 call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             end if
+             if (self%validateData) then
+                if (any(isNaN(spin3D))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
              end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
@@ -1120,6 +1180,9 @@ contains
              else
                 call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
+             if (self%validateData) then
+                if (any(isNaN(nodes%spin))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
+             end if
           else
              call Galacticus_Error_Report("scalar spin is not available"//{introspection:location})
           end if
@@ -1130,6 +1193,9 @@ contains
              call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
           else
              call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
+          if (self%validateData) then
+             if (any(isNaN(spin3D))) call Galacticus_Error_Report('"spin" dataset contains NaN values'//{introspection:location})
           end if
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
@@ -1193,6 +1259,10 @@ contains
              ! velocity.
              call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
+          if (self%validateData) then
+             if (any(isNaN(position))) call Galacticus_Error_Report('"position" dataset contains NaN values'//{introspection:location})
+             if (any(isNaN(velocity))) call Galacticus_Error_Report('"velocity" dataset contains NaN values'//{introspection:location})
+          end if
           ! If a set of most bound particle indices are present, read them.
           if (self%forestHalos%hasDataset("particleIndexStart").and.self%forestHalos%hasDataset("particleIndexCount")) then
              if (useNodeSubset) then
@@ -1251,7 +1321,7 @@ contains
        if (present(requirePositions).and.requirePositions) then
           position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
           velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
-          ! Transfer to the nodes.  
+          ! Transfer to the nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%position=position(:,iNode)
              nodes(iNode)%velocity=velocity(:,iNode)

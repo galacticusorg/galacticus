@@ -21,7 +21,7 @@
 
 module Satellite_Oprhan_Distributions
   !% Provides a class for dark matter halo spin distributions.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

@@ -21,7 +21,7 @@
 
 module Galacticus_Paths
   !% Provides the path for \glc\ inputs and scripts.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   implicit none
   private
   public :: galacticusPath
@@ -76,7 +76,7 @@ contains
     galacticusPath=trim(char(paths(pathType)))
     return
   end function galacticusPath
-  
+
   subroutine pathsRetrieve(pathType,pathName,pathLength)
     !% Retrieve the \glc\ input data path from the environment.
     implicit none

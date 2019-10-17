@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a cosmological angular distance corrector analysis property operator class.
 
+  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
   use, intrinsic :: ISO_C_Binding
-  use            :: Cosmology_Functions
-  use            :: Output_Times
+  use            :: Output_Times       , only : outputTimesClass
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
   !#  <description>A cosmological angular distance corrector analysis property operator class.</description>
@@ -47,14 +47,14 @@ contains
 
   function csmlgyAngularDistanceConstructorParameters(parameters) result(self)
     !% Constructor for the ``csmlgyAngularDistance'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class(outputTimesClass                              ), pointer       :: outputTimes_
     type (inputParameters                               )                :: dataAnalysisParameters
-    
+
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     !# <objectBuilder class="outputTimes"        name="outputTimes_"            source="parameters"            />
@@ -71,9 +71,9 @@ contains
 
   function csmlgyAngularDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    use               Galacticus_Error
+    use            :: Memory_Management, only : allocateArray
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc)                        :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
@@ -121,7 +121,7 @@ contains
 
   subroutine csmlgyAngularDistanceDestructor(self)
     !% Destructor for the ``csmlgyAnglrDstnc'' output analysis property operator class.
-    use               Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self
 
@@ -131,10 +131,10 @@ contains
     !# <objectDestructor name="self%outputTimes_"           />
     return
   end subroutine csmlgyAngularDistanceDestructor
-  
+
   double precision function csmlgyAngularDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an csmlgyAngularDistance output analysis property operator.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout)           :: self
     double precision                                                , intent(in   )           :: propertyValue

@@ -19,10 +19,16 @@
 
 !% Contains a module which implements a star formation histories class which records \emph{in situ} star formation.
 
-  use Output_Times, only : outputTimesClass, outputTimes
+  use :: Output_Times, only : outputTimes, outputTimesClass
 
   !# <starFormationHistory name="starFormationHistoryInSitu">
-  !#  <description>A star formation histories class which records \emph{in situ} star formation.</description>
+  !#  <description>
+  !#   A star formation histories class which records \emph{in situ} star formation. The star formation history is tabulated on a
+  !#   grid of time and is split between in-situ and accreted star formation. The time grid is the same as (and controlled by the
+  !#   same parameters) are for the {\normalfont \ttfamily metallicitySplit} method. Output follows the conventional format, with
+  !#   2D star formation history datasets to represent the history as a function of time and origin. The first element in the
+  !#   origin dimension records in-situ star formation, while the second element records total star formation.
+  !#  </description>
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryInSitu
      !% A star formation histories class which records \emph{in situ} star formation.
@@ -67,14 +73,14 @@ contains
 
   function inSituConstructorParameters(parameters) result(self)
     !% Constructor for the ``inSitu'' star formation history class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationHistoryInSitu)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
     class           (outputTimesClass          ), pointer       :: outputTimes_
     double precision                                            :: timeStep    , timeStepFine, &
          &                                                         timeFine
-    
+
     !# <inputParameter>
     !#   <name>timeStep</name>
     !#   <cardinality>1</cardinality>
@@ -114,32 +120,32 @@ contains
          &                                                         timeFine
     class           (outputTimesClass          ), target        :: outputTimes_
     !# <constructorAssign variables="timeStep, timeStepFine, timeFine, *outputTimes_"/>
-    
+
     return
   end function inSituConstructorInternal
 
   subroutine inSituAutoHook(self)
     !% Attach to the satellite merging event hook.
-    use Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self
 
     call satelliteMergerEvent%attach(self,inSituSatelliteMerger,openMPThreadBindingAllLevels)
     return
   end subroutine inSituAutoHook
-  
+
   subroutine inSituDestructor(self)
     !% Destructor for the {\normalfont \ttfamily inSitu} star formation histories class.
     implicit none
     type(starFormationHistoryInSitu), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%outputTimes_"/>
     return
   end subroutine inSituDestructor
-  
+
   subroutine inSituCreate(self,node,historyStarFormation,timeBegin)
     !% Create the history required for storing star formation history.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -158,8 +164,8 @@ contains
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Arrays_Search   , only : Search_Array
+    use :: Arrays_Search   , only : Search_Array
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -182,10 +188,13 @@ contains
 
   subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_HDF5 , only : galacticusOutputFile
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     use String_Handling , only : operator(//)
-    use IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)         :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -244,7 +253,7 @@ contains
 
   subroutine inSituScales(self,historyStarFormation,massStellar,abundancesStellar)
     !% Set the scalings for error control on the absolute values of star formation histories.
-    use Memory_Management, only : deallocateArray
+    use :: Memory_Management, only : deallocateArray
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)               :: self
     double precision                            , intent(in   )               :: massStellar
@@ -254,7 +263,7 @@ contains
     double precision                            , parameter                   :: massStellarMinimum  =1.0d0
     integer                                                                   :: i
     !GCC$ attributes unused :: self, abundancesStellar
-    
+
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(i=1:2)
@@ -266,8 +275,8 @@ contains
 
   subroutine inSituMake(self,historyStarFormation,timeBegin,timeEnd,timesCurrent)
     !% Create the history required for storing star formation history.
-    use Numerical_Ranges, only : Make_Range             , rangeTypeLinear
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLinear
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)                         :: self
     type            (history                   ), intent(inout)                         :: historyStarFormation
@@ -405,8 +414,8 @@ contains
 
   subroutine inSituSatelliteMerger(self,node)
     !% Zero any in-situ star formation history for galaxy about to merge.
-    use Galacticus_Nodes, only : nodeComponentDisk      , nodeComponentSpheroid
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentDisk      , nodeComponentSpheroid, treeNode
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -433,4 +442,4 @@ contains
     end select
     return
   end subroutine inSituSatelliteMerger
-    
+

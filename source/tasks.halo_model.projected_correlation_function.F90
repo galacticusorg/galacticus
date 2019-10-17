@@ -16,22 +16,23 @@
 !!
 !!    You should have received a copy of the GNU General Public License
   !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  use Geometry_Surveys          , only : surveyGeometryClass              , surveyGeometry
-  use Cosmology_Functions       , only : cosmologyFunctionsClass          , cosmologyFunctions
-  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass         , darkMatterHaloScale
-  use Power_Spectra             , only : powerSpectrumClass               , powerSpectrum
-  use Halo_Mass_Functions       , only : haloMassFunctionClass            , haloMassFunction
-  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass, darkMatterProfileScaleRadius
-  use Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass          , darkMatterHaloBias
-  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass        , darkMatterProfileDMO
-  use Conditional_Mass_Functions, only : conditionalMassFunctionClass     , conditionalMassFunction
+  use :: Conditional_Mass_Functions, only : conditionalMassFunction     , conditionalMassFunctionClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions          , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBias          , darkMatterHaloBiasClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale         , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
+  use :: Geometry_Surveys          , only : surveyGeometry              , surveyGeometryClass
+  use :: Halo_Mass_Functions       , only : haloMassFunction            , haloMassFunctionClass
+  use :: Linear_Growth             , only : linearGrowth                , linearGrowthClass
+  use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !# <task name="taskHaloModelProjectedCorrelationFunction">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloModelProjectedCorrelationFunction
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
-     private 
+     private
      class           (conditionalMassFunctionClass     ), pointer                   :: conditionalMassFunction_      => null()
      class           (powerSpectrumClass               ), pointer                   :: powerSpectrum_                => null()
      class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_           => null()
@@ -65,9 +66,9 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters             , inputParameter
-    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
-    use Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type            (taskHaloModelProjectedCorrelationFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -179,7 +180,7 @@ contains
     !#   <description>The HDF5 output group within which to write the projected correlation function.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
     !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
@@ -205,8 +206,8 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
-    use Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
-    use Memory_Management, only : allocateArray
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (taskHaloModelProjectedCorrelationFunction)                        :: self
     double precision                                           , intent(in   )         :: separationMinimum       , separationMaximum, &
@@ -235,7 +236,7 @@ contains
 
   subroutine haloModelProjectedCorrelationFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class.
-    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
 
@@ -252,14 +253,14 @@ contains
     call Node_Components_Thread_Uninitialize()
     return
   end subroutine haloModelProjectedCorrelationFunctionDestructor
-  
+
   subroutine haloModelProjectedCorrelationFunctionPerform(self,status)
-    !% Generate a mock galaxy catalog using a simple halo model approach.   
-    use IO_HDF5                          , only : hdf5Object
-    use Galacticus_HDF5                  , only : galacticusOutputFile
-    use Galacticus_Display               , only : Galacticus_Display_Indent       , Galacticus_Display_Unindent
-    use Galacticus_Error                 , only : errorStatusSuccess
-    use Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
+    !% Generate a mock galaxy catalog using a simple halo model approach.
+    use :: Galacticus_Display               , only : Galacticus_Display_Indent       , Galacticus_Display_Unindent
+    use :: Galacticus_Error                 , only : errorStatusSuccess
+    use :: Galacticus_HDF5                  , only : galacticusOutputFile
+    use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
+    use :: IO_HDF5                          , only : hdf5Object
     implicit none
     class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
     integer                                           , intent(  out), optional :: status
@@ -296,7 +297,7 @@ contains
   logical function haloModelProjectedCorrelationFunctionRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self    
+    class(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     haloModelProjectedCorrelationFunctionRequiresOutputFile=.true.

@@ -20,9 +20,9 @@
   !% Contains a module which implements a merger tree operator which computes the cladistic
   !% information content \cite{thorley_information_1998} of merger trees.
 
-  use               Kind_Numbers
   use, intrinsic :: ISO_C_Binding
-  
+  use            :: Kind_Numbers , only : kind_int8
+
   !# <mergerTreeOperator name="mergerTreeOperatorInformationContent">
   !#  <description>
   !#   A merger tree operator which computes the cladistic information content
@@ -46,7 +46,7 @@
      procedure :: operate  => informationContentOperate
      procedure :: finalize => informationContentFinalize
   end type mergerTreeOperatorInformationContent
-  
+
   interface mergerTreeOperatorInformationContent
      !% Constructors for the prune-hierarchy merger tree operator class.
      module procedure informationContentConstructorParameters
@@ -60,7 +60,7 @@ contains
     implicit none
     type   (mergerTreeOperatorInformationContent)                :: informationContentConstructorParameters
     type   (inputParameters                     ), intent(inout) :: parameters
-        
+
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
@@ -77,7 +77,7 @@ contains
 
   function informationContentConstructorInternal(outputGroupName)
     !% Internal constructor for the information content merger tree operator class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
     type(varying_string                      ), intent(in   ) :: outputGroupName
@@ -92,17 +92,16 @@ contains
     implicit none
     type(mergerTreeOperatorInformationContent), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine informationContentDestructor
 
   subroutine informationContentOperate(self,tree)
     !% Perform a information content operation on a merger tree.
-    use Factorials
-    use Merger_Trees_Pruning_Utilities
-    use Memory_Management
-    use Merger_Tree_Walkers
+    use :: Factorials         , only : Logarithmic_Double_Factorial
+    use :: Memory_Management  , only : allocateArray                , deallocateArray
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorInformationContent), intent(inout), target       :: self
     type            (mergerTree                          ), intent(inout), target       :: tree
@@ -170,9 +169,9 @@ contains
 
   subroutine informationContentFinalize(self)
     !% Outputs tree information content function.
-    use HDF5           , only : hsize_t
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: HDF5           , only : hsize_t
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class  (mergerTreeOperatorInformationContent), intent(inout) :: self
     integer(hsize_t                             ), parameter     :: chunkSize              =1024_hsize_t

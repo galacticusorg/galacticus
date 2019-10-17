@@ -43,7 +43,7 @@ contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
     !% Constructor for the ``massStellarSpheroid'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellarSpheroid)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -55,8 +55,8 @@ contains
 
   double precision function massStellarSpheroidExtract(self,node,instance)
     !% Implement a stellar mass-weighted morphology output analysis.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeStellar, radiusLarge
     implicit none
     class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
     type            (treeNode                                ), intent(inout), target   :: node
@@ -69,7 +69,7 @@ contains
 
   integer function massStellarSpheroidType(self)
     !% Return the type of the stellar mass-weighted morphology property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -80,7 +80,7 @@ contains
 
   integer function massStellarSpheroidQuantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -113,7 +113,7 @@ contains
 
   double precision function massStellarSpheroidUnitsInSI(self)
     !% Return the units of the massStellarSpheroid property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
     !GCC$ attributes unused :: self

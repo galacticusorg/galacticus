@@ -21,7 +21,7 @@
 
 subroutine Node_Component_Dynamics_Statistics_Bars_Record(self,time,barInstabilityTimescale,adiabaticRatio)
   !% Record the dynamical state.
-  use Memory_Management
+  use :: Memory_Management, only : allocateArray, deallocateArray
   implicit none
   class           (nodeComponentDynamicsStatisticsBars), intent(inout)               :: self
   double precision                                     , intent(in   )               :: time          , barInstabilityTimescale, &

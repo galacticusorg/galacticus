@@ -109,6 +109,8 @@ sub Class_Property_Default {
 		unless ( exists($implementationProperty->{'classDefault'}->{'code'}) );
 	    $requiredModules->{$_} = 1
 		foreach ( @{$implementationProperty->{'classDefault'}->{'modules'}} );
+	    $requiredModules->{'Memory_Management,only:allocateArray'} = 1
+		if ( exists($implementationProperty->{'classDefault'}->{'count'}) );
 	    my $classDefault = $implementationProperty->{'classDefault'}->{'code'};
 	    while ( $classDefault =~ m/self([a-zA-Z]+)Component\s*%/ ) {
 		$requiredComponents->{'all'            }->{$1} = 1;

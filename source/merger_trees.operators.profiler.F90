@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a merger tree operator which profiles tree structure.
-  
-  use Kind_Numbers
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Kind_Numbers       , only : kind_int8
 
   !# <mergerTreeOperator name="mergerTreeOperatorProfiler">
   !#  <description>
@@ -42,7 +42,7 @@
      procedure :: operate  => profilerOperate
      procedure :: finalize => profilerFinalize
   end type mergerTreeOperatorProfiler
-  
+
   interface mergerTreeOperatorProfiler
      !% Constructors for the prune-hierarchy merger tree operator class.
      module procedure profilerConstructorParameters
@@ -53,7 +53,7 @@ contains
 
   function profilerConstructorParameters(parameters) result(self)
     !% Constructor for the information content merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeOperatorProfiler)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -116,11 +116,11 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function profilerConstructorParameters
-  
+
   function profilerConstructorInternal(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_) result(self)
     !% Internal constructor for the information content merger tree operator class.
-    use Numerical_Ranges
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorProfiler)                        :: self
     double precision                            , intent(in   )         :: massMinimum        , massMaximum      , &
@@ -129,7 +129,7 @@ contains
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     double precision                                                    :: timeMinimum        , timeMaximum
     !# <constructorAssign variables="*cosmologyFunctions_"/>
-    
+
     ! Construct bins in mass and time.
     timeMinimum                     =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum                     =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
@@ -161,8 +161,8 @@ contains
 
   subroutine profilerOperate(self,tree)
     !% Perform a information content operation on a merger tree.
-    use Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
-    use Galacticus_Nodes   , only : treeNode                     , nodeComponentBasic
+    use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class  (mergerTreeOperatorProfiler   ), intent(inout), target   :: self
     type   (mergerTree                   ), intent(inout), target  :: tree
@@ -187,7 +187,7 @@ contains
                   &   massIndex > 0 .and. massIndex <= self%massBinsCount &
                   &  .and.                                                &
                   &   timeIndex > 0 .and. timeIndex <= self%timeBinsCount &
-                  & ) self%nonPrimaryProgenitorCount(massIndex,timeIndex)=self%nonPrimaryProgenitorCount(massIndex,timeIndex)+1_kind_int8         
+                  & ) self%nonPrimaryProgenitorCount(massIndex,timeIndex)=self%nonPrimaryProgenitorCount(massIndex,timeIndex)+1_kind_int8
           else
              ! Check for single progenitor nodes.
              self%singleProgenitorCount=self%singleProgenitorCount+1_kind_int8
@@ -199,14 +199,14 @@ contains
 
   subroutine profilerFinalize(self)
     !% Outputs tree information content function.
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class  (mergerTreeOperatorProfiler), intent(inout)               :: self
     type   (hdf5Object                )                              :: profilerGroup
     integer(kind_int8                 )                              :: nodeCountCurrent                , singleProgenitorCountCurrent
     integer(kind_int8                 ), dimension(:,:), allocatable :: nonPrimaryProgenitorCountCurrent
-    
+
     !$ call hdf5Access%set()
     ! Output information content information.
     profilerGroup=galacticusOutputFile%openGroup('treeProfiler','Profiling information on merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)

@@ -30,7 +30,7 @@
    contains
      procedure :: separationInitial => spheroidRadiusFractionSeparationInitial
   end type blackHoleBinaryInitialSeparationSpheroidRadiusFraction
-  
+
   interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !% Constructors for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary initial radius class.
      module procedure spheroidRadiusFractionConstructorParameters
@@ -42,12 +42,12 @@ contains
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self
     type            (inputParameters                                       ), intent(inout) :: parameters
     double precision                                                                        :: spheroidRadiusFraction
-    
+
     !# <inputParameter>
     !#   <name>spheroidRadiusFraction</name>
     !#   <cardinality>1</cardinality>
@@ -64,19 +64,18 @@ contains
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !% Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
     !% input.
-    use Input_Parameters
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self
     double precision                                                        , intent(in   ) :: spheroidRadiusFraction
     !# <constructorAssign variables="spheroidRadiusFraction"/>
-    
+
     return
   end function spheroidRadiusFractionConstructorInternal
-  
+
   double precision function spheroidRadiusFractionSeparationInitial(self,node,nodeHost)
     !% Returns an initial separation for a binary black holes that is a fixed fraction of the scale radius of the larger of the
     !% host and satellite spheroids.
-    use Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class(blackHoleBinaryInitialSeparationSpheroidRadiusFraction), intent(inout)         :: self
     type (treeNode                                              ), intent(inout), target :: nodeHost    , node

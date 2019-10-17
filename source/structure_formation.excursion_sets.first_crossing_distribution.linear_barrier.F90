@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a excursion set first crossing statistics class for linear barriers.
 
-  use Excursion_Sets_Barriers   , only : excursionSetBarrierClass     , excursionSetBarrier
-  use Cosmological_Density_Field, only : cosmologicalMassVarianceClass, cosmologicalMassVariance
-  
+  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
   !#  <description>An excursion set first crossing statistics class for linear barriers.</description>
   !# </excursionSetFirstCrossing>
@@ -47,7 +47,7 @@ contains
 
   function linearBarrierConstructorParameters(parameters) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -65,7 +65,6 @@ contains
 
   function linearBarrierConstructorInternal(excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                        :: self
     class(excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
@@ -84,10 +83,10 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine linearBarrierDestructor
-  
+
   double precision function linearBarrierProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance, time
@@ -110,7 +109,7 @@ contains
 
   double precision function linearBarrierRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
@@ -180,7 +179,7 @@ contains
     double precision                                        , intent(in   ) :: time, variance
     type            (treeNode                              ), intent(inout) :: node
     !GCC$ attributes unused :: self, time, variance, node
-    
+
     linearBarrierRateNonCrossing=0.0d0
     return
   end function linearBarrierRateNonCrossing

@@ -23,12 +23,11 @@
 
 module Tensors
   !% Defines the tensor symmetric structure used for describing symmetric tensors.
-  use ISO_Varying_String
-  use Numerical_Constants_Astronomical
+  use :: ISO_Varying_String
   implicit none
   private
   public :: tensorRank2Dimension3Symmetric, assignment(=), operator(*), max
-  
+
   ! Interface to assignment functions.
   interface assignment(=)
      module procedure Tensor_R2_D3_Sym_Assign_To
@@ -234,18 +233,17 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Destroy(self)
     !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use Memory_Management
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     return
   end subroutine Tensor_R2_D3_Sym_Destroy
 
   subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
     !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(inout)            :: self
     type     (node                          ), intent(in   ), pointer   :: tensorDefinition
@@ -280,8 +278,8 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Dump(self)
     !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(in   ) :: self
     character(len=22                        )                :: label
@@ -310,8 +308,7 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
     !% Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
     integer                                , intent(in   ) :: fileHandle
@@ -328,8 +325,7 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Read_Raw(self,fileHandle)
     !% Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     class  (tensorRank2Dimension3Symmetric), intent(inout) :: self
     integer                                , intent(in   ) :: fileHandle
@@ -411,14 +407,14 @@ contains
          &         )
     return
   end function Tensor_R2_D3_Sym_Is_Zero
-  
+
   function Tensor_R2_D3_Sym_Add(tensor1,tensor2)
     !% Add two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
     implicit none
     type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Add
     class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
     class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
-    
+
     Tensor_R2_D3_Sym_Add%x00=tensor1%x00
     Tensor_R2_D3_Sym_Add%x01=tensor1%x01
     Tensor_R2_D3_Sym_Add%x02=tensor1%x02
@@ -524,7 +520,7 @@ contains
     type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Divide
     class           (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
     double precision                                , intent(in   ) :: divisor
- 
+
     Tensor_R2_D3_Sym_Scalar_Divide%x00=tensor1%x00/divisor
     Tensor_R2_D3_Sym_Scalar_Divide%x01=tensor1%x01/divisor
     Tensor_R2_D3_Sym_Scalar_Divide%x02=tensor1%x02/divisor
@@ -600,11 +596,11 @@ contains
 
   subroutine Tensor_R2_D3_Sym_From_Matrix(self,matrix)
     !% Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout)                 :: self
     double precision                     , intent(in   ), dimension(3,3) :: matrix
-    
+
     ! Test for symmetry
     if     (                            &
          &   matrix(1,2) /= matrix(2,1) &
@@ -643,11 +639,11 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Assign_To(tensor,matrix)
     !% Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout)                 :: tensor
     double precision                     , intent(in   ), dimension(3,3) :: matrix
-    
+
     call tensor%fromMatrix(matrix)
     return
   end subroutine Tensor_R2_D3_Sym_Assign_To
@@ -704,9 +700,9 @@ contains
     integer(c_size_t                      )                :: Tensor_R2_D3_Sym_Non_Static_Size_Of
     class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
     !GCC$ attributes unused :: self
-    
+
     Tensor_R2_D3_Sym_Non_Static_Size_Of=0_c_size_t
     return
   end function Tensor_R2_D3_Sym_Non_Static_Size_Of
-  
+
 end module Tensors

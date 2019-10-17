@@ -21,12 +21,12 @@
 
 module Stellar_Population_Luminosities
   !% Implements calculations of stellar population luminosities in the AB magnitude system.
+  use            :: Abundances_Structure                  , only : abundances
+  use            :: FGSL                                  , only : FGSL_Integ_Gauss15                        , fgsl_function, fgsl_integration_workspace, fgsl_interp_accel
   use, intrinsic :: ISO_C_Binding
-  use            :: FGSL                                  , only : fgsl_interp_accel, fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
-  use            :: Abundances_Structure
   use            :: ISO_Varying_String
-  use            :: Locks
-  use            :: Stellar_Population_Spectra_Postprocess
+  use            :: Locks                                 , only : ompReadWriteLock
+  use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
   implicit none
   private
   public :: Stellar_Population_Luminosity, Stellar_Population_Luminosity_Track
@@ -64,33 +64,35 @@ module Stellar_Population_Luminosities
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
   type            (varying_string )                            :: stellarPopulationLuminosityStoreDirectory
-  
+
   ! Option controlling behavior when maximum age of stellar populations is exceeded.
   logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
 
   ! Read/write lock used to control access to luminosity tables.
   type            (ompReadWriteLock)                           :: luminosityTableLock
- 
+
 contains
 
   subroutine Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     !% Tabulate stellar population luminosity in the given filters.
+    use            :: Abundances_Structure                  , only : logMetallicityZero           , metallicityTypeLogarithmicByMassSolar
+    use            :: File_Utilities                        , only : File_Exists                  , File_Lock                            , File_Lock_Initialize     , File_Unlock                , &
+         &                                                           lockDescriptor
+    use            :: Galacticus_Display                    , only : Galacticus_Display_Counter   , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                                           verbosityWorking
+    use            :: Galacticus_Error                      , only : Galacticus_Error_Report      , Galacticus_Warn                      , errorStatusFail          , errorStatusSuccess
+    use            :: Galacticus_Paths                      , only : galacticusPath               , pathTypeDataDynamic
+    use            :: IO_HDF5                               , only : hdf5Access                   , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Constants_Astronomical
-    use            :: File_Utilities
-    use            :: IO_HDF5
-    use            :: String_Handling
-    use            :: Input_Parameters
-    use            :: Galacticus_Paths
-    use            :: Galacticus_Display
-    use            :: Galacticus_Error
-    use            :: Instruments_Filters
-    use            :: Numerical_Integration
-    use            :: Memory_Management
-    use            :: Stellar_Populations
-    use            :: Stellar_Population_Spectra
-    use            :: Input_Parameters
-    use            :: String_Handling
+    use            :: Input_Parameters                      , only : globalParameters             , inputParameter                       , inputParameters
+    use            :: Instruments_Filters                   , only : Filter_Extent                , Filter_Name
+    use            :: Memory_Management                     , only : Memory_Usage_Record          , allocateArray                        , deallocateArray
+    use            :: Numerical_Constants_Astronomical      , only : metallicitySolar
+    use            :: Numerical_Integration                 , only : Integrate                    , Integrate_Done
+    use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
+    use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
+    use            :: Stellar_Populations                   , only : stellarPopulationClass
+    use            :: String_Handling                       , only : operator(//)
     implicit none
     integer                                                     , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
     double precision                                            , intent(in   ), dimension(:    ) :: redshift
@@ -180,7 +182,7 @@ contains
 
     ! Obtain a read lock on the luminosity tables.
     call luminosityTableLock%setRead()
-    
+
     ! Allocate table storage. First test if the tables must be resized (or allocated).
     populationID=stellarPopulation_%uniqueID()
     if (.not.allocated(luminosityTables).or.size(luminosityTables) < populationID) then
@@ -204,12 +206,12 @@ contains
        call luminosityTableLock%unsetWrite(haveReadLock=.true.)
     end if
     ! Determine if we have tabulated luminosities for this luminosityIndex in this population yet.
-    luminosityIndexMaximum=maxval(luminosityIndex)    
+    luminosityIndexMaximum=maxval(luminosityIndex)
     if (.not.allocated(luminosityTables(populationID)%isTabulated) .or. luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
        ! Tabulation is required. Obtain a write lock on the luminosity tables and then retest if tabulation is required (as
        ! another thread may have tabulated while we waited for the write lock).
        call luminosityTableLock%setWrite(haveReadLock=.true.)
-       luminosityIndexMaximum=maxval(luminosityIndex)    
+       luminosityIndexMaximum=maxval(luminosityIndex)
        if (.not.allocated(luminosityTables(populationID)%isTabulated) .or. luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
           call File_Lock_Initialize(lockFileDescriptor)
           stellarPopulationSpectra_                      => stellarPopulation_%spectra()
@@ -308,7 +310,7 @@ contains
                         &  " of "                                                                                      // &
                         &  size(luminosityIndex)
                    call Galacticus_Display_Indent (message,verbosityWorking)
-                   call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
+                   call Galacticus_Display_Counter(0,.true.,verbosityWorking)
                    ! Get wavelength extent of the filter.
                    wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
                    ! Integrate over the wavelength range.
@@ -432,11 +434,11 @@ contains
 
     double precision function Filter_Luminosity_Integrand(wavelength)
       !% Integrand for the luminosity through a given filter.
-      use Instruments_Filters
+      use :: Instruments_Filters, only : Filter_Response
       implicit none
       double precision, intent(in   ) :: wavelength
       double precision                :: wavelengthRedshifted
-      
+
       ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
       ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
       ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
@@ -451,30 +453,32 @@ contains
            &                      /                                                                                          wavelength
       return
     end function Filter_Luminosity_Integrand
-    
+
     double precision function Filter_Luminosity_Integrand_AB(wavelength)
       !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-      use Instruments_Filters
-      use Numerical_Constants_Astronomical
+      use :: Instruments_Filters             , only : Filter_Response
+      use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
       ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
-      
+
       Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
       return
     end function Filter_Luminosity_Integrand_AB
-    
+
   end subroutine Stellar_Population_Luminosity_Tabulate
-  
+
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}.
+    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar, Abundances_Get_Metallicity
+    use            :: Galacticus_Error                      , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: Numerical_Interpolation
-    use            :: Stellar_Populations
+    use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
+    use            :: Stellar_Populations                   , only : stellarPopulationClass
+    use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
     implicit none
     integer                                                    , dimension( :                   ), intent(in   ) :: filterIndex                           , luminosityIndex
     double precision                                           , dimension( :                   ), intent(in   ) :: age                                   , redshift
@@ -487,7 +491,7 @@ contains
          &                                                                                                          iLuminosityStart                      , iLuminosityEnd , &
          &                                                                                                          populationID
     double precision                                                                                             :: metallicity
-    
+
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     ! Obtain a read lock on the luminosity tables.
@@ -505,14 +509,14 @@ contains
        iMetallicity=Interpolate_Locate                 (luminosityTables(populationID)%metallicity,luminosityTables(populationID)%interpolationAcceleratorMetallicity,metallicity,luminosityTables(populationID)%resetMetallicity)
        hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(populationID)%metallicity,iMetallicity                                                      ,metallicity                                                )
     end if
-    ! Do the interpolations.  
+    ! Do the interpolations.
     iLuminosityStart=0
     do while (iLuminosityStart < size(luminosityIndex))
        iLuminosityStart=iLuminosityStart+1
        ! Find all contiguous luminosities at this age.
        iLuminosityEnd=iLuminosityStart
        do while (age(iLuminosityEnd) == age(iLuminosityStart) .or. (age(iLuminosityStart) < 0.0d0 .and. age(iLuminosityEnd) < 0.0d0))
-          iLuminosityEnd=iLuminosityEnd+1                       
+          iLuminosityEnd=iLuminosityEnd+1
           if (iLuminosityEnd > size(luminosityIndex)) exit
        end do
        iLuminosityEnd=iLuminosityEnd-1
@@ -546,16 +550,17 @@ contains
     Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
     return
   end function Stellar_Population_Luminosity
-  
+
   subroutine Stellar_Population_Luminosity_Track(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,redshift,ages,luminosities)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from
     !% the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}, for all available ages.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: Memory_Management
-    use            :: Numerical_Interpolation
-    use            :: Stellar_Populations
+    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar, Abundances_Get_Metallicity
+    use            :: Memory_Management                     , only : allocateArray
+    use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
+    use            :: Stellar_Populations                   , only : stellarPopulationClass
+    use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
     implicit none
     integer                                                    , intent(in   ), dimension( :   )              :: filterIndex                           , luminosityIndex
     double precision                                           , intent(in   ), dimension( :   )              :: redshift
@@ -607,5 +612,5 @@ contains
     luminosities=max(luminosities,0.0d0)
     return
   end subroutine Stellar_Population_Luminosity_Track
-    
+
 end module Stellar_Population_Luminosities

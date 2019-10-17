@@ -19,10 +19,12 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
   !% fitting function.
-  
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Cosmological_Density_Field
+
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOEinasto
+  use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
   !#  <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
@@ -43,9 +45,9 @@
      type (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
      type (darkMatterProfileDMOEinasto  ), pointer :: darkMatterProfileDMODefinition_  => null()
    contains
-     final     ::                                ludlow2016FitDestructor
-     procedure :: concentration               => ludlow2016FitConcentration
-     procedure :: densityContrastDefinition   => ludlow2016FitDensityContrastDefinition
+     final     ::                                   ludlow2016FitDestructor
+     procedure :: concentration                  => ludlow2016FitConcentration
+     procedure :: densityContrastDefinition      => ludlow2016FitDensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => ludlow2016FitDarkMatterProfileDefinition
   end type darkMatterProfileConcentrationLudlow2016Fit
 
@@ -59,12 +61,12 @@ contains
 
   function ludlow2016FitConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationLudlow2016Fit)                :: self
     type (inputParameters                            ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                    ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass                   ), pointer       :: cosmologyParameters_     
+    class(cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
     class(cosmologicalMassVarianceClass              ), pointer       :: cosmologicalMassVariance_
 
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -80,11 +82,12 @@ contains
 
   function ludlow2016FitConstructorInternal(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
-    use Dark_Matter_Halo_Scales
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type (darkMatterProfileConcentrationLudlow2016Fit       )                         :: self
     class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
-    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_     
+    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class(cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
@@ -115,8 +118,8 @@ contains
   double precision function ludlow2016FitConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{ludlow_mass-concentration-redshift_2016} fitting function.
-    use Galacticus_Error
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
@@ -126,7 +129,7 @@ contains
          &                                                                                   c0                                          , beta           , &
          &                                                                                   gamma1                                      , gamma2         , &
          &                                                                                   nu0
-    
+
     basic           =>  node                          %basic          (                                                       )
     peakHeight      =  +criticalOverdensitySphericalCollapse    &
          &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
@@ -155,7 +158,7 @@ contains
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: ludlow2016FitDensityContrastDefinition
     class(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
-    
+
     ludlow2016FitDensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function ludlow2016FitDensityContrastDefinition

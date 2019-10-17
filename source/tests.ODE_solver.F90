@@ -21,11 +21,11 @@
 
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
-  use Unit_Tests
-  use FGSL                     , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system
-  use ODE_Solver
-  use Test_ODE_Solver_Functions
-  use Galacticus_Display
+  use :: FGSL                     , only : fgsl_odeiv_control            , fgsl_odeiv_evolve     , fgsl_odeiv_step     , fgsl_odeiv_system
+  use :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ODE_Solver               , only : ODE_Solve                     , ODE_Solver_Free
+  use :: Test_ODE_Solver_Functions, only : ODE_Set_1                     , ODE_Set_2
+  use :: Unit_Tests               , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                    , dimension(10) :: xEnd
   double precision                    , dimension( 2) :: y

@@ -33,27 +33,27 @@
      !% Constructors for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class.
      module procedure meiksin2006ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMeiksin2006
-    
+
 contains
 
   function meiksin2006ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorMeiksin2006)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarPopulationSpectraPostprocessorMeiksin2006()
     return
   end function meiksin2006ConstructorParameters
-  
+
   double precision function meiksin2006Multiplier(self,wavelength,age,redshift)
     !% Suppress the Lyman continuum in a spectrum.
-    use Numerical_Constants_Atomic
-    use Factorials
-    use Gamma_Functions
+    use :: Factorials                , only : Factorial
+    use :: Gamma_Functions           , only : Gamma_Function_Logarithmic
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class           (stellarPopulationSpectraPostprocessorMeiksin2006), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age                                    , redshift           , &
@@ -68,7 +68,7 @@ contains
          &                                                                               seriesSolutionTermA                    , seriesSolutionTermB, &
          &                                                                               wavelengthObservedLymanContinuum
     !GCC$ attributes unused :: self, age
-    
+
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.
@@ -144,4 +144,4 @@ contains
     end if
     return
   end function meiksin2006Multiplier
-  
+

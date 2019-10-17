@@ -21,7 +21,6 @@
 
 module Galactic_Structure_Surface_Densities
   !% Implements calculations of the surface density at a specific position.
-  use Galactic_Structure_Options
   implicit none
   private
   public :: Galactic_Structure_Surface_Density
@@ -36,9 +35,12 @@ contains
   double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
-    use Galacticus_Error
-    use Coordinate_Systems
-    use Galacticus_Nodes  , only : treeNode, optimizeforsurfacedensitysummation, reductionsummation
+    use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation       , reductionsummation, &
+          &                                   treeNode
+    use :: Galactic_Structure_Options, only : massTypeAll                         , weightByMass                        , weightIndexNull          , componentTypeAll  , &
+         &                                    coordinateSystemSpherical           , coordinateSystemCylindrical         , coordinateSystemCartesian
     implicit none
     type            (treeNode                 ), intent(inout)           :: thisNode
     integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &
@@ -94,7 +96,7 @@ contains
 
   double precision function Component_Surface_Density(component)
     !% Unary function returning the surface density in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent
+    use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

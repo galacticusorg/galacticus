@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution.
 
-  use Merger_Trees_Build_Masses_Distributions
+  use :: Merger_Trees_Build_Masses_Distributions, only : mergerTreeBuildMassDistributionClass
 
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
   !#  <description>A merger tree masses class which samples masses from a distribution.</description>
@@ -54,15 +54,15 @@
   interface mergerTreeBuildMassesSampledDistribution
      module procedure sampledDistributionConstructorParameters
   end interface mergerTreeBuildMassesSampledDistribution
-  
+
 contains
-  
+
   function sampledDistributionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
     !% input.
-    use Input_Parameters
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Input_Parameters  , only : inputParameter            , inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -119,18 +119,18 @@ contains
     !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
     return
   end subroutine sampledDistributionDestructor
-  
+
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
+    use            :: FGSL                   , only : fgsl_function          , fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management
-    use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
-    use            :: Numerical_Integration
-    use            :: Numerical_Interpolation
-    use            :: Numerical_Ranges
-    use            :: Sort
-    use            :: Table_Labels
-    use            :: Galacticus_Error
+    use            :: Memory_Management      , only : allocateArray          , deallocateArray
+    use            :: Numerical_Integration  , only : Integrate              , Integrate_Done
+    use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done
+    use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
+    use            :: Sort                   , only : Sort_Do
+    use            :: Table_Labels           , only : extrapolationTypeFix
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)                            :: self
     double precision                                          , intent(in   )                            :: time
@@ -151,7 +151,7 @@ contains
     logical                                                                                              :: integrandReset                       , interpolationReset                       , &
          &                                                                                                  monotonize
     !GCC$ attributes unused :: weight
-    
+
     ! Generate a randomly sampled set of halo masses.
     treeCount=max(2_c_size_t,int(log10(self%massTreeMaximum/self%massTreeMinimum)*self%treesPerDecade,kind=c_size_t))
     call allocateArray(mass       ,[treeCount])
@@ -260,14 +260,14 @@ contains
     call deallocateArray(massFunctionSampleProbability     )
     call deallocateArray(massFunctionSampleLogMassMonotonic)
     return
-    
+
   contains
-    
+
     double precision function distributionIntegrand(logMass)
       !% The integrand over the mass function sampling density function.
       implicit none
       double precision, intent(in   ) :: logMass
-      
+
       distributionIntegrand=self%mergerTreeBuildMassDistribution_%sample(10.0d0**logMass,time,self%massTreeMinimum,self%massTreeMaximum)
       return
     end function distributionIntegrand
@@ -276,7 +276,7 @@ contains
 
   subroutine sampledDistributionCMF(self,x)
     !% Stub function for cumulative mass function.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
     double precision                                          , intent(  out), dimension(:) :: x
@@ -285,4 +285,4 @@ contains
     call Galacticus_Error_Report('attempt to call function in abstract type'//{introspection:location})
     return
   end subroutine sampledDistributionCMF
-  
+

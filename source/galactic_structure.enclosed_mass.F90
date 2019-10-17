@@ -21,8 +21,7 @@
 
 module Galactic_Structure_Enclosed_Masses
   !% Implements calculations of the mass enclosed within a specified radius.
-  use Galactic_Structure_Options
-  use Galacticus_Nodes          , only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass, Galactic_Structure_Radius_Enclosing_Density
@@ -33,13 +32,14 @@ module Galactic_Structure_Enclosed_Masses
   double precision                    :: massRoot           , radiusShared  , densityRoot
   type            (treeNode), pointer :: activeNode
   !$omp threadprivate(massRoot,densityRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,activeNode)
-  
+
 contains
 
   double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
-    use Galacticus_Nodes, only : optimizeForEnclosedMassSummation, reductionSummation
+    use :: Galacticus_Nodes          , only : optimizeForEnclosedMassSummation, reductionSummation, treeNode
+    use :: Galactic_Structure_Options, only : radiusLarge
     !# <include directive="enclosedMassTask" type="moduleUse">
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
@@ -73,14 +73,15 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
-    use Galacticus_Error
-    use Root_Finder
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
-    use Kind_Numbers               , only : kind_int8
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
+    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale       , darkMatterHaloScaleClass
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile         , darkMatterProfileClass
+    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Kind_Numbers              , only : kind_int8
+    use :: Root_Finder               , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: String_Handling           , only : operator(//)
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
     integer                                   , intent(in   ), optional :: componentType                        , massType   , &
@@ -162,14 +163,12 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily thisNode}.
-    use Galacticus_Error
-    use Root_Finder
-    use Dark_Matter_Halo_Scales
-    use Cosmology_Functions
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Nodes       , only : nodeComponentBasic
+    use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes       , only : nodeComponentBasic       , treeNode
+    use :: ISO_Varying_String
+    use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
     integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
@@ -219,7 +218,8 @@ contains
 
   subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     !% Set the default values for options in the enclosed mass functions.
-    use Galacticus_Error
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Galactic_Structure_Options, only : weightByLuminosity     , weightByMass, massTypeAll, componentTypeAll
     implicit none
     integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex
 
@@ -261,7 +261,7 @@ contains
 
   double precision function Enclosed_Density_Root(radius)
     !% Root function used in solving for the radius that encloses a given density.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
@@ -270,7 +270,7 @@ contains
 
   double precision function Component_Enclosed_Mass(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent
+    use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

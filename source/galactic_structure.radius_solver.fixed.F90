@@ -19,9 +19,9 @@
 
   !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
   !% proportion to specific angular momentum).
-  
-  use Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverFixed">
   !#  <description>A ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
@@ -58,11 +58,11 @@
   !# </enumeration>
 
 contains
-  
+
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} galactic structure solver class which takes a
     !% parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticStructureSolverFixed)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -70,7 +70,7 @@ contains
     class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
     double precision                                              :: factor
     type            (varying_string              )                :: radiusFixed
-    
+
     !# <inputParameter>
     !#   <name>factor</name>
     !#   <cardinality>1</cardinality>
@@ -99,8 +99,8 @@ contains
 
   function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
-    use Galacticus_Nodes, only : defaultBasicComponent
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
@@ -127,7 +127,8 @@ contains
 
   subroutine fixedAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
+          &                     satelliteMergerEvent
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
 
@@ -140,7 +141,7 @@ contains
 
   subroutine fixedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverFixed), intent(inout) :: self
 
@@ -155,7 +156,7 @@ contains
 
   subroutine fixedSolveHook(self,node)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -168,10 +169,10 @@ contains
     end select
     return
   end subroutine fixedSolveHook
-  
+
   subroutine fixedSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -186,7 +187,7 @@ contains
     end select
     return
   end subroutine fixedSolvePreDeriativeHook
-  
+
   subroutine fixedSolve(self,node)
     !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     !% proportion to specific angular momentum.
@@ -210,10 +211,10 @@ contains
     return
 
   contains
-    
+
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !% Solve for the equilibrium radius of the given component.
-      use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic
+      use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
       implicit none
       type            (treeNode          ), intent(inout)          :: node
       double precision                    , intent(in   )          :: specificAngularMomentum
@@ -237,7 +238,7 @@ contains
       end select
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )
-      call velocitySet(node,velocity)    
+      call velocitySet(node,velocity)
       return
     end subroutine radiusSolve
 

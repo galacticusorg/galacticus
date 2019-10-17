@@ -21,11 +21,11 @@
 
 program Test_Perfect_Hashes
   !% Tests perfect hashing algorithms.
-  use Unit_Tests
-  use Hashes_Perfect
-  use Kind_Numbers
-  use Galacticus_Display
-  use Memory_Management
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Hashes_Perfect    , only : hashPerfect
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Memory_Management , only : allocateArray
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                , parameter                        :: keyCount   =11
   integer(kind=kind_int8)                                   :: i

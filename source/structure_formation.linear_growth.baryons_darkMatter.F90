@@ -16,11 +16,11 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
   !% of radiation perturbations.
 
-  use Tables                    , only : table1D
+  use Tables                    , only : table2DLogLogLin
   use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
   use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
@@ -101,11 +101,11 @@
   ! Reference wavenumber used when no wavenumber is specified. Small enough that it should be into the regime where baryon
   ! suppression is negligible, but large enough to avoid the BAO region.
   double precision                               , parameter               :: baryonsDarkMatterWavenumberReference      =1.0d+0
-  
+
   ! Indices of tables for baryons and dark matter.
   integer                                        , parameter               :: baryonsDarkMatterDarkMatter               =1
   integer                                        , parameter               :: baryonsDarkMatterBaryons                  =2
-  
+
   ! Lock used for file access.
   type            (lockDescriptor               )                          :: baryonsDarkMatterFileLock
   logical                                                                  :: baryonsDarkMatterFileLockInitialized      =.false.
@@ -120,11 +120,11 @@ contains
 
   function baryonsDarkMatterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
-    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     double precision                                               :: redshiftInitial          , redshiftInitialDelta
@@ -174,7 +174,7 @@ contains
     type            (linearGrowthBaryonsDarkMatter)                           :: self
     double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
     integer                                                   , intent(in   ) :: cambCountPerDecade
-    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
     double precision                                                          :: timeBigCrunch            , timeNow
@@ -212,7 +212,7 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
-    ! Initialize file lock.    
+    ! Initialize file lock.
     if (.not.baryonsDarkMatterFileLockInitialized) then
        !$omp critical(baryonsDarkMatterFileLockInitialize)
        if (.not.baryonsDarkMatterFileLockInitialized) then
@@ -228,7 +228,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
     implicit none
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%intergalacticMediumState_"       />
@@ -262,14 +262,14 @@ contains
          &                                                                      timeNow                                  , linearGrowthFactorPresent                    , &
          &                                                                      timePresent                              , timeBigCrunch                                , &
          &                                                                      wavenumberLogarithmic
-    integer                                                                  :: growthTableNumberPoints    
+    integer                                                                  :: growthTableNumberPoints
     type            (fodeiv2_system               )                          :: ode2System
     type            (fodeiv2_driver               )                          :: ode2Driver
     logical                                                                  :: odeReset
     type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
     !$ integer      (omp_lock_kind                )                          :: lockBaryons                              , lockDarkMatter
-    
+
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
@@ -307,7 +307,7 @@ contains
        call transferFunctionBaryons   %destroy()
        call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,lockFileGlobally=.true.,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
        ! Determine number of points to tabulate.
-       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))       
+       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))
        ! Destroy current table.
        call self%growthFactor%destroy()
        ! Create table.
@@ -357,7 +357,7 @@ contains
              call self%growthFactor%populate(growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
              call self%growthFactor%populate(growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
              growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
-             growthFactorDerivativeBaryons   =growthFactorODEVariables(4) 
+             growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
           end do
        end do
        !$omp end do
@@ -382,9 +382,9 @@ contains
        call File_Unlock(baryonsDarkMatterFileLock)
     end if
     return
-    
+
   contains
-    
+
     integer function growthFactorODEs(time,values,derivatives)
       !% System of differential equations to solve for the growth factor.
       use Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -479,7 +479,7 @@ contains
     double precision                                                         :: time_     , wavenumber_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -491,7 +491,7 @@ contains
        wavenumber_=baryonsDarkMatterWavenumberReference
     end if
     ! Interpolate to get the expansion factor.
-    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)    
+    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)
     ! Normalize.
     select case (normalize_)
     case (normalizeMatterDominated)
@@ -508,12 +508,12 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
     logical                                        , intent(in   ), optional :: collapsing
-    integer                                        , intent(in   ), optional :: component 
+    integer                                        , intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
     !GCC$ attributes unused :: component
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     ! Remake the table if necessary.
@@ -537,12 +537,12 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
     logical                                        , intent(in   ), optional :: collapsing
-    integer                                        , intent(in   ), optional :: component 
+    integer                                        , intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
     !GCC$ attributes unused :: component
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     ! Remake the table if necessary.
@@ -564,9 +564,9 @@ contains
     !% Return true indicating that the growth function is wavenumber-dependent.
     implicit none
     class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
-    integer                               , intent(in   ), optional :: component 
+    integer                               , intent(in   ), optional :: component
     !GCC$ attributes unused :: self, component
-    
+
     baryonsDarkMatterIsWavenumberDependent=.true.
     return
   end function baryonsDarkMatterIsWavenumberDependent
@@ -624,7 +624,7 @@ contains
     self%tableInitialized=.true.
     return
   end subroutine baryonsDarkMatterFileRead
-  
+
   subroutine baryonsDarkMatterFileWrite(self)
     !% Write tabulated data on linear growth factor to file.
     use HDF5              , only : hsize_t

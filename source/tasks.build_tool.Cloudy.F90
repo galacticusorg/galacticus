@@ -37,21 +37,21 @@ contains
 
   function buildToolCloudyParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCloudy)                :: self
     type(inputParameters    ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskBuildToolCloudy()
     return
   end function buildToolCloudyParameters
 
   subroutine buildToolCloudyPerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Error  , only : errorStatusSuccess
-    use Galacticus_Display
-    use Interfaces_Cloudy
+    use :: Galacticus_Display, only : Galacticus_Display_Indent  , Galacticus_Display_Unindent, Galacticus_Display_Message
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
     implicit none
     class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
@@ -60,7 +60,7 @@ contains
 
     call Galacticus_Display_Indent  ('Begin task: Cloudy tool build')
     call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
-    call Galacticus_DisplaY_Message('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
+    call Galacticus_Display_Message('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: Cloudy tool build')
     return
@@ -69,7 +69,7 @@ contains
   logical function buildToolCloudyRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskBuildToolCloudy), intent(inout) :: self    
+    class(taskBuildToolCloudy), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     buildToolCloudyRequiresOutputFile=.false.

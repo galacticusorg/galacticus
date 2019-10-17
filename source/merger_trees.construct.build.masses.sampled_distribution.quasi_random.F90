@@ -34,13 +34,13 @@
      module procedure sampledDistributionQuasiRandomConstructorParameters
      module procedure sampledDistributionQuasiRandomConstructorInternal
   end interface mergerTreeBuildMassesSampledDistributionQuasiRandom
-  
+
 contains
 
   function sampledDistributionQuasiRandomConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom)                :: self
     type(inputParameters                                    ), intent(inout) :: parameters
@@ -65,16 +65,16 @@ contains
     !% Destructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
     return
   end subroutine sampledDistributionQuasiRandomDestructor
-  
+
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
     !% Generate a quasiRandom sample of points from the merger tree mass distribution.
+    use            :: FGSL         , only : fgsl_qrng
     use, intrinsic :: ISO_C_Binding
-    use               FGSL         , only : fgsl_qrng
-    use               Quasi_Random
+    use            :: Quasi_Random , only : Quasi_Random_Free, Quasi_Random_Get
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout)               :: self
     double precision                                                     , intent(  out), dimension(:) :: x

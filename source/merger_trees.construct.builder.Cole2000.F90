@@ -19,11 +19,11 @@
 
   !% An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
 
-  use Merger_Trees_Build_Mass_Resolution
-  use Cosmology_Functions
-  use Statistics_Distributions
-  use Cosmological_Density_Field
-  use Merger_Tree_Branching
+  use :: Cosmological_Density_Field        , only : criticalOverdensityClass                 , cosmologicalMassVarianceClass
+  use :: Cosmology_Functions               , only : cosmologyFunctionsClass
+  use :: Merger_Tree_Branching             , only : mergerTreeBranchingProbabilityClass
+  use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
+  use :: Statistics_Distributions          , only : distributionFunction1DNegativeExponential
 
   !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
   !#  <description>Merger trees are built using the algorithm of \cite{cole_hierarchical_2000}.</description>
@@ -90,13 +90,13 @@
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
   end interface mergerTreeBuilderCole2000
-  
+
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
     implicit none
-    type            (mergerTreeBuilderCole2000          )                :: self    
+    type            (mergerTreeBuilderCole2000          )                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (mergerTreeMassResolutionClass      ), pointer       :: mergerTreeMassResolution_
@@ -186,7 +186,7 @@ contains
 
   function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBuilderCole2000          )                        :: self
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
@@ -226,13 +226,13 @@ contains
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
-    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic
-    use Galacticus_Error
-    use Merger_Tree_Walkers
-    use Pseudo_Random
-    use Kind_Numbers
-    use ISO_Varying_String
-    use Numerical_Comparison
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes     , only : mergerTree                   , nodeComponentBasic              , treeNode
+    use :: ISO_Varying_String
+    use :: Kind_Numbers         , only : kind_int8
+    use :: Merger_Tree_Branching, only : mergerTreeBranchingBoundLower, mergerTreeBranchingBoundUpper
+    use :: Merger_Tree_Walkers  , only : mergerTreeWalkerIsolatedNodes, mergerTreeWalkerTreeConstruction
+    use :: Numerical_Comparison , only : Values_Agree
     implicit none
     class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
     type            (mergerTree                      ), intent(inout), target :: tree
@@ -257,7 +257,7 @@ contains
          &                                                                       snapEarliestTime
     type            (varying_string                  )                        :: message
     character       (len=20                          )                        :: label
-    
+
     ! Begin construction.
     nodeIndex =  1               ! Initialize the node index counter to unity.
     node      => tree%baseNode   ! Point to the base node.
@@ -294,10 +294,10 @@ contains
        accretionFractionCumulative =  0.0d0
        branchMassCurrent           =  basic%mass ()
        branchDeltaCriticalCurrent  =  basic%time ()
-       ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
+       ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.
        branchIsDone                =  .false.
        do while (.not.branchIsDone)
-          ! Get the growth factor in the root variance at the mass of the current branch.          
+          ! Get the growth factor in the root variance at the mass of the current branch.
           time                    =+self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=     branchDeltaCriticalCurrent,mass=branchMassCurrent,node=node)
           rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance  (time               =     time                      ,mass=branchMassCurrent          ) &
                &                   /self%cosmologicalMassVariance_%rootVariance  (time               =self%timeNow                   ,mass=branchMassCurrent          )
@@ -353,7 +353,7 @@ contains
                 if (collapseTimeTruncate > collapseTime*(1.0d0+toleranceTime)) then
                    call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else
-                   do while (collapseTimeTruncate > collapseTime*(1.0d0-toleranceTime)) 
+                   do while (collapseTimeTruncate > collapseTime*(1.0d0-toleranceTime))
                       deltaCritical1      =deltaCritical1*(1.0d0+toleranceTime)
                       collapseTimeTruncate=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1,mass=nodeMass1,node=nodeNew1)
                    end do
@@ -473,7 +473,7 @@ contains
                                  &               *rootVarianceGrowthFactor
                             doBranch=(uniformRandom <= branchingProbability)
                          end if
-                         ! First convert the realized probability back to a rate.               
+                         ! First convert the realized probability back to a rate.
                          if (doBranch) branchingProbability=uniformRandom/deltaW
                       end if
                    else
@@ -576,7 +576,7 @@ contains
     call basic%timeSet(baseNodeTime)
     ! Check for well-ordering in time.
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
-    do while (treeWalkerIsolated%next(node))       
+    do while (treeWalkerIsolated%next(node))
        if (associated(node%parent)) then
           basic       => node       %basic()
           basicParent => node%parent%basic()
@@ -633,15 +633,15 @@ contains
     class(mergerTreeBuilderCole2000), intent(inout) :: self
     type (mergerTree               ), intent(in   ) :: tree
     !GCC$ attributes unused :: self, tree
-    
+
     cole2000ShouldAbort=.false.
     return
   end function cole2000ShouldAbort
-  
+
   logical function cole2000ShouldFollowBranch(self,tree,node)
     !% Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
     !% \ttfamily cole2000} tree builder we always continue.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : mergerTree, treeNode
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout)          :: self
     type (mergerTree               ), intent(in   )          :: tree
@@ -651,7 +651,7 @@ contains
     cole2000ShouldFollowBranch=.true.
     return
   end function cole2000ShouldFollowBranch
-  
+
   subroutine cole2000TimeEarliestSet(self,timeEarliest)
     !% Set the earliest time for the tree builder.
     implicit none
@@ -676,17 +676,17 @@ contains
          &                              self%cosmologicalMassVariance_%growthIsMassDependent()
     return
   end subroutine cole2000CriticalOverdensitySet
-  
+
   double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew)
     !% Update the critical overdensity for a new node, given that of the parent,
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout) :: self
     double precision                           , intent(in   ) :: massCurrent  , massNew, &
          &                                                        deltaCritical
     type            (treeNode                 ), intent(inout) :: nodeNew
     double precision                                           :: time
-    
+
     if (self%timeParameterIsMassDependent) then
        ! Critical overdensity is mass-dependent, so convert current critical overdensity to a time at the mass of the parent, and
        ! then convert that time back to a critical overdensity at the mass of the new node.

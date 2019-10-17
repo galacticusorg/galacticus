@@ -21,15 +21,14 @@
 
 module Virial_Density_Contrast_Percolation_Utilities
   !% Provides utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
-  use Galacticus_Nodes                  , only : treeNode                                 , nodeComponentDarkMatterProfile
-  use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass  , &
-       &                                         darkMatterProfileScaleRadiusConcentration
-  use Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO                     , darkMatterProfileDMOClass
-  use Cosmology_Parameters              , only : cosmologyParameters                      , cosmologyParametersClass
-  use Cosmology_Functions               , only : cosmologyFunctions                       , cosmologyFunctionsClass
-  use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale                      , darkMatterHaloScaleClass
-  use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration           , darkMatterProfileConcentrationClass
-  use Dark_Matter_Profiles_Shape        , only : darkMatterProfileShape                   , darkMatterProfileShapeClass
+  use :: Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScale           , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius  , darkMatterProfileScaleRadiusClass  , darkMatterProfileScaleRadiusConcentration
+  use :: Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
+  use :: Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO          , darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_Shape        , only : darkMatterProfileShape        , darkMatterProfileShapeClass
+  use :: Galacticus_Nodes                  , only : nodeComponentDarkMatterProfile, treeNode
   private
   public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy
 
@@ -61,7 +60,7 @@ module Virial_Density_Contrast_Percolation_Utilities
    contains
      final :: percolationObjectsDestructor
   end type percolationObjects
-  
+
 contains
 
   !# <functionGlobal>
@@ -72,12 +71,12 @@ contains
   !# </functionGlobal>
   function Virial_Density_Contrast_Percolation_Objects_Constructor(parameters) result(self)
     !% Construct an instance of the container type for percolation virial density contrast objects from a parameter structure.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     class(*                         ), pointer               :: self
     type (percolationObjects        ), pointer               :: percolationObjects_
     type (inputParameters           ), intent(inout), target :: parameters
-    
+
     allocate(percolationObjects_)
     !# <objectBuilder class="darkMatterProfileDMO"           name="percolationObjects_%darkMatterProfileDMO_"           source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"            name="percolationObjects_%cosmologyParameters_"            source="parameters"/>
@@ -103,7 +102,7 @@ contains
     !# <objectDestructor name="self%darkMatterProfileShape_"        />
     return
   end subroutine percolationObjectsDestructor
-  
+
   !# <functionGlobal>
   !#  <unitName>percolationObjectsDeepCopy</unitName>
   !#  <type>void</type>
@@ -111,7 +110,7 @@ contains
   !# </functionGlobal>
   subroutine percolationObjectsDeepCopy(self,destination)
     !% Perform a deep copy of percolation virial density contrast objects.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*), intent(inout) :: self, destination
 
@@ -145,7 +144,7 @@ contains
     end select
     return
   end subroutine percolationObjectsDeepCopy
-  
+
   !# <functionGlobal>
   !#  <unitName>Virial_Density_Contrast_Percolation_Solver</unitName>
   !#  <type>double precision</type>
@@ -156,12 +155,12 @@ contains
   !# </functionGlobal>
   double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent,percolationObjects_,virialDensityContrast_)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
-    use Root_Finder                   , only : rootFinder                    , rangeExpandMultiplicative
-    use Galacticus_Error              , only : Galacticus_Error_Report
-    use Numerical_Constants_Math      , only : Pi
-    use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use Galacticus_Nodes              , only : nodeComponentBasic
-    use Virial_Density_Contrast       , only : virialDensityContrastClass
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
+    use :: Numerical_Constants_Math      , only : Pi
+    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
+    use :: Virial_Density_Contrast       , only : virialDensityContrastClass
     implicit none
     double precision                                     , intent(in   )               :: mass                                      , time, &
          &                                                                                linkingLength
@@ -264,7 +263,7 @@ contains
     call state(stateCount)%workNode%destroy()
     deallocate(state(stateCount)%workNode)
     !# <objectDestructor name="state(stateCount)%darkMatterProfileScaleRadius_"/>
-    ! Compute the corresponding density contrast.    
+    ! Compute the corresponding density contrast.
     Virial_Density_Contrast_Percolation_Solver=+3.0d0                                  &
          &                                     *mass                                   &
          &                                     /4.0d0                                  &
@@ -277,15 +276,15 @@ contains
     nullify(state(stateCount)%darkMatterProfileDMO_        )
     nullify(state(stateCount)%darkMatterProfileShape_      )
     nullify(state(stateCount)%darkMatterProfileScaleRadius_)
-    nullify(state(stateCount)%densityContrast              )  
+    nullify(state(stateCount)%densityContrast              )
     stateCount=stateCount-1
     return
   end function Virial_Density_Contrast_Percolation_Solver
 
   double precision function haloRadiusRootFunction(haloRadiusTrial)
     !% Root function used to find the radius of a halo giving the correct bounding density.
-    use Numerical_Constants_Math      , only : Pi
-    use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Numerical_Constants_Math      , only : Pi
     implicit none
     double precision, intent(in   ) :: haloRadiusTrial
     double precision                :: scaleRadius            , densityHaloRadius

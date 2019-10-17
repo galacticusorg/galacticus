@@ -21,11 +21,11 @@
 
 module Intergalactic_Medium_State
   !% Provides a class for calculations of the intergalactic medium thermal and ionization state.
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-  use Tables
+  use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use :: Tables              , only : table              , table1D                 , table1DLogarithmicLinear
   private
-  
+
   !# <functionClass>
   !#  <name>intergalacticMediumState</name>
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
@@ -180,11 +180,11 @@ module Intergalactic_Medium_State
   !# </functionClass>
 
 contains
-  
+
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
-    use Numerical_Integration
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
@@ -252,13 +252,15 @@ contains
        self%electronScatteringTableInitialized=.true.
     end if
     return
-    
+
   contains
 
     double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
       !% Integrand for electron scattering optical depth calculations.
-      use Numerical_Constants_Physical
-      use Numerical_Constants_Astronomical
+      use :: Numerical_Constants_Astronomical, only : gigaYear          , heliumByMassPrimordial, hydrogenByMassPrimordial, massSolar, &
+          &                                           megaParsec
+      use :: Numerical_Constants_Physical    , only : speedLight        , thomsonCrossSection
+      use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen, atomicMassHelium      , atomicMassUnit
       implicit none
       double precision, intent(in   ) :: time
       double precision                :: electronFraction, expansionFactor

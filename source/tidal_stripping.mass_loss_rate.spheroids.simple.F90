@@ -19,8 +19,8 @@
 
   !% Implementation of a simple tidal stripping of spheroids class.
 
-  use Satellites_Tidal_Fields, only : satelliteTidalFieldClass, satelliteTidalField
-  
+  use :: Satellites_Tidal_Fields, only : satelliteTidalField, satelliteTidalFieldClass
+
   !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsSimple">
   !#  <description>A simple model of tidal stripping in galactic spheroids.</description>
   !# </tidalStrippingSpheroids>
@@ -41,11 +41,11 @@
   end interface tidalStrippingSpheroidsSimple
 
 contains
-  
+
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} timescale for star formation feedback in spheroids class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (tidalStrippingSpheroidsSimple)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -74,7 +74,7 @@ contains
     double precision                               , intent(in   )         :: rateFractionalMaximum
     class           (satelliteTidalFieldClass     ), intent(in   ), target :: satelliteTidalField_
     !# <constructorAssign variables="rateFractionalMaximum, *satelliteTidalField_"/>
-    
+
     return
   end function simpleConstructorInternal
 
@@ -86,7 +86,7 @@ contains
     !# <objectDestructor name="self%satelliteTidalField_"/>
     return
   end subroutine simpleDestructor
-  
+
   double precision function simpleRateMassLoss(self,node)
     !% Computes the mass loss rate from spheroids due to tidal stripping assuming a simple model. Specifically, the mass loss
     !% rate is
@@ -102,12 +102,10 @@ contains
     !% F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
     !% is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$.
-    use Galactic_Structure_Options
-    use Galactic_Structure_Rotation_Curves
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                  , only : nodeComponentSpheroid
+    use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
+    use :: Galacticus_Nodes                  , only : nodeComponentSpheroid            , treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
+    use :: Numerical_Constants_Prefixes      , only : kilo
     implicit none
     class           (tidalStrippingSpheroidsSimple), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node

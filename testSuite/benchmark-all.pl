@@ -63,23 +63,20 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
     }
 }
 
-# Determine the current repo revision.
-my $repoRevisionNumber;
 my $repoRevisionHash;
-open(my $hg,"hg summary |");
-while ( my $line = <$hg> ) {
-    if ( $line =~ m/^parent:\s+(\d+):([0-9a-f]+)/ ) {
-	$repoRevisionNumber = $1;
-	$repoRevisionHash   = $2;
-    }
+open(my $gitHndl,"git rev-parse HEAD|");
+while ( my $line = <$gitHndl> ) {
+    $repoRevisionHash = $line;
+    chomp($repoRevisionHash);
 }
-close($hg);
+close($gitHndl);
 
 # Determine the current repo branch.
-open(my $hgBranch,"hg branch |");
-my $repoBranchName = <$hgBranch>;
+open(my $gitBranch,"git branch |");
+my $repoBranchName = <$gitBranch>;
 chomp($repoBranchName);
-close($hgBranch);
+$repoBranchName =~ s/^\*\s*//;
+close($gitBranch);
 
 # Array of benchmark results.
 my @benchmarks;
@@ -297,12 +294,11 @@ sub benchmarkRecord {
 	    if ( $line =~ m/^BENCHMARK\s+([a-zA-Z_]+)\s+"([^"]+)"\s+([\d\.]+)\s+([\d\.]+)\s+"([^"]+)"/ ) {
 		my $benchmark =
 		{
-		    label       => $1                 ,
-		    description => $2                 ,
-		    time        => $3                 ,
-		    uncertainty => $4                 ,
-		    units       => $5                 ,
-		    revision    => $repoRevisionNumber,
+		    label       => $1               ,
+		    description => $2               ,
+		    time        => $3               ,
+		    uncertainty => $4               ,
+		    units       => $5               ,
 		    hash        => $repoRevisionHash
 		};
 		push(@benchmarks,$benchmark);

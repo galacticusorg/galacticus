@@ -19,7 +19,7 @@
 
   !% An implementation of truncated dark matter halo profiles.
 
-  use Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
   !#  <description>truncated dark matter halo profiles.</description>
@@ -85,7 +85,7 @@ contains
 
   function truncatedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOTruncated)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -129,7 +129,7 @@ contains
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncated)                        :: self
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
@@ -146,17 +146,17 @@ contains
 
   subroutine truncatedAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
 
     call calculationResetEvent%attach(self,truncatedCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedAutoHook
-  
+
   subroutine truncatedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self
 
@@ -241,7 +241,7 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     double precision                                               :: multiplier, multiplierGradient
-    
+
     call self%truncationFunction(node,radius,multiplier=multiplier,multiplierGradient=multiplierGradient)
     if (multiplier > 0.0d0) then
        truncatedDensityLogSlope=+self%darkMatterProfileDMO_%densityLogSlope(node,radius) &
@@ -262,7 +262,7 @@ contains
     type            (treeNode                     ), intent(inout), target :: node
     double precision                               , intent(in   )         :: density
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node,density)
     else
        truncatedRadiusEnclosingDensity=self                      %radiusEnclosingDensityNumerical(node,density)
@@ -278,14 +278,14 @@ contains
     type            (treeNode                     ), intent(inout), target :: node
     double precision                               , intent(in   )         :: mass
     double precision                                                       :: radiusVirial, radiusTruncateMinimum
- 
+
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
        self%enclosedMassTruncateMinimumPrevious=self%enclosedMass(node,radiusTruncateMinimum)
     end if
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= self%enclosedMassTruncateMinimumPrevious) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= self%enclosedMassTruncateMinimumPrevious) then
        truncatedRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
        truncatedRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
@@ -302,12 +302,12 @@ contains
     double precision                               , intent(in   )           :: moment
     double precision                               , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum)
     else
        truncatedRadialMoment=self                      %radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
     end if
-    return 
+    return
   end function truncatedRadialMoment
 
   double precision function truncatedEnclosedMass(self,node,radius)
@@ -322,7 +322,7 @@ contains
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then 
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then
        truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radius                      )
     else
        truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radiusTruncateMinimum       ) &
@@ -330,7 +330,7 @@ contains
     end if
     return
   end function truncatedEnclosedMass
-  
+
   double precision function truncatedPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
@@ -338,9 +338,9 @@ contains
     class           (darkMatterProfileDMOTruncated), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), pointer  :: node
     double precision                               , intent(in   )           :: radius
-    integer                                        , intent(  out), optional :: status    
- 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    integer                                        , intent(  out), optional :: status
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)
     else
        truncatedPotential=self                      %potentialNumerical(node,radius,status)
@@ -370,7 +370,7 @@ contains
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node)
     else
        truncatedCircularVelocityMaximum=self                      %circularVelocityMaximumNumerical(node)
@@ -422,7 +422,7 @@ contains
     type            (treeNode                     ), intent(inout), pointer :: node
     double precision                               , intent(in   )          :: specificAngularMomentum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
     else
        truncatedRadiusFromSpecificAngularMomentum=self                      %radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
@@ -436,7 +436,7 @@ contains
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization         (node)
     else
        truncatedRotationNormalization=self                      %rotationNormalizationNumerical(node)
@@ -450,7 +450,7 @@ contains
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedEnergy=self%darkMatterProfileDMO_%energy         (node)
     else
        truncatedEnergy=self                      %energyNumerical(node)
@@ -464,14 +464,14 @@ contains
     class(darkMatterProfileDMOTruncated), intent(inout)         :: self
     type (treeNode                     ), intent(inout), target :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
     else
        truncatedEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
     end if
     return
   end function truncatedEnergyGrowthRate
-  
+
   double precision function truncatedKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the truncated density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
@@ -480,7 +480,7 @@ contains
     type            (treeNode                     ), intent(inout), target :: node
     double precision                               , intent(in   )         :: waveNumber
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
        truncatedKSpace=self                      %kSpaceNumerical(node,waveNumber)
@@ -496,7 +496,7 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: time
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
     else
        truncatedFreefallRadius=self                      %freefallRadiusNumerical(node,time)
@@ -512,7 +512,7 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: time
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)
     else
        truncatedFreefallRadiusIncreaseRate=self                      %freefallRadiusIncreaseRateNumerical(node,time)

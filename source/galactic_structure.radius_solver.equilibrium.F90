@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an ``equilibrium'' solver for galactic structure.
-  
-  use Dark_Matter_Profiles    , only : darkMatterProfile   , darkMatterProfileClass
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
+  use :: Dark_Matter_Profiles    , only : darkMatterProfile   , darkMatterProfileClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverEquilibrium">
   !#  <description>An ``equilibrium'' solver for galactic structure.</description>
@@ -53,13 +53,13 @@
   double precision          , allocatable, dimension(:) :: equilibriumRadiusStored                , equilibriumVelocityStored
   logical                                               :: equilibriumRevertStructure     =.false.
   !$omp threadprivate(equilibriumIterationCount,equilibriumActiveComponentCount,equilibriumFitMeasure,equilibriumHaloNode,equilibriumRadiusStored,equilibriumVelocityStored,equilibriumRevertStructure)
- 
+
 contains
-  
+
   function equilibriumConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class which takes a
     !% parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticStructureSolverEquilibrium)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
     logical                                                             :: useFormationHalo          , includeBaryonGravity, &
          &                                                                 solveForInactiveProperties
     double precision                                                    :: solutionTolerance
-    
+
     !# <inputParameter>
     !#   <name>includeBaryonGravity</name>
     !#   <cardinality>1</cardinality>
@@ -126,7 +126,8 @@ contains
 
   subroutine equilibriumAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
+          &                     satelliteMergerEvent
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
 
@@ -139,7 +140,7 @@ contains
 
   subroutine equilibriumDestructor(self)
     !% Destructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverEquilibrium), intent(inout) :: self
 
@@ -154,7 +155,7 @@ contains
 
   subroutine equilibriumSolveHook(self,node)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -167,11 +168,11 @@ contains
     end select
     return
   end subroutine equilibriumSolveHook
-  
+
   subroutine equilibriumSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver for pre-derivative events.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : propertyTypeInactive
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : propertyTypeInactive   , treeNode
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -185,11 +186,11 @@ contains
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook
-  
+
   subroutine equilibriumSolve(self,node)
     !% Solve for the structure of galactic components.
-    use Galacticus_Error  , only : Galacticus_Error_Report
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -247,14 +248,14 @@ contains
 
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !% Solve for the equilibrium radius of the given component.
-      use Numerical_Constants_Physical
-      use Galactic_Structure_Rotation_Curves
-      use Galactic_Structure_Options
-      use Galacticus_Error
-      use ISO_Varying_String
-      use String_Handling
-      use Memory_Management
-      use Galacticus_Display
+      use :: Galactic_Structure_Options        , only : massTypeBaryonic
+      use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
+      use :: Galacticus_Display                , only : Galacticus_Verbosity_Level       , Galacticus_Verbosity_Level_Set, verbosityStandard
+      use :: Galacticus_Error                  , only : Galacticus_Error_Report
+      use :: ISO_Varying_String
+      use :: Memory_Management                 , only : allocateArray                    , deallocateArray
+      use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+      use :: String_Handling                   , only : operator(//)
       implicit none
       type            (treeNode          ), intent(inout)                     :: node
       double precision                    , intent(in   )                     :: specificAngularMomentum
@@ -276,7 +277,7 @@ contains
 
       ! Count the number of active comonents.
       equilibriumActiveComponentCount=equilibriumActiveComponentCount+1
-      if (equilibriumIterationCount == 1) then       
+      if (equilibriumIterationCount == 1) then
          ! If structure is to be reverted, do so now.
          if (equilibriumRevertStructure.and.allocated(equilibriumRadiusStored)) then
             call   radiusSet(node,  equilibriumRadiusStored(equilibriumActiveComponentCount))
@@ -316,7 +317,7 @@ contains
             end if
             equilibriumRadiusStored  (equilibriumActiveComponentCount)=radius
             equilibriumVelocityStored(equilibriumActiveComponentCount)=velocity
-         end if    
+         end if
        else
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
          if (specificAngularMomentum <= 0.0d0) return

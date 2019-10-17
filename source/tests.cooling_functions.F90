@@ -21,20 +21,19 @@
 
 program Test_Cooling_Functions
   !% Tests cooling function functionality.
-  use ISO_Varying_String
-  use Input_Parameters
-  use Unit_Tests
-  use Galacticus_Paths
-  use Cooling_Functions
-  use Abundances_Structure
-  use Cosmology_Functions
-  use Chemical_Abundances_Structure
-  use Chemical_States
-  use Radiation_Fields
-  use Numerical_Constants_Physical
-  use Numerical_Constants_Units
-  use Numerical_Constants_Astronomical
-  use Galacticus_Display
+  use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar
+  use :: Chemical_Abundances_Structure   , only : chemicalAbundances                     , zeroChemicalAbundances
+  use :: Chemical_States                 , only : chemicalState                          , chemicalStateClass
+  use :: Cooling_Functions               , only : coolingFunction                        , coolingFunctionAtomicCIECloudy  , coolingFunctionCMBCompton, coolingFunctionClass
+  use :: Cosmology_Functions             , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters                , only : inputParameters
+  use :: Numerical_Constants_Astronomical, only : gigaYear
+  use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+  use :: Numerical_Constants_Units       , only : ergs
+  use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
+  use :: Unit_Tests                      , only : Assert                                 , Unit_Tests_Begin_Group          , Unit_Tests_End_Group     , Unit_Tests_Finish
   implicit none
   type            (inputParameters                        ), target  :: testParameters
   class           (coolingFunctionClass                   ), pointer :: coolingFunction_

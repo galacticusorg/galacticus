@@ -21,9 +21,9 @@
 
 module NBody_Importers
   !% Provides a class that implements importing of data from N-body simulations.
-  use NBody_Simulation_Data
+  use :: NBody_Simulation_Data, only : nBodyData
   private
-  
+
   !# <functionClass>
   !#  <name>nbodyImporter</name>
   !#  <descriptiveName>N-Body Simulation Data Importer</descriptiveName>
@@ -37,5 +37,5 @@ module NBody_Importers
   !#   <argument>character(len=*), intent(in   ), optional :: fileNamePrevious</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module NBody_Importers

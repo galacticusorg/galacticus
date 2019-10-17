@@ -41,11 +41,11 @@ contains
 
   function selectWithinRangeConstructorParameters(parameters)
     !% Constructor for the select-within-range merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
-    
+
     !# <inputParameter>
     !#   <name>baseMassMinimum</name>
     !#   <source>parameters</source>
@@ -73,7 +73,7 @@ contains
     implicit none
     type            (mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorInternal
     double precision                                     , intent(in   ) :: baseMassMinimum                         , baseMassMaximum
-    
+
     selectWithinRangeConstructorInternal%baseMassMinimum=baseMassMinimum
     selectWithinRangeConstructorInternal%baseMassMaximum=baseMassMaximum
     return
@@ -84,15 +84,15 @@ contains
     implicit none
     type(mergerTreeOperatorSelectWithinRange), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine selectWithinRangeDestructor
 
   subroutine selectWithinRangeOperate(self,tree)
     !% Perform a select-within-range operation on a merger tree.
-    use Merger_Trees_Pruning_Utilities
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
     implicit none
     class  (mergerTreeOperatorSelectWithinRange), intent(inout), target :: self
     type   (mergerTree                         ), intent(inout), target :: tree
@@ -124,6 +124,6 @@ contains
        end if
        ! Move to the next tree.
        currentTree => currentTree%nextTree
-    end do    
+    end do
     return
   end subroutine selectWithinRangeOperate

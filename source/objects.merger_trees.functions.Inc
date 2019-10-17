@@ -84,7 +84,7 @@ function Merger_Tree_Create_Event(self) result (eventNew)
   implicit none
   class(mergerTree), intent(inout) :: self
   type (treeEvent ), pointer       :: eventNew, event
-  
+
   allocate(eventNew)
   nullify(eventNew%next)
   !$omp atomic
@@ -108,7 +108,7 @@ subroutine Merger_Tree_Remove_Event(self,event)
   class  (mergerTree), intent(inout) :: self
   type   (treeEvent ), intent(in   ) :: event
   type   (treeEvent ), pointer       :: eventLast, eventNext, eventCurrent
-  
+
   ! Destroy the event.
   eventLast    => null()
   eventCurrent => self%event
@@ -140,7 +140,7 @@ double precision function Merger_Tree_Earliest_Time(self)
   type            (mergerTree        ), pointer               :: treeCurrent
   type            (treeNode          ), pointer               :: node
   class           (nodeComponentBasic), pointer               :: basic
-  
+
   Merger_Tree_Earliest_Time =  timeInfinity
   treeCurrent               => self
   do while (associated(treeCurrent))
@@ -165,7 +165,7 @@ double precision function Merger_Tree_Earliest_Time_Evolving(self)
   type            (mergerTree        ), pointer               :: treeCurrent
   type            (treeNode          ), pointer               :: node
   class           (nodeComponentBasic), pointer               :: basic
-  
+
   Merger_Tree_Earliest_Time_Evolving =  timeInfinity
   treeCurrent                        => self
   do while (associated(treeCurrent))
@@ -188,7 +188,7 @@ double precision function Merger_Tree_Latest_Time(self)
   class           (mergerTree        ), intent(inout), target :: self
   type            (mergerTree        ), pointer               :: treeCurrent
   class           (nodeComponentBasic), pointer               :: baseBasic
-  
+
   Merger_Tree_Latest_Time =  -1.0d0
   treeCurrent             => self
   do while (associated(treeCurrent))

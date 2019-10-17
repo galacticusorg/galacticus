@@ -20,7 +20,7 @@
   !% Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is equal to the halo
   !% dynamical timescale.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.</description>
@@ -41,10 +41,10 @@
   end interface hotHaloRamPressureTimescaleHaloDynamicalTime
 
 contains
-  
+
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                :: self
     type (inputParameters                             ), intent(inout) :: parameters
@@ -60,7 +60,6 @@ contains
 
   function haloDynamicalTimeConstructorInternal(darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
-    use Input_Parameters
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                        :: self
     class(darkMatterHaloScaleClass                    ), intent(in   ), target :: darkMatterHaloScale_

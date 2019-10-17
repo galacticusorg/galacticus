@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a class for applying multiple different timestepping criteria.
-  
+
   type, public :: multiMergerTreeEvolveTimestepList
      class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
-  
+
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
   !#  <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
   !# </mergerTreeEvolveTimestep>
@@ -47,7 +47,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeEvolveTimestepMulti    )                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
     end do
     return
   end function multiConstructorParameters
-  
+
   function multiConstructorInternal(mergerTreeEvolveTimesteps) result(self)
     !% Internal constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
     implicit none
@@ -84,7 +84,7 @@ contains
     end do
     return
   end function multiConstructorInternal
-  
+
   subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
     implicit none
@@ -100,7 +100,7 @@ contains
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestepNext
        end do
     end if
-    return 
+    return
   end subroutine multiDestructor
 
   double precision function multiTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
@@ -147,7 +147,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
     class(mergerTreeEvolveTimestepClass    ), intent(inout) :: destination
@@ -164,7 +164,7 @@ contains
           allocate(mergerTreeEvolveTimestepNew_)
           if (associated(mergerTreeEvolveTimestepDestination_)) then
              mergerTreeEvolveTimestepDestination_%next       => mergerTreeEvolveTimestepNew_
-             mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_             
+             mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
           else
              destination          %mergerTreeEvolveTimesteps => mergerTreeEvolveTimestepNew_
              mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
@@ -172,7 +172,7 @@ contains
           allocate(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_,mold=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_)
           !# <deepCopy source="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" destination="mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_"/>
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

@@ -857,7 +857,7 @@ CODE
 				    (
 				     $declaration->{'intrinsic'} eq "class"
 				     &&
-				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
+				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
 				     &&
 				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
 				    ) 
@@ -1216,7 +1216,7 @@ CODE
 				    (
 				     $declaration->{'intrinsic'} eq "class"
 				     &&
-				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
+				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
 				     &&
 				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
 				    ) 
@@ -1439,9 +1439,9 @@ CODE
 				    if ( 
 					$declaration->{'intrinsic'} eq "class"
 					&&
-					(grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 					&&
-					(grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 					) {
 					# Pointer to a functionClass object.
 					foreach ( @{$declaration->{'variables'}} ) {
@@ -1504,7 +1504,10 @@ CODE
 						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 						}
@@ -1652,9 +1655,9 @@ CODE
 			if ( 
 			    $declaration->{'intrinsic'} eq "class"
 			    &&
-			    (grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+			    (grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 			    &&
-			    (grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+			    (grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 			    ) {
 			    # Pointer to a functionClass object.
 			    foreach ( @{$declaration->{'variables'}} ) {
@@ -1714,7 +1717,10 @@ CODE
 					$inputCode  .= "  read (stateFile) storedShape\n";
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					$inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+					(my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+					my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+					$stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+					$inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 				    } else {
 					$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 				    }
@@ -1821,9 +1827,9 @@ CODE
 				    if ( 
 					$declaration->{'intrinsic'} eq "class"
 					&&
-					(grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 					&&
-					(grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 					) {
 					# Pointer to a functionClass object.
 					foreach ( @{$declaration->{'variables'}} ) {
@@ -1890,7 +1896,10 @@ CODE
 						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 						}
@@ -2310,12 +2319,32 @@ CODE
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrDflt\n";
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrPrmtrs\n";
 	    $preContains->[0]->{'content'} .= "   end interface ".$directive->{'name'}."\n";
-	    # Add a variable which records whether construction of the default object is underway.
+	    # Add a variable which records whether construction of the default object is underway, and for detecting and
+	    # performing recursive build of the default object from a parameter list.
 	    my $allowRecursion = grep {exists($_->{'recursive'}) && $_->{'recursive'} eq "yes"} @classes;
 	    if ( $allowRecursion ) {
+                (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;    
 		$preContains->[0]->{'content'} .= "   ! Record of whether construction of default object is underway.\n";
 		$preContains->[0]->{'content'} .= "   logical :: ".$directive->{'name'}."DefaultConstructing=.false.\n";
 		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing)\n\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $preContains->[0]->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
+		    $preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
+		    my $usesNode =
+		    {
+			type      => "moduleUse",
+			moduleUse =>
+			{
+			    Input_Parameters =>
+			    {
+				intrinsic => 0,
+				all       => 1
+			    }
+			}
+		    };
+		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+                }
  	    }
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
@@ -2394,12 +2423,17 @@ CODE
 	    $postContains->[0]->{'content'} .= "      else\n";
 	    $postContains->[0]->{'content'} .= "        copyInstance_=1\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
-	    if ( exists($directive->{'default'}) ) {
+            if ( exists($directive->{'default'}) ) {
+                (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;    
 	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
 	        $postContains->[0]->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
 	        $postContains->[0]->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
 		$postContains->[0]->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
-    		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => parameterNode\n";
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => ".$directive->{'name'}."CnstrctrPrmtrs\n";
+		}
 		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
 		$postContains->[0]->{'content'} .= "            call debugStackPush(loc(".$directive->{'name'}."CnstrctrPrmtrs))\n"
@@ -2408,8 +2442,27 @@ CODE
 		$postContains->[0]->{'content'} .= "            call debugStackPop()\n"
 		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "         end select\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => null()\n";
+		    $postContains->[0]->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		}
                 $postContains->[0]->{'content'} .= "         call parameterNode%objectSet(".$directive->{'name'}."CnstrctrPrmtrs)\n";
                 $postContains->[0]->{'content'} .= "      else\n";
+                if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "         parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+		    $postContains->[0]->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."DefaultBuildNode)) then\n";
+		    $postContains->[0]->{'content'} .= "           allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		    $postContains->[0]->{'content'} .= "           select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		    $postContains->[0]->{'content'} .= "           type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		    $postContains->[0]->{'content'} .= "              ".$directive->{'name'}."CnstrctrPrmtrs%isRecursive=.true.\n";
+		    $postContains->[0]->{'content'} .= "              select type (".$directive->{'name'}."DefaultBuildObject)\n";
+		    $postContains->[0]->{'content'} .= "              type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		    $postContains->[0]->{'content'} .= "                 ".$directive->{'name'}."CnstrctrPrmtrs%recursiveSelf => ".$directive->{'name'}."DefaultBuildObject\n";
+		    $postContains->[0]->{'content'} .= "              end select\n";
+		    $postContains->[0]->{'content'} .= "           end select\n";
+		    $postContains->[0]->{'content'} .= "           return\n";
+		    $postContains->[0]->{'content'} .= "        end if\n";
+                }
             }
 	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance_)\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance_)\n";
@@ -2565,7 +2618,7 @@ CODE
 		    }
 		}
 		if ( @nonRecursiveTypes ) {
-		    $postContains->[0]->{'content'} .= "        case (".join(",",map {"'".$_."'"} @nonRecursiveTypes).")\n";
+		    $postContains->[0]->{'content'} .= "        case (".join(",",map {(my $name = $_) =~ s/^$directive->{'name'}//;"'".lcfirst($name)."'"} @nonRecursiveTypes).")\n";
 		    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('this type does not support recursion'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 		$postContains->[0]->{'content'} .= "      case default\n";

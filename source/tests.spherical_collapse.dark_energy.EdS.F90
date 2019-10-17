@@ -23,15 +23,15 @@
 program Tests_Spherical_Collapse_Dark_Energy_EdS
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using an Einstein-de
   !% Sitter cosmology. Compares results to the analytic solution.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmology_Functions
-  use Virial_Density_Contrast
-  use Numerical_Constants_Math
-  use Cosmological_Density_Field
-  use Galacticus_Display
-  use Events_Hooks
+  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters          , only : inputParameters
+  use :: Numerical_Constants_Math  , only : Pi
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast   , only : virialDensityContrast         , virialDensityContrastClass
+  use :: Events_Hooks              , only : eventsHooksInitialize
   implicit none
   double precision                            , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_

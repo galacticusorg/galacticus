@@ -19,7 +19,7 @@
 
   !% Implements calculations of attenuation of stellar spectra using a tabulation.
 
-  use Tables
+  use :: Tables, only : table1DGeneric
 
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationTabulated" abstract="yes">
   !#  <description>Returns the dust attenuation of stellar spectra from a tabulated relation.</description>
@@ -38,7 +38,6 @@ contains
 
   subroutine tabulatedDestructor(self)
     !% Destructor for the ``tabulated'' stellar spectra dust attenuation class.
-    use Input_Parameters
     implicit none
     type(stellarSpectraDustAttenuationTabulated), intent(inout) :: self
 
@@ -48,7 +47,7 @@ contains
 
   double precision function tabulatedAttenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Units, only : angstromsPerMicron
     implicit none
     class           (stellarSpectraDustAttenuationTabulated), intent(inout) :: self
     double precision                                        , intent(in   ) :: wavelength      , age, &
@@ -56,7 +55,7 @@ contains
     double precision                                        , parameter     :: xV=1.0d0/(5504.61227375652d0/angstromsPerMicron)
     double precision                                                        :: x
     !GCC$ attributes unused :: age
-    
+
     x=1.0d0/(wavelength/angstromsPerMicron)
     tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)/self%attenuationTable%interpolate(xV)
     return

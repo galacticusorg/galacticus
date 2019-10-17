@@ -21,10 +21,10 @@
 
 module Cooling_Freefall_Times_Available
   !% Provides a class that implements calculations of the freefall radius.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>freefallTimeAvailable</name>
   !#  <descriptiveName>Freefall time available.</descriptiveName>

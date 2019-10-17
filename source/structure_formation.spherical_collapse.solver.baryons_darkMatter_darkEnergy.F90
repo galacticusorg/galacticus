@@ -44,7 +44,7 @@
   double precision :: baryonsDarkMatterDarkEnergyOmegaBaryonEpochal
   logical          :: baryonsDarkMatterDarkEnergyBaryonsCluster
   !$omp threadprivate(baryonsDarkMatterDarkEnergyOmegaBaryonEpochal,baryonsDarkMatterDarkEnergyBaryonsCluster)
-  
+
 contains
 
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
@@ -118,7 +118,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine baryonsDarkMatterDarkEnergyDestructor
-  
+
   subroutine baryonsDarkMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     use Root_Finder       , only : rootFinder               , rangeExpandMultiplicative  , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
@@ -151,7 +151,7 @@ contains
          &                                                                                              x
     type            (varying_string                                    )                             :: message
     character       (len=13                                            )                             :: label
-    
+
     ! Find minimum and maximum times to tabulate.
     if (allocated(sphericalCollapse_)) then
        ! Use currently tabulated range as the starting point.
@@ -192,7 +192,7 @@ contains
             &                          isNew    =.true.          , &
             &                          verbosity=verbosityWorking  &
             &                         )
-       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)       
+       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)
        allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
@@ -307,11 +307,11 @@ contains
                      &             /fractionDarkMatter                                                                          &
                      &             /densityContrastExpansionMaximum
                 y                 = expansionFactorExpansionMaximum**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=timeExpansionMaximum        ) &
-                     &             /expansionFactor                **cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime)                
+                     &             /expansionFactor                **cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime)
                 r                 =+  self%cosmologyParameters_%OmegaBaryon() &
                      &             /(                                         &
                      &               +self%cosmologyParameters_%OmegaMatter() &
-                     &               -self%cosmologyParameters_%OmegaBaryon() & 
+                     &               -self%cosmologyParameters_%OmegaBaryon() &
                      &              )                                         &
                      &             /densityContrastExpansionMaximum
                 z                 =+(                                    &
@@ -466,7 +466,7 @@ contains
             &            reset    =odeReset                                   , &
             &            odeStatus=odeStatus                                    &
             &           )
-       call ODEIV2_Solver_Free(ode2Driver,ode2System)         
+       call ODEIV2_Solver_Free(ode2Driver,ode2System)
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
        ! permit our root finder to locate the point at which collapse occurs at the current time.

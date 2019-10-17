@@ -42,11 +42,11 @@ contains
 
   function pruneByMassConstructorParameters(parameters)
     !% Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
-    
+
     !# <inputParameter>
     !#   <name>massThreshold</name>
     !#   <source>parameters</source>
@@ -75,7 +75,7 @@ contains
     type            (mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorInternal
     double precision                               , intent(in   ) :: massThreshold
     logical                                        , intent(in   ) :: preservePrimaryProgenitor
-    
+
     pruneByMassConstructorInternal%massThreshold            =massThreshold
     pruneByMassConstructorInternal%preservePrimaryProgenitor=preservePrimaryProgenitor
     return
@@ -86,16 +86,16 @@ contains
     implicit none
     type(mergerTreeOperatorPruneByMass), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine pruneByMassDestructor
 
   subroutine pruneByMassOperate(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none
     class  (mergerTreeOperatorPruneByMass), intent(inout), target :: self
     type   (mergerTree                   ), intent(inout), target :: tree

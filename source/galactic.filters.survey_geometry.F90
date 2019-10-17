@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a filter which passes only nodes that lie within a survey geometry.
 
-  use Geometry_Surveys, only :surveyGeometryClass
-  
+  use :: Geometry_Surveys, only : surveyGeometryClass
+
   !# <galacticFilter name="galacticFilterSurveyGeometry">
   !#  <description>A filter which passes only nodes that lie within a survey geometry.</description>
   !# </galacticFilter>
@@ -43,8 +43,8 @@ contains
 
   function surveyGeometryConstructorParameters(parameters) result(self)
     !% Constructor for the ``surveyGeometry'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
-    use Geometry_Surveys, only : surveyGeometry
+    use :: Geometry_Surveys, only : surveyGeometry, surveyGeometryClass
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (galacticFilterSurveyGeometry)                :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -78,7 +78,7 @@ contains
 
   logical function surveyGeometryPasses(self,node)
     !% Implement a galactic filter which passes only nodes with a survey geometry.
-    use Galacticus_Nodes, only : nodeComponentPosition, nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterSurveyGeometry), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node

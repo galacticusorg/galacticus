@@ -21,9 +21,9 @@
 
 module Chemical_Structures
   !% Implements structures that describe chemicals.
-  use ISO_Varying_String
-  use Numerical_Constants_Physical
-  use Numerical_Constants_Atomic
+  use :: ISO_Varying_String
+  use :: Numerical_Constants_Atomic  , only : atomicMassHydrogen, atomicMassUnit
+  use :: Numerical_Constants_Physical, only : electronMass
   implicit none
   private
   public :: chemicalStructure, atomicStructure,atomicBond, Chemical_Database_Get_Index
@@ -100,9 +100,9 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use FoX_dom
-    use Galacticus_Error
-    use Galacticus_Paths
+    use :: FoX_dom
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataStatic
     implicit none
     type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
     type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList
@@ -179,7 +179,7 @@ contains
 
   subroutine Chemical_Structure_Export(thisChemical,outputFile)
     !% Export a chemical structure to a chemical markup language (CML) file.
-    use FoX_wxml
+    use :: FoX_wxml
     implicit none
     class    (chemicalStructure), intent(in   ) :: thisChemical
     character(len=*            ), intent(in   ) :: outputFile
@@ -251,7 +251,7 @@ contains
 
   integer function Chemical_Database_Get_Index(chemicalName)
     !% Find a chemical in the database and return it.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   ) :: chemicalName
     integer                         :: iChemical

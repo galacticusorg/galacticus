@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
 
-  use Cosmology_Parameters , only : cosmologyParameters, cosmologyParametersClass
-  use Dark_Matter_Particles, only : darkMatterParticle , darkMatterParticleClass
-  use Cosmology_Functions  , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionBode2001">
   !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
@@ -54,19 +54,20 @@ contains
 
   function bode2001ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
-    use Input_Parameters
-    use Galacticus_Error
-    use Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
+    use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
+    use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
     type            (transferFunctionBode2001)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
+    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
     double precision                                          :: epsilon             , eta     , &
          &                                                       nu                  , redshift
-    
+
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
@@ -120,15 +121,17 @@ contains
 
   function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
-    use Galacticus_Error
+    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
+    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type            (transferFunctionBode2001)                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
     double precision                                  , intent(in   ) :: epsilon                   , eta                            , &
          &                                                               nu                        , time
-    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
-    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
+    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
     double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
     !# <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
 
@@ -194,7 +197,7 @@ contains
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
 
-    bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)    
+    bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
     if (self%scaleCutOff > 0.0d0)                                       &
          & bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative &
          &                               +2.0d0                         &
@@ -213,18 +216,18 @@ contains
          &                                )
     return
   end function bode2001LogarithmicDerivative
-  
+
   double precision function bode2001HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
-    use Numerical_Constants_Math
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBode2001), intent(inout)           :: self
     integer                                   , intent(  out), optional :: status
     double precision                          , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
     double precision                                                    :: matterDensity                                                  , wavenumberHalfMode
-    
+
     matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
          &               *self%cosmologyParameters_%densityCritical()
     wavenumberHalfMode  =+(                            &

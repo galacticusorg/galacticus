@@ -30,18 +30,18 @@
    contains
      procedure :: coolingRate => scholzWalters1991CoolingRate
   end type atomicExcitationRateCollisionalScholzWalters1991
-  
+
   interface atomicExcitationRateCollisionalScholzWalters1991
      !% Constructors for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class.
      module procedure scholzWalters1991ConstructorParameters
   end interface atomicExcitationRateCollisionalScholzWalters1991
-  
+
 contains
 
   function scholzWalters1991ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicExcitationRateCollisionalScholzWalters1991)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
@@ -54,10 +54,10 @@ contains
   double precision function scholzWalters1991CoolingRate(self,atomicNumber,electronNumber,temperature)
     !% Return collisional excitation cooling rates, in units of J/m$^3$/s, for ion {\normalfont \ttfamily Ion} at temperature {\normalfont \ttfamily T} (in Kelvin)
     !% using the fitting functions of \cite{scholz_collisional_1991}.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicExcitationRateCollisionalScholzWalters1991), intent(inout) :: self
-    double precision                                                  , intent(in   ) :: temperature                     
+    double precision                                                  , intent(in   ) :: temperature
     integer                                                           , intent(in   ) :: atomicNumber          , electronNumber
     double precision                                                                  :: temperatureLogarithmic
     !GCC$ attributes unused :: self
@@ -93,7 +93,7 @@ contains
                &                            +3.3562890d-2*temperatureLogarithmic**4 &
                &                            -4.5533231d-4*temperatureLogarithmic**5 &
                &                            -118348.00d+0/temperature               &
-               &                           )           
+               &                           )
        end if
     end if
     ! Compute cooling rate for HeII ions.
@@ -104,7 +104,7 @@ contains
           ! Fitting formula based on results from Mappings III.
           temperatureLogarithmic=log(temperature)
           if (temperature <= 2.0d3) then
-             scholzWalters1991CoolingRate=0.0d0           
+             scholzWalters1991CoolingRate=0.0d0
           else if (temperature > 2.0d3 .and. temperature < 1.9952623149687d6) then
              scholzWalters1991CoolingRate=+1.0d-31                                      &
                   &                       *exp(                                         &

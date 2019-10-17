@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{calzetti_dust_2000}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCalzetti2000">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -39,19 +39,19 @@ contains
   function calzetti2000ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily calzetti2000} stellar spectra dust attenuation class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarSpectraDustAttenuationCalzetti2000)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarSpectraDustAttenuationCalzetti2000()
     return
   end function calzetti2000ConstructorParameters
 
   double precision function calzetti2000Attenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Units, only : angstromsPerMicron
     implicit none
     class           (stellarSpectraDustAttenuationCalzetti2000), intent(inout) :: self
     double precision                                           , intent(in   ) :: wavelength      , age, &
@@ -59,7 +59,7 @@ contains
     double precision                                           , parameter     :: Rv=4.05d0                          ! Eqn. (5) of Calzetti et al.
     double precision                                                           :: wavelengthMicrons, kappa
     !GCC$ attributes unused :: self, age
-    
+
     ! Eqn. (4) of Calzetti et al.
     wavelengthMicrons=wavelength/angstromsPerMicron
     if      (wavelengthMicrons > 0.12d0 .and. wavelengthMicrons <= 0.63d0) then

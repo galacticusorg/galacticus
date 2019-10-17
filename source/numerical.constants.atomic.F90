@@ -21,9 +21,9 @@
 
 module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
-  use Numerical_Constants_Physical
-  use Numerical_Constants_Units
-  use FGSL                        , only : FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS, FGSL_CONST_MKSA_RYDBERG
+  use :: FGSL                        , only : FGSL_CONST_MKSA_RYDBERG, FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS
+  use :: Numerical_Constants_Physical, only : electronMass           , plancksConstant                    , speedLight
+  use :: Numerical_Constants_Units   , only : angstromsPerMeter
   implicit none
   public
 

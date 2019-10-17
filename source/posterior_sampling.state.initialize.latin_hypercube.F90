@@ -40,7 +40,7 @@ contains
 
   function latinHypercubeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
@@ -65,17 +65,17 @@ contains
     type   (posteriorSampleStateInitializeLatinHypercube)                :: self
     integer                                              , intent(in   ) :: maximinTrialCount
     !# <constructorAssign variables="maximinTrialCount"/>
-    
+
     return
   end function latinHypercubeConstructorInternal
 
   subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
     use, intrinsic :: ISO_C_Binding
-    use               MPI_Utilities
-    use               Pseudo_Random
-    use               Sort
-    use               Models_Likelihoods_Constants
+    use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
+    use            :: Models_Likelihoods_Constants, only : logImpossible
+    use            :: Pseudo_Random               , only : pseudoRandom
+    use            :: Sort                        , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
@@ -110,7 +110,7 @@ contains
           x                =0.0d0
           x(mpiSelf%rank())=randomNumberGenerator%uniformSample(ompThreadOffset=.true.,mpiRankOffset=.true.)
           y                =mpiSelf%sum(x)
-          call mpiBarrier()  
+          call mpiBarrier()
           order            =Sort_Index_Do(y)-1
           do i=0,mpiSelf%count()-1
              stateGrid(i,j)=(dble(order(i))+0.5d0)/mpiSelf%count()

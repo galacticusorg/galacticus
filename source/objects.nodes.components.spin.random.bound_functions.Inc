@@ -24,7 +24,7 @@ double precision function SpinRandomSpinGrowthRate(self)
   implicit none
   class(nodeComponentSpinRandom), intent(inout) :: self
   !GCC$ attributes unused :: self
-  
+
   SpinRandomSpinGrowthRate=0.0d0
   return
 end function SpinRandomSpinGrowthRate

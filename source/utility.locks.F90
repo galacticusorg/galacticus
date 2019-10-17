@@ -66,7 +66,7 @@ module Locks
      procedure :: unset         => ompLockUnset
      procedure :: ownedByThread => ompLockOwnedByThread
   end type ompLock
-  
+
   interface ompLock
      !% Interface to constructors for OpenMP locks.
      module procedure :: ompLockConstructor
@@ -155,20 +155,20 @@ module Locks
      procedure :: set        => ompIncrementalLockSet
      procedure :: unset      => ompIncrementalLockUnset
   end type ompIncrementalLock
-  
+
   interface ompIncrementalLock
      !% Interface to constructors for OpenMP incremental locks.
      module procedure :: ompIncrementalLockConstructor
   end interface ompIncrementalLock
 
 contains
-  
+
   function ompLockConstructor() result (self)
     !% Constructor for OpenMP lock objects.
     implicit none
     type(ompLock) :: self
 
-    call self%initialize()    
+    call self%initialize()
     return
   end function ompLockConstructor
 
@@ -197,13 +197,13 @@ contains
     !% Get a lock on an OpenMP lock objects.
     implicit none
     class(ompLock), intent(inout) :: self
-    
+
     if (self%ownerThread == -2) call self%initialize()
     !$ call OMP_Set_Lock(self%lock)
     !$ self%ownerThread=OMP_Get_Thread_Num()
     return
   end subroutine ompLockSet
-  
+
   subroutine ompLockUnset(self)
     !% Release a lock on an OpenMP lock objects.
     implicit none
@@ -213,7 +213,7 @@ contains
     self%ownerThread=-1
     return
   end subroutine ompLockUnset
-  
+
   logical function ompLockOwnedByThread(self)
     !% Return true if the lock is owend by the current thread.
     implicit none
@@ -223,7 +223,7 @@ contains
     !$ ompLockOwnedByThread=self%ownerThread == OMP_Get_Thread_Num()
     return
   end function ompLockOwnedByThread
- 
+
   function ompReadWriteLockConstructor() result (self)
     !% Constructor for OpenMP read/write lock objects.
     implicit none
@@ -269,7 +269,7 @@ contains
     !% Get a read lock on an OpenMP read/write lock objects.
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
-    
+
     !$ call OMP_Set_Lock(self%locks(omp_get_thread_num()))
     return
   end subroutine ompReadWriteLockSetRead
@@ -282,7 +282,7 @@ contains
     !$ call OMP_Unset_Lock(self%locks(omp_get_thread_num()))
     return
   end subroutine ompReadWriteLockUnsetRead
-  
+
   subroutine ompReadWriteLockSetWrite(self,haveReadLock)
     !% Get a write lock on an OpenMP read/write lock objects.
     implicit none
@@ -322,7 +322,7 @@ contains
     implicit none
     type(ompIncrementalLock) :: self
 
-    call self%initialize()    
+    call self%initialize()
     return
   end function ompIncrementalLockConstructor
 
@@ -362,7 +362,7 @@ contains
     self%lockValue=self%lockValue+1_c_size_t
     return
   end subroutine ompIncrementalLockSet
-  
+
   subroutine ompIncrementalLockUnset(self)
     !% Release a lock on an OpenMP incremental lock object.
     implicit none
@@ -371,5 +371,5 @@ contains
     !$ call OMP_Unset_Lock(self%lock)
     return
   end subroutine ompIncrementalLockUnset
-  
+
 end module Locks

@@ -19,7 +19,7 @@
 
   !% Implementation of a cooling rate class in which the cooling rate scales with the mass of the halo.
 
-  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <coolingRate name="coolingRateSimpleScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the mass of the halo.</description>
@@ -50,7 +50,7 @@ contains
 
   function simpleScalingConstructorParameters(parameters) result(self)
     !% Constructor for the simple caling cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateSimpleScaling)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -108,9 +108,9 @@ contains
 
   function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
     !% Internal constructor for the simple caling cooling rate class.
-    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
-    use Galacticus_Error
-    use Array_Utilities
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent    , defaultHotHaloComponent
     implicit none
     type            (coolingRateSimpleScaling)                        :: self
     double precision                          , intent(in   )         :: timeScale          , exponentRedshift, &
@@ -163,7 +163,7 @@ contains
 
   double precision function simpleScalingRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRateSimpleScaling), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -172,7 +172,7 @@ contains
     class           (nodeComponentHotHalo    ), pointer       :: hotHalo
     double precision                                          :: expFactor                 , expansionFactor, &
          &                                                       expArgument
-    
+
     ! Compute expansion factor.
     basic               => node                    %basic          (            )
     hotHalo             => node                    %hotHalo        (            )

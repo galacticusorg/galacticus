@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes.
 
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <galacticFilter name="galacticFilterStellarApparentMagnitudes">
   !#  <description>
   !#  A galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes. Galaxies with apparent magnitude in each
@@ -47,10 +47,10 @@ contains
 
   function stellarApparentMagnitudesConstructorParameters(parameters) result(self)
     !% Constructor for the ``stellarApparentMagnitudes'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
-    use Stellar_Luminosities_Structure
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Input_Parameters              , only : inputParameter         , inputParameters
+    use :: Memory_Management             , only : allocateArray
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -71,7 +71,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
    !# <objectDestructor name="cosmologyFunctions_"/>
@@ -80,8 +80,8 @@ contains
 
   function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``stellarApparentMagnitudes'' galactic filter class.
-    use Stellar_Luminosities_Structure
-    use Galacticus_Error
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
     double precision                                         , intent(in   ), dimension(:) :: apparentMagnitudeThreshold
@@ -92,7 +92,7 @@ contains
          & call  Galacticus_Error_Report(                                                                                                 &
          &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
          &                               {introspection:location}                                                                         &
-         &                              )    
+         &                              )
     ! Map magnitude limits onto the expanded filter set.
     call Stellar_Luminosities_Parameter_Map(self%apparentMagnitudeThreshold)
     return
@@ -109,10 +109,10 @@ contains
 
   logical function stellarApparentMagnitudesPasses(self,node)
     !% Implement a stellar apparent magnitude low-pass galactic filter.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Stellar_Luminosities_Structure
-    use Galacticus_Nodes                  , only : nodeComponentBasic
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeStellar                 , weightByLuminosity
+    use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
+    use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
     implicit none
     class           (galacticFilterStellarApparentMagnitudes), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
@@ -122,7 +122,7 @@ contains
          &                                                                      abMagnitude                    , expansionFactor, &
          &                                                                      distanceModulus
     integer                                                                  :: iLuminosity
-    
+
     ! Get the basic component.
     basic => node%basic()
     ! Get the time for this node.

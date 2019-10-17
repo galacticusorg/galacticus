@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an ISM mass output analysis property extractor class.
 
-  use Output_Times, only : outputTimesClass, outputTimes
+  use :: Output_Times, only : outputTimes, outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDescendents">
   !#  <description>An ISM mass output analysis property extractor class.</description>
@@ -46,7 +46,7 @@ contains
 
   function descendentsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily descendents} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorDescendents)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
 
     return
   end function descendentsConstructorInternal
-  
+
   subroutine descendentsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily descendents} property extractor class.
     implicit none
@@ -77,10 +77,10 @@ contains
     !# <objectDestructor name="self%outputTimes_"/>
     return
   end subroutine descendentsDestructor
-  
+
   function descendentsExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily descendents} node property extractor.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
     integer         (kind_int8                       )                          :: descendentsExtract
     class           (nodePropertyExtractorDescendents), intent(inout)           :: self
@@ -158,7 +158,7 @@ contains
 
   integer function descendentsType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDescendents), intent(inout) :: self
     !GCC$ attributes unused :: self

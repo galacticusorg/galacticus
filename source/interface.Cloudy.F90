@@ -23,17 +23,17 @@ module Interfaces_Cloudy
   !% Provides various interfaces to the \gls{cloudy} code.
   private
   public :: Interface_Cloudy_Initialize
-  
+
 contains
 
   subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static)
     !% Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
-    use ISO_Varying_String
-    use Galacticus_Paths
-    use File_Utilities
-    use System_Command
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
+    use :: ISO_Varying_String
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
     logical                  , intent(in   ), optional :: static
@@ -91,5 +91,5 @@ contains
     cloudyPath=cloudyPath//"/"
     return
   end subroutine Interface_Cloudy_Initialize
-  
+
 end module Interfaces_Cloudy

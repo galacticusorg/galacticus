@@ -28,7 +28,7 @@ function PositionPresetOrphansPosition(self)
   class           (nodeComponentBasic                ), pointer                     :: basic
   type            (history                           )                              :: positionHistory
   logical                                                                           :: positionIsKnown
-  
+
   ! Check if the node has a known, preset position.
   positionIsKnown =  .false.
   node            => self%host()
@@ -62,7 +62,7 @@ function PositionPresetOrphansVelocity(self)
   class           (nodeComponentBasic                ), pointer                     :: basic
   type            (history                           )                              :: positionHistory
   logical                                                                           :: positionIsKnown
-  
+
   ! Check if the node has a known, preset position.
   positionIsKnown =  .false.
   node            => self%host()

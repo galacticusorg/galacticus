@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
-  
+
   use Tables                               , only : table1D
   use Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
   use Cosmology_Functions                  , only : cosmologyFunctions                                , cosmologyFunctionsClass
@@ -81,7 +81,7 @@
   end interface virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
 
 contains
-  
+
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
     use Input_Parameters          , only : inputParameter                                , inputParameters
@@ -142,7 +142,7 @@ contains
     !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
-  
+
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
     implicit none
@@ -202,7 +202,7 @@ contains
     double precision                                                            , intent(in   ), optional :: time      , expansionFactor
     logical                                                                     , intent(in   ), optional :: collapsing
     double precision                                                                                      :: time_     , interpolator
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -212,7 +212,7 @@ contains
     interpolator=self%intergalacticMediumFilteringMass_%fractionBaryons(mass,time_)
     ! Interpolate the virial density contrast between the clustered and unclustered baryons case.
     sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast=+self%deltaVirialClustered  %interpolate(time_)*       interpolator  &
-         &                                               +self%deltaVirialUnclustered%interpolate(time_)*(1.0d0-interpolator) 
+         &                                               +self%deltaVirialUnclustered%interpolate(time_)*(1.0d0-interpolator)
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast
 
@@ -281,7 +281,7 @@ contains
     double precision                                                            , intent(in   ), optional :: time      , expansionFactor
     logical                                                                     , intent(in   ), optional :: collapsing
     double precision                                                                                      :: time_      , interpolator
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -291,6 +291,6 @@ contains
     interpolator=self%intergalacticMediumFilteringMass_%fractionBaryons(mass,time_)
     ! Interpolate the virial density contrast between the clustered and unclustered baryons case.
     sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii=+self%turnaroundClustered  %interpolate(time_)*       interpolator  &
-         &                                                         +self%turnaroundUnclustered%interpolate(time_)*(1.0d0-interpolator) 
+         &                                                         +self%turnaroundUnclustered%interpolate(time_)*(1.0d0-interpolator)
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii

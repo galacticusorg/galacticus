@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks.
-  
+
   !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLaw">
   !#  <description>A power-law outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
@@ -78,12 +78,12 @@ contains
 
   function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from disks class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackDisksPowerLaw)                :: self
     double precision                                    , intent(in   ) :: velocityCharacteristic_, exponent
     character       (len=13                            )                :: label
-    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
+    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>
 
     if (velocityCharacteristic_ < 0.0d0) then
        write (label,'(e13.6)') velocityCharacteristic_
@@ -100,8 +100,8 @@ contains
     !% disk,outflow}$(={\normalfont \ttfamily diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
     !% $V_\mathrm{disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
-    use Stellar_Feedback
-    use Galacticus_Nodes, only : nodeComponentDisk
+    use :: Galacticus_Nodes, only : nodeComponentDisk                     , treeNode
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationFeedbackDisksPowerLaw), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -135,7 +135,7 @@ contains
     class(starFormationFeedbackDisksPowerLaw), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
     !GCC$ attributes unused :: node
-    
+
     powerLawVelocityCharacteristic=self%velocityCharacteristic_
     return
   end function powerLawVelocityCharacteristic

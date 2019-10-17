@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a simple cooling rate class.
-  
+
   !# <coolingRate name="coolingRateSimple">
   !#  <description>A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.</description>
   !# </coolingRate>
@@ -40,7 +40,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the simple cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateSimple)                :: self
     type            (inputParameters  ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
 
   double precision function simpleRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always simple.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(coolingRateSimple   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node

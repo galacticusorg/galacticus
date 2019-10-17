@@ -32,7 +32,7 @@ module Satellite_Merging_Remnant_Properties
   double precision, public :: radiusRemnant                 , velocityCircularRemnant  , &
        &                      angularMomentumSpecificRemnant
   !$omp threadprivate(destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor,radiusRemnant,velocityCircularRemnant,angularMomentumSpecificRemnant)
-  
+
 contains
 
   !# <satelliteMergerTask>
@@ -40,9 +40,9 @@ contains
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Remnant_Compute(node)
     !% Compute properties for satellite merger remnants.
-    use Satellite_Merging_Mass_Movements
-    use Satellite_Merging_Remnant_Sizes
-    use Galacticus_Nodes                , only : treeNode
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Satellite_Merging_Mass_Movements, only : mergerMassMovements, mergerMassMovementsClass
+    use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSize  , mergerRemnantSizeClass
     implicit none
     type (treeNode                ), intent(inout), pointer :: node
     class(mergerMassMovementsClass)               , pointer :: mergerMassMovements_

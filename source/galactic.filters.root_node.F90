@@ -38,7 +38,7 @@ contains
 
   function rootNodeConstructorParameters(parameters) result(self)
     !% Constructor for the ``rootNode'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterRootNode)                :: self
     type(inputParameters       ), intent(inout) :: parameters

@@ -29,10 +29,10 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
-    use Galacticus_Nodes  , only : treeNode, nodeComponentBasic
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic        , treeNode
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : operator(//)
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
@@ -42,7 +42,7 @@ contains
     class    (nodeComponentBasic), pointer                :: basic
     type     (varying_string    )                         :: message
     character(len=12            )                         :: label
-    
+
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        basic => satelliteNode%basic()

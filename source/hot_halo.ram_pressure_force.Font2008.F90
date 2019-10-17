@@ -19,7 +19,7 @@
 
   !% Implements a model of ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
 
-  use Hot_Halo_Mass_Distributions
+  use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
   !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
@@ -40,15 +40,15 @@
   end interface hotHaloRamPressureForceFont2008
 
 contains
-  
+
   function font2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloRamPressureForceFont2008)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(hotHaloMassDistributionClass   ), pointer       :: hotHaloMassDistribution_
-    
+
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
@@ -58,7 +58,6 @@ contains
 
   function font2008ConstructorInternal(hotHaloMassDistribution_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
-    use Input_Parameters
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
     class(hotHaloMassDistributionClass   ), intent(in   ), target :: hotHaloMassDistribution_
@@ -78,9 +77,9 @@ contains
 
   double precision function font2008Force(self,node)
     !% Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
-    use Kepler_Orbits
-    use Satellite_Orbits
-    use Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Satellite_Orbits, only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (hotHaloRamPressureForceFont2008), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -88,7 +87,7 @@ contains
     type            (treeNode                       ), pointer       :: nodeHost
     type            (keplerOrbit                    )                :: orbit
     double precision                                                 :: radiusOrbital, velocityOrbital
-    
+
     ! Find the host node.
     nodeHost  => node     %parent
     ! Get the satellite component.

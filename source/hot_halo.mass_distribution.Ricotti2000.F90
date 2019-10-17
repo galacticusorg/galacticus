@@ -19,9 +19,9 @@
 
 !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.</description>
   !# </hotHaloMassDistribution>
@@ -42,10 +42,10 @@
   end interface hotHaloMassDistributionRicotti2000
 
 contains
-  
+
   function ricotti2000ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloMassDistributionRicotti2000)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -63,9 +63,9 @@ contains
 
   function ricotti2000ConstructorInternal(darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
-    use Galacticus_Error
-    use Array_Utilities
-    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultHotHaloComponent
     implicit none
     type   (hotHaloMassDistributionRicotti2000)                        :: self
     class  (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
@@ -80,7 +80,7 @@ contains
           if     (                                                                                                                 &
                &  .not.(                                                                                                           &
                &         defaultHotHaloComponent          %       massIsGettable()                                                 &
-               &        .and.                                                                                                      & 
+               &        .and.                                                                                                      &
                &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                 &
                &       )                                                                                                           &
                & ) call Galacticus_Error_Report                                                                                    &
@@ -131,7 +131,7 @@ contains
   subroutine ricotti2000Initialize(self,node)
     !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
     !% node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
-    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -142,7 +142,7 @@ contains
          &                                                                     radiusScale                      , radiusVirial , &
          &                                                                     radiusCore                       , concentration, &
          &                                                                     b                                , beta
-    
+
     ! Compute parameters of the profile.
     hotHalo           =>  node                        %hotHalo          (    )
     darkMatterProfile =>  node                        %darkMatterProfile(    )

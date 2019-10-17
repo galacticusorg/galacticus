@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a galaxy size output analysis class for SDSS data.
-  
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
   !#  <description>A stellar mass function output analysis class.</description>
@@ -44,7 +44,7 @@ contains
 
   function galaxySizesSDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``galaxySizesSDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisGalaxySizesSDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -79,18 +79,27 @@ contains
 
   function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the ``galaxySizesSDSS'' output analysis class.
-    use ISO_Varying_String
-    use Output_Times
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
-    use Galacticus_Error
-    use Galacticus_Paths
-    use IO_HDF5
-    use Memory_Management
-    use Numerical_Comparison
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Cosmology_Parameters            , only : cosmologyParametersSimple
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
+    use :: Galactic_Filters                        , only : filterList                                 , galacticFilterAll                                , galacticFilterNot                              , galacticFilterStellarMass                    , &
+          &                                                 galacticFilterStellarMassMorphology
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                        , only : galacticusPath                             , pathTypeDataStatic
+    use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
+    use :: IO_HDF5                                 , only : hdf5Access                                 , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorHalfMassRadius        , nodePropertyExtractorMassStellar
+    use :: Numerical_Constants_Astronomical        , only : megaParsec
+    use :: Numerical_Constants_Prefixes            , only : kilo                                       , milli
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth     , outputAnalysisDistributionNormalizerSequence   , outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass    , outputAnalysisDistributionOperatorDiskSizeInclntn, outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyAnglrDstnc   , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10          , &
+          &                                                 outputAnalysisPropertyOperatorMultiply     , outputAnalysisPropertyOperatorSequence           , propertyOperatorList
+    use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNormal
+    use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisGalaxySizesSDSS                  )                              :: self
     integer                                                                       , intent(in   )  :: distributionNumber
@@ -366,7 +375,7 @@ contains
     !% Destructor for the ``galaxySizesSDSS'' output analysis class.
     implicit none
     type(outputAnalysisGalaxySizesSDSS), intent(inout) :: self
-    
-    !# <objectDestructor name="self%cosmologyFunctions_" />    
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine galaxySizesSDSSDestructor

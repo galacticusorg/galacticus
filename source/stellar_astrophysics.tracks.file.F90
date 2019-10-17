@@ -19,8 +19,8 @@
 
   !% Implements a stellar tracks class in which the tracks are read from file and interpolated.
 
-  use FGSL, only : fgsl_interp_accel
-  
+  use :: FGSL, only : fgsl_interp_accel
+
   !# <stellarTracks name="stellarTracksFile">
   !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>
   !# </stellarTracks>
@@ -29,11 +29,11 @@
      private
      type            (varying_string   )                                :: fileName
      double precision                   , allocatable, dimension(:    ) :: metallicityLogarithmic
-     double precision                   , allocatable, dimension(:,:  ) :: massInitial 
+     double precision                   , allocatable, dimension(:,:  ) :: massInitial
      double precision                   , allocatable, dimension(:,:,:) :: age                                       , luminosityTrack            , &
-          &                                                                temperatureTrack    
+          &                                                                temperatureTrack
      integer                            , allocatable, dimension(:    ) :: countMassInitial
-     integer                            , allocatable, dimension(:,:  ) :: countAge       
+     integer                            , allocatable, dimension(:,:  ) :: countAge
      integer                                                            :: countMetallicity
      type            (fgsl_interp_accel)                                :: interpolationAcceleratorMetallicity       , interpolationAcceleratorAge, &
           &                                                                interpolationAcceleratorMass
@@ -60,7 +60,7 @@
      procedure :: interpolationCompute => fileInterpolationCompute
      procedure :: interpolate          => fileInterpolate
   end type stellarTracksFile
-  
+
   interface stellarTracksFile
      !% Constructors for the {\normalfont \ttfamily file} stellar tracks class.
      module procedure fileConstructorParameters
@@ -74,13 +74,13 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily file} stellar tracks class which takes a parameter list as input.
-    use Galacticus_Paths
-    use Input_Parameters
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarTracksFile)                :: self
     type(inputParameters  ), intent(inout) :: parameters
     type(varying_string   )                :: fileName
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
@@ -96,11 +96,11 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
-    use Galacticus_Error
-    use Memory_Management
-    use IO_HDF5
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
+    use :: Memory_Management , only : allocateArray
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (stellarTracksFile)                :: self
     character(len=*            ), intent(in   ) :: fileName
@@ -112,7 +112,7 @@ contains
          &                                         metallicityGroup       , stellarTracks
     logical                                     :: foundMassGroup         , foundMetallicityGroup
     !# <constructorAssign variables="fileName"/>
-    
+
     ! Open the HDF5 file.
     !$ call hdf5Access%set()
     call stellarTracks%openFile(fileName,readOnly=.true.)
@@ -234,7 +234,7 @@ contains
          &                         interpolationIndicesAge        , &
          &                         interpolationFactorsMetallicity, &
          &                         interpolationFactorsMass       , &
-         &                         interpolationFactorsAge        , & 
+         &                         interpolationFactorsAge        , &
          &                         metallicityOutOfRange          , &
          &                         massOutOfRange                 , &
          &                         ageOutOfRange                    &
@@ -282,7 +282,7 @@ contains
          &                         interpolationIndicesAge        , &
          &                         interpolationFactorsMetallicity, &
          &                         interpolationFactorsMass       , &
-         &                         interpolationFactorsAge        , & 
+         &                         interpolationFactorsAge        , &
          &                         metallicityOutOfRange          , &
          &                         massOutOfRange                 , &
          &                         ageOutOfRange                    &
@@ -321,7 +321,7 @@ contains
     integer         (c_size_t         )                                  :: jAge                           , jMetallicity, &
          &                                                                  jMass
     !GCC$ attributes unused :: self
-    
+
     fileInterpolate=0.0d0
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
@@ -343,7 +343,7 @@ contains
   subroutine fileInterpolationCompute(self,initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
     !% Get interpolating factors for stellar tracks.
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate_Done, Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self
     double precision                   , intent(in   )                   :: age                            , initialMass   , &

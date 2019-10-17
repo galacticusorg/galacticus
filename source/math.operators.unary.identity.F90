@@ -40,12 +40,12 @@ contains
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily identity} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryIdentity)                :: self
     type(inputParameters      ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=operatorUnaryIdentity()
     return
   end function identityConstructorParameters

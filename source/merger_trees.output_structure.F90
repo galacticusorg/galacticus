@@ -21,7 +21,7 @@
 
 module Merger_Tree_Output_Structure
   !% Outputs the structure of entire merger trees.
-  use IO_HDF5
+  use :: IO_HDF5, only : hdf5Object
   implicit none
   private
   public :: Merger_Tree_Structure_Output, Merger_Tree_Structure_PreClose
@@ -45,15 +45,18 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Output(tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes                 , only : mergerTree, treeNode, nodeComponentBasic
-    use Input_Parameters
-    use Memory_Management
-    use Galacticus_HDF5
-    use ISO_Varying_String
-    use String_Handling
-    use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Astronomical
-    use Merger_Tree_Walkers
+    use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScale          , darkMatterHaloScaleClass
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic      , treeNode
+    use :: IO_HDF5                         , only : hdf5Object                   , hdf5Access
+    use :: ISO_Varying_String
+    use :: Input_Parameters                , only : globalParameters             , inputParameter
+    use :: Kind_Numbers                    , only : kind_int8
+    use :: Memory_Management               , only : allocateArray                , deallocateArray
+    use :: Merger_Tree_Walkers             , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Constants_Astronomical, only : gigaYear                     , massSolar               , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: String_Handling                 , only : operator(//)
     !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
@@ -69,7 +72,7 @@ contains
     type            (varying_string               )                                       :: groupComment        , groupName
     type            (hdf5Object                   )                                       :: nodeDataset         , treeGroup
     type            (mergerTreeWalkerIsolatedNodes)                                       :: treeWalker
-    
+
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
        !$omp critical(structureOutputModuleInitialize)
@@ -192,7 +195,7 @@ contains
              basic => node%basic()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=basic%time()
-          end do          
+          end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
@@ -207,7 +210,7 @@ contains
              treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
              do while (treeWalker%next(node))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)                
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)
              end do
              !$ call hdf5Access%set()
              call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)

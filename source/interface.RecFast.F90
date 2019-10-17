@@ -23,17 +23,17 @@ module Interfaces_RecFast
   !% Provides various interfaces to the \gls{recfast} code.
   private
   public :: Interface_RecFast_Initialize
-  
+
 contains
 
   subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion,static)
     !% Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
-    use ISO_Varying_String
-    use Galacticus_Paths
-    use File_Utilities
-    use System_Command
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: File_Utilities    , only : Directory_Make            , File_Exists
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
+    use :: ISO_Varying_String
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
     logical                  , intent(in   ), optional :: static
@@ -41,9 +41,9 @@ contains
     character(len=32        )                          :: line       , versionLabel
     type     (varying_string)                          :: command
     !# <optionalArgument name="static" defaultsTo=".false." />
-    
+
     ! Set path.
-    recfastPath   =galacticusPath(pathTypeDataDynamic)//"RecFast/"
+    recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
        ! Patch the code if not already patched.
@@ -51,9 +51,10 @@ contains
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-             call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             call Directory_Make(recfastPath)
+             call System_Command_Do("wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
-                  & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
+                  & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location})
           end if
           call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
           call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
@@ -65,7 +66,7 @@ contains
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))
        if (.not.File_Exists(recfastPath//"recfast.exe")) &
-            & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
+            & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location})
     end if
     ! Determine the version.
     if (.not.File_Exists(recfastPath//"currentVersion")) then

@@ -20,7 +20,7 @@
   !% Contains a module which implements a stellar vs halo mass relation analysis class.
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
-  
+
   !# <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
   !#  <description>A stellar vs halo mass relation output analysis class.</description>
   !# </outputAnalysis>
@@ -47,9 +47,9 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class which takes a parameter set as input.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Input_Parameters
+    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+    use :: Input_Parameters    , only : inputParameter     , inputParameters
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
@@ -115,25 +115,49 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
-    use ISO_Varying_String
-    use Numerical_Constants_Astronomical
-    use Numerical_Ranges
-    use Numerical_Comparison
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Memory_Management
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use String_Handling
-    use Galacticus_Error
-    use Virial_Density_Contrast
-    use IO_HDF5
-    use Galacticus_Paths
-    use Tables                               , only : table1DGeneric
-    use FGSL                                 , only : fgsl_interp_cspline
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
+    use :: FGSL                                  , only : fgsl_interp_cspline
+    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryFullSky
+    use :: IO_HDF5                               , only : hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass, outputAnalysisPropertyOperatorLog10, &
+          &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Tables                                , only : table                                      , table1DGeneric
+    use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed
+    use :: String_Handling                       , only : operator(//)
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
+    use :: FGSL                                  , only : fgsl_interp_cspline
+    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryFullSky
+    use :: IO_HDF5                               , only : hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass, outputAnalysisPropertyOperatorLog10, &
+          &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Tables                                , only : table                                      , table1DGeneric
+    use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                                :: self
     integer                                                               , intent(in   )                 :: redshiftInterval
@@ -173,7 +197,7 @@ contains
     type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
     type            (virialDensityContrastFixed                          ), pointer                       :: virialDensityContrast_
-    type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_    
+    type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_
     double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d00
     logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
     integer         (c_size_t                                            )                                :: iBin
@@ -184,7 +208,7 @@ contains
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
-    
+
     ! Construct survey geometry.
     select case (redshiftInterval)
     case (1)
@@ -278,7 +302,7 @@ contains
        if (self%likelihoodBin > massHaloCount) call Galacticus_Error_Report('likelihoodBin is out of range'//{introspection:location})
        do iBin=1,massHaloCount
           if (iBin /= self%likelihoodBin) massStellarLogarithmicTarget(iBin)=0.0d0
-       end do       
+       end do
     end if
     ! Build a filter which select central galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilterStellarMass_      )
@@ -347,7 +371,7 @@ contains
        ! For the scatter we need to set an appropriate target and covariance for likelihood calculation. This measurement is based
        ! on the constraint on σ_{log₁₀L}=0.16±0.04 from More et al. (2009; MNRAS; 392; 801) for SDSS galaxies.
        do iBin=1,massHaloCount
-          if (self%likelihoodBin <= 0_c_size_t .or. self%likelihoodBin == iBin) then        
+          if (self%likelihoodBin <= 0_c_size_t .or. self%likelihoodBin == iBin) then
              massStellarLogarithmicTarget          (iBin     )=0.16d0
              massStellarLogarithmicCovarianceTarget(iBin,iBin)=0.04d0**2
           end if
@@ -393,7 +417,7 @@ contains
        !#    &amp;                          var_str('M_\mathrm{halo}/\mathrm{M}_\odot'            )                                                           , &amp;
        !#    &amp;                          var_str('\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}')                                                           , &amp;
        !#    &amp;                          .true.                                                                                                            , &amp;
-       !#    &amp;                          .false.                                                                                                           , &amp;    
+       !#    &amp;                          .false.                                                                                                           , &amp;
        !#    &amp;                          var_str('More et al. (2009)'                          )                                                           , &amp;
        !#    &amp;                          massStellarLogarithmicTarget                                                                                      , &amp;
        !#    &amp;                          massStellarLogarithmicCovarianceTarget                                                                              &amp;
@@ -434,7 +458,7 @@ contains
        !#    &amp;                          var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'    )                                                      , &amp;
        !#    &amp;                          var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$' )                                                      , &amp;
        !#    &amp;                          .true.                                                                                                 , &amp;
-       !#    &amp;                          .false.                                                                                                , &amp;    
+       !#    &amp;                          .false.                                                                                                , &amp;
        !#    &amp;                          var_str('Leauthaud et al. (2012)'             )                                                        , &amp;
        !#    &amp;                          massStellarLogarithmicTarget                                                                           , &amp;
        !#    &amp;                          massStellarLogarithmicCovarianceTarget                                                                   &amp;
@@ -449,9 +473,9 @@ contains
     !# <objectDestructor name="galacticFilterStellarMass_"                             />
     !# <objectDestructor name="galacticFilterHaloIsolated_"                            />
     !# <objectDestructor name="galacticFilterAll_"                                     />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"                    />               
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"                    />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                          />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                        />            
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                        />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"    />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_" />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" />
@@ -490,7 +514,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Reduce(self,reduced)
     !% Implement reduction for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self
     class(outputAnalysisClass                                 ), intent(inout) :: reduced

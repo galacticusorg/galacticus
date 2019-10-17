@@ -19,8 +19,8 @@
 
   !% Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
 
-  use Kind_Numbers
- 
+  use :: Kind_Numbers, only : kind_int8
+
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
   !#  <description>A Kennicutt-Schmidt star formation rate surface density for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
@@ -43,7 +43,7 @@
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
      !@     <description>Reset memoized calculations.</description>
      !@   </objectMethod>
-     !@ </objectMethods>                                              
+     !@ </objectMethods>
      final     ::                     kennicuttSchmidtDestructor
      procedure :: autoHook         => kennicuttSchmidtAutoHook
      procedure :: calculationReset => kennicuttSchmidtCalculationReset
@@ -60,7 +60,7 @@ contains
 
   function kennicuttSchmidtConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
     type            (inputParameters                                     ), intent(inout) :: parameters
@@ -134,7 +134,7 @@ contains
 
   function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
     !% Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
-    use Numerical_Constants_Prefixes
+    use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
     double precision                                                      , intent(in   ) :: normalization          , exponent                 , &
@@ -153,17 +153,17 @@ contains
 
   subroutine kennicuttSchmidtAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
     call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine kennicuttSchmidtAutoHook
-  
+
   subroutine kennicuttSchmidtDestructor(self)
     !% Destructor for the kennicuttSchmidt cooling radius class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
@@ -196,12 +196,12 @@ contains
     !% $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
     !% density occurs. $\sigma_\mathrm{gas}$ is assumed to be a constant equal to {\normalfont \ttfamily [velocityDispersionDiskGas]} and the disk is
     !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
-    use Abundances_Structure
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use Galacticus_Nodes                    , only : nodeComponentDisk
+    use :: Abundances_Structure                , only : abundances
+    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous
+    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
+    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
     type            (treeNode                                            ), intent(inout) :: node

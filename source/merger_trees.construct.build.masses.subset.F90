@@ -50,7 +50,7 @@ contains
     type   (inputParameters            ), intent(inout) :: parameters
     class  (mergerTreeBuildMassesClass ), pointer       :: mergerTreeBuildMasses_
     integer(c_size_t                   )                :: subsetBegin           , subsetEnd
-    
+
     !# <inputParameter>
     !#   <name>subsetBegin</name>
     !#   <cardinality>1</cardinality>
@@ -90,7 +90,7 @@ contains
     !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
     return
   end subroutine subsetDestructor
-  
+
   subroutine subsetConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by taking a subset from another set.
     implicit none

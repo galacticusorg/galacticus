@@ -33,25 +33,25 @@
      !% Constructors for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class.
      module procedure madau1995ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMadau1995
-    
+
 contains
 
   function madau1995ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorMadau1995)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarPopulationSpectraPostprocessorMadau1995()
     return
   end function madau1995ConstructorParameters
-  
+
   double precision function madau1995Multiplier(self,wavelength,age,redshift)
     !% Suppress the Lyman continuum in a spectrum.
-    use Numerical_Constants_Atomic
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class           (stellarPopulationSpectraPostprocessorMadau1995), intent(inout)           :: self
     double precision                                                , intent(in   )           :: age                                                                                                                           , redshift                        , &
@@ -62,7 +62,7 @@ contains
     double precision                                                                          :: continuumFactor                                                                                                               , emissionFactor                  , &
          &                                                                                       opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
     !GCC$ attributes unused :: self, age
-    
+
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then
        ! It is, so return no modification.
@@ -95,4 +95,4 @@ contains
     end if
     return
   end function madau1995Multiplier
-  
+

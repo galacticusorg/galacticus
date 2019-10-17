@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a merger tree operator which makes mass growth along
   !% branch monotonically increasing.
-  
+
   !# <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
   !#  <description>
   !#   A merger tree operator which makes mass growth along merger tree branches monotonic.
@@ -32,7 +32,7 @@
      final     ::             monotonizeMassGrowthDestructor
      procedure :: operate  => monotonizeMassGrowthOperate
   end type mergerTreeOperatorMonotonizeMassGrowth
-  
+
   interface mergerTreeOperatorMonotonizeMassGrowth
      !% Constructors for the mass growth monotonizing merger tree operator class.
      module procedure monotonizeMassGrowthConstructorParameters
@@ -43,7 +43,7 @@ contains
   function monotonizeMassGrowthConstructorParameters(parameters)
     !% Constructor for the mass growth monotonizing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
@@ -58,15 +58,15 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine monotonizeMassGrowthDestructor
 
   subroutine monotonizeMassGrowthOperate(self,tree)
     !% Perform a mass growth monotonizing operation on a merger tree.
-    use Galacticus_Nodes   , only : treeNode, nodeComponentBasic
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self
     type            (mergerTree                            ), intent(inout), target :: tree
@@ -112,4 +112,4 @@ contains
     end do
     return
   end subroutine monotonizeMassGrowthOperate
-  
+

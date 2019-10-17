@@ -21,9 +21,9 @@
 
 module Merger_Trees_Merge_Node
   !% Provides a class that implements processing of mergers between nodes.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeNodeMerger</name>
   !#  <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
@@ -36,5 +36,5 @@ module Merger_Trees_Merge_Node
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Trees_Merge_Node

@@ -21,11 +21,12 @@
 
 program Test_String_Utilities
   !% Tests that numerical range making code works correctly.
-  use Unit_Tests
-  use ISO_Varying_String
-  use String_Handling
-  use Kind_Numbers
-  use Galacticus_Display
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Kind_Numbers      , only : kind_int8
+  use :: String_Handling   , only : Convert_VarString_To_Char     , String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case, &
+          &                         String_Split_Words            , String_Upper_Case     , String_Upper_Case_First    , operator(//)
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
   implicit none
   character(len=20        ), dimension(3) :: words
   type     (varying_string), dimension(3) :: myStrings

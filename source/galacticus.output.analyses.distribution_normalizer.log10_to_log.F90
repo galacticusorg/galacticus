@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
-  
+
   !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog">
   !#  <description>A $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.</description>
   !# </outputAnalysisDistributionNormalizer>
@@ -38,7 +38,7 @@ contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
     !% Constructor for the ``log10ToLog'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
     type(inputParameters                               ), intent(inout) :: parameters

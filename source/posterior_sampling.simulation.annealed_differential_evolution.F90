@@ -61,13 +61,13 @@ contains
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     integer                                                                        :: temperatureLevelCount
     double precision                                                               :: temperatureMaximum
-    
+
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureLevelCount</name>
@@ -88,8 +88,8 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function annealedDifferentialEvolutionConstructorParameters
-  
-  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
+
+  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
     !% Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
@@ -102,14 +102,15 @@ contains
     class           (posteriorSampleDffrntlEvltnProposalSizeClass ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
     class           (posteriorSampleDffrntlEvltnRandomJumpClass   ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
     integer                                                        , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
-         &                                                                                                  stateSwapCount                          , logFlushCount         ,   &
-         &                                                                                                  reportCount                             , temperatureLevelCount
+         &                                                                                                  stateSwapCount                          , logFlushCount           , &
+         &                                                                                                  reportCount                             , temperatureLevelCount   , &
+         &                                                                                                  recomputeCount
     character       (len=*                                        ), intent(in   )                       :: logFileRoot                             , interactionRoot
-    logical                                                        , intent(in   )                       :: sampleOutliers                          , appendLogs            , &
+    logical                                                        , intent(in   )                       :: sampleOutliers                          , appendLogs              , &
          &                                                                                                  loadBalance                             , ignoreChainNumberAdvice
     double precision                                               , intent(in   )                       :: temperatureMaximum
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     return
   end function annealedDifferentialEvolutionConstructorInternal
@@ -142,10 +143,10 @@ contains
 
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use MPI_Utilities
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -192,8 +193,7 @@ contains
 
   logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
     !% Return whether or not to accept a proposal.
-    use Pseudo_Random
-    use MPI_Utilities
+    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &

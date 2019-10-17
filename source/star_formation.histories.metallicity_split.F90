@@ -19,10 +19,35 @@
 
 !% Contains a module which implements a star formation histories class which records star formation split by metallicity.
 
-  use Output_Times, only : outputTimesClass, outputTimes
+  use :: Output_Times, only : outputTimes, outputTimesClass
 
   !# <starFormationHistory name="starFormationHistoryMetallicitySplit">
-  !#  <description>A star formation histories class which records star formation split by metallicity.</description>
+  !#  <description>
+  !#   A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
+  !#   on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\normalfont \ttfamily
+  !#   [starFormationHistoryTimeStep]} between the time at which each galaxy formed and the final output time, and at most of size
+  !#   {\normalfont \ttfamily [starFormationHistoryFineTimeStep]} in the period {\normalfont \ttfamily
+  !#   [starFormationHistoryFineTime]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
+  !#   star formation just prior to each output. Usually, the metallicity binning is arranged logarithmically in metallicity with
+  !#   {\normalfont \ttfamily [starFormationHistoryMetallicityCount]} bins between {\normalfont \ttfamily
+  !#   [starFormationHistoryMetallicityMinimum]} and {\normalfont \ttfamily [starFormationHistoryMetallicityMaximum]} (specified
+  !#   in Solar units). Note that the metallicity associated with each bin is the minimum metallicity for that bin (the maximum
+  !#   being the metallicity value associated with the next bin, except for the final bin which extends to infinite
+  !#   metallicity). If {\normalfont \ttfamily [starFormationHistoryMetallicityCount]}$=0$ is set, then the star formation history
+  !#   is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
+  !#   used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
+  !#   [starFormationHistoryMetallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+  !#   automatically. Output follows the conventional format, with 2D star formation history datasets to represent the history as
+  !#   a function of time and metallicity. An additional {\normalfont \ttfamily metallicities} dataset is added to the
+  !#   {\normalfont \ttfamily starFormationHistories} output group to record the metallicity binning as follows:
+  !#    \begin{verbatim}
+  !#    DATASET "metallicities" {
+  !#     COMMENT "Metallicities at which star formation histories are tabulated"
+  !#       DATATYPE  H5T_IEEE_F64LE
+  !#       DATASPACE  SIMPLE { ( [starFormationHistoryMetallicityCount] ) / ( [starFormationHistoryMetallicityCount] ) }
+  !#    }
+  !#    \end{verbatim}
+  !#  </description>
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryMetallicitySplit
      !% A star formation histories class which records star formation split by metallicity.
@@ -67,13 +92,13 @@
   end type metallicitySplitTimeStepRange
 
   ! Effective infinite metallicity.
-  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)                                     
+  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)
 
 contains
-  
+
   function metallicitySplitConstructorParameters(parameters) result(self)
     !% Constructor for the ``metallicitySplit'' star formation history class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationHistoryMetallicitySplit)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
@@ -83,7 +108,7 @@ contains
          &                                                                                 timeFine             , metallicityMinimum, &
          &                                                                                 metallicityMaximum
     integer                                                                             :: countMetallicities
-    
+
     !# <inputParameter>
     !#   <name>timeStep</name>
     !#   <cardinality>1</cardinality>
@@ -161,8 +186,8 @@ contains
 
   function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !% Internal constructor for the ``metallicitySplit'' star formation history class.
-    use Numerical_Ranges, only : Make_Range             , rangeTypeLogarithmic
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryMetallicitySplit)                                        :: self
     double precision                                      , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -214,14 +239,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily metallicitySplit} star formation histories class.
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%outputTimes_"/>
     return
   end subroutine metallicitySplitDestructor
-  
+
   subroutine metallicitySplitCreate(self,node,historyStarFormation,timeBegin)
     !% Create the history required for storing star formation history.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -239,9 +264,9 @@ contains
 
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes    , only : nodeComponentBasic
-    use Arrays_Search       , only : Search_Array
-    use Abundances_Structure, only : metallicityTypeLinearByMassSolar
+    use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
+    use :: Arrays_Search       , only : Search_Array
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -272,10 +297,13 @@ contains
 
   subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_HDF5 , only : galacticusOutputFile
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     use String_Handling , only : operator(//)
-    use IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -344,7 +372,7 @@ contains
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
     !GCC$ attributes unused :: abundancesStellar
-    
+
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
@@ -356,8 +384,8 @@ contains
 
   subroutine metallicitySplitMake(self,historyStarFormation,timeBegin,timeEnd,timesCurrent)
     !% Create the history required for storing star formation history.
-    use Numerical_Ranges, only : Make_Range             , rangeTypeLinear
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLinear
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)                         :: self
     type            (history                             ), intent(inout)                         :: historyStarFormation

@@ -19,9 +19,8 @@
 
 !% Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
 
-  use Galacticus_Paths
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <surveyGeometry name="surveyGeometryBaldry2012GAMA">
   !#  <description>Implements the geometry of the GAMA survey of \cite{baldry_galaxy_2012}.</description>
   !# </surveyGeometry>
@@ -45,7 +44,7 @@
 
   ! Number of fields.
   integer, parameter :: baldry2012GAMAFields              =  3
- 
+
   ! Maximum degree for angular power spectrum
   integer, parameter :: baldry2012GAMAAngularPowerMaximumL=360
 
@@ -53,8 +52,8 @@ contains
 
   function baldry2012GAMAConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{baldry_galaxy_2012} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
-    use Cosmology_Functions
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type (surveyGeometryBaldry2012GAMA)                :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -68,10 +67,10 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function baldry2012GAMAConstructorParameters
-  
+
   function baldry2012GAMAConstructorInternal(cosmologyFunctions_) result (self)
     !% Internal constructor for the \cite{baldry_galaxy_2012} conditional mass function class.
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryBaldry2012GAMA)                        :: self
     class           (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
@@ -91,20 +90,20 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine baldry2012GAMADestructor
-  
+
   integer function baldry2012GAMAFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     baldry2012GAMAFieldCount=baldry2012GAMAFields
     return
   end function baldry2012GAMAFieldCount
 
   double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -139,15 +138,16 @@ contains
 
   function baldry2012GAMAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     baldry2012GAMAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
     return
   end function baldry2012GAMAMangleDirectory
-  
+
   subroutine baldry2012GAMAMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
@@ -169,8 +169,8 @@ contains
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
     return
   end function baldry2012GAMAAngularPowerMaximumDegree
-  
+

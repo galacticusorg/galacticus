@@ -32,7 +32,7 @@
    contains
      procedure :: velocity => campanelli2007Velocity
   end type blackHoleBinaryRecoilCampanelli2007
-  
+
   interface blackHoleBinaryRecoilCampanelli2007
      !% Constructors for the {\normalfont \ttfamily campanelli2007} black hole binary recoil class.
      module procedure campanelli2007ConstructorParameters
@@ -43,7 +43,7 @@ contains
   function campanelli2007ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily campanelli2007} black hole bianry recoild class which takes a parameter list as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryRecoilCampanelli2007)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
@@ -58,7 +58,7 @@ contains
     !% the binary's center of mass. Constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm
     !% 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K
     !% \cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (blackHoleBinaryRecoilCampanelli2007), intent(inout) :: self
     class           (nodeComponentBlackHole             ), intent(inout) :: blackHole1            , blackHole2
@@ -95,4 +95,4 @@ contains
     campanelli2007Velocity=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)
     return
   end function campanelli2007Velocity
-  
+

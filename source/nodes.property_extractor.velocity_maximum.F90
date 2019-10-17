@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a cooling rate property extractor class.
 
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum">
   !#  <description>A cooling rate property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorVelocityMaximum
 
 contains
-  
+
   function velocityMaximumConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
@@ -78,16 +78,16 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine velocityMaximumDestructor
-  
+
   double precision function velocityMaximumExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout)           :: self
     type (treeNode                            ), intent(inout), target   :: node
     type (multiCounter                        ), intent(inout), optional :: instance
     !GCC$ attributes unused :: instance
-    
+
     velocityMaximumExtract=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
     return
   end function velocityMaximumExtract
@@ -116,7 +116,7 @@ contains
 
   double precision function velocityMaximumUnitsInSI(self)
     !% Return the units of the last isolated redshift property in the SI system.
-    use Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -127,7 +127,7 @@ contains
 
   integer function velocityMaximumType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -135,4 +135,4 @@ contains
     velocityMaximumType=outputAnalysisPropertyTypeLinear
     return
   end function velocityMaximumType
-  
+

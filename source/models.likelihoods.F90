@@ -21,11 +21,11 @@
 
 module Models_Likelihoods
   !% Implements a likelihood class for posterior sampling simulations.
-  use Posterior_Sampling_State
-  use Posterior_Sampling_Convergence
-  use Model_Parameters
+  use :: Model_Parameters              , only : modelParameterList
+  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+  use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
-  
+
   !# <functionClass>
   !#  <name>posteriorSampleLikelihood</name>
   !#  <descriptiveName>Posterior Sampling Likelihoods</descriptiveName>

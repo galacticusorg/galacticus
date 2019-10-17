@@ -43,7 +43,7 @@ contains
 
   function spheroidStellarMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``spheroidStellarMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterSpheroidStellarMass)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -68,13 +68,13 @@ contains
     type            (galacticFilterSpheroidStellarMass)                :: self
     double precision                                   , intent(in   ) :: massThreshold
     !# <constructorAssign variables="massThreshold"/>
-    
+
     return
   end function spheroidStellarMassConstructorInternal
 
   logical function spheroidStellarMassPasses(self,node)
     !% Implement a  stellar mass high-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterSpheroidStellarMass), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node

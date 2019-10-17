@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a random error output analysis distribution operator class. 
+!% Contains a module which implements a random error output analysis distribution operator class.
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
   !#  <description>A random error output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
@@ -48,7 +48,7 @@
        type            (treeNode                                     ), intent(inout) :: node
      end function randomErrorOperateRootVariance
   end interface
-  
+
 contains
 
   function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
@@ -83,7 +83,7 @@ contains
 
   function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution

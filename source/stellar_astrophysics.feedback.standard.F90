@@ -19,10 +19,10 @@
 
   !% Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
 
-  use Supernovae_Type_Ia
-  use Supernovae_Population_III
-  use Stellar_Astrophysics_Winds
-  use Stellar_Astrophysics
+  use :: Stellar_Astrophysics      , only : stellarAstrophysicsClass
+  use :: Stellar_Astrophysics_Winds, only : stellarWindsClass
+  use :: Supernovae_Population_III , only : supernovaePopulationIIIClass
+  use :: Supernovae_Type_Ia        , only : supernovaeTypeIaClass
 
   !# <stellarFeedback name="stellarFeedbackStandard">
   !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
@@ -30,16 +30,16 @@
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      private
-     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_ => null()
-     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_ => null()
-     class           (stellarWindsClass           ), pointer :: stellarWinds_ => null()
-     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_ => null()
-     double precision                                        :: initialMassForSupernovaeTypeII, supernovaEnergy
+     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_              => null()
+     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_       => null()
+     class           (stellarWindsClass           ), pointer :: stellarWinds_                  => null()
+     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_           => null()
+     double precision                                        :: initialMassForSupernovaeTypeII          , supernovaEnergy
    contains
      final     ::                          standardDestructor
      procedure :: energyInputCumulative => standardEnergyInputCumulative
   end type stellarFeedbackStandard
-  
+
   interface stellarFeedbackStandard
      !% Constructors for the {\normalfont \ttfamily standard} stellar feedback class.
      module procedure standardConstructorParameters
@@ -55,10 +55,10 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
-    use Input_Parameters
-    use Numerical_Constants_Units
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use :: Input_Parameters                , only : inputParameter, inputParameters
+    use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     type            (stellarFeedbackStandard     )                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -98,7 +98,7 @@ contains
     !# <objectDestructor name="stellarAstrophysics_"    />
     return
   end function standardConstructorParameters
-  
+
   function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
     implicit none
@@ -109,27 +109,27 @@ contains
     class           (stellarAstrophysicsClass    ), intent(in   ), target :: stellarAstrophysics_
     double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
     !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
-    
+
     return
   end function standardConstructorInternal
-  
+
   subroutine standardDestructor(self)
    !% Destructor for the {\normalfont \ttfamily standard} stellar feedback class.
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%supernovaeTypeIa_"       />
     !# <objectDestructor name="self%supernovaePopulationIII_"/>
     !# <objectDestructor name="self%stellarWinds_"           />
     !# <objectDestructor name="self%stellarAstrophysics_"    />
     return
   end subroutine standardDestructor
-  
+
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    use Numerical_Integration
-    use Numerical_Constants_Astronomical
-    use FGSL                            , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                            , only : fgsl_function   , fgsl_integration_workspace
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
+    use :: Numerical_Integration           , only : Integrate       , Integrate_Done
     implicit none
     class           (stellarFeedbackStandard   ), intent(inout), target :: self
     double precision                            , intent(in   )         :: age                                                    , initialMass, metallicity

@@ -138,8 +138,8 @@ CODE
     }
 }
 # Add closing statements to the allocate and deallocate interface blocks.
-$codeFragments->{'preContain'}->{$_} .= "end interface\n\n"
-    foreach ( "allocInterfaceCode", "deallocInterfaceCode" );
+$codeFragments->{'preContain'}->{'allocInterfaceCode'  } .= "end interface allocateArray\n\n";
+$codeFragments->{'preContain'}->{'deallocInterfaceCode'} .= "end interface deallocateArray\n\n";
 # Output code blocks to files.
 foreach my $section ( @codeSections ) {
     print {$includeFiles->{$section}} $_."\n"

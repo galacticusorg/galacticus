@@ -39,17 +39,17 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorParameters(parameters) result (self)
     !% Constructor for the ``concentrationDistributionCDMCOCO'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Statistics_NBody_Halo_Mass_Errors
-    use Cosmology_Parameters
-    use Cosmology_Functions
+    use :: Cosmology_Functions              , only : cosmologyFunctions , cosmologyFunctionsClass
+    use :: Cosmology_Parameters             , only : cosmologyParameters, cosmologyParametersClass
+    use :: Input_Parameters                 , only : inputParameter     , inputParameters
+    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassError , nbodyHaloMassErrorClass
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     class           (cosmologyParametersClass                      ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                              ), pointer       :: outputTimes_
-    class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_ 
+    class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_
     integer                                                                         :: distributionNumber
     double precision                                                                :: formationTimeRecent
 
@@ -82,25 +82,31 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
-    use ISO_Varying_String
-    use Output_Times
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
-    use Galacticus_Error
-    use Statistics_NBody_Halo_Mass_Errors
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Paths
-    use IO_HDF5
-    use Memory_Management
-    use Numerical_Comparison
-    use Virial_Density_Contrast
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters                    , only : cosmologyParametersClass
+    use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                        , only : galacticusPath                                  , pathTypeDataStatic
+    use :: IO_HDF5                                 , only : hdf5Access                                      , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorConcentration              , nodePropertyExtractorMassHalo
+    use :: Numerical_Comparison                    , only : Values_Agree
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
+          &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRndmErrNbdyCnc
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNbodyMass
+    use :: Output_Times                            , only : outputTimesClass
+    use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast                 , only : fixedDensityTypeCritical                        , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO  )                                :: self
     class           (cosmologyParametersClass                        ), target     , intent(in   )    :: cosmologyParameters_
     class           (cosmologyFunctionsClass                         ), target     , intent(in   )    :: cosmologyFunctions_
     class           (outputTimesClass                                ), target     , intent(inout)    :: outputTimes_
-    class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )    :: nbodyHaloMassError_ 
+    class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )    :: nbodyHaloMassError_
     integer                                                                        , intent(in   )    :: distributionNumber
     double precision                                                               , intent(in   )    :: formationTimeRecent
     type            (nodePropertyExtractorConcentration              ), pointer                       :: nodePropertyExtractor_
@@ -135,7 +141,7 @@ contains
     double precision                                                  , parameter                     :: concentrationFitB                       = -0.550d+00
     integer                                                           , parameter                     :: covarianceBinomialBinsPerDecade         =  2
     double precision                                                  , parameter                     :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
-    integer         (c_size_t                                        )                                :: iOutput                                             , bufferCount               
+    integer         (c_size_t                                        )                                :: iOutput                                             , bufferCount
     type            (hdf5Object                                      )                                :: dataFile
     double precision                                                                                  :: massMinimum                                         , massMaximum
     character       (len=16                                          )                                :: distributionName

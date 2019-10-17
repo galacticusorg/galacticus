@@ -20,8 +20,8 @@
   !% Implements a stellar population properties class based on the instantaneous recycling approximation.
 
   use, intrinsic :: ISO_C_Binding
-  use            :: Stellar_Luminosities_Structure
-  use            :: Stellar_Population_Selectors
+  use            :: Stellar_Luminosities_Structure, only : stellarLuminosities
+  use            :: Stellar_Population_Selectors  , only : stellarPopulationSelectorClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesInstantaneous">
   !#  <description>A stellar population properties class based on the instantaneous recycling approximation.</description>
@@ -54,7 +54,7 @@ contains
   function instantaneousConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily instantaneous} stellar population properties class which takes a parameter list
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (stellarPopulationPropertiesInstantaneous)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -69,12 +69,12 @@ contains
 
   function instantaneousConstructorInternal(stellarPopulationSelector_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily instantaneous} stellar population properties class.
-    use Atomic_Data
+    use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
     type (stellarPopulationPropertiesInstantaneous)                        :: self
     class(stellarPopulationSelectorClass          ), intent(in   ), target :: stellarPopulationSelector_
     !# <constructorAssign variables="*stellarPopulationSelector_"/>
-    
+
     self%abundanceIndex           =Abundance_Pattern_Lookup(abundanceName="solar")
     self%rateStarFormationPrevious=-huge(0.0d0)
     self%fuelMetallicityPrevious  =-huge(0.0d0)
@@ -97,10 +97,12 @@ contains
   subroutine instantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
     !% Return stellar population property rates of change given a star formation rate and fuel abundances.
-    use Stellar_Feedback
-    use Stellar_Populations
-    use Galactic_Structure_Options
-    use Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
+    use :: Abundances_Structure      , only : Abundances_Get_Metallicity            , adjustElementsReset
+    use :: Galactic_Structure_Options, only : componentTypeDisk                     , componentTypeSpheroid
+    use :: Galacticus_Nodes          , only : nodeComponent                         , nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid, &
+          &                                   treeNode
+    use :: Stellar_Feedback          , only : feedbackEnergyInputAtInfinityCanonical
+    use :: Stellar_Populations       , only : stellarPopulationClass
     implicit none
     class           (stellarPopulationPropertiesInstantaneous), intent(inout) :: self
     double precision                                          , intent(  out) :: rateEnergyInput              , rateMassFuel              , &
@@ -121,7 +123,7 @@ contains
          &                                                                       recycledFractionInstantaneous , stellarMetalsRateOfChange, &
          &                                                                       time                          , yieldInstantaneous
     !GCC$ attributes unused :: history_
-    
+
     ! Get the instantaneous recycled fraction and yields for the selected stellar population.
     stellarPopulation_            => self%stellarPopulationSelector_%select                       (rateStarFormation,abundancesFuel,component)
     populationID                  =       stellarPopulation_        %uniqueID                     (                                          )
@@ -196,7 +198,7 @@ contains
     implicit none
     class(stellarPopulationPropertiesInstantaneous), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     instantaneousHistoryCount=0
     return
   end function instantaneousHistoryCount
@@ -209,6 +211,6 @@ contains
     type (treeNode                                ), intent(inout) :: node
     type (history                                 ), intent(inout) :: history_
     !GCC$ attributes unused :: self, node, history_
-    
+
     return
   end subroutine instantaneousHistoryCreate

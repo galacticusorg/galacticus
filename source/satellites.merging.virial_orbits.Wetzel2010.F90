@@ -19,11 +19,12 @@
 
   !% An implementation of virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.
 
-  use Tables
-  use Root_Finder
-  use Dark_Matter_Halo_Scales
-  use Cosmology_Functions
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Root_Finder               , only : rootFinder
+  use :: Tables                    , only : table1D                              , table1DLogarithmicLinear
+  use :: Virial_Density_Contrast   , only : virialDensityContrastFriendsOfFriends
 
   !# <virialOrbit name="virialOrbitWetzel2010">
   !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>
@@ -52,7 +53,10 @@
      procedure :: densityContrastDefinition       => wetzel2010DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => wetzel2010VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => wetzel2010VelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => wetzel2010AngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => wetzel2010AngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => wetzel2010VelocityTotalRootMeanSquared
+     procedure :: energyMean                      => wetzel2010EnergyMean
   end type virialOrbitWetzel2010
 
   interface virialOrbitWetzel2010
@@ -77,12 +81,12 @@
   double precision            :: wetzel2010C0                                         , wetzel2010C1                               , &
        &                         wetzel2010UniformDeviate
   !$omp threadprivate(wetzel2010C0,wetzel2010C1,wetzel2010UniformDeviate)
-  
+
 contains
 
   function wetzel2010ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialOrbitWetzel2010   )                :: self
     type (inputParameters         ), intent(inout) :: parameters
@@ -103,7 +107,7 @@ contains
 
   function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
-    use Hypergeometric_Functions
+    use :: Hypergeometric_Functions, only : Hypergeometric_1F1
     implicit none
     type            (virialOrbitWetzel2010   )                        :: self
     class           (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
@@ -166,9 +170,9 @@ contains
 
   function wetzel2010Orbit(self,node,host,acceptUnboundOrbits)
     !% Return wetzel2010 orbital parameters for a satellite.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Error
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     type            (keplerOrbit               )                        :: wetzel2010Orbit
     class           (virialOrbitWetzel2010     ), intent(inout), target :: self
@@ -188,7 +192,7 @@ contains
          &                                                                 radiusHostSelf
     logical                                                     ::         foundOrbit
     !GCC$ attributes unused :: acceptUnboundOrbits
-    
+
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
@@ -275,7 +279,7 @@ contains
 
   double precision function wetzel2010CircularityCumulativeProbability(circularity)
     !% The cumulative probability distribution for orbital circularity.
-    use Hypergeometric_Functions
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     implicit none
     double precision, intent(in   ) :: circularity
 
@@ -286,7 +290,7 @@ contains
 
   double precision function wetzel2010VelocityTangentialMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the tangential velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
@@ -299,7 +303,7 @@ contains
 
   function wetzel2010VelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
@@ -311,9 +315,47 @@ contains
     return
   end function wetzel2010VelocityTangentialVectorMean
 
+  double precision function wetzel2010AngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    implicit none
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                                  =>  node%basic()
+    hostBasic                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    wetzel2010AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                                    *radiusHost                                      &
+         &                                    /(                                               & ! Account for reduced mass.
+         &                                      +1.0d0                                         &
+         &                                      +basic    %mass()                              &
+         &                                      /hostBasic%mass()                              &
+         &                                     )
+    return
+  end function wetzel2010AngularMomentumMagnitudeMean
+
+  function wetzel2010AngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    wetzel2010AngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function wetzel2010AngularMomentumVectorMean
+
   double precision function wetzel2010VelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared total velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
@@ -323,3 +365,31 @@ contains
     call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
     return
   end function wetzel2010VelocityTotalRootMeanSquared
+
+  double precision function wetzel2010EnergyMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    implicit none
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node        , host
+    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    double precision                                       :: massHost    , radiusHost, &
+         &                                                    velocityHost
+
+    basic                =>  node%basic()
+    hostBasic            =>  host%basic()
+    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    wetzel2010EnergyMean =  +0.5d0                                           &
+         &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &                  /(                                               & ! Account for reduced mass.
+         &                    +1.0d0                                         &
+         &                    +basic    %mass()                              &
+         &                    /hostBasic%mass()                              &
+         &                   )                                               &
+         &                  -gravitationalConstantGalacticus                 &
+         &                  *massHost                                        &
+         &                  /radiusHost
+    return
+  end function wetzel2010EnergyMean

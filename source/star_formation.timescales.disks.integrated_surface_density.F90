@@ -20,7 +20,7 @@
   !% Implementation of a timescale for star formation in galactic disks which computes the timescale by integrating a
   !% star formation rate over the disk.
 
-  use Star_Formation_Rate_Surface_Density_Disks
+  use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksIntgrtdSurfaceDensity">
   !#  <description>A timescale for star formation in galactic disks which computes the timescale by integrating a star formation rate over the disk.</description>
@@ -52,7 +52,7 @@ contains
   function intgrtdSurfaceDensityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} timescale for star formation in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleDisksIntgrtdSurfaceDensity)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
@@ -81,7 +81,7 @@ contains
     double precision                                                  , intent(in   )         :: tolerance
     class           (starFormationRateSurfaceDensityDisksClass       ), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
     !# <constructorAssign variables="tolerance, *starFormationRateSurfaceDensityDisks_"/>
-    
+
     return
   end function intgrtdSurfaceDensityConstructorInternal
 
@@ -97,10 +97,10 @@ contains
   double precision function intgrtdSurfaceDensityTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, by integrating
     !% over the surface density of star formation rate.
-    use FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function, fgsl_integration_workspace
-    use Galacticus_Nodes        , only : nodeComponentDisk
-    use Numerical_Constants_Math
-    use Numerical_Integration
+    use :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Galacticus_Nodes        , only : nodeComponentDisk , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate         , Integrate_Done
     implicit none
     class           (starFormationTimescaleDisksIntgrtdSurfaceDensity), intent(inout), target         :: self
     type            (treeNode                                        ), intent(inout), target         :: node
@@ -136,9 +136,9 @@ contains
           radiusOuter=radiusDisk*radiusOuterDimensionless
           ! Get a set of intervals into which this integral should be broken.
           intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter)
-          ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.       
+          ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.
           starFormationRate=0.0d0
-          do i=1,size(intervals,dim=2)       
+          do i=1,size(intervals,dim=2)
              integrationReset=.true.
              starFormationRate=+starFormationRate                                               &
                   &            +Integrate(                                                      &
@@ -166,7 +166,7 @@ contains
     end if
     return
   end function intgrtdSurfaceDensityTimescale
-  
+
   double precision function intgrtdSurfaceDensityIntegrand(radius)
     !% Integrand function for the ``integrated surface density'' star formation rate calculation.
     implicit none

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an abstract mass distribution class for spherically symmetric distributions.
-  
+
   !# <massDistribution name="massDistributionSpherical" abstract="yes">
   !#  <description>An abstract mass distribution class for spherically symmetric distributions.</description>
   !# </massDistribution>
@@ -44,7 +44,7 @@
   class           (massDistributionSpherical), pointer :: sphericalActive
   double precision                                     :: sphericalMassTarget
   !$omp threadprivate(sphericalActive,sphericalMassTarget)
-  
+
 contains
 
   integer function sphericalSymmetry(self)
@@ -60,9 +60,9 @@ contains
   double precision function sphericalMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     !% distributions using numerical integration.
-    use Numerical_Integration
-    use Numerical_Constants_Math
-    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate    , Integrate_Done
     implicit none
     class           (massDistributionSpherical ), intent(inout), target :: self
     double precision                            , intent(in   )         :: radius
@@ -90,7 +90,7 @@ contains
 
   double precision function sphericalMassEnclosedBySphereIntegrand(radius)
     !% Enclosed mass integrand for spherical mass distributions.
-    use Coordinates
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     double precision                     , intent(in   ) :: radius
     type            (coordinateSpherical)                :: position
@@ -103,8 +103,8 @@ contains
 
   double precision function sphericalRadiusHalfMass(self)
     !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
-    use Root_Finder
-    use FGSL       , only : FGSL_Root_fSolver_Brent
+    use :: FGSL       , only : FGSL_Root_fSolver_Brent
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
     type            (rootFinder               ), save          :: finder

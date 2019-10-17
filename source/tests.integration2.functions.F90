@@ -21,8 +21,8 @@
 
 module Test_Integration2_Functions
   !% Contains integrands for unit tests.
-  use Numerical_Integration2
-  use ISO_Varying_String
+  use :: ISO_Varying_String
+  use :: Numerical_Integration2, only : integrator, integratorMulti
   implicit none
   private
   public :: testIntegrator         , testIntegratorMulti, &
@@ -34,7 +34,7 @@ module Test_Integration2_Functions
 #ifdef YEPPP
   public :: function1YEPPP, &
        &    function2YEPPP, &
-       &    function3YEPPP 
+       &    function3YEPPP
 #endif
 
   type :: testIntegrator
@@ -123,15 +123,15 @@ contains
  function function1YEPPP(x)
     !% Test function number 1 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
-    use yepCore
-    use yepMath
+    use            :: yepCore
+    use            :: yepMath
     implicit none
     real   (c_double), intent(in   ), dimension(     : ) :: x
     real   (c_double)               , dimension(size(x)) :: function1YEPPP
     real   (c_double)               , dimension(size(x)) :: y,z
     integer(c_int   )                                    :: s
     integer(c_size_t)                                    :: n
- 
+
     n=size(x)
     s=yepMath_Log_V64f_V64f         (x,y      ,n)
     s=yepMath_Sin_V64f_V64f         (x,z      ,n)
@@ -162,15 +162,15 @@ contains
  function function2YEPPP(x)
     !% Test function number 2 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
-    use yepCore
-    use yepMath
+    use            :: yepCore
+    use            :: yepMath
     implicit none
     real   (c_double), intent(in   ), dimension(     : ) :: x
     real   (c_double)               , dimension(size(x)) :: function2YEPPP
     real   (c_double)               , dimension(size(x)) :: y,z
     integer(c_int   )                                    :: s
     integer(c_size_t)                                    :: n
- 
+
     n=size(x)
     s=yepMath_Log_V64f_V64f         (x        ,y            ,n)
     s=yepCore_Multiply_V64fS64f_V64f(y,-0.5d0,z             ,n)
@@ -178,7 +178,7 @@ contains
     return
   end function function2YEPPP
 #endif
-  
+
   double precision function function3Scalar(x)
     !% Test function number 3 for numerical integration tests: scalar version.
     implicit none
@@ -202,15 +202,15 @@ contains
  function function3YEPPP(x)
     !% Test function number 3 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
-    use yepCore
-    use yepMath
+    use            :: yepCore
+    use            :: yepMath
     implicit none
     real   (c_double), intent(in   ), dimension(     : ) :: x
     real   (c_double)               , dimension(size(x)) :: function3YEPPP
     real   (c_double)               , dimension(size(x)) :: w1,w2,w3
     integer(c_int   )                                    :: s
     integer(c_size_t)                                    :: n
- 
+
     n=size(x)
     s=yepCore_Subtract_V64fS64f_V64f(x,3.0d0,w1,n)
     w2=w1**2
@@ -228,7 +228,7 @@ contains
     function4Scalar=log(x)*sin(2.0d0*x)
     return
   end function function4Scalar
-  
+
   function function4Vector(x)
     !% Test function number 4 for numerical integration tests: vector version.
     implicit none

@@ -21,17 +21,21 @@
 
 program Test_Integration2
   !% Tests that numerical integration routines work.
+  use            :: FGSL                       , only : FGSL_Integ_Gauss15              , FGSL_Integ_Gauss61                         , fgsl_function                                   , fgsl_integration_workspace
+  use            :: Galacticus_Display         , only : Galacticus_Display_Indent       , Galacticus_Display_Message                 , Galacticus_Display_Unindent                     , Galacticus_Verbosity_Level_Set                 , &
+       &                                                verbosityStandard
+  use            :: Galacticus_Error           , only : Galacticus_Error_Report
   use, intrinsic :: ISO_C_Binding
-  use Kind_Numbers
-  use Numerical_Integration
-  use FGSL                       , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15, FGSL_Integ_Gauss61
-  use Numerical_Integration2
-  use Test_Integration2_Functions
-  use Galacticus_Error
-  use Galacticus_Display
-  use ISO_Varying_String
+  use            :: ISO_Varying_String
+  use            :: Kind_Numbers               , only : kind_int8
+  use            :: Numerical_Integration      , only : Integrate                       , Integrate_Done
+  use            :: Numerical_Integration2     , only : integrator                      , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+          &                                             integratorCompositeTrapezoidal1D, integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
+          &                                             integratorVectorized1D          , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
+  use            :: Test_Integration2_Functions, only : testFunctions                   , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
+          &                                             testIntegratorMulti
 #ifdef YEPPP
-  use yepLibrary
+  use            :: yepLibrary
 #endif
   implicit none
   double precision                                                                             :: timeMean                       , error

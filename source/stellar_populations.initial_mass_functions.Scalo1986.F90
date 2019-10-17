@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
-  
+
   !# <initialMassFunction name="initialMassFunctionScalo1986">
   !#  <description>A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function scalo1986ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily scalo1986} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionScalo1986)                :: self
     type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionScalo1986()
     return
   end function scalo1986ConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.10d0,+0.18d0,+0.42d0,+0.62d0,+1.18d0,+3.50d0,+1.25d2], &
          &                                                                         exponent=[+1.60d0,-1.01d0,-2.75d0,-2.08d0,-3.50d0,-2.63d0        ]  &
          &                                                                        )
-    return    
+    return
   end function scalo1986ConstructorInternal
 
   function scalo1986Label(self)

@@ -21,7 +21,7 @@
 
 module Node_Component_Position_Preset_Orphans
   !% Implements a preset position component with placement of orphan galaxies.
-  use Satellite_Oprhan_Distributions
+  use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
   implicit none
   private
   public :: Node_Component_Position_Preset_Orphans_Initialize         , Node_Component_Position_Preset_Orphans_Thread_Initialize, &
@@ -79,21 +79,21 @@ module Node_Component_Position_Preset_Orphans
 
   ! Objects used by this component.
   class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_
-  !$omp threadprivate(satelliteOrphanDistribution_)  
+  !$omp threadprivate(satelliteOrphanDistribution_)
 
 contains
-  
+
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Initialize(globalParameters_)
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
+    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters                   ), intent(inout) :: globalParameters_
     type(nodeComponentPositionPresetOrphans)                :: position
     !GCC$ attributes unused :: globalParameters_
-    
+
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then
        ! Bind the position get function.
@@ -102,14 +102,14 @@ contains
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
-  
+
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(globalParameters_)
     !% Initializes the tree node preset orphans position module.
-    use Galacticus_Nodes, only : defaultPositionComponent
-    use Input_Parameters
+    use :: Galacticus_Nodes, only : defaultPositionComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -124,7 +124,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize()
     !% Uninitializes the tree node preset orphans position module.
-    use Galacticus_Nodes, only : defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
 
     if (defaultPositionComponent%presetOrphansIsActive()) then
@@ -135,7 +135,7 @@ contains
 
   function Node_Component_Position_Preset_Orphans_Position_Orphan(self)
     !% Return the position of the orphan node.
-    use Galacticus_Nodes, only : treeNode, nodeComponentPositionPresetOrphans, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPositionPresetOrphans, treeNode
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Position_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
@@ -155,7 +155,7 @@ contains
 
   function Node_Component_Position_Preset_Orphans_Velocity_Orphan(self)
     !% Return the velocity of the orphan node.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentPositionPresetOrphans
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPositionPresetOrphans, treeNode
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Velocity_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
@@ -165,7 +165,7 @@ contains
     node  => self%host ()
     basic => node%basic()
     if (basic%time() /= self%timeAssign()) then
-       call self%    timeAssignSet(basic                       %time    (    )) 
+       call self%    timeAssignSet(basic                       %time    (    ))
        call self%positionOrphanSet(satelliteOrphanDistribution_%position(node))
        call self%velocityOrphanSet(satelliteOrphanDistribution_%velocity(node))
     end if

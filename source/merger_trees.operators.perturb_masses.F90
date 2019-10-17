@@ -19,9 +19,9 @@
 
   !% Contains a module which implements a merger tree operator which perturbs halo masses by some error model.
 
-  use Statistics_NBody_Halo_Mass_Errors
-  use Statistics_Distributions
-  
+  use :: Statistics_Distributions         , only : distributionFunction1DNormal
+  use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+
   !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
   !#  <description>
   !#   A merger tree operator which perturbs halo masses by some error model.
@@ -36,7 +36,7 @@
      final     ::             perturbMassesDestructor
      procedure :: operate  => perturbMassesOperate
   end type mergerTreeOperatorPerturbMasses
-  
+
   interface mergerTreeOperatorPerturbMasses
      !% Constructors for the mass perturbing merger tree operator class.
      module procedure perturbMassesConstructorParameters
@@ -48,12 +48,12 @@ contains
   function perturbMassesConstructorParameters(parameters) result(self)
     !% Constructor for the mass perturbing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeOperatorPerturbMasses)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(nbodyHaloMassErrorClass        ), pointer       :: nbodyHaloMassError_
-    
+
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=mergerTreeOperatorPerturbMasses(nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
@@ -64,7 +64,6 @@ contains
   function perturbMassesConstructorInternal(nbodyHaloMassError_) result(self)
     !% Constructor for the mass perturbing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters
     implicit none
     type (mergerTreeOperatorPerturbMasses)                        :: self
     class(nbodyHaloMassErrorClass        ), intent(in   ), target :: nbodyHaloMassError_
@@ -79,19 +78,19 @@ contains
     !% Destructor for the mass perturbing merger tree operator function class.
     implicit none
     type(mergerTreeOperatorPerturbMasses), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%nbodyHaloMassError_"/>
     return
   end subroutine perturbMassesDestructor
-  
+
   subroutine perturbMassesOperate(self,tree)
     !% Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
     !% independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
     !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
+    use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Linear_Algebra
-    use            :: Merger_Tree_Walkers
-    use            :: Galacticus_Nodes   , only : treeNode, nodeComponentBasic
+    use            :: Linear_Algebra     , only : matrix                       , vector            , assignment(=), operator(*)
+    use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorPerturbMasses), intent(inout), target         :: self
     type            (mergerTree                     ), intent(inout), target         :: tree
@@ -107,7 +106,7 @@ contains
          &                                                                              iNode2
     double precision                                                                 :: rootVarianceMassFractional1, rootVarianceMassFractional2, &
          &                                                                              correlation
-    
+
     ! Iterate over nodes.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
@@ -158,7 +157,7 @@ contains
           ! Construct realization of fractional mass perturbations.
           deviateVector     =deviates
           perturbationVector=cholesky          *deviateVector
-          perturbations     =perturbationVector             
+          perturbations     =perturbationVector
           ! Perturb the masses of the halos.
           iNode1     =  0_c_size_t
           nodeChild1 => node

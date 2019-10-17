@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_2013}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMuzzin2013ULTRAVISTA">
   !#  <description>Implements the geometry of the ULTRAVISTA survey of \cite{muzzin_evolution_2013}.</description>
@@ -56,13 +55,13 @@ contains
 
   function muzzin2013ULTRAVISTAConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{muzzin_evolution_2013} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(surveyGeometryMuzzin2013ULTRAVISTA) :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     integer                                                  :: redshiftBin
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
@@ -80,8 +79,8 @@ contains
 
   function muzzin2013ULTRAVISTAConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{muzzin_evolution_2013} mass function class.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryMuzzin2013ULTRAVISTA)                        :: self
     integer                                             , intent(in   )         :: redshiftBin
@@ -128,7 +127,7 @@ contains
     call self%initialize()
     return
   end function muzzin2013ULTRAVISTAConstructorInternal
-  
+
   subroutine muzzin2013ULTRAVISTADestructor(self)
     !% Destructor for the ``muzzin2013ULTRAVISTA'' survey geometry class.
     implicit none
@@ -137,13 +136,13 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine muzzin2013ULTRAVISTADestructor
-  
+
   integer function muzzin2013ULTRAVISTAFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     muzzin2013ULTRAVISTAFieldCount=muzzin2013ULTRAVISTAFields
     return
   end function muzzin2013ULTRAVISTAFieldCount
@@ -155,22 +154,22 @@ contains
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     muzzin2013ULTRAVISTADistanceMinimum=self%binDistanceMinimum
     return
   end function muzzin2013ULTRAVISTADistanceMinimum
 
   double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions_Options
-    use Galacticus_Error
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: redshift, logarithmicMass
     !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
-    
+
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -197,7 +196,7 @@ contains
 
   double precision function muzzin2013ULTRAVISTAVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   )           :: mass
@@ -219,15 +218,16 @@ contains
 
   function muzzin2013ULTRAVISTAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
     return
   end function muzzin2013ULTRAVISTAMangleDirectory
-  
+
   subroutine muzzin2013ULTRAVISTAMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
@@ -248,8 +248,8 @@ contains
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     muzzin2013ULTRAVISTAAngularPowerMaximumDegree=muzzin2013AngularPowerMaximumL
     return
   end function muzzin2013ULTRAVISTAAngularPowerMaximumDegree
-  
+

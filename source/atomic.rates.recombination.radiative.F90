@@ -33,7 +33,7 @@ module Atomic_Rates_Recombination_Radiative
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
-  !#   <argument>double precision, intent(in   )           :: temperature</argument>                     
+  !#   <argument>double precision, intent(in   )           :: temperature</argument>
   !#   <argument>integer         , intent(in   ), optional :: level</argument>
   !#  </method>
   !# </functionClass>

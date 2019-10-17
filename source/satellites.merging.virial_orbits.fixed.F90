@@ -19,8 +19,8 @@
 
   !% An implementation of virial orbits which assumes fixed orbital parameters.
 
-  use Dark_Matter_Halo_Scales
-  
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !# <virialOrbit name="virialOrbitFixed">
   !#  <description>Virial orbits assuming fixed orbital parameters.</description>
   !# </virialOrbit>
@@ -36,9 +36,12 @@
      procedure :: densityContrastDefinition       => fixedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => fixedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => fixedVelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => fixedAngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => fixedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => fixedVelocityTotalRootMeanSquared
+     procedure :: energyMean                      => fixedEnergyMean
   end type virialOrbitFixed
-  
+
   interface virialOrbitFixed
      !% Constructors for the {\normalfont \ttfamily fixed} virial orbit class.
      module procedure fixedConstructorParameters
@@ -49,7 +52,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} satellite virial orbit class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialOrbitFixed          )                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -84,7 +87,7 @@ contains
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialOrbitFixed          )                        :: self
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
@@ -107,11 +110,11 @@ contains
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Galacticus_Error
-    use Galacticus_Display
-    use Dark_Matter_Profile_Mass_Definitions
-    use ISO_Varying_String
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Verbosity_Level_Set, verbosityStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: ISO_Varying_String
     implicit none
     type            (keplerOrbit       )                        :: fixedOrbit
     class           (virialOrbitFixed  ), intent(inout), target :: self
@@ -123,7 +126,7 @@ contains
     type            (varying_string    )                        :: message
     character       (len=12            )                        :: label
     !GCC$ attributes unused :: acceptUnboundOrbits
-    
+
     ! Reset the orbit.
     call fixedOrbit%reset()
     ! Get required objects.
@@ -174,11 +177,11 @@ contains
     fixedDensityContrastDefinition => self%virialDensityContrast_
     return
   end function fixedDensityContrastDefinition
-  
+
   double precision function fixedVelocityTangentialMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the tangential velocity.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
@@ -196,7 +199,7 @@ contains
 
   function fixedVelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
@@ -208,10 +211,48 @@ contains
     return
   end function fixedVelocityTangentialVectorMean
 
+  double precision function fixedAngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node        , host
+    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+
+    basic                             =>  node%basic()
+    hostBasic                         =>  host%basic()
+    massHost                          =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedAngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                               *radiusHost                                      &
+         &                               /(                                               & ! Account for reduced mass.
+         &                                 +1.0d0                                         &
+         &                                 +basic    %mass()                              &
+         &                                 /hostBasic%mass()                              &
+         &                                )
+    return
+  end function fixedAngularMomentumMagnitudeMean
+
+  function fixedAngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
+    class           (virialOrbitFixed), intent(inout) :: self
+    type            (treeNode        ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    fixedAngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function fixedAngularMomentumVectorMean
+
   double precision function fixedVelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared of the total velocity.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node, host
@@ -229,3 +270,31 @@ contains
          &                                *           velocityHost
     return
   end function fixedVelocityTotalRootMeanSquared
+
+  double precision function fixedEnergyMean(self,node,host)
+    !% Return the mean energy of the orbits.
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node        , host
+    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+
+    basic           =>  node%basic()
+    hostBasic       =>  host%basic()
+    massHost        =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedEnergyMean =  +0.5d0                                           &
+         &             *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &             /(                                               & ! Account for reduced mass.
+         &               +1.0d0                                         &
+         &               +basic    %mass()                              &
+         &               /hostBasic%mass()                              &
+         &              )                                               &
+         &             -gravitationalConstantGalacticus                 &
+         &             *massHost                                        &
+         &             /radiusHost
+    return
+  end function fixedEnergyMean

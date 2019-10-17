@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use NBody_Importers, only : nBodyImporterClass, nBodyImporter
-  use NBody_Operators, only : nBodyOperatorClass, nBodyOperator
+  use :: NBody_Importers, only : nBodyImporter, nBodyImporterClass
+  use :: NBody_Operators, only : nBodyOperator, nBodyOperatorClass
 
   !# <task name="taskNBodyAnalyze">
   !#  <description>A task which analyzes N-body simulation data.</description>
@@ -46,7 +46,7 @@ contains
 
   function nbodyAnalyzeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (taskNBodyAnalyze  )                :: self
     type (inputParameters   ), intent(inout) :: parameters
@@ -95,7 +95,7 @@ contains
     self%usePrevious=present(nbodyFileNamePrevious)
     return
   end function nbodyAnalyzeConstructorInternal
-  
+
   subroutine nbodyAnalyzeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nbodyAnalyze} task class.
     implicit none
@@ -105,12 +105,12 @@ contains
     !# <objectDestructor name="self%nBodyImporter_"/>
     return
   end subroutine nbodyAnalyzeDestructor
-  
+
   subroutine nbodyAnalyzePerform(self,status)
     !% Compute and output the halo mass function.
-    use NBody_Simulation_Data, only : nBodyData
-    use Galacticus_Error     , only : errorStatusSuccess
-    use Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error     , only : errorStatusSuccess
+    use :: NBody_Simulation_Data, only : nBodyData
     implicit none
     class  (taskNBodyAnalyze), intent(inout), target   :: self
     integer                  , intent(  out), optional :: status
@@ -135,7 +135,7 @@ contains
   logical function nbodyAnalyzeRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskNBodyAnalyze), intent(inout) :: self    
+    class(taskNBodyAnalyze), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     nbodyAnalyzeRequiresOutputFile=.false.

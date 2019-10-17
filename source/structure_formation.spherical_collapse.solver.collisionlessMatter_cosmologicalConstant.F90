@@ -86,7 +86,7 @@
        &                         cllsnlssMttCsmlgclCnstntTime                  , cllsnlssMttCsmlgclCnstntTimeTarget        , &
        &                         cllsnlssMttCsmlgclCnstntRadiusMaximum
   !$omp threadprivate(cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal,cllsnlssMttCsmlgclCnstntOmegaMatterEpochal,cllsnlssMttCsmlgclCnstntAmplitudePerturbation,cllsnlssMttCsmlgclCnstntHubbleTimeEpochal,cllsnlssMttCsmlgclCnstntTime,cllsnlssMttCsmlgclCnstntTimeTarget,cllsnlssMttCsmlgclCnstntRadiusMaximum)
-  
+
 contains
 
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
@@ -123,7 +123,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
     implicit none
     type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%linearGrowth_"      />
     return
@@ -150,7 +150,7 @@ contains
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
     call    self%restoreTable(time,criticalOverdensity_,fileName                                         ,tableStore,status)
-    if (status /= errorStatusSuccess) then       
+    if (status /= errorStatusSuccess) then
        call self%tabulate    (time,criticalOverdensity_,cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity                  )
        call self%storeTable  (     criticalOverdensity_,fileName                                         ,tableStore       )
     end if
@@ -178,7 +178,7 @@ contains
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
     call    self%restoreTable(time,virialDensityContrast_,fileName                                           ,tableStore,status)
-    if (status /= errorStatusSuccess) then       
+    if (status /= errorStatusSuccess) then
        call self%tabulate    (time,virialDensityContrast_,cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast                  )
        call self%storeTable  (     virialDensityContrast_,fileName                                           ,tableStore       )
     end if
@@ -206,7 +206,7 @@ contains
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
     call    self%restoreTable(time,radiusTurnaround_,fileName                                      ,tableStore,status)
-    if (status /= errorStatusSuccess) then       
+    if (status /= errorStatusSuccess) then
        call self%tabulate    (time,radiusTurnaround_,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround                  )
        call self%storeTable  (     radiusTurnaround_,fileName                                      ,tableStore       )
     end if
@@ -270,7 +270,7 @@ contains
     select type (sphericalCollapse_)
     type is (table1DLogarithmicLinear)
        call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
-       ! Solve ODE to get corresponding overdensities.       
+       ! Solve ODE to get corresponding overdensities.
        do i=1,countTimes
           cllsnlssMttCsmlgclCnstntTime=sphericalCollapse_%x(i)
           ! Get the current expansion factor.
@@ -432,7 +432,7 @@ contains
     !% Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed
     !% of the perturbation which must be zero at the maximum radius.
     double precision, intent(in   ) :: radiusMaximum
-    
+
     cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
          &                                    /radiusMaximum                                          &
          &                                    +cllsnlssMttCsmlgclCnstntAmplitudePerturbation          &
@@ -508,7 +508,7 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: sqrtArgument
-    
+
     ! Compute the integrand.
     sqrtArgument=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal               &
          &       +cllsnlssMttCsmlgclCnstntAmplitudePerturbation *radius    &
@@ -765,7 +765,7 @@ contains
     double precision                            , parameter     :: numericalLimitEpsilon=1.0d-4
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset 
+    logical                                                     :: integrationReset
     double precision                                            :: radiusUpperLimit
 
     radiusUpperLimit      =min(                                                                      &
@@ -796,7 +796,7 @@ contains
             & cllsnlssMttCsmlgclCnstntRadiusRoot=+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
             &                        + 2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow         +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow       **2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &
             &                        /(           -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow      **2+2.0d0*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow                                                        ) &
-            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal 
+            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
     end if
     return
   end function cllsnlssMttCsmlgclCnstntRadiusRoot
@@ -808,7 +808,7 @@ contains
     use File_Utilities    , only : File_Exists       , lockDescriptor          , File_Lock_Initialize, File_Lock, &
          &                         File_Unlock
     use Tables            , only : table1D           , table1DLogarithmicLinear
-    use ISO_Varying_String, only : varying_string    , char    
+    use ISO_Varying_String, only : varying_string    , char
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -858,7 +858,7 @@ contains
     !% Attempt to restore a table from file.
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
-    use ISO_Varying_String, only : varying_string, char    
+    use ISO_Varying_String, only : varying_string, char
     use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
          &                         File_Path     , Directory_Make
     implicit none

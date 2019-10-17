@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a \cite{bhattacharya_mass_2011} dark matter halo mass function class.
 
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <haloMassFunction name="haloMassFunctionBhattacharya2011">
   !#  <description>The halo mass function is computed from the function given by \cite{bhattacharya_mass_2011}.</description>
@@ -77,11 +77,11 @@ contains
 
   function bhattacharya2011ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionBhattacharya2011)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
-    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (criticalOverdensityClass        ), pointer       :: criticalOverdensity_
     double precision                                                  :: a                        , p, &
@@ -139,11 +139,11 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class.
     implicit none
     type            (haloMassFunctionBhattacharya2011)                        :: self
-    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass   ), target, intent(in   ) :: cosmologicalMassVariance_
     class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_
     double precision                                          , intent(in   ) :: a                        , p, &
-         &                                                                       normalization            , q    
+         &                                                                       normalization            , q
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
 
     self%            aValue=a
@@ -166,7 +166,7 @@ contains
 
   double precision function bhattacharya2011Differential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout)           :: self
     double precision                                  , intent(in   )           :: time   , mass
@@ -214,44 +214,43 @@ contains
     !% Return the parameter $\bar{a}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time , mass    
+    double precision                                  , intent(in   ) :: time , mass
     !GCC$ attributes unused :: time, mass
 
     bhattacharya2011A=self%aValue
     return
   end function bhattacharya2011A
- 
+
   double precision function bhattacharya2011P(self,time,mass)
     !% Return the parameter $\bar{p}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time , mass    
+    double precision                                  , intent(in   ) :: time , mass
     !GCC$ attributes unused :: time, mass
 
     bhattacharya2011P=self%pValue
     return
   end function bhattacharya2011P
-  
+
   double precision function bhattacharya2011Q(self,time,mass)
     !% Return the parameter $\bar{q}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time , mass    
+    double precision                                  , intent(in   ) :: time , mass
     !GCC$ attributes unused :: time, mass
 
     bhattacharya2011Q=self%qValue
     return
   end function bhattacharya2011Q
-  
+
   double precision function bhattacharya2011Normalization(self,time,mass)
     !% Return the normalization, $\bar{A}$, in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
-    use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time , mass    
+    double precision                                  , intent(in   ) :: time , mass
     !GCC$ attributes unused :: time, mass
-    
+
     bhattacharya2011Normalization=self%normalizationValue
     return
   end function bhattacharya2011Normalization
- 
+

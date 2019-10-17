@@ -4,6 +4,7 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Storable;
 use List::ExtraUtils;
+use XML::Simple;
 
 # Build Makefile rules which describe how to construct module files from source files.
 # Andrew Benson (12-September-2016)
@@ -122,5 +123,16 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 close($makefile);
 # Output the per file module use data.
 store($modulesPerFile,$workDirectoryName."Makefile_Module_Dependencies.blob");
+
+# Create an output XML file.
+my $modulesByFile;
+foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
+    $modulesByFile->{$modulesPerFile->{$fileIdentifier}->{'sourceFileName'}} = $modulesPerFile->{$fileIdentifier}->{'modulesProvided'}
+        if ( scalar(@{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}}) > 0 );
+}
+my $xml = new XML::Simple();
+open(my $xmlOutput,">".$sourceDirectoryName."/".$workDirectoryName."moduleLocations.xml");
+print $xmlOutput $xml->XMLout($modulesByFile, rootName => "moduleLocations");
+close($xmlOutput);
 
 exit 0;

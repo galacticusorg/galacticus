@@ -29,8 +29,8 @@ contains
 
   subroutine Galacticus_Verbosity_Set_From_Parameters()
     !% Read the parameter that controls the verbosity level, and set that level.
-    use Input_Parameters
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set
+    use :: Input_Parameters  , only : globalParameters              , inputParameter
     implicit none
     integer :: verbosityLevel
 
@@ -46,5 +46,5 @@ contains
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
     return
   end subroutine Galacticus_Verbosity_Set_From_Parameters
-  
+
 end module Galacticus_Display_Verbosity

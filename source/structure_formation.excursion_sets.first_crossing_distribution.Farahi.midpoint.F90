@@ -31,7 +31,7 @@
      procedure :: probability  => farahiMidpointProbability
      procedure :: rateTabulate => farahiMidpointRateTabulate
   end type excursionSetFirstCrossingFarahiMidpoint
-  
+
   interface excursionSetFirstCrossingFarahiMidpoint
      !% Constructors for the Farahi-midpoint excursion set barrier class.
      module procedure farahiMidpointConstructorParameters
@@ -42,7 +42,7 @@ contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
@@ -57,7 +57,7 @@ contains
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
     integer                                                  , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
-         &                                                                              timeNumberPerDecade             , varianceNumberPerDecade 
+         &                                                                              timeNumberPerDecade             , varianceNumberPerDecade
     type            (varying_string                         ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass               ), intent(in   ), target :: excursionSetBarrier_
@@ -69,13 +69,15 @@ contains
 
   double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -92,7 +94,7 @@ contains
          &                                                                                      i                            , j             , &
          &                                                                                      jTime                        , jVariance
     double precision                                                                         :: sigma1f
-    real            (kind=kind_quad                         )                                :: integralKernel                        
+    real            (kind=kind_quad                         )                                :: integralKernel
     character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     logical                                                                                  :: locked
@@ -100,7 +102,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     do i=1,2
-       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)    
+       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (i == 1 .and. self%useFile .and. makeTable) then
           call self%fileNameInitialize()
           call File_Lock(char(self%fileName),farahiFileLock)
@@ -171,7 +173,7 @@ contains
           message="variance: "
           write (label,'(f9.3)') self%varianceMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)          
+          call Galacticus_Display_Message(message,verbosityWorking)
 #ifdef USEMPI
        end if
 #endif
@@ -293,7 +295,7 @@ contains
        !# <objectDestructor name="excursionSetBarrier_"/>
        call deallocateArray(barrierTable   )
        call deallocateArray(barrierMidTable)
-       !$omp end parallel       
+       !$omp end parallel
        ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
        ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
        ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
@@ -322,7 +324,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          if (self%useFile) call self%fileWrite()       
+          if (self%useFile) call self%fileWrite()
 #ifdef USEMPI
        end if
 #endif
@@ -349,14 +351,15 @@ contains
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
-    use Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -394,7 +397,7 @@ contains
     logical                                                                                    :: locked                           , varianceMaximumChanged
 
     ! Determine if we need to make the table.
-    !    
+    !
     !! Read tables from file if possible. We make two passes through the logic that determines if the table needs to be remade. On
     !! the first pass if the table does need to be remade we attempt to read it from file. If the file is read, then we re-check if
     !! the table needs to be remade.
@@ -484,7 +487,7 @@ contains
        if (.not.varianceMaximumChanged) then
           call move_alloc(self%firstCrossingTableRate,firstCrossingTableRate)
           call move_alloc(self%nonCrossingTableRate  ,nonCrossingTableRate  )
-       end if       
+       end if
        if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
        if (allocated(self%varianceTableRateBase )) call deallocateArray(self%varianceTableRateBase )
        if (allocated(self%timeTableRate         )) call deallocateArray(self%timeTableRate         )
@@ -631,7 +634,7 @@ contains
                      &                         )                                                              &
                      &                         /varianceTableStepRate                                         &
                      &                         /integralKernelRate
-             end if             
+             end if
              do i=2,self%varianceTableCountRate
                 if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(i)=0.0_kind_quad

@@ -46,23 +46,23 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} halo accretion class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionHaloZero)                :: self
     type(inputParameters  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=accretionHaloZero()
     return
   end function zeroConstructorParameters
-       
+
   logical function zeroBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
     implicit none
     class(accretionHaloZero), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
-    
+
     zeroBranchHasBaryons=.false.
     return
   end function zeroBranchHasBaryons
@@ -74,7 +74,7 @@ contains
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
-    
+
     zeroAccretionRate=0.0d0
     return
   end function zeroAccretionRate
@@ -117,7 +117,7 @@ contains
 
   function zeroAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Abundances_Structure, only : zeroAbundances
+    use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretionRateMetals
     class  (accretionHaloZero), intent(inout) :: self
@@ -131,7 +131,7 @@ contains
 
   function zeroAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Abundances_Structure, only : zeroAbundances
+    use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretedMassMetals
     class  (accretionHaloZero), intent(inout) :: self
@@ -145,7 +145,7 @@ contains
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
     type   (chemicalAbundances)                :: zeroAccretionRateChemicals
     class  (accretionHaloZero ), intent(inout) :: self
@@ -159,7 +159,7 @@ contains
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
     type   (chemicalAbundances)                :: zeroAccretedMassChemicals
     class  (accretionHaloZero ), intent(inout) :: self

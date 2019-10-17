@@ -49,7 +49,7 @@ contains
 
   function instantReionizationIGMConstructorParameters(parameters) result (self)
     !% Constructor for the instantReionization \gls{igm} state class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (intergalacticMediumStateInstantReionization)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -122,8 +122,8 @@ contains
 
   function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
     !% Constructor for the instantReionization \gls{igm} state class.
-    use Galacticus_Error
-    use Root_Finder
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (intergalacticMediumStateInstantReionization)                          :: self
     class           (cosmologyFunctionsClass                    ), intent(inout), target   :: cosmologyFunctions_
@@ -132,7 +132,7 @@ contains
     double precision                                             , intent(in   )           :: reionizationTemperature            , presentDayTemperature
     double precision                                             , intent(in   ), optional :: reionizationRedshift               , electronScatteringOpticalDepth
     ! Used as an initial guess when solving for the epoch of reionization.
-    double precision                                             , parameter               :: reionizationRedshiftCanonical=6.0d0 
+    double precision                                             , parameter               :: reionizationRedshiftCanonical=6.0d0
     ! Used to set reionization epoch to a very early time while solving for the actual epoch.
     double precision                                             , parameter               :: reionizationRedshiftEarly    =1.0d2
     double precision                                                                       :: timePresent                        , timeReionizationGuess
@@ -212,7 +212,7 @@ contains
            &       -                          electronScatteringOpticalDepth
       return
     end function opticalDepth
-    
+
   end function instantReionizationIGMConstructorInternal
 
   subroutine instantReionizationDestructor(self)
@@ -225,10 +225,11 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine instantReionizationDestructor
-  
+
   double precision function instantReionizationElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the instantReionization model.
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
+    use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen    , atomicMassHelium
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
@@ -247,7 +248,6 @@ contains
 
   double precision function instantReionizationNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction of the \gls{igm} in the instantReionization model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
@@ -262,7 +262,6 @@ contains
 
   double precision function instantReionizationNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction of the \gls{igm} in the instantReionization model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
@@ -277,7 +276,6 @@ contains
 
   double precision function instantReionizationSinglyIonizedHeliumFraction(self,time)
     !% Return the singly-ionized helium fraction of the \gls{igm} in the instantReionization model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
@@ -296,7 +294,7 @@ contains
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
     double precision                                                             :: expansioNFactor
- 
+
     if (time > self%reionizationTime) then
        ! Interpolate temperature in expansion factor between reionization and present day.
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
@@ -321,7 +319,7 @@ contains
     logical                                               , intent(in   ), optional :: includeMethod
     character(len=18                                     )                          :: parameterLabel
     type     (inputParameters                            )                          :: parameters
-    
+
     if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','instantReionization')
     parameters=descriptor%subparameters('intergalacticMediumStateMethod')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime       ))

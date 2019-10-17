@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger tree outputter class which performs analyzes on the trees.
-  
-  use Output_Analyses, only : outputAnalysis, outputAnalysisClass
+
+  use :: Output_Analyses, only : outputAnalysis, outputAnalysisClass
 
   !# <mergerTreeOutputter name="mergerTreeOutputterAnalyzer">
   !#  <description>A merger tree outputter class which performs analyzes on the trees.</description>
@@ -45,12 +45,12 @@ contains
 
   function analyzerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOutputterAnalyzer)                :: self
     type   (inputParameters            ), intent(inout) :: parameters
     class  (outputAnalysisClass        ), pointer       :: outputAnalysis_
-    
+
     !# <objectBuilder class="outputAnalysis" name="outputAnalysis_" source="parameters"/>
     self=mergerTreeOutputterAnalyzer(outputAnalysis_)
     !# <inputParametersValidate source="parameters"/>
@@ -67,7 +67,7 @@ contains
 
     return
   end function analyzerConstructorInternal
-  
+
   subroutine analyzerDestructor(self)
     !% Destructor  for the {\normalfont \ttfamily analyzer} merger tree outputter class.
     implicit none
@@ -76,12 +76,12 @@ contains
     !# <objectDestructor name="self%outputAnalysis_"/>
     return
   end subroutine analyzerDestructor
-  
+
   subroutine analyzerOutput(self,tree,indexOutput,time,isLastOutput)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
-    use Galacticus_Nodes              , only : treeNode                     , nodeComponentBasic
-    use Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
-    use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
     implicit none
     class           (mergerTreeOutputterAnalyzer), intent(inout)           :: self
     type            (mergerTree                 ), intent(inout), target   :: tree
@@ -93,10 +93,10 @@ contains
     type            (mergerTree                 )               , pointer  :: treeCurrent
     type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
     !GCC$ attributes unused :: isLastOutput
-    
+
     ! Iterate over trees.
     treeCurrent => tree
-    do while (associated(treeCurrent))     
+    do while (associated(treeCurrent))
        ! Iterate over nodes.
        treeWalker=mergerTreeWalkerAllNodes(treeCurrent,spanForest=.false.)
        do while (treeWalker%next(node))
@@ -115,7 +115,7 @@ contains
 
   subroutine analyzerReduce(self,reduced)
     !% Reduce over the outputter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterAnalyzer), intent(inout) :: self
     class(mergerTreeOutputterClass   ), intent(inout) :: reduced
@@ -131,7 +131,7 @@ contains
 
   subroutine analyzerFinalize(self)
     !% Finalize merger tree output by finalizing analyses.
-    use Galacticus_HDF5, only : galacticusOutputFileIsOpen
+    use :: Galacticus_HDF5, only : galacticusOutputFileIsOpen
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
 

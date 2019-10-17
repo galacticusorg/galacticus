@@ -30,7 +30,7 @@ contains
   double precision function Poisson_Binomial_Distribution(k,p)
     !% Computes the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
     !% {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     integer         , intent(in   )               :: k
     double precision, intent(in   ), dimension(:) :: p
@@ -49,7 +49,7 @@ contains
     ! Compute the probability.
     probability=dcmplx(0.0d0,0.0d0)
     do l=0,size(p)
-       Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))       
+       Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))
        product=dcmplx(1.0d0,0.0d0)*(Cl**oneCount) ! Account for unit probability events contributions here.
        do m=1,size(pActive)
           product=product*(1.0d0+(Cl-1.0d0)*pActive(m))
@@ -59,11 +59,11 @@ contains
     Poisson_Binomial_Distribution=max(dreal(probability)/dble(1+size(p)),0.0d0)
     return
   end function Poisson_Binomial_Distribution
-  
+
   function Poisson_Binomial_Distribution_Jacobian(k,p)
     !% Computes the Jacobian of the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
     !% {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     integer         , intent(in   )                     :: k
     double precision, intent(in   ), dimension(     : ) :: p
@@ -122,7 +122,7 @@ contains
     ! Mean number of pairs can be found from the mean (mu) and variance (sigma^2): <k(k-1)> = sigma^2 + mu^2 - mu.
     mean    =Poisson_Binomial_Distribution_Mean    (p)
     variance=Poisson_Binomial_Distribution_Variance(p)
-    Poisson_Binomial_Distribution_Mean_Pairs=variance+mean**2-mean    
+    Poisson_Binomial_Distribution_Mean_Pairs=variance+mean**2-mean
     return
   end function Poisson_Binomial_Distribution_Mean_Pairs
 

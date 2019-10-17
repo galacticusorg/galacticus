@@ -32,7 +32,7 @@
      procedure :: sample        => logNormalSample
      procedure :: distribution  => logNormalDistribution
   end type haloSpinDistributionLogNormal
-  
+
   interface haloSpinDistributionLogNormal
      !% Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
      !% distribution class.
@@ -45,7 +45,7 @@ contains
   function logNormalConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
@@ -107,9 +107,8 @@ contains
   double precision function logNormalDistribution(self,node)
     !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}
     !% assuming a log-normal distribution.
-    use Numerical_Constants_Math
-    use Galacticus_Nodes        , only : nodeComponentSpin
-    use Galacticus_Nodes        , only : nodeComponentSpin
+    use :: Galacticus_Nodes        , only : nodeComponentSpin, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

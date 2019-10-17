@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an identity analysis weight operator class.
-  
+
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity">
   !#  <description>An identity analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
@@ -38,7 +38,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the ``identity'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisWeightOperatorIdentity)                :: self
     type(inputParameters                     ), intent(inout) :: parameters

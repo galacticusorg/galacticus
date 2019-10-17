@@ -43,7 +43,7 @@ contains
   function strideConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (evolveForestsWorkShareStride)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
 
   function strideConstructorInternal(stride,offset,evolveForestsWorkShare_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (evolveForestsWorkShareStride)                        :: self
     integer(c_size_t                    ), intent(in   )         :: stride                 , offset

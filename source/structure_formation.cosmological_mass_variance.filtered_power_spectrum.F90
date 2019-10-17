@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
-  
+
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
   !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
@@ -51,23 +51,23 @@
   !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
   !#  </stateStorable>
   !# </cosmologicalMassVariance>
-  use Tables
-  use Cosmology_Parameters                , only : cosmologyParameters               , cosmologyParametersClass
-  use Cosmology_Functions                 , only : cosmologyFunctions                , cosmologyFunctionsClass
-  use Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferred, powerSpectrumPrimordialTransferredClass
-  use Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunction       , powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
-  use Linear_Growth                       , only : linearGrowth                      , linearGrowthClass
-  use File_Utilities                      , only : lockDescriptor
+  use :: Cosmology_Parameters                , only : cosmologyParametersClass
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
+  use :: Linear_Growth                       , only : linearGrowthClass
+  use :: File_Utilities                      , only : lockDescriptor
+  use :: Tables                              , only : table1DLinearCSpline
 
   !# <stateStorable class="uniqueTable"/>
-  
+
   type :: uniqueTable
      !% Type used to store unique values of the mass variance.
      private
      double precision, allocatable, dimension(:) :: rootVariance
      integer         , allocatable, dimension(:) :: index
   end type uniqueTable
-     
+
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
@@ -88,7 +88,7 @@
      type            (varying_string                         )                            :: fileName
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_     
+     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
@@ -149,7 +149,7 @@
   ! Module-scope time used in integrals.
   double precision                            :: filteredPowerTime
   !$omp threadprivate(filteredPowerTime)
-  
+
   ! Lock used for file access.
   type            (lockDescriptor)            :: filteredPowerFileLock
   logical                                     :: filteredPowerFileLockInitialized =.false.
@@ -158,7 +158,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -169,7 +169,7 @@ contains
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     double precision                                                         :: sigma8Value                        , tolerance          , &
          &                                                                      toleranceTopHat
-    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal 
+    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -217,8 +217,8 @@ contains
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
-    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>    
+    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>
+    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>
     ! Construct the instance.
     self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
@@ -258,7 +258,7 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
-    ! Initialize file lock.    
+    ! Initialize file lock.
     if (.not.filteredPowerFileLockInitialized) then
        !$omp critical(filteredPowerFileLockInitialize)
        if (.not.filteredPowerFileLockInitialized) then
@@ -275,7 +275,7 @@ contains
     implicit none
     type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     integer                                                       :: i
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%cosmologyFunctions_"                />
     !# <objectDestructor name="self%linearGrowth_"                      />
@@ -299,7 +299,7 @@ contains
     filteredPowerPowerNormalization=self%sigmaNormalization**2
     return
   end function filteredPowerPowerNormalization
-  
+
   double precision function filteredPowerSigma8(self)
     !% Return the value of $\sigma_8$.
     implicit none
@@ -308,7 +308,7 @@ contains
     filteredPowerSigma8=self%sigma8Value
     return
   end function filteredPowerSigma8
-  
+
   double precision function filteredPowerRootVariance(self,mass,time)
     !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
     !% \ttfamily mass} on average.
@@ -317,7 +317,7 @@ contains
     double precision                                       , intent(in   ) :: mass, time
     double precision                                                       :: h
     integer                                                                :: i
-    
+
     call self%retabulate      (mass,time)
     if (self%growthIsMassDependent_) then
        call self%interpolantsTime(time,i,h)
@@ -325,11 +325,11 @@ contains
             &                    +self%rootVarianceTable(i+1)%interpolate(mass)*       h
     else
        filteredPowerRootVariance=+self%rootVarianceTable(1  )%interpolate(mass)           &
-            &                    *self%linearGrowth_         %value      (time)       
+            &                    *self%linearGrowth_         %value      (time)
     end if
     return
   end function filteredPowerRootVariance
-  
+
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
     !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
@@ -341,7 +341,7 @@ contains
     call self%rootVarianceAndLogarithmicGradient(mass,time,rootVariance,filteredPowerRootVarianceLogarithmicGradient)
     return
   end function filteredPowerRootVarianceLogarithmicGradient
-  
+
   double precision function filteredPowerRootVarianceLogarithmicGradientTime(self,mass,time)
     !% Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
@@ -376,7 +376,7 @@ contains
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !% Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
     !% spherical region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass        , time
@@ -446,7 +446,7 @@ contains
     integer                                                                :: i              , iBoundLeft, &
          &                                                                    iBoundRight    , k         , &
          &                                                                    j
-    
+
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
     call self%retabulate(time=time)
@@ -498,14 +498,16 @@ contains
     end if
     return
   end function filteredPowerMass
- 
+
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Error_Report   , Galacticus_Warn
-    use Numerical_Ranges        , only : Make_Range                , rangeTypeLogarithmic
-    use File_Utilities          , only : File_Lock                 , File_Unlock
-    use Galacticus_Display      , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
+    use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error        , only : Galacticus_Error_Report          , Galacticus_Warn
+    use :: Numerical_Ranges        , only : Make_Range                       , rangeTypeLogarithmic
+    use :: File_Utilities          , only : File_Lock                        , File_Unlock
+    use :: Galacticus_Display      , only : Galacticus_Display_Message       , Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
+    use :: Tables                  , only : table1DLogarithmicMonotoneCSpline, table1DLogarithmicCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , intent(in   ), optional     :: mass                      , time
@@ -711,15 +713,15 @@ contains
        call File_Unlock(filteredPowerFileLock)
     end if
     return
-    
+
   contains
-  
+
     double precision function rootVariance(time_,useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      use            :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
       use, intrinsic :: ISO_C_Binding
-      use            :: Numerical_Constants_Math
-      use            :: Numerical_Integration
-      use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+      use            :: Numerical_Constants_Math, only : Pi
+      use            :: Numerical_Integration   , only : Integrate         , Integrate_Done
       implicit none
       double precision                            , intent(in   ) :: time_
       logical                                     , intent(in   ) :: useTopHat
@@ -837,7 +839,7 @@ contains
       rootVariance=sqrt(rootVariance)
       return
     end function rootVariance
-    
+
     double precision function varianceIntegrand(wavenumber)
       !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
@@ -852,12 +854,12 @@ contains
            &             )**2
       return
     end function varianceIntegrand
-    
+
     double precision function varianceIntegrandTopHat(wavenumber)
       !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
       double precision, intent(in   ) :: wavenumber
-      
+
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
@@ -878,7 +880,7 @@ contains
     double precision                                       , intent(in   ) :: time
     integer                                                , intent(  out) :: i
     double precision                                       , intent(  out) :: h
-    
+
     h=(log(time)-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse+1.0d0
     i=  int (h)
     h=h-dble(i)
@@ -903,9 +905,10 @@ contains
 
   subroutine filteredPowerFileRead(self)
     !% Read tabulated data on mass variance from file.
-    use IO_HDF5           , only : hdf5Object                , hdf5Access
-    use File_Utilities    , only : File_Exists
-    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: IO_HDF5           , only : hdf5Object                       , hdf5Access
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Display, only : Galacticus_Display_Message       , verbosityWorking
+    use :: Tables            , only : table1DLogarithmicMonotoneCSpline, table1DLogarithmicCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -963,7 +966,7 @@ contains
     self%initialized=.true.
     return
   end subroutine filteredPowerFileRead
-  
+
   subroutine filteredPowerFileWrite(self)
     !% Write tabulated data on mass variance to file.
     use HDF5              , only : hsize_t
@@ -1019,13 +1022,13 @@ contains
     deallocate(uniqueSizeTmp        )
     return
   end subroutine filteredPowerFileWrite
-  
+
   logical function filteredPowerRemakeTable(self,mass,time)
     !% Determine if the table should be remade.
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
     double precision                                         , intent(in   ), optional :: mass, time
-    
+
     if (self%initialized) then
        filteredPowerRemakeTable=.false.
        if (present(mass)) then

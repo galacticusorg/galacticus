@@ -19,7 +19,6 @@
 
 !% Contains a module which implements a cold dark matter particle class.
 
-  use Cosmology_Parameters
 
   !# <darkMatterParticle name="darkMatterParticleCDM">
   !#  <description>Provides a cold dark matter particle.</description>
@@ -29,7 +28,7 @@
      private
    contains
   end type darkMatterParticleCDM
-  
+
   interface darkMatterParticleCDM
      !% Constructors for the ``{\normalfont \ttfamily CDM}'' dark matter particle class.
      module procedure CDMConstructorParameters
@@ -39,7 +38,7 @@ contains
 
   function CDMConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters

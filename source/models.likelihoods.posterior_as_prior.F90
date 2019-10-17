@@ -20,8 +20,8 @@
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
   !% over the parameters in the form of a set of MCMC chains.
 
-  use Nearest_Neighbors
-  
+  use :: Nearest_Neighbors, only : nearestNeighbors
+
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.</description>
   !# </posteriorSampleLikelihood>
@@ -66,7 +66,7 @@ contains
   function posteriorAsPriorConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class which builds the object
     !% from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodPosteriorAsPrior)                              :: self
     type            (inputParameters                          ), intent(inout)               :: parameters
@@ -114,10 +114,10 @@ contains
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
     !% Constructor for ``posteriorAsPrior'' posterior sampling likelihood class.
-    use String_Handling
-    use File_Utilities
-    use ISO_Varying_String
-    use Memory_Management
+    use :: File_Utilities    , only : File_Exists
+    use :: ISO_Varying_String
+    use :: Memory_Management , only : allocateArray
+    use :: String_Handling   , only : String_Count_Words, char
     implicit none
     type            (posteriorSampleLikelihoodPosteriorAsPrior)                                        :: self
     class           (posteriorSampleLikelihoodClass           ), intent(in   ), target                 :: posteriorSampleLikelihood_
@@ -129,7 +129,7 @@ contains
     character       (len=1024                                 )                                        :: line
     integer                                                                                            :: chainCount                , iChain    , &
          &                                                                                                chainUnit                 , ioStatus  , &
-         &                                                                                                i                         , j 
+         &                                                                                                i                         , j
     type            (varying_string                           )                                        :: chainFileName
     character       (len=4                                    )                                        :: label
     logical                                                                                            :: converged
@@ -138,7 +138,7 @@ contains
 
     self%initialized=.false.
     if (present(exclusions)) then
-       call allocateArray(self%exclusions,shape(exclusions))    
+       call allocateArray(self%exclusions,shape(exclusions))
        self%exclusions=exclusions
     else
        call allocateArray(self%exclusions,[0])
@@ -211,10 +211,10 @@ contains
     !# <objectDestructor name="self%posteriorSampleLikelihood_"/>
     return
   end subroutine posteriorAsPriorDestructor
-  
+
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
     !% Initialize a ``posterior as prior'' likelihood object.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
     type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_
@@ -241,7 +241,7 @@ contains
     call allocateArray(self%rootVariance,[self%dimCount])
     mean             =sum(self%states   ,dim=1)/dble(self%convergedStateCount)
     meanSquared      =sum(self%states**2,dim=1)/dble(self%convergedStateCount)
-    self%rootVariance=sqrt(meanSquared-mean**2)  
+    self%rootVariance=sqrt(meanSquared-mean**2)
     ! Scale states by root-variance.
     forall(i=1:self%convergedStateCount)
        self%states(i,:)=self%states(i,:)/self%rootVariance
@@ -249,7 +249,7 @@ contains
     ! Evaluate normalization factor for prior. Includes normalization for
     ! number of states used and conversion back to unscaled parameters.
     self%logPriorNormalization=-log(dble(self%convergedStateCount))-log(product(self%rootVariance))
-    ! Construct the search object.  
+    ! Construct the search object.
     allocate(self%searcher)
     select type (s => self%searcher)
     type is (nearestNeighbors)
@@ -260,9 +260,9 @@ contains
 
   double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a ``posterior as prior'' likelihood function.
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math      , only : Pi
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState

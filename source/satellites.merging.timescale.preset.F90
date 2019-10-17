@@ -39,7 +39,7 @@ contains
   function presetConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily preset} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesPreset)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
@@ -51,15 +51,15 @@ contains
 
   double precision function presetTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the preset value.
-    use Galacticus_Nodes, only : nodeComponentSatellite
-    use Kepler_Orbits
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
     class(satelliteMergingTimescalesPreset), intent(inout) :: self
     type (treeNode                        ), intent(inout) :: node
     type (keplerOrbit                     ), intent(inout) :: orbit
     class(nodeComponentSatellite          ), pointer       :: satellite
     !GCC$ attributes unused :: self, orbit
-    
+
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
     satellite              => node     %satellite()
     presetTimeUntilMerging =  satellite%mergeTime()

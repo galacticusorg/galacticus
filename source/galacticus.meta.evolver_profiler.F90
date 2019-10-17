@@ -21,7 +21,7 @@
 
 module Galacticus_Meta_Evolver_Profiler
   !% Constructs a profile of \glc\ ODE evolver statistics.
-  use Hashes
+  use :: Hashes, only : integerScalarHash
   implicit none
   private
   public :: Galacticus_Meta_Evolver_Profile, Galacticus_Meta_Evolver_Profiler_Output
@@ -40,12 +40,12 @@ contains
 
   subroutine Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     !% Record profiling information on the ODE evolver.
+    use            :: Arrays_Search     , only : Search_Array
     use, intrinsic :: ISO_C_Binding
-    use Input_Parameters
-    use Memory_Management
-    use Numerical_Ranges
-    use ISO_Varying_String
-    use Arrays_Search
+    use            :: ISO_Varying_String
+    use            :: Input_Parameters  , only : globalParameters, inputParameter
+    use            :: Memory_Management , only : allocateArray
+    use            :: Numerical_Ranges  , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     double precision                , intent(in   ) :: timeStep
     type            (varying_string), intent(in   ) :: propertyName
@@ -112,9 +112,10 @@ contains
   !# </hdfPreCloseTask>
   subroutine Galacticus_Meta_Evolver_Profiler_Output
     !% Outputs collected meta-data on tree evolution.
-    use ISO_Varying_String
-    use Galacticus_HDF5
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Object
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     type   (varying_string), allocatable, dimension(:) :: metaProfilePropertyNames
     integer                , allocatable, dimension(:) :: metaProfilePropertyHitCount

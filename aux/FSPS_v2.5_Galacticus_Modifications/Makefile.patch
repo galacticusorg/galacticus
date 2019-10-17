@@ -1,11 +1,11 @@
---- Makefile.orig	2016-08-16 23:58:32.243699252 +0000
-+++ Makefile	2016-08-17 16:07:04.133251283 +0000
-@@ -41,7 +41,7 @@
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -38,7 +38,7 @@ F90FLAGS := -O3 -cpp $(F90FLAGS) # prepend so a user can set -Ofast from outside
  
  PROGS = simple lesssimple autosps spec_bin
  
 -COMMON = sps_vars.o sps_utils.o compsp.o csp_gen.o ssp_gen.o \
 +COMMON = sps_vars.o sps_utils.o compsp.o csp_gen.o galacticus_IMF.o ssp_gen.o \
- 	getmags.o locate.o funcint.o sps_setup.o pz_convol.o \
- 	get_tuniv.o intsfwght.o imf.o imf_weight.o add_dust.o \
- 	getspec.o sbf.o add_bs.o mod_hb.o add_remnants.o getindx.o \
+        getmags.o locate.o funcint.o sps_setup.o pz_convol.o \
+        get_tuniv.o intsfwght.o imf.o imf_weight.o add_dust.o \
+        getspec.o sbf.o add_bs.o mod_hb.o add_remnants.o getindx.o \

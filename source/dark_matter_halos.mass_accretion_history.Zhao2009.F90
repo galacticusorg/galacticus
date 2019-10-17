@@ -19,10 +19,10 @@
 
   !% An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
 
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use Linear_Growth             , only : linearGrowthClass      , linearGrowth
   use Cosmology_Functions       , only : cosmologyFunctionsClass, cosmologyFunctions
-  
+
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
   !#  <description>Dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.</description>
   !# </darkMatterHaloMassAccretionHistory>
@@ -49,7 +49,7 @@ contains
   function zhao2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class which takes a parameter
     !% set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -83,12 +83,12 @@ contains
 
     return
   end function zhao2009ConstructorInternal
-    
+
   subroutine zhao2009Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%criticalOverdensity_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !# <objectDestructor name="self%linearGrowth_"            />
@@ -99,11 +99,11 @@ contains
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use FGSL            , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-         &                       FGSL_Success
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use ODE_Solver
-    use Galacticus_Error
+    use :: FGSL            , only : FGSL_Success           , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
+          &                         fgsl_odeiv_system
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: ODE_Solver      , only : ODE_Solve
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -121,7 +121,7 @@ contains
     type            (fgsl_odeiv_evolve                         )                :: odeEvolver
     type            (fgsl_odeiv_system                         )                :: odeSystem
     logical                                                                     :: odeReset                      =.true.
-    
+
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
     baseMass=baseBasicComponent%mass()
@@ -150,7 +150,7 @@ contains
     return
 
   contains
-    
+
     integer function growthRateODEs(mass,nowTime,dNowTimedMass)
       !% System of differential equations to solve for the growth rate.
       implicit none
@@ -161,7 +161,7 @@ contains
            &                                           dSigmadMassLogarithmicNow, deltaCriticalNow               , &
            &                                           pNow                     , sNow                           , &
            &                                           sigmaNow                 , wNow
-      
+
       ! Trap unphysical cases.
       if (nowTime(1) <= 0.0d0 .or. nowTime(1) > baseTime .or. mass <= 0.0d0) then
          dNowTimedMass(1)=0.0d0
@@ -193,5 +193,5 @@ contains
       ! Report success.
       growthRateODEs=FGSL_Success
     end function growthRateODEs
-    
+
   end function zhao2009Time

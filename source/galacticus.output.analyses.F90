@@ -21,10 +21,10 @@
 
 module Output_Analyses
   !% Provides a class that implements on-the-fly analyses.
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>outputAnalysis</name>
   !#  <descriptiveName>Output Analysis</descriptiveName>

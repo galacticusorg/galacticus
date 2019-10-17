@@ -19,8 +19,8 @@
 
 !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
 
-  use Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfileClass, hotHaloTemperatureProfile
-  use Hot_Halo_Mass_Distributions_Core_Radii
+  use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
+  use :: Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfile             , hotHaloTemperatureProfileClass
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.</description>
@@ -54,17 +54,17 @@
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
   end interface hotHaloMassDistributionEnzoHydrostatic
-  
+
   type            (treeNode                      ), pointer :: enzoHydrostaticNode
   double precision                                          :: enzoHydrostaticRadiusScale
   class           (hotHaloTemperatureProfileClass), pointer :: enzoHydrostaticNodeHotHaloTemperatureProfile
   !$omp threadprivate(enzoHydrostaticNode,enzoHydrostaticRadiusScale,enzoHydrostaticNodeHotHaloTemperatureProfile)
-  
+
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -82,8 +82,7 @@ contains
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
-    use Galacticus_Error
-    use Array_Utilities
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
     class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_
@@ -105,9 +104,9 @@ contains
 
   double precision function enzoHydrostaticDensityNormalization(self,node)
     !% Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use FGSL                 , only : fgsl_function       , fgsl_integration_workspace
-    use Galacticus_Nodes     , only : nodeComponentHotHalo
-    use Numerical_Integration
+    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
+    use :: Numerical_Integration, only : Integrate           , Integrate_Done
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
     type            (treeNode                              ), intent(inout), target  :: node
@@ -117,7 +116,7 @@ contains
     type            (fgsl_integration_workspace            )                         :: integrationWorkspace
     logical                                                                          :: integrationReset
     double precision                                                                 :: radiusInner                 , radiusOuter
-    
+
     enzoHydrostaticRadiusScale                   =  self%hotHaloMassDistributionCoreRadius_%radius                    (node)
     enzoHydrostaticNodeHotHaloTemperatureProfile => self                                   %hotHaloTemperatureProfile_
     enzoHydrostaticNode                          => node
@@ -135,7 +134,7 @@ contains
        enzoHydrostaticDensityNormalization=+hotHalo%mass       ()                                             &
             &                              /Integrate(                                                        &
             &                                                           radiusInner                         , &
-            &                                                           radiusOuter                         , &                  
+            &                                                           radiusOuter                         , &
             &                                                           enzoHydrostaticEnclosedMassIntegrand, &
             &                                                           integrandFunction                   , &
             &                                                           integrationWorkspace                , &
@@ -147,14 +146,14 @@ contains
     end if
     return
   end function enzoHydrostaticDensityNormalization
-    
+
   double precision function enzoHydrostaticEnclosedMassIntegrand(radius)
     !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: temperature, radiusEffective
-    
+
     if (radius <= 0.0d0) then
        enzoHydrostaticEnclosedMassIntegrand=0.0d0
     else
@@ -168,7 +167,7 @@ contains
     end if
     return
   end function enzoHydrostaticEnclosedMassIntegrand
-  
+
   double precision function enzoHydrostaticDensity(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
     implicit none
@@ -177,7 +176,7 @@ contains
     double precision                                        , intent(in   ) :: radius
     double precision                                                        :: temperature    , radiusScale, &
          &                                                                     radiusEffective
-    
+
     radiusScale                        =  self%hotHaloMassDistributionCoreRadius_%radius     (node                )
     radiusEffective                    =  max(radius,radiusScale)
     temperature                        = +self%hotHaloTemperatureProfile_        %temperature(node,radiusEffective)
@@ -186,7 +185,7 @@ contains
          &                               /radiusEffective                                                          **3
     return
   end function enzoHydrostaticDensity
-  
+
   double precision function enzoHydrostaticDensityLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
     !% distribution.
@@ -205,16 +204,16 @@ contains
     end if
     return
   end function enzoHydrostaticDensityLogSlope
-  
+
   double precision function enzoHydrostaticEnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use FGSL                 , only : fgsl_function       , fgsl_integration_workspace
-    use Galacticus_Nodes     , only : nodeComponentHotHalo
-    use Numerical_Integration
+    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
+    use :: Numerical_Integration, only : Integrate           , Integrate_Done
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
     type            (treeNode                              ), intent(inout), target  :: node
-    double precision                                        , intent(in   )          :: radius 
+    double precision                                        , intent(in   )          :: radius
     double precision                                        , parameter              :: toleranceRelative   =1.0d-3
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
     type            (fgsl_function                         )                         :: integrandFunction
@@ -235,7 +234,7 @@ contains
        enzoHydrostaticEnclosedMass=+self%densityNormalization(node)                                    &
             &                      *Integrate(                                                         &
             &                                 radiusInner                                            , &
-            &                                 radiusOuter                                            , &                  
+            &                                 radiusOuter                                            , &
             &                                 enzoHydrostaticEnclosedMassIntegrand                   , &
             &                                 integrandFunction                                      , &
             &                                 integrationWorkspace                                   , &
@@ -247,13 +246,13 @@ contains
     end if
     return
   end function enzoHydrostaticEnclosedMass
-  
+
   double precision function enzoHydrostaticRadialMoment(self,node,moment,radius)
     !% Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    use            :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use            :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               FGSL                 , only : fgsl_function       , fgsl_integration_workspace
-    use               Galacticus_Nodes     , only : nodeComponentHotHalo
-    use               Numerical_Integration
+    use            :: Numerical_Integration, only : Integrate           , Integrate_Done
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -287,16 +286,15 @@ contains
          &                                )
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
-    
+
   contains
-    
+
     double precision function enzoHydrostaticRadialMomentIntegrand(radius)
       !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-      use Hot_Halo_Temperature_Profiles
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: temperature, radiusEffective
-      
+
       if (radius <= 0.0d0) then
          enzoHydrostaticRadialMomentIntegrand=0.0d0
       else
@@ -315,7 +313,7 @@ contains
     !% Return the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type (treeNode                              ), intent(inout) :: node

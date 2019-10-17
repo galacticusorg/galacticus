@@ -38,7 +38,7 @@ contains
 
   function alwaysConstructorParameters(parameters)
     !% Constructor for the ``always'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterAlways)                :: alwaysConstructorParameters
     type(inputParameters     ), intent(in   ) :: parameters

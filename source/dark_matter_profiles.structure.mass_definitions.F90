@@ -28,15 +28,15 @@ contains
 
   function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity) result(massHalo)
     !% Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
-    use Galacticus_Nodes            , only : treeNode, nodeComponentBasic
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Dark_Matter_Profiles_DMO
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Virial_Density_Contrast
-    use Math_Exponentiation
+    use :: Cosmology_Functions         , only : cosmologyFunctions             , cosmologyFunctionsClass
+    use :: Cosmology_Parameters        , only : cosmologyParameters            , cosmologyParametersClass
+    use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO           , darkMatterProfileDMOClass
+    use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
+    use :: Math_Exponentiation         , only : cubeRoot
+    use :: Numerical_Comparison        , only : Values_Agree
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Virial_Density_Contrast     , only : virialDensityContrast          , virialDensityContrastClass
     implicit none
     double precision                                                      :: massHalo
     type            (treeNode                  )          , intent(inout) :: node
@@ -88,7 +88,7 @@ contains
             &                  *Pi            &
             &                  *density       &
             &                  *radiusHalo**3 &
-            &                  /3.0d0    
+            &                  /3.0d0
     end if
     ! If necesary, return the radius and circular velocity also.
     if (present(radius  )) radius  =radiusHalo

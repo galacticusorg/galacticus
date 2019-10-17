@@ -19,9 +19,9 @@
 
 !% An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <hotHaloMassDistribution name="hotHaloMassDistributionPatejLoeb2015">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.</description>
   !# </hotHaloMassDistribution>
@@ -47,10 +47,10 @@
   end interface hotHaloMassDistributionPatejLoeb2015
 
 contains
-  
+
   function patejLoeb2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
     !#   <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloMassDistributionPatejLoeb2015(gamma,radiusShock,darkMatterProfileDMO_,darkMatterHaloScale_)
@@ -85,9 +85,9 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,shockRadius,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
-    use Galacticus_Error
-    use Array_Utilities
-    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultHotHaloComponent
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
     double precision                                      , intent(in   )         :: gamma                         , shockRadius
@@ -149,7 +149,7 @@ contains
 
   double precision function patejLoeb2015Density(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -191,7 +191,7 @@ contains
 
   double precision function patejLoeb2015DensityLogSlope(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -218,10 +218,10 @@ contains
          &                                                                   )
     return
   end function patejLoeb2015DensityLogSlope
-  
+
   double precision function patejLoeb2015EnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
     type            (treeNode                            ), intent(inout), target  :: node
@@ -256,7 +256,7 @@ contains
          &                                                           )
     return
   end function patejLoeb2015EnclosedMass
-  
+
   double precision function patejLoeb2015RadialMoment(self,node,moment,radius)
     !% Compute a radial moment in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
     !% For this profile we have:
@@ -272,7 +272,7 @@ contains
     !% \mathcal{R}_\mathrm{g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_\mathrm{DM}(r;(2\Gamma-2+m)/\Gamma),
     !% \end{equation}
     !% where $\mathcal{R}(r;m)$ is the $m^\mathrm{th}$ radial moment of the density profile.
-    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -316,7 +316,7 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node

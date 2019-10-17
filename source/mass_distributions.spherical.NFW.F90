@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an NFW \citep{navarro_structure_1996} mass distribution class.
-  
+
   !# <massDistribution name="massDistributionNFW">
   !#  <description>An NFW \citep{navarro_structure_1996} mass distribution class.</description>
   !# </massDistribution>
@@ -28,7 +28,7 @@
    contains
      procedure :: density => nfwDensity
   end type massDistributionNFW
-  
+
   interface massDistributionNFW
      !% Constructors for the {\normalfont \ttfamily nfw} mass distribution class.
      module procedure nfwConstructorParameters
@@ -40,8 +40,8 @@ contains
   function nfwConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nfw} mass distribution class which builds the object from a parameter
     !% set.
-    use Numerical_Constants_Math
-    use Input_Parameters
+    use :: Input_Parameters        , only : inputParameter, inputParameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionNFW)                :: self
     type            (inputParameters    ), intent(inout) :: parameters
@@ -113,9 +113,8 @@ contains
 
   function nfwConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless) result(self)
     !% Internal constructor for ``nfw'' mass distribution class.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionNFW)                          :: self
     double precision                     , intent(in   ), optional :: scaleLength         , concentration, &
@@ -162,7 +161,7 @@ contains
 
   double precision function nfwDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
-    use Coordinates
+    use :: Coordinates, only : coordinate, coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     class           (coordinate         ), intent(in   ) :: coordinates

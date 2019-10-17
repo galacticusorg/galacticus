@@ -21,8 +21,8 @@
 
 module Galacticus_HDF5
   !% Manages HDF5 output from \glc.
-  use HDF5
-  use IO_HDF5
+  use :: HDF5
+  use :: IO_HDF5, only : hdf5Object
   implicit none
   public
 
@@ -43,7 +43,7 @@ module Galacticus_HDF5
 
   ! File format to use.
   logical               :: hdf5UseLatestFormat
- 
+
   ! Cache size.
   integer(kind=size_t ) :: hdf5CacheElementsCount, hdf5CacheSizeBytes
 

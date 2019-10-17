@@ -69,7 +69,7 @@ module Node_Component_Age_Statistics_Standard
 
   ! Record of whether variables in this component are inactive.
   logical :: ageStatisticsStandardIsInactive
-  
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -77,8 +77,8 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Age_Statistics_Standard_Initialize(globalParameters_)
     !% Initializes the tree node standard disk methods module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultAgeStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
+    use :: Input_Parameters, only : inputParameter               , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -100,12 +100,11 @@ contains
   !# </inactiveSetTask>
   subroutine Node_Component_Age_Statistics_Standard_Inactive(node)
     !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
-    use Stellar_Luminosities_Structure
-    use Galacticus_Nodes              , only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard
+    use :: Galacticus_Nodes, only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentAgeStatistics)               , pointer :: ageStatistics
-    
+
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()
     ! Check if an standard disk component exists.
@@ -120,13 +119,14 @@ contains
     end select
     return
   end subroutine Node_Component_Age_Statistics_Standard_Inactive
-  
+
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Age_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk, nodeComponentSpheroid, &
+          &                         treeNode
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
     class           (nodeComponentAgeStatistics)               , pointer :: ageStatistics
@@ -143,7 +143,7 @@ contains
     class is (nodeComponentAgeStatisticsStandard)
        ! Get disk and spheroid components.
        disk     => node%disk    ()
-       spheroid => node%spheroid()       
+       spheroid => node%spheroid()
        ! Set scale for masses.
        mass   = disk%massGas    ()+spheroid%massGas    () &
             &  +disk%massStellar()+spheroid%massStellar()
@@ -160,10 +160,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Nodes, only : treeNode             , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk            , &
-         &                       nodeComponentSpheroid, nodeComponentBasic        , interruptTask                     , defaultAgeStatisticsComponent, &
-         &                       propertyTypeActive   , propertyTypeInactive      , propertyTypeAll
-    use Output_Times
+    use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent, interruptTask       , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, &
+          &                         nodeComponentBasic           , nodeComponentDisk   , nodeComponentSpheroid     , propertyTypeActive                , &
+          &                         propertyTypeAll              , propertyTypeInactive, treeNode
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -178,7 +177,7 @@ contains
          &                                                                    spheroidStarFormationRate
     logical                                                                :: isGeneric
     !GCC$ attributes unused :: odeConverged
-    
+
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
     ! Get the age statistics component.
@@ -207,7 +206,7 @@ contains
     diskStarFormationRate     =  disk    %starFormationRate()
     spheroidStarFormationRate =  spheroid%starFormationRate()
     ! Find the current cosmic time.
-    basic => node %basic() 
+    basic => node %basic()
     time  =  basic%time ()
     ! Accumulate rates.
     call ageStatistics%    diskTimeWeightedIntegratedSFRRate(    diskStarFormationRate*time,interrupt,interruptProcedure)
@@ -223,15 +222,15 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Remnant_Properties
-    use Satellite_Merging_Mass_Movements
-    use Galacticus_Error
-    use Galacticus_Nodes                    , only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
+    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk     , destinationMergerSpheroid         , destinationMergerUnmoved
+    use :: Satellite_Merging_Remnant_Properties, only : destinationStarsHost      , destinationStarsSatellite
     implicit none
     type   (treeNode                  ), intent(inout), pointer :: node
     type   (treeNode                  )               , pointer :: nodeHost
     class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
- 
+
     ! Get the inter-output component.
     ageStatistics => node%ageStatistics()
     ! Ensure that it is of the standard class.
@@ -312,7 +311,7 @@ contains
           ! Do nothing.
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
-       end select       
+       end select
     end select
     return
   end subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging

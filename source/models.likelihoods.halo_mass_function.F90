@@ -19,11 +19,11 @@
 
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
 
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Cosmological_Density_Field
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass, haloEnvironmentClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
@@ -42,7 +42,7 @@
      class           (darkMatterProfileDMOClass    ), pointer                     :: darkMatterProfileDMO_     => null()
      class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_          => null()
      double precision                                                             :: time                               , massParticle                                    , &
-          &                                                                          massRangeMinimum                   , redshift     
+          &                                                                          massRangeMinimum                   , redshift
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance                         , inverseCovariance
      integer                                                                      :: errorModel
@@ -72,13 +72,13 @@
   !#  <entry label="sphericalOverdensity"/>
   !#  <entry label="trenti2010"          />
   !# </enumeration>
-  
+
 contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -94,7 +94,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_     , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), pointer       :: haloEnvironment_
 
     parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
@@ -104,56 +104,56 @@ contains
     !#   <description>The name of the file containing the halo mass function.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The redshift at which to evaluate the halo mass function.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRangeMinimum</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass to include in the likelihood evaluation.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCountMinimum</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>massFunctionType</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The type of mass function () model to use.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>errorModel</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The error model to use for the halo mass function.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The N-body particle mass.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>environmentAveraged</name>
     !#   <cardinality>1</cardinality>
     !#   <description>If true, the mass function will ve averaged over all environments.</description>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"                    source="parameters"             />
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"                   source="parameters"             />
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_"              source="parameters"             />
@@ -161,7 +161,7 @@ contains
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"                   source="parameters"             />
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"                   source="parameters"             />
-    !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"                     source="parameters"             />
+    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"                  source="parameters"             />
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
     self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
@@ -172,17 +172,18 @@ contains
     !# <objectDestructor name="criticalOverdensity_"                  />
     !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
     !# <objectDestructor name="darkMatterHaloScale_"                  />
-    !# <objectDestructor name="darkMatterProfileDMO_"                    />
+    !# <objectDestructor name="darkMatterProfileDMO_"                 />
     !# <objectDestructor name="haloEnvironment_"                      />
     return
   end function haloMassFunctionConstructorParameters
 
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
-    use IO_HDF5
-    use Galacticus_Error
-    use Memory_Management
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Linear_Algebra    , only : assignment(=)
+    use :: Memory_Management , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName                      , massFunctionType
@@ -195,7 +196,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), intent(in   ), target         :: cosmologicalMassVariance_     , cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), intent(in   ), target         :: criticalOverdensity_          , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target         :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                   ), intent(in   ), target         :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), intent(in   ), target         :: haloEnvironment_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                          , &
          &                                                                                        massFunctionOriginal
@@ -210,7 +211,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
-    
+
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                (          &
          &    self%cosmologyFunctions_%expansionFactorFromRedshift (         &
@@ -246,7 +247,7 @@ contains
        if (sqrt(massFunctionCovarianceOriginal(i,i)) >= massFunctionOriginal(i)/sqrt(dble(binCountMinimum))) cycle
        massCountReduced=massCountReduced+1
     end do
-    if (massCountReduced == 0) call Galacticus_Error_Report('no usable bins in mass function'//{introspection:location})  
+    if (massCountReduced == 0) call Galacticus_Error_Report('no usable bins in mass function'//{introspection:location})
     call allocateArray(self%mass            ,[massCountReduced                 ])
     call allocateArray(self%massFunction    ,[massCountReduced                 ])
     call allocateArray(self%covarianceMatrix,[massCountReduced,massCountReduced])
@@ -264,7 +265,7 @@ contains
           if (     massOriginal                  (j  )  <= massRangeMinimum                                   ) cycle
           if (sqrt(massFunctionCovarianceOriginal(j,j)) >= massFunctionOriginal(j)/sqrt(dble(binCountMinimum))) cycle
           jj=jj+1
-          self%covarianceMatrix(ii,jj)=massFunctionCovarianceOriginal(i,j)        
+          self%covarianceMatrix(ii,jj)=massFunctionCovarianceOriginal(i,j)
        end do
     end do
     ! Compute mass ranges for bins.
@@ -298,7 +299,7 @@ contains
     deallocate(massFunctionCovarianceOriginal)
     return
   end function haloMassFunctionConstructorInternal
-  
+
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for ``haloMassFunction'' posterior sampling likelihood class.
     implicit none
@@ -315,16 +316,16 @@ contains
     !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />
     return
   end subroutine haloMassFunctionDestructor
-  
+
   double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use MPI_Utilities
-    use Posterior_Sampling_State
-    use Models_Likelihoods_Constants
-    use Posterior_Sampling_Convergence
-    use Galacticus_Error
-    use Halo_Mass_Functions
-    use Statistics_NBody_Halo_Mass_Errors
+    use :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use :: Halo_Mass_Functions              , only : haloMassFunctionClass          , haloMassFunctionEnvironmentAveraged, haloMassFunctionErrorConvolved, haloMassFunctionShethTormen
+    use :: Linear_Algebra                   , only : operator(*)                    , assignment(=)
+    use :: Models_Likelihoods_Constants     , only : logImpossible
+    use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
+    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass        , nbodyHaloMassErrorPowerLaw         , nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
@@ -402,14 +403,14 @@ contains
     select case (self%errorModel)
     case (haloMassFunctionErrorModelNone                )
        if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           & 
+            & call Galacticus_Error_Report(                                                           &
             &                              '3 parameters are required for this likelihood function'// &
             &                              {introspection:location}                                   &
             &                             )
        haloMassFunctionConvolved_ => haloMassFunctionAveraged_
     case (haloMassFunctionErrorModelPowerLaw            )
        if (size(stateVector) /= 6 )                                                                   &
-            & call Galacticus_Error_Report(                                                           & 
+            & call Galacticus_Error_Report(                                                           &
             &                              '6 parameters are required for this likelihood function'// &
             &                              {introspection:location}                                   &
             &                             )
@@ -435,7 +436,7 @@ contains
        nullify(nbodyHaloMassError_)
     case (haloMassFunctionErrorModelSphericalOverdensity)
        if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           & 
+            & call Galacticus_Error_Report(                                                           &
             &                              '3 parameters are required for this likelihood function'// &
             &                              {introspection:location}                                   &
             &                             )
@@ -443,10 +444,10 @@ contains
        allocate(nbodyHaloMassErrorSOHaloFinder :: nbodyHaloMassError_)
        select type (nbodyHaloMassError_)
        type is (nbodyHaloMassErrorSOHaloFinder)
-          nbodyHaloMassError_=nbodyHaloMassErrorSOHaloFinder(                           &
-               &                                             self%darkMatterHaloScale_, &
-               &                                             self%darkMatterProfileDMO_  , &
-               &                                             self%massParticle          &
+          nbodyHaloMassError_=nbodyHaloMassErrorSOHaloFinder(                            &
+               &                                             self%darkMatterHaloScale_ , &
+               &                                             self%darkMatterProfileDMO_, &
+               &                                             self%massParticle           &
                &                                            )
        end select
        allocate(haloMassFunctionErrorConvolved :: haloMassFunctionConvolved_)
@@ -462,7 +463,7 @@ contains
        nullify(nbodyHaloMassError_)
     case (haloMassFunctionErrorModelTrenti2010          )
        if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           & 
+            & call Galacticus_Error_Report(                                                           &
             &                              '3 parameters are required for this likelihood function'// &
             &                              {introspection:location}                                   &
             &                             )
@@ -505,7 +506,7 @@ contains
     ! Clean up.
     deallocate(stateVector )
     deallocate(massFunction)
-    return    
+    return
   end function haloMassFunctionEvaluate
 
   subroutine haloMassFunctionFunctionChanged(self)

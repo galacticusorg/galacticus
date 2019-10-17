@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
-  
-  use Linear_Algebra
-  
+
+  use :: Linear_Algebra, only : matrix, vector
+
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
   !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
   !# </posteriorSampleLikelihood>
@@ -45,7 +45,7 @@ contains
   function multivariateNormalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodMultivariateNormal)                              :: self
     type            (inputParameters                            ), intent(inout)               :: parameters
@@ -60,14 +60,14 @@ contains
     !#   <description>The mean of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>covariance</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     self=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -75,20 +75,23 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !% Constructor for ``multivariateNormal'' convergence class.
+    use :: Linear_Algebra, only : assignment(=)
+    implicit none
     type            (posteriorSampleLikelihoodMultivariateNormal)                                :: self
     double precision                                             , intent(in   ), dimension(:  ) :: means
     double precision                                             , intent(in   ), dimension(:,:) :: covariance
     !# <constructorAssign variables="means, covariance" allocate="no"/>
 
     ! Find the inverse of the covariance matrix.
-    self%inverseCovariance=self%covariance%invert()  
+    self%inverseCovariance=self%covariance%invert()
     return
   end function multivariateNormalConstructorInternal
 
   double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
+    use :: Linear_Algebra                , only : operator(*)                    , assignment(=)
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

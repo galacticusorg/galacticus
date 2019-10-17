@@ -21,9 +21,8 @@
 
 module ODEIV2_Solver
   !% Contains an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
+  use            :: FODEIV2
   use, intrinsic :: ISO_C_Binding
-  use               ODE_Solver_Error_Codes
-  use               FODEIV2
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 
@@ -45,7 +44,7 @@ module ODEIV2_Solver
        double precision, intent(  out), dimension(:) :: dfdx
      end function jacobianTemplate
   end interface
-  
+
   ! Integrand interface.
   abstract interface
      subroutine integrandTemplate(ny,nz,x,y,dydx,z0,e,dzdx)
@@ -72,14 +71,14 @@ module ODEIV2_Solver
      procedure(  jacobianTemplate), pointer, nopass :: jacobian
      procedure( integrandTemplate), pointer, nopass :: integrands
      procedure(finalStateTemplate), pointer, nopass :: finalState
-     integer  (c_size_t          )                  :: ODENumber , integrandsNumber    
+     integer  (c_size_t          )                  :: ODENumber , integrandsNumber
   end type odeiv2ODEsList
-  
+
   ! List of currently active root ODE systems.
   integer                                            :: currentODEsIndex=0
   type   (odeiv2ODEsList), allocatable, dimension(:) :: currentODEs
   !$omp threadprivate(currentODEs,currentODEsIndex)
-  
+
 contains
 
   subroutine ODEIV2_Solve(                                                                             &
@@ -88,11 +87,12 @@ contains
        &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-    use Galacticus_Error
-    use ISO_Varying_String
-    use String_Handling
-    use Numerical_Integration2
-    use FGSL                  , only : FGSL_Success, FGSL_Failure
+    use :: FGSL                  , only : FGSL_Failure               , FGSL_Success
+    use :: Galacticus_Error      , only : Galacticus_Error_Report
+    use :: ISO_Varying_String    , only : varying_string             , operator(//)  , assignment(=)
+    use :: Numerical_Integration2, only : integratorMultiVectorized1D
+    use :: String_Handling       , only : operator(//)
+    use :: ODE_Solver_Error_Codes, only : odeSolverInterrupt         , interruptedAtX
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount
@@ -166,7 +166,7 @@ contains
        currentODEs(currentODEsIndex)%finalState       => null()
     end if
     ! Set initial values of integrands.
-    if (present(integrands)) then       
+    if (present(integrands)) then
        allocate(z0(zCount))
        z0=z
     end if
@@ -209,7 +209,7 @@ contains
        else
           ! No scales given, assume they are all unity.
           odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
-       end if       
+       end if
     end if
     ! Keep a local copy of the initial y values so that we can repeat the step if necessary.
     y0=y
@@ -245,7 +245,7 @@ contains
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing except store the step-size used.
-          if (present(stepSize)) stepSize=FODEIV2_Driver_h(odeDriver)          
+          if (present(stepSize)) stepSize=FODEIV2_Driver_h(odeDriver)
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (present(errorHandler)) call errorHandler(status,x,y)
@@ -295,11 +295,11 @@ contains
     return
 
   contains
-    
+
     subroutine latentIntegrator(x)
       !% Wrapper function which performs integration of latent variables.
-      use Galacticus_Error
-      use Galacticus_Display
+      use :: Galacticus_Display, only : Galacticus_Display_Message
+      use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
       implicit none
       double precision, intent(in   )     :: x
       double precision, dimension(yCount) :: y
@@ -333,16 +333,16 @@ contains
       double precision, intent(  out), dimension(nz    ,size(x)) :: dzdx
       double precision               , dimension(yCount,size(x)) :: dydx, y
       integer                                                    :: i
-      
+
       ! Evaluate the active parameters.
-      do i=1,size(x)         
+      do i=1,size(x)
          call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODEs(currentODEsIndex)%ODENumber,x(i),y(:,i),dydx(:,i))
       end do
       ! Call the integrand function.
       call currentODEs(currentODEsIndex)%integrands(yCount,nz,x,y,dydx,z,e,dzdx)
       return
     end subroutine integrandsWrapper
-    
+
   end subroutine ODEIV2_Solve
 
   function odesWrapperIV2(x,y,dydx,parameterPointer) bind(c)
@@ -355,11 +355,11 @@ contains
     real   (kind=c_double), dimension(*)                :: dydx
     type   (     c_ptr   ), value                       :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
-    
+
     odesWrapperIV2=currentODEs(currentODEsIndex)%ODes(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dydx(1:currentODEs(currentODEsIndex)%ODENumber))
     return
   end function odesWrapperIV2
-    
+
   function jacobianWrapperIV2(x,y,dfdy,dfdx,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
     use, intrinsic :: ISO_C_Binding
@@ -370,11 +370,11 @@ contains
     real   (kind=c_double), dimension(*)                :: dfdy              , dfdx
     type   (     c_ptr   ), value                       :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
-    
+
     jacobianWrapperIV2=currentODEs(currentODEsIndex)%jacobian(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dfdy(1:currentODEs(currentODEsIndex)%ODENumber**2),dfdx(1:currentODEs(currentODEsIndex)%ODENumber))
     return
   end function jacobianWrapperIV2
-    
+
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
     implicit none

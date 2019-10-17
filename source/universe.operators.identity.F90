@@ -33,15 +33,15 @@
   end interface universeOperatorIdentity
 
 contains
-  
+
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily identity} universe operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(universeOperatorIdentity)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=universeOperatorIdentity()
     return
   end function identityConstructorParameters
@@ -52,7 +52,7 @@ contains
      class(universeOperatorIdentity), intent(inout), target :: self
      type (universe                ), intent(inout)         :: universe_
      !GCC$ attributes unused :: self, universe_
-     
+
      return
    end subroutine identityOperate
-   
+

@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a property operator class in which the property value is replaced with an integral over a
   !% normal distribution between given limits, using the property value at the mean of the distribution.
-  
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
   !#  <description>A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value at the mean of the distribution.</description>
   !# </outputAnalysisPropertyOperator>
@@ -43,7 +43,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !% Constructor for the ``normal'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -96,7 +96,6 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
     !% Internal constructor for the ``normal'' output analysis distribution operator class.
-    use Input_Parameters
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self
     double precision                                      , intent(in   ) :: rangeLower  , rangeUpper , &
@@ -109,8 +108,8 @@ contains
 
   double precision function normalOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an normal output analysis property operator.
+    use            :: Error_Functions, only : Error_Function
     use, intrinsic :: ISO_C_Binding
-    use               Error_Functions
     implicit none
     class           (outputAnalysisPropertyOperatorNormal), intent(inout)           :: self
     double precision                                      , intent(in   )           :: propertyValue

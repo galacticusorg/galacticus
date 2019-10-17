@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
   !% given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
-  
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH">
   !#  <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.</description>
   !# </outputAnalysisPropertyOperator>
@@ -42,8 +42,7 @@ contains
 
   function metallicity12LogNHConstructorParameters(parameters) result(self)
     !% Constructor for the ``metallicity12LogNH'' output analysis property operator class which takes a parameter set as input.
-    use Abundances_Structure
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
@@ -75,7 +74,7 @@ contains
   double precision function metallicity12LogNHOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an metallicity output analysis property operator.
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Constants_Atomic
+    use            :: Numerical_Constants_Atomic, only : atomicMassHydrogen
     implicit none
     class           (outputAnalysisPropertyOperatorMetallicity12LogNH), intent(inout)           :: self
     double precision                                                  , intent(in   )           :: propertyValue
@@ -84,10 +83,10 @@ contains
     integer         (c_size_t                                        ), intent(in   ), optional :: outputIndex
     double precision                                                                            :: ratioByNumber
     !GCC$ attributes unused :: propertyType, outputIndex, node
-    
+
     ratioByNumber=+propertyValue      &
             &     *atomicMassHydrogen &
-            &     /self%massElement 
+            &     /self%massElement
     if (ratioByNumber > 0.0d0) then
        metallicity12LogNHOperate=+log10(ratioByNumber) &
             &                    +12.0d0

@@ -19,8 +19,7 @@
 
 !% Contains a module which implements a stellar mass function output analysis class.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS">
   !#  <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{gunawardhana_galaxy_2013} analysis.</description>
   !# </outputAnalysis>
@@ -39,7 +38,7 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
@@ -160,11 +159,15 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use Galacticus_Error
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryGunawardhana2013SDSS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
@@ -186,7 +189,7 @@ contains
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
     double precision                                                                                    :: errorPolynomialZeroPoint
-    
+
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
     allocate(galacticFilter_)
     !# <referenceConstruct object="galacticFilter_" constructor="galacticFilterStellarMass(massThreshold=1.0d3)"/>
@@ -257,8 +260,8 @@ contains
     ! Build the object.
     self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                           &
          & outputAnalysisLuminosityFunctionHalpha(                                                                                                                         &
-         &                                  var_str('Gunawardhana2013SDSS'                                                   )                                           , &
-         &                                  var_str('Hα luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                           , &
+         &                                  var_str('Gunawardhana2013SDSS'                                                          )                                    , &
+         &                                  var_str('H$\alpha$ luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                    , &
          &                                  char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
          &                                  .false.                                                                                                                      , &
          &                                  depthOpticalISMCoefficient                                                                                                   , &

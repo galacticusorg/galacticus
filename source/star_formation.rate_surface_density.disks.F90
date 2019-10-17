@@ -21,9 +21,9 @@
 
 module Star_Formation_Rate_Surface_Density_Disks
   !% Provides a class that implements surface density rates of star formation in disks.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>starFormationRateSurfaceDensityDisks</name>
   !#  <descriptiveName>Surface density rates of star formation in disks.</descriptiveName>

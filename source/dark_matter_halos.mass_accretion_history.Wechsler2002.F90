@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
-  
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  
+
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
   !#  <description>Dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.</description>
   !# </darkMatterHaloMassAccretionHistory>
@@ -37,7 +37,7 @@
      final     ::         wechsler2002Destructor
      procedure :: time => wechsler2002Time
   end type darkMatterHaloMassAccretionHistoryWechsler2002
-  
+
   interface darkMatterHaloMassAccretionHistoryWechsler2002
      !% Constructors for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
      module procedure wechsler2002ConstructorParameters
@@ -48,7 +48,7 @@ contains
 
   function wechsler2002ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
@@ -92,7 +92,7 @@ contains
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
     !% Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                          :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target   :: cosmologyFunctions_
@@ -101,16 +101,16 @@ contains
     logical                                                         , intent(in   )           :: formationRedshiftCompute
     double precision                                                , intent(in   ), optional :: formationRedshift
     !# <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, formationRedshiftCompute, formationRedshift"/>
-    
+
     if (.not.formationRedshiftCompute.and..not.present(formationRedshift)) call Galacticus_Error_Report('formation redshift must be provided'//{introspection:location})
     return
   end function wechsler2002ConstructorInternal
-    
+
   subroutine wechsler2002Destructor(self)
     !% Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
     implicit none
     type(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%criticalOverdensity_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
@@ -120,7 +120,7 @@ contains
   double precision function wechsler2002Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node
@@ -147,7 +147,7 @@ contains
     return
 
   contains
-    
+
     double precision function expansionFactorAtFormation(haloMass)
       !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
       implicit none
@@ -155,7 +155,7 @@ contains
       double precision, parameter     :: haloMassFraction   =0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
       double precision                :: formationTime              , haloMassCharacteristic, &
            &                             sigmaCharacteristic
-     
+
       ! Compute the characteristic mass at formation time.
       haloMassCharacteristic=haloMassFraction*haloMass
       ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).

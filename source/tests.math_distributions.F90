@@ -21,12 +21,12 @@
 
 program Test_Math_Distributions
   !% Tests of mathematical distributions.
-  use Unit_Tests
-  use Math_Distributions_Poisson_Binomial
-  use Pseudo_Random
-  use Statistics_Distributions
-  use Input_Parameters
-  use Galacticus_Display
+  use :: Galacticus_Display                 , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Input_Parameters                   , only : inputParameters
+  use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution , Poisson_Binomial_Distribution_Mean_Pairs
+  use :: Pseudo_Random                      , only : pseudoRandom
+  use :: Statistics_Distributions           , only : distributionFunction1DGamma
+  use :: Unit_Tests                         , only : Assert                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                             , dimension(  10) :: p                , x           , y
   integer                                      , dimension(0:10) :: trials

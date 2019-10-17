@@ -35,10 +35,10 @@
   end interface satelliteTidalFieldNull
 
 contains
-  
+
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} satellite tidal field class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteTidalFieldNull)                :: self
     type(inputParameters        ), intent(inout) :: parameters
@@ -54,7 +54,7 @@ contains
     class(satelliteTidalFieldNull), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     nullTidalTensorRadial=0.0d0
     return
   end function nullTidalTensorRadial

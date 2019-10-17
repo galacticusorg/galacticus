@@ -81,14 +81,14 @@ contains
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type            (inputParameters                                         ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                                 ), pointer       :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass                                 ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass                                ), pointer       :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass                           ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                                 ), pointer       :: darkMatterParticle_
     class           (intergalacticMediumFilteringMassClass                   ), pointer       :: intergalacticMediumFilteringMass_
     double precision                                                                          :: normalization
     logical                                                                                   :: tableStore
-    
+
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
@@ -127,7 +127,7 @@ contains
     use Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                          :: self
-    class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_
     class           (cosmologyParametersClass                                ), target  , intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass                           ), target  , intent(in   ) :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                                 ), target  , intent(in   ) :: darkMatterParticle_
@@ -151,7 +151,7 @@ contains
     end select
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
-  
+
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
     implicit none
@@ -208,7 +208,7 @@ contains
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_     , interpolator
     !GCC$ attributes unused :: node
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -271,7 +271,7 @@ contains
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_
     !GCC$ attributes unused :: node
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass=+(                                                                                &

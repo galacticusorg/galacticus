@@ -39,8 +39,9 @@ use Galacticus::Build::SourceTree::Analyze::UseDuplication;
 sub ParseFile {    
     # Grab the file name.
     my $fileName = shift();
+    my (%options) = @_;
     # Read the code.
-    my $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::ReadFile($fileName);
+    my $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::ReadFile($fileName,%options);
     # Initialize root object.
     (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
     my $tree =
@@ -62,8 +63,10 @@ sub ParseCode {
     # Grab the source to parse.
     my $code     = shift();
     my $fileName = shift();
+    my (%options) = @_;
     # Instrument code.
-    $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Instrument($code);
+    $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Instrument($code)
+	unless ( exists($options{'instrument'}) && ! $options{'instrument'} );
     # Initialize root object.
     (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
     my $tree =
@@ -347,6 +350,34 @@ sub Walk_Tree {
     return $node;
 }
 
+sub Walk_Branch {
+    # Do a depth-first walk of the tree.
+    my $branchHead = shift();
+    my $node       = shift();
+    my $depthRef   = shift();
+    # Walk the tree.
+    if ( $node == $branchHead ) {
+    	while ( $node->{'firstChild'} ) {
+	    ++${$depthRef};
+	    $node = $node->{'firstChild'};
+	}
+    } else {
+	if ( $node->{'sibling'} ) {
+	    $node = $node->{'sibling'};
+	    while ( $node->{'firstChild'} ) {		
+		++${$depthRef};
+		$node = $node->{'firstChild'};
+	    }
+	} else {
+	    --${$depthRef};
+	    $node = $node->{'parent'};
+	    undef($node)
+		if ( $node == $branchHead );
+	}
+    }
+    return $node;
+}
+
 sub ReplaceNode {
     # Grab the node to replace and the replacements.
     my $node     =   shift() ;
@@ -369,7 +400,7 @@ sub ReplaceNode {
 	    }
 	}
 	for(my $i=0;$i<scalar(@newNodes);++$i) {
-	    $newNodes[$i]->{'parent'  } = $node->{'parent'};
+    	    $newNodes[$i]->{'parent'  } = $node->{'parent'};
 	    $newNodes[$i]->{'sibling' } = $newNodes[$i+1]
 		unless ( $i == scalar(@newNodes)-1 );
 	}
@@ -381,17 +412,20 @@ sub ReplaceNode {
 
 sub Serialize {
     my $node = shift();
+    my (%options) = @_;
+    $options{'annotate'} = 1
+	unless ( exists($options{'annotate'}) );
     my $serialization;
     my $currentNode = $node;
     while ( $currentNode ) {
 	$serialization .= "!--> ".$currentNode->{'line'}." \"".$currentNode->{'source'}."\"\n"
-	    if ( exists($currentNode->{'source'}) && exists($currentNode->{'line'}) );
+	    if ( exists($currentNode->{'source'}) && exists($currentNode->{'line'}) && $options{'annotate'} );
 	if ( $currentNode->{'type'} eq "code" ) {
 	    $serialization .= $currentNode->{'content'}
 	} else {
 	    $serialization .= $currentNode->{'opener'}
 	        if ( exists($currentNode->{'opener'}) );
-	    $serialization .= &Serialize($currentNode->{'firstChild'})
+	    $serialization .= &Serialize($currentNode->{'firstChild'},%options)
 		if ( $currentNode->{'firstChild'} );
 	    $serialization .= $currentNode->{'closer'}
 	        if ( exists($currentNode->{'closer'}) );
@@ -435,7 +469,7 @@ sub InsertBeforeNode {
 	    $newNodes[$#newNodes]->{'sibling'} = $child;
 	    $node->{'parent'}->{'firstChild'} = $newNodes[0];
 	    for(my $i=0;$i<scalar(@newNodes);++$i) {
-	    	$newNodes[$i]->{'parent' } = $node->{'parent'};	    
+		$newNodes[$i]->{'parent' } = $node->{'parent'};	    
 	    	$newNodes[$i]->{'sibling'} = $newNodes[$i+1]
 	    	    unless ( $i == scalar(@newNodes)-1 );
 	    }

@@ -87,7 +87,7 @@ sub Process_StateStorable {
 	);
     # Record whether we need class functions.
     my $classFunctionsRequired = defined($moduleNode);
-    # Process any stateSotrable directives.
+    # Process any stateStorable directives.
     foreach my $directiveNode ( @directiveNodes ) {
 	my $directive = $directiveNode->{'directive'};
 	# Assert that class must exist.

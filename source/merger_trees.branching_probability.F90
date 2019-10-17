@@ -21,8 +21,8 @@
 
 module Merger_Tree_Branching
   !% Implements a merger tree branching probability class.
-  use Pseudo_Random
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
+  use :: Pseudo_Random   , only : pseudoRandom
   implicit none
   private
 
@@ -71,7 +71,7 @@ module Merger_Tree_Branching
   !#   <argument>double precision, intent(in   ) :: haloMass, deltaCritical, time, massResolution</argument>
   !#  </method>
   !# </functionClass>
-  
+
   !# <enumeration>
   !#  <name>mergerTreeBranchingBound</name>
   !#  <description>Upper/lower bound labels used in merger tree branching calculations.</description>

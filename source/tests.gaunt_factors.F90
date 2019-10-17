@@ -21,12 +21,12 @@
 
 program Test_Gaunt_Factors
   !% Tests Gaunt factor functions.
-  use ISO_Varying_String
-  use Unit_Tests
-  use Atomic_Ionization_Potentials
-  use Atomic_Radiation_Gaunt_Factors
-  use Input_Parameters
-  use Galacticus_Display
+  use :: Atomic_Ionization_Potentials  , only : atomicIonizationPotentialVerner
+  use :: Atomic_Radiation_Gaunt_Factors, only : gauntFactorVanHoof2014
+  use :: Galacticus_Display            , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters              , only : inputParameters
+  use :: Unit_Tests                    , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (atomicIonizationPotentialVerner)                          :: atomicIonizationPotential_
   type            (gauntFactorVanHoof2014         )                          :: gauntFactorVanHoof2014_
@@ -43,7 +43,7 @@ program Test_Gaunt_Factors
   parameters=inputParameters()
   call parameters%markGlobal()
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")  
+  call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")
   atomicIonizationPotential_=atomicIonizationPotentialVerner(                          )
   gauntFactorVanHoof2014_   =gauntFactorVanHoof2014         (atomicIonizationPotential_)
   do i=1,size(temperatures)

@@ -19,8 +19,8 @@
 
   !% Implementation of the \cite{white_galaxy_1991} time available for cooling class.
 
-  use Dark_Matter_Halo_Scales
-  
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991">
   !#  <description>A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\normalfont \ttfamily [ageFactor]}.</description>
   !# </coolingTimeAvailable>
@@ -45,13 +45,13 @@ contains
 
   function whiteFrenk1991ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{white_galaxy_1991} time available for cooling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     double precision                                                    :: ageFactor
-    
+
     !# <inputParameter>
     !#  <name>ageFactor</name>
     !#  <source>parameters</source>
@@ -69,13 +69,13 @@ contains
 
   function whiteFrenk1991ConstructorInternal(ageFactor,darkMatterHaloScale_) result(self)
     !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                        :: self
     double precision                                    , intent(in   )         :: ageFactor
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="ageFactor, *darkMatterHaloScale_"/>
-    
+
     if     (                   &
          &   ageFactor < 0.0d0 &
          &  .or.               &
@@ -95,12 +95,12 @@ contains
 
   double precision function whiteFrenk1991TimeAvailable(self,node)
     !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{white_galaxy_1991} model.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
     class(nodeComponentBasic                ), pointer       :: basic
-    
+
     ! Return the appropriate time.
     if (self%ageFactor == 1.0d0) then
        ! Time available equals the age of the Universe, which is just the time for this node.
@@ -119,7 +119,7 @@ contains
     end if
     return
   end function whiteFrenk1991TimeAvailable
-  
+
   double precision function whiteFrenk1991TimeAvailableIncreaseRate(self,node)
     !% Compute the rate of increase of the time available for cooling using the \cite{white_galaxy_1991} method. We return a rate
     !% of 1, even though technically it can depend on halo properties.

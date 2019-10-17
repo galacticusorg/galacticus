@@ -82,7 +82,7 @@ sub Process_Constructors {
 		    ) {
 		    my $type = lc($declaration->{'type'});
 		    $type =~ s/\s//g;
-		    if ( grep {lc($_) eq $type} (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}})) {
+		    if ( grep {lc($_) eq $type} (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}})) {
 			$assignmentSource .= "   ".$optional." call ".$returnValueLabel."%".$argumentName."%referenceCountIncrement()\n";
 			if ( $debugging ) {
 			    $assignmentSource .= "   if (mpiSelf\%isMaster()) then\n";

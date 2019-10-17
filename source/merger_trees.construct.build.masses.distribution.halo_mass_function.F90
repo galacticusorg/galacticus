@@ -19,8 +19,8 @@
 
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
 
-  use Halo_Mass_Functions
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : haloEnvironmentClass
+  use :: Halo_Mass_Functions       , only : haloMassFunctionClass
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
@@ -47,7 +47,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the haloMassFunction merger tree halo mass function sampling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionHaloMassFunction)                :: self
     type            (inputParameters                                ), intent(inout) :: parameters
@@ -122,7 +122,7 @@ contains
 
   double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
-    use Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     use Kind_Numbers    , only : kind_int8
     implicit none
     class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self

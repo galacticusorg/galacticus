@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
   !% is fixed.
-  
+
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
   !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is fixed.</description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
@@ -42,12 +42,12 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                 :: self
     type            (inputParameters                              ), intent(inout)  :: parameters
     double precision                                                                :: exponentValue
-    
+
     !# <inputParameter>
     !#   <name>exponentValue</name>
     !#   <cardinality>1</cardinality>
@@ -67,7 +67,7 @@ contains
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                :: self
     double precision                                               , intent(in   ) :: exponentValue
     !# <constructorAssign variables="exponentValue"/>
-    
+
     return
   end function fixedConstructorInternal
 

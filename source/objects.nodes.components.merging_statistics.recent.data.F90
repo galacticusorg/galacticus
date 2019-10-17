@@ -25,9 +25,9 @@ module Node_Component_Merging_Statistics_Recent_Data
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Recent_Count
-  
+
   integer(c_size_t), public :: mergingStatisticsRecentCount
-  
+
 contains
 
   function Node_Component_Merging_Statistics_Recent_Count()
@@ -38,5 +38,5 @@ contains
     Node_Component_Merging_Statistics_Recent_Count=mergingStatisticsRecentCount
     return
   end function Node_Component_Merging_Statistics_Recent_Count
-  
+
 end module Node_Component_Merging_Statistics_Recent_Data

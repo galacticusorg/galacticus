@@ -19,8 +19,8 @@
 
   !% Implementation of a posterior sampling stopping class which stops after a given number of correlation legnths.
 
-  use Posterior_Sampling_Convergence
-  
+  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
   !#  <description>A posterior sampling stopping class which stops after a given number of correlation lengths.</description>
   !# </posteriorSampleStoppingCriterion>
@@ -44,7 +44,7 @@ contains
 
   function correlationLengthConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                :: self
     type   (inputParameters                                  ), intent(inout) :: parameters
@@ -67,13 +67,12 @@ contains
 
   function correlationLengthConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
-    use Input_Parameters
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                        :: self
     integer                                                   , intent(in   )         :: stopAfterCount
     class  (posteriorSampleConvergenceClass                  ), intent(in   ), target :: posteriorSampleConvergence_
     !# <constructorAssign variables="stopAfterCount, *posteriorSampleConvergence_"/>
-    
+
     return
   end function correlationLengthConstructorInternal
 
@@ -88,7 +87,8 @@ contains
 
   logical function correlationLengthStop(self,simulationState)
     !% Returns true if the posterior sampling should stop.
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Posterior_Sampling_State, only : posteriorSampleStateCorrelation
     implicit none
     class(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self
     class(posteriorSampleStateClass                        ), intent(inout) :: simulationState

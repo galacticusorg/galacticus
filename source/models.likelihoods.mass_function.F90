@@ -19,9 +19,9 @@
 
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
 
-  use Cosmology_Functions
-  use Halo_Mass_Functions
-  use Geometry_Surveys
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Geometry_Surveys   , only : surveyGeometryClass
+  use :: Halo_Mass_Functions, only : haloMassFunctionClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for mass functions.</description>
@@ -29,20 +29,20 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
-     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_ => null()
-     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_ => null()
-     logical                                                                :: useSurveyLimits       , modelSurfaceBrightness
-     double precision                                                       :: haloMassMinimum       , haloMassMaximum       , &
-          &                                                                    redshiftMinimum       , redshiftMaximum       , &
-          &                                                                    logHaloMassMinimum    , logHaloMassMaximum    , &
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_   => null()
+     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_     => null()
+     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_       => null()
+     logical                                                                :: useSurveyLimits                , modelSurfaceBrightness
+     double precision                                                       :: haloMassMinimum                , haloMassMaximum       , &
+          &                                                                    redshiftMinimum                , redshiftMaximum       , &
+          &                                                                    logHaloMassMinimum             , logHaloMassMaximum    , &
           &                                                                    surfaceBrightnessLimit
-     double precision                         , dimension(:  ), allocatable :: mass                  , massFunctionObserved  , &
-          &                                                                    massMinimum           , massMaximum           , &
+     double precision                         , dimension(:  ), allocatable :: mass                           , massFunctionObserved  , &
+          &                                                                    massMinimum                    , massMaximum           , &
           &                                                                    massFunction
      double precision                         , dimension(:,:), allocatable :: covarianceMatrix
      type            (vector                 )                              :: means
-     type            (matrix                 )                              :: covariance            , inverseCovariance
+     type            (matrix                 )                              :: covariance                     , inverseCovariance
      type            (varying_string         )                              :: massFunctionFileName
    contains
      final     ::                    massFunctionDestructor
@@ -61,7 +61,7 @@ contains
   function massFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily massFunction} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodMassFunction)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -143,10 +143,11 @@ contains
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !% Constructor for ``massFunction'' posterior sampling likelihood class.
-    use IO_HDF5
-    use Galacticus_Paths
-    use Memory_Management
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataStatic
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Linear_Algebra    , only : assignment(=)
+    use :: Memory_Management , only : allocateArray             , deallocateArray
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
          &                                                                                  haloMassMinimum        , haloMassMaximum       , &
@@ -162,7 +163,7 @@ contains
     type            (matrix                               )                              :: eigenVectors
     type            (vector                               )                              :: eigenValues
     !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, redshiftMinimum, redshiftMaximum, modelSurfaceBrightness, surfaceBrightnessLimit, useSurveyLimits, massFunctionFileName, *cosmologyFunctions_, *haloMassFunction_, *surveyGeometry_"/>
-    
+
     self%logHaloMassMinimum=log10(haloMassMinimum)
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
@@ -240,17 +241,18 @@ contains
     !# <objectDestructor name="self%surveyGeometry_"    />
     return
   end subroutine massFunctionDestructor
-  
+
   double precision function massFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the mass function likelihood function.
-    use Posterior_Sampling_State
-    use Models_Likelihoods_Constants
-    use Posterior_Sampling_Convergence
-    use Conditional_Mass_Functions
-    use Numerical_Integration
-    use Galacticus_Error
-    use Mass_Function_Incompletenesses
-    use FGSL                          , only : fgsl_function, fgsl_integration_workspace
+    use :: Conditional_Mass_Functions    , only : conditionalMassFunctionBehroozi2010
+    use :: FGSL                          , only : fgsl_function                              , fgsl_integration_workspace
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Linear_Algebra                , only : operator(*)                                , assignment(=)
+    use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessSurfaceBrightness
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Numerical_Integration         , only : Integrate                                  , Integrate_Done
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodMassFunction      ), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
@@ -386,8 +388,8 @@ contains
 
     double precision function likelihoodMassFunctionTimeIntegrand(timePrime)
       !% Integral over time.
-      use Galacticus_Error
-      use String_Handling
+      use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
+      use :: String_Handling , only : operator(//)
       implicit none
       double precision                            , intent(in   ) :: timePrime
       type            (fgsl_function             )                :: integrandFunctionTime
@@ -417,7 +419,7 @@ contains
            &        conditionalMassFunction_%massFunction(      haloMassMaximum,self%massMinimum(i)) &
            &         >                                                                               &
            &        0.0d0                                                                            &
-           &      ) then       
+           &      ) then
          do while (                                                                                  &
               &     conditionalMassFunction_%massFunction(2.0d0*haloMassMinimum,self%massMinimum(i)) &
               &      ==                                                                              &
@@ -436,9 +438,9 @@ contains
               &    .and.                                                                             &
               &     conditionalMassFunction_%massFunction(0.5d0*haloMassMaximum,self%massMinimum(i)) &
               &      >                                                                               &
-              &     0.0d0                                                                            &           
+              &     0.0d0                                                                            &
               &   )
-            haloMassMaximum=0.5d0*haloMassMaximum          
+            haloMassMaximum=0.5d0*haloMassMaximum
          end do
       end if
       time                =timePrime
@@ -495,12 +497,12 @@ contains
     end function likelihoodMassFunctionHaloMassIntegrand
 
   end function massFunctionEvaluate
-  
+
   subroutine massFunctionFunctionChanged(self)
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodMassFunction), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     return
   end subroutine massFunctionFunctionChanged

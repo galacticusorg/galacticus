@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStandard">
   !#  <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.</description>
   !#  <deepCopy>
@@ -46,11 +46,11 @@
   end interface mergerTreeEvolveTimestepStandard
 
 contains
-  
+
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} merger tree evolution timestep class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeEvolveTimestepStandard)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolution timestep class.
     implicit none
     type(mergerTreeEvolveTimestepStandard)                        :: self
-    class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_    
+    class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
 
     allocate(self%simple   )
     allocate(self%satellite)
@@ -89,8 +89,7 @@ contains
   double precision function standardTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple} and
     !% {\normalfont \ttfamily satellite} timesteps.
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
     type            (treeNode                        ), intent(inout), target            :: node
@@ -105,7 +104,7 @@ contains
     class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite
     type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite
     !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
-    
+
     timeEvolveToSimple   =self%simple   %timeEvolveTo(node,taskSimple   ,taskSelfSimple   ,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSimple    => lockNode
     if (present(lockType)) lockTypeSimple    =  lockType

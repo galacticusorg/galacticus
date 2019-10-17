@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Kind_Numbers, only : kind_int8
-  
+  use :: Kind_Numbers, only : kind_int8
+
   !# <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
   !#  <description>An abstract output analysis property extractor class which provieds a scalar integer property.</description>
   !# </nodePropertyExtractor>
@@ -85,13 +85,13 @@
   end interface
 
 contains
-  
+
   double precision function integerScalarUnitsInSI(self)
     !% Interface for integerScalar property units.
     implicit none
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     integerScalarUnitsInSI=0.0d0
     return
   end function integerScalarUnitsInSI

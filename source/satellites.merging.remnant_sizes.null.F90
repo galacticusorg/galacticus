@@ -38,12 +38,12 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} merger remnant size class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerRemnantSizeNull)                :: self
     type(inputParameters      ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerRemnantSizeNull()
     return
   end function nullConstructorParameters
@@ -56,6 +56,6 @@ contains
     double precision                       , intent(  out) :: radius                 , velocityCircular, &
          &                                                    angularMomentumSpecific
     !GCC$ attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
-    
+
     return
   end subroutine nullGet

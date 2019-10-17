@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a class for intergalactic background light.
-  
+
   !# <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
   !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
   !# </radiationField>
@@ -45,5 +45,5 @@
        double precision                                       , intent(in   ) :: time
      end subroutine intergalacticBackgroundTimeSet
   end interface
-  
-       
+
+

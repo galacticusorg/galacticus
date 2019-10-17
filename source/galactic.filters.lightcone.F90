@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a galactic filter on lightcone geometry.
 
-  use Geometry_Lightcones
-  
+  use :: Geometry_Lightcones, only : geometryLightconeClass
+
   !# <galacticFilter name="galacticFilterLightcone">
   !#  <description>
   !#  A galactic filter on lightcone geometry.
@@ -45,7 +45,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !% Constructor for the ``lightcone'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (galacticFilterLightcone)                :: self
     type (inputParameters        ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily lightcone} galactic filter class.
     implicit none
     type(galacticFilterLightcone), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%geometryLightcone_"/>
     return
   end subroutine lightconeDestructor

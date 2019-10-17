@@ -21,10 +21,10 @@
 
 module Cooling_Specific_Angular_Momenta
   !% Provides a class that implements calculations of the specific angular momentum of cooling gas.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>coolingSpecificAngularMomentum</name>
   !#  <descriptiveName>Specific angular momentua of cooling gas.</descriptiveName>

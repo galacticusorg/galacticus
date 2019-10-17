@@ -20,10 +20,10 @@
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
   !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
-  
-  use Dark_Matter_Halo_Scales
-  use Kind_Numbers  
-  
+
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Kind_Numbers           , only : kind_int8
+
   !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
   !#  <description>A satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.</description>
   !# </satelliteTidalStripping>
@@ -60,12 +60,12 @@
   type            (treeNode), pointer :: zentner2005Node
   double precision                    :: zentner2005TidalPull
   !$omp threadprivate(zentner2005Node,zentner2005TidalPull)
-  
+
 contains
-  
+
   function zentner2005ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zentner2005} satellite tidaql stripping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteTidalStrippingZentner2005)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -99,20 +99,20 @@ contains
     self%expandMultiplier=2.0d0
     return
   end function zentner2005ConstructorInternal
-  
+
   subroutine zentner2005AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
     call calculationResetEvent%attach(self,zentner2005CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine zentner2005AutoHook
-  
+
   subroutine zentner2005Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
@@ -123,18 +123,16 @@ contains
 
   double precision function zentner2005MassLossRate(self,node)
     !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
-    use Galacticus_Nodes                  , only : nodeComponentSatellite
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
-    use Error_Functions
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Vectors
-    use Dark_Matter_Halo_Scales
-    use Root_Finder
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
+    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Math          , only : Pi
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes      , only : kilo
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
     class           (satelliteTidalStrippingZentner2005), intent(inout)         :: self
     type            (treeNode                          ), intent(inout), target :: node
@@ -237,7 +235,7 @@ contains
                   &                 massSatellite-Galactic_Structure_Enclosed_Mass(node,radiusTidal), &
                   &                 0.0d0                                                             &
                   &                )
-             self%radiusTidalPrevious  =radiusTidal             
+             self%radiusTidalPrevious  =radiusTidal
              self%expandMultiplier=1.2d0
           end if
           zentner2005MassLossRate=-self%efficiency    &
@@ -246,16 +244,16 @@ contains
        end if
     else
        zentner2005MassLossRate=0.0d0
-    end if      
+    end if
     return
   end function zentner2005MassLossRate
-  
+
   double precision function zentner2005TidalRadiusSolver(radius)
     !% Root function used to find the tidal radius within a subhalo.
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Galactic_Structure_Enclosed_Masses
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes      , only : kilo
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: enclosedMass

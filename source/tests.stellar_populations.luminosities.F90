@@ -21,30 +21,29 @@
 
 program Test_Stellar_Populations_Luminosities
   !% Tests of stellar population luminosities.
-  use Input_Parameters
-  use ISO_Varying_String
-  use Unit_Tests
-  use File_Utilities
-  use Galacticus_Display
-  use Galacticus_Paths
-  use Numerical_Constants_Astronomical
-  use Abundances_Structure
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Stellar_Populations_Initial_Mass_Functions
-  use Stellar_Astrophysics
-  use Stellar_Populations
-  use Stellar_Population_Spectra
-  use Stellar_Feedback
-  use Stellar_Astrophysics_Winds
-  use Stellar_Astrophysics_Tracks
-  use Supernovae_Type_Ia
-  use Supernovae_Population_III
-  use Stellar_Population_Spectra_Postprocess
-  use Stellar_Population_Luminosities
-  use Instruments_Filters
-  use Galacticus_Output_Open
-  use Events_Hooks                               , only : eventsHooksInitialize
+  use :: Abundances_Structure                      , only : abs                                          , abundances                               , max
+  use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
+  use :: Events_Hooks                              , only : eventsHooksInitialize
+  use :: File_Utilities                            , only : File_Exists
+  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set               , verbosityWorking
+  use :: Galacticus_Output_Open                    , only : Galacticus_Output_Close_File                 , Galacticus_Output_Open_File
+  use :: Galacticus_Paths                          , only : galacticusPath                               , pathTypeDataDynamic                      , pathTypeDataStatic
+  use :: ISO_Varying_String
+  use :: Input_Parameters                          , only : inputParameters
+  use :: Instruments_Filters                       , only : Filter_Get_Index
+  use :: Stellar_Astrophysics                      , only : stellarAstrophysics                          , stellarAstrophysicsFile
+  use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
+  use :: Stellar_Astrophysics_Winds                , only : stellarWindsLeitherer1992
+  use :: Stellar_Feedback                          , only : stellarFeedbackStandard
+  use :: Stellar_Population_Luminosities           , only : Stellar_Population_Luminosity
+  use :: Stellar_Population_Spectra                , only : stellarPopulationSpectraFile
+  use :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorIdentity, stellarPopulationSpectraPostprocessorList
+  use :: Stellar_Populations                       , only : stellarPopulationStandard
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
+  use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
+  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
+  use :: Unit_Tests                                , only : Assert                                       , Unit_Tests_Begin_Group                   , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (inputParameters                              ), target        :: parameters
   type            (stellarPopulationSpectraPostprocessorList    ), dimension( 2) :: stellarPopulationSpectraPostprocessorList_
@@ -72,7 +71,7 @@ program Test_Stellar_Populations_Luminosities
        &                                                                            OmegaDarkEnergy                                , HubbleConstant                             , &
        &                                                                            distanceModulus                                , differenceMaximumMagnitudeAbsoluteRestFrame, &
        &                                                                            differenceMaximumMagnitudeAbsoluteObservedFrame, differenceMaximumMagnitudeApparent
-  
+
   parameters=inputParameters()
   call parameters%markGlobal()
   call eventsHooksInitialize()
@@ -157,7 +156,7 @@ program Test_Stellar_Populations_Luminosities
           &                                                                                )
      stellarPopulationSpectraPostprocessor_=  stellarPopulationSpectraPostprocessorIdentity(                                                                                                                                                       &
           &                                                                                )
-     ! Create a list of stellar population spectra postprocessors. 
+     ! Create a list of stellar population spectra postprocessors.
      stellarPopulationSpectraPostprocessorList_(1)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessor_
      stellarPopulationSpectraPostprocessorList_(2)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessor_
      ! Initialize filters and metallicities.
@@ -209,7 +208,7 @@ program Test_Stellar_Populations_Luminosities
   end if
   call parameters%destroy()
   call Galacticus_Output_Close_File()
-  
+
 end program Test_Stellar_Populations_Luminosities
 
 

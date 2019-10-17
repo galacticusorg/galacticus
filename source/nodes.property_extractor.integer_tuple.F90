@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Kind_Numbers, only : kind_int8
-  
+  use :: Kind_Numbers, only : kind_int8
+
   !# <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
   !#  <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
   !# </nodePropertyExtractor>

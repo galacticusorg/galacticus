@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
-  
+
   !# <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
   !#  <description>A property extractor class for the mass enclosed by a set of radii.</description>
   !# </nodePropertyExtractor>
@@ -43,10 +43,10 @@
   end interface nodePropertyExtractorMassProfile
 
 contains
-  
+
   function massProfileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily massProfile} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
     type            (inputParameters                 ), intent(inout)               :: parameters
@@ -64,10 +64,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function massProfileConstructorParameters
-  
+
   function massProfileConstructorInternal(radii) result(self)
     !% Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
-    use Galactic_Structure_Options, only : massTypeDark, massTypeAll
+    use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
     double precision                                  , intent(in   ), dimension(:) :: radii
@@ -76,22 +76,22 @@ contains
     self%elementCount_=size(radii)
     return
   end function massProfileConstructorInternal
-  
+
   integer function massProfileElementCount(self,time)
     !% Return the number of elements in the {\normalfont \ttfamily massProfile} property extractors.
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     massProfileElementCount=self%elementCount_
     return
   end function massProfileElementCount
-  
+
   function massProfileExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
     implicit none
     double precision                                  , dimension(:) , allocatable :: massProfileExtract
     class           (nodePropertyExtractorMassProfile), intent(inout), target      :: self
@@ -135,7 +135,7 @@ contains
     integer                                                                        :: i
     character       (len=64                          )                             :: description
     !GCC$ attributes unused :: time
-    
+
     allocate(massProfileDescriptions(self%elementCount_))
     do i=1,self%elementCount_
        write (description,'(a,e9.3,a)') 'Mass enclosed within a radius of ',self%radii(i),' Mpc [M☉].'
@@ -146,7 +146,7 @@ contains
 
   function massProfileUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     double precision                                  , allocatable  , dimension(:) :: massProfileUnitsInSI
     class           (nodePropertyExtractorMassProfile), intent(inout)               :: self
@@ -163,7 +163,7 @@ contains
 
   integer function massProfileType(self)
     !% Return the type of the {\normalfont \ttfamily massProfile} properties.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassProfile), intent(inout) :: self
     !GCC$ attributes unused :: self

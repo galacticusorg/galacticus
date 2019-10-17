@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a cooling rate property extractor class.
 
-  use Cooling_Rates, only : coolingRate, coolingRateClass
+  use :: Cooling_Rates, only : coolingRate, coolingRateClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
   !#  <description>A cooling rate property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorRateCooling
 
 contains
-  
+
   function rateCoolingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily rateCooling} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRateCooling)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
@@ -78,16 +78,16 @@ contains
     !# <objectDestructor name="self%coolingRate_"/>
     return
   end subroutine rateCoolingDestructor
-  
+
   double precision function rateCoolingExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout)           :: self
     type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance
-    
+
     rateCoolingExtract=self%coolingRate_%rate(node)
     return
   end function rateCoolingExtract
@@ -116,7 +116,7 @@ contains
 
   double precision function rateCoolingUnitsInSI(self)
     !% Return the units of the last isolated redshift property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar, gigaYear
+    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -127,7 +127,7 @@ contains
 
   integer function rateCoolingType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -135,4 +135,4 @@ contains
     rateCoolingType=outputAnalysisPropertyTypeLinear
     return
   end function rateCoolingType
-  
+

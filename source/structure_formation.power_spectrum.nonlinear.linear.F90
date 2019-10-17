@@ -20,7 +20,7 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
 !% power spectrum. Intended primarily for testing purposes.
 
-  use Power_Spectra
+  use :: Power_Spectra, only : powerSpectrumClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear">
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum equals the linear theory power spectrum. Intended primarily for testing purposes.</description>
@@ -44,7 +44,7 @@ contains
 
   function linearConstructorParameters(parameters) result(self)
     !% Constructor for the linear nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearLinear)                :: self
     type (inputParameters             ), intent(inout) :: parameters

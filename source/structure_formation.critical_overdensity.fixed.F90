@@ -18,7 +18,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an fixed critical overdensity class.
-  use Cosmology_Functions
 
   !# <criticalOverdensity name="criticalOverdensityFixed">
   !#  <description>The critical overdensity is set to a fixed number divided by the linear growth factor.</description>
@@ -46,14 +45,14 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the fixed critical overdensity class which takes a parameter set as input.
-    use Input_Parameters
-    use Numerical_Constants_Math
+    use :: Input_Parameters        , only : inputParameter, inputParameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (criticalOverdensityFixed     )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     double precision                                               :: criticalOverdensity_
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_    
-    class           (linearGrowthClass            ), pointer       :: linearGrowth_    
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass            ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
 
     ! Check and read parameters.
@@ -82,8 +81,8 @@ contains
     implicit none
     type            (criticalOverdensityFixed     )                        :: self
     double precision                                       , intent(in   ) :: criticalOverdensity_
-    class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_    
-    class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_    
+    class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_
+    class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
     !# <constructorAssign variables="criticalOverdensity_, *linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
 
@@ -110,7 +109,7 @@ contains
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
     !GCC$ attributes unused :: mass, node, time, expansionFactor, collapsing
-    
+
     fixedValue=+self%criticalOverdensity_
     return
   end function fixedValue
@@ -124,7 +123,7 @@ contains
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
     !GCC$ attributes unused :: self, mass, node, time, expansionFactor, collapsing
-    
+
     fixedGradientTime=0.0d0
     return
   end function fixedGradientTime

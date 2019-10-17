@@ -23,7 +23,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use Galacticus_Display                   , only : Galacticus_Verbosity_Level_Set                                , verbosityStandard
   use Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
   use Linear_Growth                        , only : linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter                           , componentDarkMatter
-  use Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda  
+  use Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use Cosmology_Parameters                 , only : cosmologyParametersSimple
   use Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
   use Dark_Matter_Particles                , only : darkMatterParticleCDM
@@ -132,7 +132,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      wavenumberReference                =+1.0d0                                       &
           &                                                                                                                     )
      transferFunctionIdentity_                                  =transferFunctionIdentity                                       (                                                                                 &
-          &                                                                                                                      time                               =13.8d0                                       & 
+          &                                                                                                                      time                               =13.8d0                                       &
           &                                                                                                                     )
      powerSpectrumPrimordialTransferredSimple_                  =powerSpectrumPrimordialTransferredSimple                       (                                                                                 &
           &                                                                                                                      powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_           , &
@@ -201,11 +201,11 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
         radiusTurnaroundDMO         =virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_%turnAroundOverVirialRadii  (time=time              ,mass=1.0d8)
         radiusTurnaroundBaryons     =virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_     %turnAroundOverVirialRadii  (time=time              ,mass=1.0d8)
         if (fractionBaryons <= 0.0d0) then
-           write (message,'(a,f6.1,a)') "critical overdensity for collapse [z = ",redshift(i),"]"     
+           write (message,'(a,f6.1,a)') "critical overdensity for collapse [z = ",redshift(i),"]"
            call Assert(trim(message),criticalOverdensityBaryons  ,criticalOverdensityDMO  ,relTol=1.0d-3)
-           write (message,'(a,f6.1,a)') "virial density contrast           [z = ",redshift(i),"]"     
+           write (message,'(a,f6.1,a)') "virial density contrast           [z = ",redshift(i),"]"
            call Assert(trim(message),virialDensityContrastBaryons,virialDensityContrastDMO,relTol=1.0d-3)
-           write (message,'(a,f6.1,a)') "turnaround radius                 [z = ",redshift(i),"]"     
+           write (message,'(a,f6.1,a)') "turnaround radius                 [z = ",redshift(i),"]"
            call Assert(trim(message),radiusTurnaroundBaryons     ,radiusTurnaroundDMO     ,relTol=1.0d-3)
         end if
         if (trim(outputFractions) == "yes" .and. redshift(i) == 0.0d0) then

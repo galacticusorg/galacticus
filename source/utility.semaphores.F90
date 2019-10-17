@@ -80,7 +80,7 @@ module Semaphores
        import
        type     (c_ptr )        :: Semaphore_Open_C
        character(c_char)        :: name
-       integer  (c_int ), value :: initialValue       
+       integer  (c_int ), value :: initialValue
      end function Semaphore_Open_C
   end interface
 
@@ -124,7 +124,7 @@ contains
     character(len=*        ), intent(in   ) :: name
     integer                 , intent(in   ) :: initialValue
     type     (semaphoreList), pointer       :: thisSemaphore
-    
+
     allocate(newSemaphore)
     newSemaphore%s        =Semaphore_Open_C(trim(name)//char(0),initialValue)
     newSemaphore%name     =                      name
@@ -186,11 +186,11 @@ contains
     !% Attempts to post to all open semaphores before exiting the code in an error condition.
     implicit none
     type(semaphoreList), pointer :: thisSemaphore
-    
+
     thisSemaphore => semaphoreListHead
     do while (associated(thisSemaphore))
        do while (associated(thisSemaphore%self).and.thisSemaphore%self%waitCount > 0)
-          call thisSemaphore%self%post()       
+          call thisSemaphore%self%post()
        end do
        thisSemaphore => thisSemaphore%next
     end do

@@ -21,8 +21,7 @@
 
 module Posterior_Sampling_Stopping_Criteria
   !% Implements a stopping criteria class for constraint simulations.
-  use Posterior_Sampling_State
-  use Posterior_Sampling_Convergence
+  use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
   !# <functionClass>
@@ -37,5 +36,5 @@ module Posterior_Sampling_Stopping_Criteria
   !#   <argument>class(posteriorSampleStateClass), intent(inout) :: simulationState</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Posterior_Sampling_Stopping_Criteria

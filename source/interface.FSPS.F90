@@ -21,20 +21,26 @@
 
 module Interfaces_FSPS
   !% Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+  use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
-  
+
+  ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
+  type   (lockDescriptor) :: fspsLock
+  logical                 :: fspsLockInitialized=.false.
+
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
-    use ISO_Varying_String
-    use Galacticus_Paths
-    use File_Utilities
-    use System_Command
-    use Galacticus_Display
-    use Galacticus_Error
-    use String_Handling
+    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Lock_Initialize, File_Remove, &
+          &                           File_Unlock
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : operator(//)
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
     logical                  , intent(in   ), optional :: static
@@ -45,6 +51,16 @@ contains
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
+     ! Get a lock.
+    if (.not.fspsLockInitialized) then
+       !$omp critical(fspsLockInitialize)
+       if (.not.fspsLockInitialized) then
+          call File_Lock_Initialize(fspsLock)
+          fspsLockInitialized=.true.
+       end if
+       !$omp end critical(fspsLockInitialize)
+    end if
+    call File_Lock(char(fspsPath//"/fsps.lock"),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Check out the code if not already done.
@@ -59,7 +75,8 @@ contains
        if (.not.upToDate) then
           call Galacticus_Display_Message("updating FSPS source code",verbosityWorking)
           ! Update and remove the galacticus_IMF.f90 file to trigger re-patching of the code.
-          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull; rm -f src/galacticus_IMF.f90")
+          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull")
+          call File_Remove(fspsPath//"src/galacticus_IMF.f90")
        end if
        ! Patch the code if not already patched.
        if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
@@ -75,7 +92,7 @@ contains
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
           call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
-          call System_Command_Do("rm -f "//fspsPath//"/src/autosps.exe")
+          call File_Remove(fspsPath//"/src/autosps.exe")
        end if
        call Galacticus_Display_Message("compiling autosps.exe code",verbosityWorking)
        if (static_) then
@@ -95,20 +112,23 @@ contains
     read (inputFile,'(a)') currentRevision
     close(inputFile)
     fspsVersion="v2.5; "//currentRevision
+    call File_Unlock(fspsLock)
     return
   end subroutine Interface_FSPS_Initialize
 
   subroutine Interface_FSPS_SSPs_Tabulate(imf,imfName,fileFormat,spectraFileName)
     !% Tabulate simple stellar populations for the given \gls{imf} using FSPS.
-    use ISO_Varying_String
-    use Tables
-    use System_Command
-    use File_Utilities
-    use String_Handling
-    use IO_HDF5
-    use Dates_and_Times
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
+          &                                         File_Remove
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
+    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: String_Handling                 , only : operator(//)
+    use :: System_Command                  , only : System_Command_Do
+    use :: Tables                          , only : table1D
     implicit none
     class           (table1D       ), intent(inout)                              :: imf
     type            (varying_string), intent(in   )                              :: imfName             , spectraFileName
@@ -152,7 +172,7 @@ contains
           write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
           write (outputFile,'(a)' ) "no"                 ! Do not include dust.
           write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
-          close(outputFile)       
+          close(outputFile)
           call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
           call File_Remove(char(fspsInputFileName))
        end if
@@ -215,10 +235,10 @@ contains
     call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
     call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
     call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
-    call dataset    %close         (                                                         )   
+    call dataset    %close         (                                                         )
     call spectraFile%close()
     call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate
-  
+
 end module Interfaces_FSPS

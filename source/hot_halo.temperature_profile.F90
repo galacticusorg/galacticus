@@ -21,7 +21,7 @@
 
 module Hot_Halo_Temperature_Profiles
   !% Provides a hot halo temperature profile class.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

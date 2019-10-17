@@ -43,7 +43,7 @@ contains
 
   function indicesHostConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily indicesHost} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
     type   (nodePropertyExtractorIndicesHost)                :: self
     logical                                  , intent(in   ) :: topLevel
     !# <constructorAssign variables="topLevel"/>
-    
+
     return
   end function indicesHostConstructorInternal
 
@@ -82,7 +82,7 @@ contains
     type            (multiCounter                    ), intent(inout), optional :: instance
     type            (treeNode                        ), pointer                 :: nodeHost
     !GCC$ attributes unused :: self, instance, time
-    
+
     if (node%isSatellite()) then
        nodeHost => node%parent
        if (self%topLevel) then
@@ -99,11 +99,11 @@ contains
 
   integer function indicesHostType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     indicesHostType=outputAnalysisPropertyTypeLinear
     return
   end function indicesHostType
@@ -129,4 +129,4 @@ contains
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return
   end function indicesHostDescription
-  
+

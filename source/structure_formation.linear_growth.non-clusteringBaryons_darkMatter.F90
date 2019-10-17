@@ -23,9 +23,9 @@
   !# <linearGrowth name="linearGrowthNonClusteringBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
-  use Tables
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use Tables              , only : table1D
+  use Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsTime
+  use Cosmology_Functions , only : cosmologyFunctionsClass
 
   type, extends(linearGrowthClass) :: linearGrowthNonClusteringBaryonsDarkMatter
      !% A linear growth of cosmological structure contrast class in the limit where baryons do not cluster (i.e. small scales),
@@ -68,11 +68,11 @@ contains
 
   function nonClusteringBaryonsDarkMatterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (linearGrowthNonClusteringBaryonsDarkMatter)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
-    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_    
+    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -88,7 +88,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
     implicit none
     type            (linearGrowthNonClusteringBaryonsDarkMatter)                           :: self
-    class           (cosmologyParametersClass                  ), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass                  ), target   , intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass                   ), target   , intent(in   ) :: cosmologyFunctions_
     double precision                                                                       :: timeBigCrunch
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
@@ -109,7 +109,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
     implicit none
     type (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     if (self%tableInitialized) then
@@ -122,11 +122,10 @@ contains
   subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
-    use FGSL        , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-         &                   FGSL_Success
-    use Tables
-    use Table_Labels
-    use ODE_Solver
+    use FGSL      , only : fgsl_odeiv_step         , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
+         &                 FGSL_Success
+    use Tables    , only : table1DLogarithmicLinear
+    use ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
     implicit none
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
@@ -140,13 +139,13 @@ contains
          &                                                                         timeNow                                 , linearGrowthFactorPresent        , &
          &                                                                         timeMatterDominant                      , timePresent                      , &
          &                                                                         timeBigCrunch, exponent
-    integer                                                                     :: growthTableNumberPoints    
+    integer                                                                     :: growthTableNumberPoints
     type            (fgsl_odeiv_step                           )                :: odeStepper
     type            (fgsl_odeiv_control                        )                :: odeController
     type            (fgsl_odeiv_evolve                         )                :: odeEvolver
     type            (fgsl_odeiv_system                         )                :: odeSystem
     logical                                                                     :: odeReset                     =.true.
-    
+
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
        remakeTable=(                              &
@@ -165,7 +164,7 @@ contains
             &                            self%cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
             &                            self%cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
             &                           )
-       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)       
+       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
@@ -176,7 +175,7 @@ contains
           if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
        end if
        ! Determine number of points to tabulate.
-       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
+       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))
        ! Destroy current table.
        if (allocated(self%growthFactor)) then
           call self%growthFactor%destroy()
@@ -193,7 +192,7 @@ contains
           ! initial growth factor of 1 (this is arbitrary as by definition the growth is linear so we can rescale to any
           ! value). Perturbations in the matter dominated phase grow as δ ∝ t^p, so the initial growth rate is dδ/dt = p δ/t.
           call growthFactor%populate(1.0d0,1)
-          growthFactorDerivative=exponent/growthFactor%x(1)          
+          growthFactorDerivative=exponent/growthFactor%x(1)
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
@@ -229,14 +228,14 @@ contains
                &                              +abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
                &                              *    growthFactor             %x             (              1)  &
                &                             )**exponent                                                      &
-               &                            /      growthFactor             %y             (              1)     
+               &                            /      growthFactor             %y             (              1)
           self%tableInitialized=.true.
        end select
     end if
     return
-    
+
   contains
-    
+
     integer function growthFactorODEs(time,values,derivatives)
       !% System of differential equations to solve for the growth factor.
       double precision              , intent(in   ) :: time
@@ -276,7 +275,7 @@ contains
     double precision                                                                      :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component, wavenumber
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -293,16 +292,15 @@ contains
 
   double precision function nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
-    use Galacticus_Error
     implicit none
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
     double precision                                            , intent(in   ), optional :: time      , expansionFactor
     logical                                                     , intent(in   ), optional :: collapsing
-    integer                                                     , intent(in   ), optional :: component 
+    integer                                                     , intent(in   ), optional :: component
     double precision                                            , intent(in   ), optional :: wavenumber
     double precision                                                                      :: time_     , expansionFactor_
     !GCC$ attributes unused :: component, wavenumber
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     ! Remake the table if necessary.
@@ -320,10 +318,10 @@ contains
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
     double precision                                            , intent(in   ), optional :: time      , expansionFactor
     logical                                                     , intent(in   ), optional :: collapsing
-    integer                                                     , intent(in   ), optional :: component 
-    double precision                                            , intent(in   ), optional :: wavenumber 
+    integer                                                     , intent(in   ), optional :: component
+    double precision                                            , intent(in   ), optional :: wavenumber
     !GCC$ attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
-    
+
     ! No dependence on wavenumber.
     nonClusteringBaryonsDarkMatterLogDerivativeWavenumber=0.0d0
     return
@@ -333,9 +331,9 @@ contains
     !% Return false indicating that the growth function is not wavenumber-dependent.
     implicit none
     class  (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout)           :: self
-    integer                                            , intent(in   ), optional :: component 
+    integer                                            , intent(in   ), optional :: component
     !GCC$ attributes unused :: self, component
-    
+
     nonClusteringBaryonsDarkMatterIsWavenumberDependent=.false.
     return
   end function nonClusteringBaryonsDarkMatterIsWavenumberDependent

@@ -20,8 +20,8 @@
   !% An implementation of cosmological density field mass variance which modifies another member of the class by offsetting for
   !% the peak-background split.
 
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
 
   !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit">
   !#  <description>
@@ -30,7 +30,7 @@
   !#   $M_\mathrm{e}$ is the mass contained within the region defined as the background.
   !#  </description>
   !# </cosmologicalMassVariance>
-  
+
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVariancePeakBackgroundSplit
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
@@ -69,7 +69,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily peakBackgroundSplit} cosmological mass variance class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (cosmologicalMassVariancePeakBackgroundSplit)                :: self
     type (inputParameters                            ), intent(inout) :: parameters
@@ -78,9 +78,9 @@ contains
     class(cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                    ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>    
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>    
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>    
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     self=cosmologicalMassVariancePeakBackgroundSplit(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -110,7 +110,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily peakBackgroundSplit} linear growth class.
     implicit none
     type(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%haloEnvironment_"         />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !# <objectDestructor name="self%cosmologyParameters_"     />
@@ -120,7 +120,7 @@ contains
 
   double precision function variancePeakBackgroundSplitPowerNormalization(self)
     !% Return the normalization of the power spectrum.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -129,10 +129,11 @@ contains
     call Galacticus_Error_Report('power spectrum normalization is not well-defined in peak-background split model'//{introspection:location})
     return
   end function variancePeakBackgroundSplitPowerNormalization
-  
+
   double precision function variancePeakBackgroundSplitSigma8(self)
     !% Return the value of $\sigma_8$.
-    use Numerical_Constants_Math, only : Pi
+    use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     ! Radius for σ(M) normalization in Mpc/h.
@@ -154,7 +155,7 @@ contains
          &                                             )
     return
   end function variancePeakBackgroundSplitSigma8
-  
+
   double precision function variancePeakBackgroundSplitRootVariance(self,mass,time)
     !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
     !% \ttfamily mass} on average.
@@ -175,11 +176,10 @@ contains
     end if
     return
   end function variancePeakBackgroundSplitRootVariance
-  
+
   double precision function variancePeakBackgroundSplitRootVarianceLogarithmicGradient(self,mass,time)
     !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass         , time
@@ -196,11 +196,10 @@ contains
     end if
     return
   end function variancePeakBackgroundSplitRootVarianceLogarithmicGradient
-  
+
   subroutine variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !% Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
     !% spherical region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass         , time

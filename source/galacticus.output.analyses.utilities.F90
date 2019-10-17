@@ -29,12 +29,12 @@ contains
 
   function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massLimit,magnitudeAbsoluteLimit,luminosity,allowSingleEpoch) result (outputWeight)
     !% Compute output weights corresponding to the cosmological volumes associated with the given survey.
+    use            :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Geometry_Surveys   , only : surveyGeometryClass
     use, intrinsic :: ISO_C_Binding
-    use            :: Output_Times
-    use            :: Geometry_Surveys
-    use            :: Cosmology_Functions
-    use            :: Galacticus_Error
     use            :: ISO_Varying_String
+    use            :: Output_Times       , only : outputTimesClass
     implicit none
     double precision                         , dimension(:) , allocatable :: outputWeight
     class           (surveyGeometryClass    ), intent(inout)              :: surveyGeometry_
@@ -55,7 +55,7 @@ contains
     character       (len=12                 )                             :: redshiftLow               , redshiftHigh
     type            (varying_string         )                             :: message
     !# <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
-    
+
     allocate(outputWeight(outputTimes_%count()))
     outputWeight=0.0d0
     if (outputTimes_%count() == 1_c_size_t) then
@@ -143,5 +143,5 @@ contains
     end if
     return
   end function Output_Analysis_Output_Weight_Survey_Volume
-  
+
 end module Output_Analysis_Utilities

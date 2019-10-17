@@ -66,7 +66,7 @@ program Tests_Excursion_Sets
   integer                                                                                       :: i                                                                             , j
   character       (len=32                                                       )               :: label
   logical                                                                                       :: testRates
-  
+
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityWorking) !Standard)
   call eventsHooksInitialize()
@@ -93,7 +93,7 @@ program Tests_Excursion_Sets
        &                                                                                                                       wavenumberReference                    =+1.0d0                                                          &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
-       &                                                                                                                       time                                   =13.8d0                                                          & 
+       &                                                                                                                       time                                   =13.8d0                                                          &
        &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
        &                                                                                                                       powerSpectrumPrimordial_               =powerSpectrumPrimordialPowerLaw_                              , &

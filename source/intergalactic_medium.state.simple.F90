@@ -47,7 +47,7 @@ contains
 
   function simpleIGMConstructorParameters(parameters) result (self)
     !% Constructor for the simple \gls{igm} state class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (intergalacticMediumStateSimple)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -55,7 +55,7 @@ contains
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     double precision                                                :: reionizationRedshift      , reionizationTemperature, &
          &                                                             preReionizationTemperature
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>reionizationRedshift</name>
@@ -104,7 +104,7 @@ contains
     class           (cosmologyFunctionsClass       ), intent(inout), target :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), intent(inout), target :: cosmologyParameters_
     !# <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_"/>
-    
+
     self%reionizationTime=cosmologyFunctions_%cosmicTime                 (                      &
          &                cosmologyFunctions_%expansionFactorFromRedshift (                     &
          &                                                                 reionizationRedshift &
@@ -112,7 +112,7 @@ contains
          &                                                               )
     return
   end function simpleIGMConstructorInternal
-  
+
   subroutine simpleDestructor(self)
     !% Destructor for the simple \gls{igm} state class.
     implicit none
@@ -125,7 +125,8 @@ contains
 
   double precision function simpleElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the simple model.
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
+    use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen    , atomicMassHelium
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -144,7 +145,6 @@ contains
 
   double precision function simpleNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction of the \gls{igm} in the simple model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -159,7 +159,6 @@ contains
 
   double precision function simpleNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction of the \gls{igm} in the simple model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -174,7 +173,6 @@ contains
 
   double precision function simpleSinglyIonizedHeliumFraction(self,time)
     !% Return the singly-ionized helium fraction of the \gls{igm} in the simple model.
-    use Numerical_Constants_Astronomical
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -192,7 +190,7 @@ contains
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
- 
+
     if (time > self%reionizationTime) then
        simpleTemperature=self%   reionizationTemperature
     else
@@ -210,7 +208,7 @@ contains
     logical                                  , intent(in   ), optional :: includeMethod
     character(len=18                        )                          :: parameterLabel
     type     (inputParameters               )                          :: parameters
-    
+
     if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','simple')
     parameters=descriptor%subparameters('intergalacticMediumStateMethod')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))

@@ -41,5 +41,5 @@ module Math_Operators_Unary
   !#    <description>Reverse the operation.</description>
   !#  </method>
   !# </functionClass>
-  
+
 end module Math_Operators_Unary

@@ -21,7 +21,7 @@
 
 module Interfaces_Cloudy_CIE
   !% Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-  use File_Utilities
+  use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_Cloudy_CIE_Tabulate
 
@@ -33,14 +33,17 @@ contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat)
     !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-    use ISO_Varying_String
-    use Galacticus_Error
-    use Numerical_Ranges
-    use Interfaces_Cloudy
-    use Galacticus_Display
-    use IO_HDF5
-    use String_Handling
-    use System_Command
+    use :: File_Utilities    , only : File_Exists                , File_Lock                       , File_Lock_Initialize     , File_Remove               , &
+          &                           File_Unlock
+    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                           Galacticus_Display_Unindent, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access                 , hdf5Object
+    use :: ISO_Varying_String
+    use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
+    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear
+    use :: String_Handling   , only : operator(//)
+    use :: System_Command    , only : System_Command_Do
     implicit none
     double precision                , intent(in   )                 :: metallicityMaximumLogarithmic
     type            (varying_string), intent(in   )                 :: fileNameCoolingFunction               , fileNameChemicalState
@@ -105,7 +108,7 @@ contains
           fileLockInitialized=.true.
        end if
        call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
-       call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )    
+       call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
        ! Generate metallicity and temperature arrays.
        metallicityCount        =int((+metallicityMaximumLogarithmic-metallicityMinimumLogarithmic)/metallicityStepLogarithmic+1.5d0)
        temperatureCount        =int((+temperatureMaximumLogarithmic-temperatureMinimumLogarithmic)/temperatureStepLogarithmic+1.5d0)
@@ -166,7 +169,7 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call System_Command_Do("rm -f "//fileNameTempCooling)
+          call File_Remove(fileNameTempCooling)
           ! Extract the electron and hydrogen density.
           open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempOverview),status='old')
           read (inputFile,*) ! Skip the header line.
@@ -175,7 +178,7 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call System_Command_Do("rm -f "//fileNameTempOverview)
+          call File_Remove(fileNameTempOverview)
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.
@@ -228,8 +231,8 @@ contains
           call outputFile%close         (                                                                                                    )
           call hdf5Access%unset()
        end if
-       call File_Unlock(fileLockChemicalState  )    
-       call File_Unlock(fileLockCoolingFunction)    
+       call File_Unlock(fileLockChemicalState  )
+       call File_Unlock(fileLockCoolingFunction)
        ! Write message.
        call Galacticus_Display_Unindent("...done",verbosityWorking)
     end if

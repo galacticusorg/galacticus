@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{prevot_typical_1984} and \cite{bouchet_visible_1985}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationPrevotBouchet">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{prevot_typical_1984} and \cite{bouchet_visible_1985}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -38,9 +38,8 @@ contains
 
   function prevotBouchetConstructorParameters(parameters) result(self)
     !% Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class which takes a parameter set as input.
-    use Galacticus_Error
-    use Table_Labels
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (stellarSpectraDustAttenuationPrevotBouchet)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -61,8 +60,8 @@ contains
 
   function prevotBouchetConstructorInternal(Rv) result(self)
     !% Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
-    use Galacticus_Error
-    use Table_Labels
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
     type            (stellarSpectraDustAttenuationPrevotBouchet)                               :: self
     double precision                                            , intent(in   )                :: Rv

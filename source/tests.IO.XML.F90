@@ -21,12 +21,13 @@
 
 program Tests_IO_XML
   !% Tests the XML I/O module.
-  use FoX_DOM
-  use IO_XML
-  use Unit_Tests
-  use Galacticus_Error  
-  use System_Command
-  use Galacticus_Display
+  use :: FoX_DOM
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error  , only : Galacticus_Error_Report
+  use :: IO_XML            , only : XML_Array_Length              , XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                         XML_Parse                     , XML_Path_Exists
+  use :: System_Command    , only : System_Command_Do
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
   type            (node    )                           , pointer :: doc        , xmlElement
   type            (nodeList)                           , pointer :: xmlElements

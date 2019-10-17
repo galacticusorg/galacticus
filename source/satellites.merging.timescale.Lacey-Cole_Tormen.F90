@@ -19,7 +19,7 @@
 
   !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method with a parameterization of
   !% orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
- 
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen">
   !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.</description>
   !# </satelliteMergingTimescales>
@@ -40,7 +40,7 @@ contains
 
   function laceyCole1993TormenConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merging timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (satelliteMergingTimescalesLaceyCole1993Tormen)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
@@ -48,18 +48,18 @@ contains
     self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(parameters)
     return
   end function laceyCole1993TormenConstructorParameters
-  
+
   function laceyCole1993TormenConstructorInternal(timescaleMultiplier,darkMatterHaloScale_) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merging timescale class.
     implicit none
     type            (satelliteMergingTimescalesLaceyCole1993Tormen)                        :: self
     double precision                                               , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass                     ), intent(in   ), target :: darkMatterHaloScale_
-    
+
     self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
     return
   end function laceyCole1993TormenConstructorInternal
-  
+
   double precision function laceyCole1993TormenTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method with a parameterization of orbital
     !% parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
@@ -73,7 +73,7 @@ contains
     double precision                                                               :: log10OrbitalFactor                    , randomDeviate, &
          &                                                                            orbitalFactor
     !GCC$ attributes unused :: orbit
-    
+
     ! Find the host node.
     hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.

@@ -19,9 +19,9 @@
 
 !% An implementation of the hot halo outflow reincorporation class in which implements the model of
 !% \cite{henriques_simulations_2013}.
-  
-  use Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHenriques2013">
   !#  <description>
@@ -54,7 +54,7 @@ contains
   function henriques2013ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloOutflowReincorporationHenriques2013)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -92,7 +92,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloOutflowReincorporationHenriques2013(gamma,delta1,delta2,cosmologyFunctions_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>  
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
@@ -123,7 +123,7 @@ contains
 
   double precision function henriques2013Rate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
-    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloOutflowReincorporationHenriques2013), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
