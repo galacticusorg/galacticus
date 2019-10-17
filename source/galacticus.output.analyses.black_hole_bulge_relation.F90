@@ -132,8 +132,8 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_                    , outputAnalysisWeightPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorMinMax               ), pointer                       :: outputAnalysisWeightPropertyOperatorMinMax_
-    type            (nodePropertyExtractorMassStellarSpheroid ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassBlackHole       ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassStellarSpheroid           ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassBlackHole                 ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (cosmologyParametersSimple                          ), pointer                       :: cosmologyParametersData
@@ -236,7 +236,7 @@ contains
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10            (                                                                          )"/>
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellarSpheroid (                                                                          )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellarSpheroid (                                                                          )"/>
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole       (                                                                          )"/>
@@ -255,7 +255,7 @@ contains
          &                                                         masses                                                           , &
          &                                                         bufferCount                                                      , &
          &                                                         outputWeight                                                     , &
-         &                                                         nodePropertyExtractor_                                 , &
+         &                                                         nodePropertyExtractor_                                           , &
          &                                                         outputAnalysisWeightPropertyExtractor_                           , &
          &                                                         outputAnalysisPropertyOperator_                                  , &
          &                                                         outputAnalysisWeightPropertyOperator_                            , &
