@@ -354,7 +354,7 @@ do while (associated(hook_))
          if (.not.ompAncestorGot_) then
             ompLevelCurrent_=OMP_Get_Level()
             allocate(ompAncestorThreadNum_(0:ompLevelCurrent_))
-            do ompLevel_=0,hook_%openMPLevel
+            do ompLevel_=0,ompLevelCurrent_
                ompAncestorThreadNum_(ompLevel_)=OMP_Get_Ancestor_Thread_Num(ompLevel_)
             end do
             ompAncestorGot_=.true.
