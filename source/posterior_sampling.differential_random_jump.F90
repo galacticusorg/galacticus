@@ -21,8 +21,8 @@
 
 module Posterior_Sample_Differential_Random_Jump
   !% Implements a class for the random jump component in differential evolution algorithms.
-  use Model_Parameters
-  use Posterior_Sampling_State
+  use :: Model_Parameters        , only : modelParameterList
+  use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
   !# <functionClass>

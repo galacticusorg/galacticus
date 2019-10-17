@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
-  
-  use Math_Exponentiation
-  use Abundances_Structure
-  use Kind_Numbers
-  use Tables              , only : table1DLinearLinear
+
+  use :: Abundances_Structure, only : abundances
+  use :: Kind_Numbers        , only : kind_int8
+  use :: Math_Exponentiation , only : fastExponentiator
+  use :: Tables              , only : table1DLinearLinear
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
   !#  <description>The \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.</description>
@@ -30,8 +30,8 @@
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
      !% Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
      private
-     integer         (kind_int8          )                  :: lastUniqueID                       
-     logical                                                :: factorsComputed                    
+     integer         (kind_int8          )                  :: lastUniqueID
+     logical                                                :: factorsComputed
      double precision                                       :: massGasPrevious                   , radiusPrevious
      type            (abundances         )                  :: abundancesFuelPrevious
      double precision                                       :: chi                               , radiusDisk                    , &
@@ -93,13 +93,13 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in disks class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
     double precision                                                                  :: frequencyStarFormation, clumpingFactorMolecularComplex
     logical                                                                           :: molecularFractionFast , assumeMonotonicSurfaceDensity
-    
+
     !# <inputParameter>
     !#   <name>frequencyStarFormation</name>
     !#   <cardinality>1</cardinality>
@@ -144,7 +144,8 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !% Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
-    use Table_Labels, only : extrapolationTypeFix
+    use :: Abundances_Structure, only : unitAbundances
+    use :: Table_Labels        , only : extrapolationTypeFix
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
@@ -178,17 +179,17 @@ contains
 
   subroutine krumholz2009AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
     call calculationResetEvent%attach(self,krumholz2009CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine krumholz2009AutoHook
-  
+
   subroutine krumholz2009Destructor(self)
     !% Destructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
@@ -210,8 +211,9 @@ contains
 
   subroutine krumholz2009ComputeFactors(self,node)
     !% Compute constant factors needed in the \cite{krumholz_star_2009} star formation rule.
-    use Numerical_Constants_Prefixes
-    use Galacticus_Nodes            , only : nodeComponentDisk
+    use :: Abundances_Structure        , only : metallicityTypeLinearByMassSolar
+    use :: Galacticus_Nodes            , only : nodeComponentDisk               , treeNode
+    use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type (treeNode                                        ), intent(inout) :: node
@@ -243,7 +245,7 @@ contains
     end if
     return
   end subroutine krumholz2009ComputeFactors
-  
+
   double precision function krumholz2009Rate(self,node,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
     !% in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
@@ -292,11 +294,11 @@ contains
     end if
     return
   end function krumholz2009Rate
-  
+
   subroutine krumholz2009SurfaceDensityFactors(self,node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
     !% Compute surface density and related quantities needed for the \cite{krumholz_star_2009} star formation rate model.
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous
+    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node
@@ -358,7 +360,7 @@ contains
 
   function krumholz2009Intervals(self,node,radiusInner,radiusOuter)
     !% Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target         :: self
     double precision                                                  , allocatable  , dimension(:,:) :: krumholz2009Intervals
@@ -426,10 +428,11 @@ contains
     krumholz2009CriticalDensityRoot=surfaceDensityGasDimensionless-1.0d0
     return
   end function krumholz2009CriticalDensityRoot
-  
+
   logical function krumholz2009Unchanged(self,node)
     !% Determine if the surface rate density of star formation is unchanged.
-    use Galacticus_Nodes, only : nodeComponentDisk
+    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar
+    use :: Galacticus_Nodes    , only : nodeComponentDisk               , treeNode
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node

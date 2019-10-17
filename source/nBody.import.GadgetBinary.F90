@@ -19,9 +19,8 @@
 
 !% Contains a module which implements an N-body data importer for Gadget binary files.
 
-  use IO_HDF5
-  use ISO_Varying_String
-  
+  use :: ISO_Varying_String
+
   !# <nbodyImporter name="nbodyImporterGadgetBinary">
   !#  <description>An importer for Gadget binary files.</description>
   !# </nbodyImporter>
@@ -46,7 +45,7 @@ contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
     !% Constructor for the ``gadgetBinary'' N-body importer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -118,16 +117,16 @@ contains
     double precision                           , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                        unitLengthInSI ,unitVelocityInSI
     !# <constructorAssign variables="outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
-    
+
     return
   end function gadgetBinaryConstructorInternal
 
   function gadgetBinaryImport(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Memory_Management               , only : allocateArray
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self

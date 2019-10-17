@@ -19,9 +19,7 @@
 
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
-  use FGSL        , only : fgsl_interp, fgsl_interp_accel  , fgsl_function, fgsl_integration_workspace
-  use Tables
-  use Kind_Numbers
+  use :: FGSL, only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
   !#  <description>``Einasto'' dark matter halo profiles</description>
@@ -33,30 +31,30 @@
      !% A dark matter halo profile class implementing ``Einasto'' dark matter halos.
      private
      ! Tables for specific angular momentum vs. radius table
-     double precision                                                   :: angularMomentumTableRadiusMinimum                    
-     double precision                                                   :: angularMomentumTableRadiusMaximum                    
-     double precision                                                   :: angularMomentumTableAlphaMinimum                     
-     double precision                                                   :: angularMomentumTableAlphaMaximum                     
-     logical                                                            :: angularMomentumTableInitialized                      
+     double precision                                                   :: angularMomentumTableRadiusMinimum
+     double precision                                                   :: angularMomentumTableRadiusMaximum
+     double precision                                                   :: angularMomentumTableAlphaMinimum
+     double precision                                                   :: angularMomentumTableAlphaMaximum
+     logical                                                            :: angularMomentumTableInitialized
      integer                                                            :: angularMomentumTableAlphaCount                            , angularMomentumTableRadiusCount
      double precision                   , allocatable, dimension(:  )   :: angularMomentumTableAlpha                                 , angularMomentumTableRadius
      double precision                   , allocatable, dimension(:,:)   :: angularMomentumTable
      type            (fgsl_interp      )                                :: angularMomentumTableRadiusInterpolationObject
      type            (fgsl_interp_accel)                                :: angularMomentumTableAlphaInterpolationAccelerator         , angularMomentumTableRadiusInterpolationAccelerator
-     logical                                                            :: angularMomentumTableAlphaInterpolationReset               , angularMomentumTableRadiusInterpolationReset            
+     logical                                                            :: angularMomentumTableAlphaInterpolationReset               , angularMomentumTableRadiusInterpolationReset
      ! Tables for freefall time vs. radius table
-     double precision                                                   :: freefallRadiusTableRadiusMinimum                     
-     double precision                                                   :: freefallRadiusTableRadiusMaximum                     
-     double precision                                                   :: freefallRadiusTableAlphaMinimum                      
-     double precision                                                   :: freefallRadiusTableAlphaMaximum                      
-     logical                                                            :: freefallRadiusTableInitialized                       
+     double precision                                                   :: freefallRadiusTableRadiusMinimum
+     double precision                                                   :: freefallRadiusTableRadiusMaximum
+     double precision                                                   :: freefallRadiusTableAlphaMinimum
+     double precision                                                   :: freefallRadiusTableAlphaMaximum
+     logical                                                            :: freefallRadiusTableInitialized
      integer                                                            :: freefallRadiusTableAlphaCount                             , freefallRadiusTableRadiusCount
      double precision                   , allocatable, dimension(:  )   :: freefallRadiusTableAlpha                                  , freefallRadiusTableRadius
      double precision                   , allocatable, dimension(:,:)   :: freefallRadiusTable
      double precision                                                   :: freefallTimeMaximum                                       , freefallTimeMinimum
      type            (fgsl_interp      )                                :: freefallRadiusTableRadiusInterpolationObject
      type            (fgsl_interp_accel)                                :: freefallRadiusTableAlphaInterpolationAccelerator          , freefallRadiusTableRadiusInterpolationAccelerator
-     logical                                                            :: freefallRadiusTableAlphaInterpolationReset                , freefallRadiusTableRadiusInterpolationReset             
+     logical                                                            :: freefallRadiusTableAlphaInterpolationReset                , freefallRadiusTableRadiusInterpolationReset
      ! Tables for radial velocity dispersion vs. radius table
      double precision                                                   :: radialVelocityDispersionRadiusMinimum
      double precision                                                   :: radialVelocityDispersionRadiusMaximum
@@ -70,26 +68,26 @@
      type            (fgsl_interp_accel)                                :: radialVelocityDispersionTableAlphaInterpolationAccelerator, radialVelocityDispersionTableRadiusInterpolationAccelerator
      logical                                                            :: radialVelocityDispersionTableAlphaInterpolationReset      , radialVelocityDispersionTableRadiusInterpolationReset
      ! Tables for energy as a function of concentration and alpha.
-     double precision                                                   :: energyTableConcentrationMinimum                      
-     double precision                                                   :: energyTableConcentrationMaximum                      
-     double precision                                                   :: energyTableAlphaMinimum                              
-     double precision                                                   :: energyTableAlphaMaximum                              
-     logical                                                            :: energyTableInitialized                               
+     double precision                                                   :: energyTableConcentrationMinimum
+     double precision                                                   :: energyTableConcentrationMaximum
+     double precision                                                   :: energyTableAlphaMinimum
+     double precision                                                   :: energyTableAlphaMaximum
+     logical                                                            :: energyTableInitialized
      integer                                                            :: energyTableAlphaCount                                , energyTableConcentrationCount
      double precision                   , allocatable, dimension(:  )   :: energyTableAlpha                                     , energyTableConcentration
      double precision                   , allocatable, dimension(:,:)   :: energyTable
      type            (fgsl_interp      )                                :: energyTableAlphaInterpolationObject                  , energyTableConcentrationInterpolationObject
      type            (fgsl_interp_accel)                                :: energyTableAlphaInterpolationAccelerator             , energyTableConcentrationInterpolationAccelerator
-     logical                                                            :: energyTableAlphaInterpolationReset                   , energyTableConcentrationInterpolationReset              
+     logical                                                            :: energyTableAlphaInterpolationReset                   , energyTableConcentrationInterpolationReset
      ! Tables for specific Fourier transform of density profile as a function of alpha and radius.
-     double precision                                                   :: fourierProfileTableConcentrationMinimum              
+     double precision                                                   :: fourierProfileTableConcentrationMinimum
 
-     double precision                                                   :: fourierProfileTableConcentrationMaximum              
-     double precision                                                   :: fourierProfileTableWavenumberMinimum                 
-     double precision                                                   :: fourierProfileTableWavenumberMaximum                 
-     double precision                                                   :: fourierProfileTableAlphaMinimum                      
-     double precision                                                   :: fourierProfileTableAlphaMaximum                      
-     logical                                                            :: fourierProfileTableInitialized                       
+     double precision                                                   :: fourierProfileTableConcentrationMaximum
+     double precision                                                   :: fourierProfileTableWavenumberMinimum
+     double precision                                                   :: fourierProfileTableWavenumberMaximum
+     double precision                                                   :: fourierProfileTableAlphaMinimum
+     double precision                                                   :: fourierProfileTableAlphaMaximum
+     logical                                                            :: fourierProfileTableInitialized
      integer                                                            :: fourierProfileTableAlphaCount                        , fourierProfileTableConcentrationCount                   , &
           &                                                                fourierProfileTableWavenumberCount
      double precision                   , allocatable, dimension(:    ) :: fourierProfileTableAlpha                             , fourierProfileTableConcentration                        , &
@@ -99,7 +97,7 @@
      type            (fgsl_interp_accel)                                :: fourierProfileTableAlphaInterpolationAccelerator     , fourierProfileTableConcentrationInterpolationAccelerator, &
           &                                                                fourierProfileTableWavenumberInterpolationAccelerator
      logical                                                            :: fourierProfileTableAlphaInterpolationReset           , fourierProfileTableConcentrationInterpolationReset      , &
-          &                                                                fourierProfileTableWavenumberInterpolationReset      
+          &                                                                fourierProfileTableWavenumberInterpolationReset
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOEinasto</object>
@@ -224,12 +222,12 @@
   type            (treeNode                   ), pointer :: einastoNode
   double precision                                       :: einastoDensityEnclosed
   !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed)
-  
+
 contains
 
   function einastoConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileDMOEinasto )                :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -244,9 +242,9 @@ contains
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
-    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
-    use Array_Utilities
-    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileDMOEinasto)                              :: self
     class(darkMatterHaloScaleClass   ), intent(in   ), target       :: darkMatterHaloScale_
@@ -322,10 +320,10 @@ contains
     call self%radialVelocityDispersionTabulate()
     return
   end function einastoConstructorInternal
-  
+
   subroutine einastoDestructor(self)
     !% Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self
 
@@ -386,7 +384,7 @@ contains
   double precision function einastoDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -411,7 +409,7 @@ contains
   double precision function einastoDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -421,7 +419,7 @@ contains
     double precision                                                :: alpha            , radiusOverScaleRadius      , &
          &                                                             scaleRadius
     !GCC$ attributes unused :: self
-    
+
     ! Get components.
     basic             => node%basic            (                 )
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
@@ -432,14 +430,13 @@ contains
          &                           *radiusOverScaleRadius**alpha
     return
   end function einastoDensityLogSlope
-  
+
   double precision function einastoRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Gamma_Functions
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile         , treeNode
+    use :: Gamma_Functions         , only : Gamma_Function    , Gamma_Function_Incomplete_Complementary
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout)           :: node
@@ -479,9 +476,10 @@ contains
 
     double precision function einastoRadialMomentScaleFree(radius)
       !% Provides the scale-free part of the radial moment of the Einasto density profile.
+      use :: Gamma_Functions, only : Gamma_Function_Incomplete
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoRadialMomentScaleFree=-exp(2.0d0/alpha)                                                          &
            &                       *0.5d0   **((1.0d0+moment)/alpha)                                          &
            &                       *alpha   **((1.0d0+moment)/alpha)                                          &
@@ -490,13 +488,13 @@ contains
            &                       /alpha
       return
     end function einastoRadialMomentScaleFree
-    
+
   end function einastoRadialMoment
-  
+
   double precision function einastoEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -521,7 +519,7 @@ contains
   double precision function einastoCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
@@ -537,9 +535,8 @@ contains
 
   double precision function einastoCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use Numerical_Constants_Physical
-    use Root_Finder
+    use :: Galacticus_Nodes, only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNode
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rootFinder
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -548,7 +545,7 @@ contains
     double precision                                                :: alpha                   , radiusScale, &
          &                                                             radiusPeak
     type            (rootFinder                    )                :: finder
-    
+
     ! Get the shape parameter for this halo.
     darkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
     alpha             =  darkMatterProfile%shape            (                 )
@@ -569,12 +566,12 @@ contains
     ! Find the peak velocity.
     einastoCircularVelocityMaximum=self%circularVelocity(node,radiusPeak*radiusScale)
     return
-    
+
   contains
-    
+
     double precision function einastoCircularVelocityPeakRadius(radius)
       !% Computes the derivative of the square of circular velocity for an Einasto density profile.
-      use Gamma_Functions
+      use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete_Complementary
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -605,10 +602,10 @@ contains
   double precision function einastoRadialVelocityDispersion(self,node,radius)
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile         , treeNode
+    use            :: Gamma_Functions        , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Interpolation
-    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile
-    use            :: Gamma_Functions
+    use            :: Numerical_Interpolation, only : Interpolate                            , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -660,9 +657,9 @@ contains
   double precision function einastoPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
+    use :: Galactic_Structure_Options  , only : structureErrorCodeSuccess
+    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -692,8 +689,8 @@ contains
   double precision function einastoRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
-    use Numerical_Constants_Physical
+    use :: Galacticus_Nodes            , only : nodeComponentDarkMatterProfile , treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -725,7 +722,7 @@ contains
     !% Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
     !% profile.
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate, Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)  :: self
     double precision                             , intent(in   )  :: alpha , specificAngularMomentumScaleFree
@@ -767,10 +764,10 @@ contains
 
   subroutine einastoRadiusFromSpecificAngularMomentumTableMake(self,alphaRequired,specificAngularMomentumRequired)
     !% Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.
-    use Numerical_Interpolation
-    use Numerical_Ranges
-    use Gamma_Functions
-    use Memory_Management
+    use :: Gamma_Functions        , only : Gamma_Function_Incomplete_Complementary
+    use :: Memory_Management      , only : allocateArray                          , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                             , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired, specificAngularMomentumRequired
@@ -849,9 +846,8 @@ contains
 
   double precision function einastoRotationNormalization(self,node)
     !% Return the rotation normalization of an Einasto halo density profile.
-    use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
-    use Numerical_Constants_Math
-    use Gamma_Functions
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
+    use :: Gamma_Functions , only : Gamma_Function                , Gamma_Function_Incomplete_Complementary
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -877,9 +873,9 @@ contains
 
   double precision function einastoEnergy(self,node)
     !% Return the energy of an Einasto halo density profile.
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile     , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use            :: Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate       , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -928,9 +924,9 @@ contains
 
   double precision function einastoEnergyGrowthRate(self,node)
     !% Return the energy of an Einasto halo density profile.
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use            :: Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate       , Interpolate_Derivative        , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout) , target  :: node
@@ -996,11 +992,11 @@ contains
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
     !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
-    use Numerical_Interpolation
-    use Numerical_Integration
-    use Numerical_Ranges
-    use Memory_Management
-    use Numerical_Constants_Math
+    use :: Memory_Management       , only : allocateArray   , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate       , Integrate_Done
+    use :: Numerical_Interpolation , only : Interpolate_Done
+    use :: Numerical_Ranges        , only : Make_Range      , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired          , concentrationRequired
@@ -1103,14 +1099,14 @@ contains
        self%energyTableInitialized=.true.
     end if
     return
-    
+
   contains
-    
+
     double precision function einastoPotentialEnergyIntegrand(radius)
       !% Integrand for Einasto profile potential energy.
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)/radius)**2
       return
     end function einastoPotentialEnergyIntegrand
@@ -1119,35 +1115,35 @@ contains
       !% Integrand for Einasto profile kinetic energy.
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoKineticEnergyIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter) &
            &                        *self%densityScaleFree    (radius,concentrationParameter,alphaParameter) &
            &                        *radius
       return
     end function einastoKineticEnergyIntegrand
-    
+
     double precision function einastoJeansEquationIntegrand(radius)
       !% Integrand for Einasto profile Jeans equation.
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter) &
            &                        *self%densityScaleFree    (radius,concentrationParameter,alphaParameter) &
            &                        /radius**2
       return
     end function einastoJeansEquationIntegrand
-    
+
   end subroutine einastoEnergyTableMake
 
   double precision function einastoEnclosedMassScaleFree(self,radius,concentration,alpha)
     !% Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the
     !% given {\normalfont \ttfamily radius} (given in units of the scale radius).
-    use Gamma_Functions
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha, concentration, radius
     !GCC$ attributes unused :: self
-    
+
     einastoEnclosedMassScaleFree=+Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
          &                       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
     return
@@ -1156,14 +1152,14 @@ contains
   double precision function einastoDensityScaleFree(self,radius,concentration,alpha)
     !% Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with
     !% given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
-    use Numerical_Constants_Math
-    use Gamma_Functions
+    use :: Gamma_Functions         , only : Gamma_Function, Gamma_Function_Incomplete_Complementary
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha               , concentration, radius
     double precision                                             :: densityNormalization
     !GCC$ attributes unused :: self
-    
+
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
          &               *exp(-2.0d0/alpha                                                                    ) &
@@ -1173,12 +1169,12 @@ contains
     return
   end function einastoDensityScaleFree
 
-  double precision function einastoPotentialScaleFree(self,radius,concentration,alpha)              
+  double precision function einastoPotentialScaleFree(self,radius,concentration,alpha)
     !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
     !% profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont
     !% \ttfamily radius} (given in units of the scale radius). Uses the results from \cite{retana-montenegro_analytical_2012},
     !% their equations (19) and (20).
-    use Gamma_Functions
+    use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete, Gamma_Function_Incomplete_Complementary
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha , concentration, &
@@ -1190,7 +1186,7 @@ contains
             &                    *  Gamma_Function                         (2.0d0/alpha                                 ) &
             &                    /  Gamma_Function                         (3.0d0/alpha                                 ) &
             &                    /  Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
-       
+
     else
        einastoPotentialScaleFree=-1.0d0                                                                                   &
             &                    /radius                                                                                  &
@@ -1211,9 +1207,9 @@ contains
 
   double precision function einastoKSpace(self,node,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)).
+    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile
-    use            :: Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate                   , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   )                , intent(inout)          :: self
     type            (treeNode                      )                , intent(inout), target  :: node
@@ -1270,12 +1266,13 @@ contains
   subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
     !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     !% dimensionless wavenumber.
-    use Numerical_Interpolation
-    use Numerical_Integration
-    use Numerical_Ranges
-    use Memory_Management
-    use Galacticus_Display
-    use Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                 verbosityWorking          , verbosityInfo
+    use :: Galacticus_Error       , only : Galacticus_Error_Report   , errorStatusSuccess
+    use :: Memory_Management      , only : allocateArray             , deallocateArray
+    use :: Numerical_Integration  , only : Integrate                 , Integrate_Done
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
@@ -1404,30 +1401,30 @@ contains
        call Galacticus_Display_Unindent('done',verbosityInfo)
     end if
     return
-    
+
   contains
 
     double precision function einastoFourierProfileIntegrand(radius)
       !% Integrand for Einasto Fourier profile.
-      use Numerical_Constants_Math
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoFourierProfileIntegrand=4.0d0*Pi*radius*sin(wavenumberParameter*radius)*self%densityScaleFree(radius&
            &,concentrationParameter,alphaParameter)/wavenumberParameter
       return
     end function einastoFourierProfileIntegrand
-    
+
   end subroutine einastoFourierProfileTableMake
 
   double precision function einastoFreefallRadius(self,node,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
+    use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Interpolation
-    use            :: Numerical_Constants_Astronomical
-    use            :: Numerical_Constants_Physical
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use            :: Gamma_Functions
+    use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use            :: Numerical_Interpolation         , only : Interpolate                            , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -1496,12 +1493,12 @@ contains
   double precision function einastoFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
+    use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use            :: Numerical_Interpolation
-    use            :: Numerical_Constants_Astronomical
-    use            :: Numerical_Constants_Physical
-    use            :: Gamma_Functions
+    use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use            :: Numerical_Interpolation         , only : Interpolate_Derivative                 , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -1570,10 +1567,10 @@ contains
 
   subroutine einastoFreefallTabulate(self,freefallTimeScaleFree,alphaRequired)
     !% Tabulates the freefall time vs. freefall radius for Einasto halos.
-    use Galacticus_Display
-    use Numerical_Ranges
-    use Memory_Management
-    use Numerical_Interpolation
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
+    use :: Memory_Management      , only : allocateArray             , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear          , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired, freefallTimeScaleFree
@@ -1661,7 +1658,7 @@ contains
 
   double precision function einastoFreefallTimeScaleFree(self,radius,alpha)
     !% Compute the freefall time in a scale-free Einasto halo.
-    use Numerical_Integration
+    use :: Numerical_Integration, only : Integrate
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha               , radius
@@ -1685,12 +1682,12 @@ contains
     return
 
   contains
-    
+
     double precision function einastoFreefallTimeScaleFreeIntegrand(radius)
       !% Integrand function used for finding the free-fall time in Einasto halos.
       implicit none
       double precision, intent(in   ) :: radius
-      
+
       einastoFreefallTimeScaleFreeIntegrand=+1.0d0                                                             &
            &                                /sqrt(+2.0d0                                                       &
            &                                      *(                                                           &
@@ -1706,7 +1703,7 @@ contains
   double precision function einastoRadiusEnclosingDensity(self,node,density)
     !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
     !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout), target :: self
     type            (treeNode                   ), intent(inout), target :: node
@@ -1715,7 +1712,7 @@ contains
     double precision                             , parameter             :: toleranceAbsolute=0.0d0
     double precision                             , parameter             :: toleranceRelative=1.0d-3
     !$omp threadprivate(finder)
-    
+
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(einastoRadiusEnclosingDensityRoot  )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -1733,10 +1730,10 @@ contains
     einastoRadiusEnclosingDensity =  finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function einastoRadiusEnclosingDensity
-  
+
   double precision function einastoRadiusEnclosingDensityRoot(radius)
     !% Root function used in finding the radius enclosing a given density in Einasto profiles.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -1751,7 +1748,7 @@ contains
 
   double precision function einastoRadialVelocityDispersionScaleFree(self,radius,alpha)
     !% Compute the radial velocity dispersion in a scale-free Einasto halo.
-    use Numerical_Integration
+    use :: Numerical_Integration, only : Integrate, Integrate_Done
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)            :: self
     double precision                             , intent(in   )            :: radius                     , alpha
@@ -1782,7 +1779,7 @@ contains
 
     double precision function einastoJeansEquationIntegrand(radius)
       !% Integrand for Einasto drak matter profile Jeans equation.
-      use Gamma_Functions
+      use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -1800,10 +1797,11 @@ contains
 
   subroutine einastoRadialVelocityDispersionTabulate(self,radius,alphaRequired)
     !% Tabulates the radial velocity dispersion vs. radius for Einasto halos.
-    use Galacticus_Display
-    use Numerical_Ranges
-    use Memory_Management
-    use Numerical_Interpolation
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                 verbosityWorking
+    use :: Memory_Management      , only : allocateArray             , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear          , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)           :: self
     double precision                             , intent(in   ), optional :: radius    , alphaRequired

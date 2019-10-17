@@ -37,26 +37,26 @@ module Spherical_Collapse_Matter_Lambda
        &                         tNow                                , timeTarget             , &
        &                         radiusMaximum
   !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow,timeTarget,radiusMaximum)
-  
+
   ! Calculation types.
   integer         , parameter :: calculationDeltaCrit       =0      , calculationDeltaVirial=1
-  
+
 contains
 
   subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,tableStore,deltaCritTable,cosmologyFunctions_,linearGrowth_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
-    use Galacticus_Error   , only : errorStatusSuccess
-    use Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
-    use Tables             , only : table1D
-    use Cosmology_Functions, only : cosmologyFunctionsClass
-    use Linear_Growth      , only : linearGrowthClass
+    use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Galacticus_Error   , only : errorStatusSuccess
+    use :: Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
+    use :: Linear_Growth      , only : linearGrowthClass
+    use :: Tables             , only : table1D
     implicit none
     double precision                                      , intent(in   ) :: time
     logical                                               , intent(in   ) :: tableStore
     class           (table1D                ), allocatable, intent(inout) :: deltaCritTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
-    class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
+    class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_
     type            (varying_string         )                             :: fileName
     integer                                                               :: status
 
@@ -67,7 +67,7 @@ contains
          &   linearGrowth_      %hashedDescriptor(includeSourceDigest=.true.)       // &
          &   '.hdf5'
     call    Restore_Table(time,deltaCritTable,fileName            ,tableStore         ,status       )
-    if (status /= errorStatusSuccess) then       
+    if (status /= errorStatusSuccess) then
        call Make_Table   (time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_)
        call Store_Table  (     deltaCritTable,fileName            ,tableStore                       )
     end if
@@ -77,15 +77,15 @@ contains
   subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,tableStore,deltaVirialTable,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
-    use Galacticus_Error   , only : errorStatusSuccess
-    use Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
-    use Tables             , only : table1D
-    use Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Galacticus_Error   , only : errorStatusSuccess
+    use :: Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
+    use :: Tables             , only : table1D
     implicit none
     double precision                                      , intent(in   ) :: time
     logical                                               , intent(in   ) :: tableStore
     class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
     type            (varying_string         )                             :: fileName
     integer                                                               :: status
 
@@ -94,7 +94,7 @@ contains
          &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)         // &
          &   '.hdf5'
     call    Restore_Table(time,deltaVirialTable,fileName              ,tableStore         ,status)
-    if (status /= errorStatusSuccess) then       
+    if (status /= errorStatusSuccess) then
        call Make_Table   (time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_       )
        call Store_Table  (     deltaVirialTable,fileName              ,tableStore                )
     end if
@@ -103,18 +103,18 @@ contains
 
   subroutine Make_Table(time,deltaTable,calculationType,cosmologyFunctions_,linearGrowth_)
     !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
-    use Linear_Growth
-    use Cosmology_Functions
-    use Root_Finder
-    use Tables
-    use Kind_Numbers
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions, only : cosmologyFunctionsClass  , timeToleranceRelativeBigCrunch
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Kind_Numbers       , only : kind_dble
+    use :: Linear_Growth      , only : linearGrowthClass        , normalizeMatterDominated
+    use :: Root_Finder        , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative , rangeExpandSignExpectPositive, rootFinder
+    use :: Tables             , only : table1D                  , table1DLogarithmicLinear
     implicit none
     double precision                                      , intent(in   ) :: time
     integer                                               , intent(in   ) :: calculationType
     class           (table1D                ), allocatable, intent(inout) :: deltaTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
-    class           (linearGrowthClass      ), optional   , intent(inout) :: linearGrowth_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
+    class           (linearGrowthClass      ), optional   , intent(inout) :: linearGrowth_
     double precision                         , parameter                  :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
     type            (rootFinder             ), save                       :: finder
     !$omp threadprivate(finder)
@@ -163,7 +163,7 @@ contains
     type is (table1DLogarithmicLinear)
        ! Create the table.
        call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Solve ODE to get corresponding overdensities.       
+       ! Solve ODE to get corresponding overdensities.
        do iTime=1,deltaTableNumberPoints
           tNow=deltaTable%x(iTime)
 
@@ -251,7 +251,7 @@ contains
 
   double precision function Perturbation_Maximum_Radius(epsilonPerturbation)
     !% Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
-    use Root_Finder
+    use :: Root_Finder, only : rootFinder
     implicit none
     double precision            , intent(in   ) :: epsilonPerturbation
     double precision            , parameter     :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-9
@@ -297,7 +297,7 @@ contains
   end function aMaximumRoot
 
   double precision function tCollapse(epsilonPerturbation)
-    use Numerical_Integration
+    use :: Numerical_Integration, only : Integrate, Integrate_Done
     implicit none
     real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation
     type   (fgsl_function             )                      :: integrandFunction
@@ -348,19 +348,18 @@ contains
 
   subroutine Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(time,deltaTable,linearGrowth_,cosmologyFunctions_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
-    use Tables
-    use Cosmology_Functions
-    use Linear_Growth
-    use Table_Labels
-    use Root_Finder
-    use Numerical_Integration
-    use Numerical_Ranges
-    use Array_Utilities
-    use Arrays_Search
+    use :: Array_Utilities      , only : Array_Reverse
+    use :: Arrays_Search        , only : Search_Array
+    use :: Cosmology_Functions  , only : cosmologyFunctionsClass
+    use :: Linear_Growth        , only : linearGrowthClass        , normalizeMatterDominated
+    use :: Numerical_Integration, only : Integrate                , Integrate_Done
+    use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLogarithmic         , rangeTypeLinear
+    use :: Root_Finder          , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables               , only : table2DLinLinLin
     implicit none
     double precision                                         , intent(in   ) :: time
     class           (table2DLinLinLin          )             , intent(inout) :: deltaTable
-    class           (cosmologyFunctionsClass   ), target     , intent(inout) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass   ), target     , intent(inout) :: cosmologyFunctions_
     class           (linearGrowthClass         ), target     , intent(inout) :: linearGrowth_
     integer                                     , parameter                  :: tableIncrement          =100
     integer                                     , parameter                  :: timesPerDecade          = 10
@@ -579,13 +578,13 @@ contains
   end subroutine Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
 
   double precision function Radius_Root(radiusNow)
-    use Numerical_Integration
+    use :: Numerical_Integration, only : Integrate, Integrate_Done
     implicit none
     double precision                            , intent(in   ) :: radiusNow
     double precision                            , parameter     :: numericalLimitEpsilon=1.0d-4
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset 
+    logical                                                     :: integrationReset
     double precision                                            :: radiusUpperLimit
 
     radiusUpperLimit=min(                                              &
@@ -612,19 +611,19 @@ contains
             &             -2.0d0*sqrt(OmegaM/radiusUpperLimit+epsilonPerturbationShared+OmegaDE*radiusUpperLimit**2)/(2.0d0*OmegaDE*radiusUpperLimit-OmegaM/radiusUpperLimit**2)/hubbleParameterInvGyr
        if (radiusNow < radiusMaximum)                                                                                                                                                                  &
             & Radius_Root=+Radius_Root                                                                                                                                                                 &
-            &             +2.0d0*sqrt(OmegaM/radiusNow       +epsilonPerturbationShared+OmegaDE*radiusNow       **2)/(2.0d0*OmegaDE*radiusNow       -OmegaM/radiusNow       **2)/hubbleParameterInvGyr 
+            &             +2.0d0*sqrt(OmegaM/radiusNow       +epsilonPerturbationShared+OmegaDE*radiusNow       **2)/(2.0d0*OmegaDE*radiusNow       -OmegaM/radiusNow       **2)/hubbleParameterInvGyr
     end if
     return
   end function Radius_Root
-  
+
   subroutine Restore_Table(time,restoredTable,fileName,tableStore,status)
     !% Attempt to restore a table from file.
-    use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
-    use IO_HDF5           , only : hdf5Object        , hdf5Access
-    use File_Utilities    , only : File_Exists       , lockDescriptor          , File_Lock_Initialize, File_Lock, &
-         &                         File_Unlock
-    use Tables            , only : table1D           , table1DLogarithmicLinear
-    use ISO_Varying_String, only : varying_string    , char    
+    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Lock_Initialize, File_Unlock, &
+          &                           lockDescriptor
+    use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
+    use :: IO_HDF5           , only : hdf5Access     , hdf5Object
+    use :: ISO_Varying_String, only : char           , varying_string
+    use :: Tables            , only : table1D        , table1DLogarithmicLinear
     implicit none
     double precision                                      , intent(in   ) :: time
     class           (table1D                ), allocatable, intent(inout) :: restoredTable
@@ -670,11 +669,11 @@ contains
 
   subroutine Store_Table(storeTable,fileName,tableStore)
     !% Attempt to restore a table from file.
-    use IO_HDF5           , only : hdf5Object    , hdf5Access
-    use Tables            , only : table1D
-    use ISO_Varying_String, only : varying_string, char    
-    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
-         &                         File_Path     , Directory_Make
+    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Lock_Initialize, File_Path, &
+          &                           File_Unlock   , lockDescriptor
+    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: ISO_Varying_String, only : char          , varying_string
+    use :: Tables            , only : table1D
     implicit none
     class(table1D                ), intent(in   ) :: storeTable
     type (varying_string         ), intent(in   ) :: fileName

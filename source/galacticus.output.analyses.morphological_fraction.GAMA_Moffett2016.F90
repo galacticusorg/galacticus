@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a stellar vs halo mass relation analysis class.
-  
+
   !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016">
   !#  <description>A morphological fraction output analysis class for the analysis of \cite{moffett_galaxy_2016}.</description>
   !# </outputAnalysis>
@@ -42,8 +42,8 @@ contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorParameters(parameters) result (self)
     !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
-    use Cosmology_Functions
-    use Input_Parameters
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016)                              :: self
     type            (inputParameters                                   ), intent(inout)               :: parameters
@@ -51,9 +51,9 @@ contains
     class           (cosmologyFunctionsClass                           ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                  ), pointer                     :: outputTimes_
     double precision                                                                                  :: ratioEarlyType                      , ratioEarlyTypeError             , &
-         &                                                                                               randomErrorMinimum                  , randomErrorMaximum 
+         &                                                                                               randomErrorMinimum                  , randomErrorMaximum
 
-    
+
     ! Check and read parameters.
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -121,19 +121,23 @@ contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
-    use Memory_Management
-    use IO_HDF5
-    use Galacticus_Paths  
-    use Output_Times
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Numerical_Constants_Astronomical
-    use Statistics_Distributions              , only : distributionFunction1DBeta
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
+    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorNormal, &
+          &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                          , only : outputTimesClass
+    use :: Statistics_Distributions              , only : distributionFunction1DBeta
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
     double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
@@ -152,8 +156,8 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                  ), pointer                       :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10              ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorNormal                 ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (nodePropertyExtractorMassStellar           ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassStellarMorphology ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassStellar                     ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellarMorphology           ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc      ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial      ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
@@ -169,7 +173,7 @@ contains
     type            (surveyGeometryBaldry2012GAMA                         )                                :: surveyGeometry_
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit,sqrtArg
-    
+
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.               )
@@ -372,11 +376,11 @@ contains
 
   double precision function morphologicalFractionGAMAMoffett2016LogLikelihood(self)
     !% Return the log-likelihood of a morphologicalFractionGAMAMoffett2016 output analysis.
-    use Models_Likelihoods_Constants, only : logImpossible
+    use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class  (outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
     integer                                                                    :: i
-    
+
     ! Finalize analysis.
     call self%finalizeAnalysis()
     ! Compute the log-likelihood. This assumes that the number of early types in each bin follows a binomial distribution. We do
@@ -411,8 +415,8 @@ contains
 
   subroutine morphologicalFractionGAMAMoffett2016Finalize(self)
     !% Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
     type (hdf5Object                                        )                :: analysesGroup, analysisGroup, &
@@ -467,6 +471,6 @@ contains
     call dataset      %close         (                                                                                                                                                                  )
     call analysisGroup%close         (                                                                                                                                                                  )
     call analysesGroup%close         (                                                                                                                                                                  )
-    !$ call hdf5Access%unset()      
+    !$ call hdf5Access%unset()
     return
   end subroutine morphologicalFractionGAMAMoffett2016Finalize

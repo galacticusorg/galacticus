@@ -20,11 +20,11 @@
 !% Contains a module which implements a dark matter halo mass function class which averages another (presumably
 !% environment-dependent) mass function over environment.
 
-  use Cosmological_Density_Field
-  
+  use :: Cosmological_Density_Field, only : haloEnvironmentClass
+
   !# <haloMassFunction name="haloMassFunctionEnvironmentAveraged">
   !#  <description>
-  !#   The halo mass function is computed averaging another (presumably environment-dependent) mass function over environment. 
+  !#   The halo mass function is computed averaging another (presumably environment-dependent) mass function over environment.
   !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
@@ -49,14 +49,14 @@ contains
   function environmentAveragedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionEnvironmentAveraged)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
     class(haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
     class(haloEnvironmentClass               ), pointer       :: haloEnvironment_
     class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
-    
+
     !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
     !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
     !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
@@ -82,7 +82,7 @@ contains
     self%timeMatching=-1.0d0
     return
   end function environmentAveragedConstructorInternal
-  
+
   subroutine environmentAveragedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
     implicit none
@@ -97,10 +97,10 @@ contains
 
   recursive double precision function environmentAveragedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
+    use            :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Integration
-    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic, mergerTree
-    use               Root_Finder
+    use            :: Numerical_Integration, only : Integrate          , Integrate_Done
+    use            :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
     double precision                                     , intent(in   )           :: time                              , mass
@@ -173,7 +173,7 @@ contains
             &                                    toleranceAbsolute           =1.0d-100, &
             &                                    toleranceRelative           =1.0d-009  &
             &                                   )
-       call Integrate_Done(integrandFunction,integrationWorkspace)    
+       call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Clean up our work node.
        call tree%baseNode%destroy()
        deallocate(tree%baseNode)
@@ -190,7 +190,7 @@ contains
       environmentAveragedRoot=self%haloEnvironment_ %cdf(environmentOverdensity)-cdfTarget
       return
     end function environmentAveragedRoot
-    
+
     double precision function environmentAveragedIntegrand(environmentOverdensity)
       !% Integrand function used in averging the dark matter halo mass function over environment.
       implicit none

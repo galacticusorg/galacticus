@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Tree_Branch_Destroy
-  use Unit_Tests
-  use Galacticus_Nodes  , only : mergerTree, treeNodeList, treeNode
-  use Kind_Numbers
-  use Input_Parameters
-  use Galacticus_Display
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Nodes  , only : mergerTree                    , treeNode              , treeNodeList
+  use :: Input_Parameters  , only : inputParameters
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type   (mergerTree     ), pointer :: thisTree
   type   (treeNodeList   )          :: nodes   (5)
@@ -80,7 +80,7 @@ program Tests_Tree_Branch_Destroy
   ! Valgrind.
   call thisTree%destroy()
   deallocate(thisTree)
-  
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

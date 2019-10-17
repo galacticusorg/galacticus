@@ -19,9 +19,9 @@
 
   !% Implementation of an active model parameter class.
 
-  use Statistics_Distributions
-  use Math_Operators_Unary
-  
+  use :: Math_Operators_Unary    , only : operatorUnaryClass
+  use :: Statistics_Distributions, only : distributionFunction1DClass
+
   !# <modelParameter name="modelParameterActive">
   !#  <description>An active model parameter class.</description>
   !# </modelParameter>
@@ -54,14 +54,14 @@ contains
 
   function activeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily active} model parameter class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (modelParameterActive       )                :: self
     type (inputParameters            ), intent(inout) :: parameters
     class(distributionFunction1DClass), pointer       :: prior     , perturber
     class(operatorUnaryClass         ), pointer       :: mapper
     type (varying_string             )                :: name
-    
+
     !# <inputParameter>
     !#   <name>name</name>
     !#   <cardinality>1</cardinality>
@@ -103,7 +103,7 @@ contains
     !# <objectDestructor name="self%mapper"   />
     return
   end subroutine activeDestructor
-  
+
   function activeName(self)
     !% Return the name of this parameter.
     implicit none
@@ -113,10 +113,10 @@ contains
     activeName=self%name_
     return
   end function activeName
-  
+
   double precision function activeLogPrior(self,x)
     !% Return the log-prior on this parameter.
-    use Models_Likelihoods_Constants
+    use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (modelParameterActive), intent(inout) :: self
     double precision                      , intent(in   ) :: x
@@ -129,7 +129,7 @@ contains
     end if
     return
   end function activeLogPrior
-  
+
   double precision function activePriorSample(self)
     !% Sample from the of this parameter.
     implicit none
@@ -138,7 +138,7 @@ contains
     activePriorSample=self%prior%sample()
     return
   end function activePriorSample
-  
+
   double precision function activePriorInvert(self,f)
     !% Invert the prior, returning the parameter value given the cumulative probability.
     implicit none
@@ -148,7 +148,7 @@ contains
     activePriorInvert=self%prior%inverse(f)
     return
   end function activePriorInvert
-  
+
   double precision function activePriorMinimum(self)
     !% Return the minimum value for which the prior is non-zero.
     implicit none
@@ -157,7 +157,7 @@ contains
     activePriorMinimum=self%prior%minimum()
     return
   end function activePriorMinimum
-  
+
   double precision function activePriorMaximum(self)
     !% Return the maximum value for which the prior is non-zero.
     implicit none
@@ -166,7 +166,7 @@ contains
     activePriorMaximum=self%prior%maximum()
     return
   end function activePriorMaximum
-  
+
   double precision function activeRandomPerturbation(self)
     !% Return a random perturbation to this parameter.
     implicit none
@@ -185,7 +185,7 @@ contains
     activeMap=self%mapper%operate(x)
     return
   end function activeMap
-  
+
   double precision function activeUnmap(self,x)
     !% Unmap this parameter.
     implicit none
@@ -195,4 +195,4 @@ contains
     activeUnmap=self%mapper%unoperate(x)
     return
   end function activeUnmap
-  
+

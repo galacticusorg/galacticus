@@ -21,8 +21,8 @@
 
 module Merger_Tree_Construction
   !% Constructs/destructs merger trees.
+  use            :: Galacticus_Nodes, only : mergerTree
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>
@@ -37,5 +37,5 @@ module Merger_Tree_Construction
   !#   <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Tree_Construction

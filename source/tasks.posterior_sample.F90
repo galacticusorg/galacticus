@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Posterior_Sampling_Simulation, only : posteriorSampleSimulationClass, posteriorSampleSimulation
+  use :: Posterior_Sampling_Simulation, only : posteriorSampleSimulation, posteriorSampleSimulationClass
 
   !# <task name="taskPosteriorSample">
   !#  <description>A task which performs sampling from a posterior distribution.</description>
@@ -42,9 +42,9 @@ contains
 
   function posteriorSampleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
-    use Input_Parameters
-    use Node_Components , only : Node_Components_Initialize
-    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize
     implicit none
     type   (taskPosteriorSample           )                :: self
     type   (inputParameters               ), intent(inout) :: parameters
@@ -92,7 +92,7 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily posteriorSample} task class.
-    use Node_Components, only : Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskPosteriorSample), intent(inout) :: self
 
@@ -103,8 +103,8 @@ contains
 
   subroutine posteriorSamplePerform(self,status)
     !% Perform the posterior sampling.
-    use Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use Galacticus_Error  , only : errorStatusSuccess
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : errorStatusSuccess
     implicit none
     class  (taskPosteriorSample), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status

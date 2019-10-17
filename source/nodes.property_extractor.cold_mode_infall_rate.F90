@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a cold mode infall rate property extractor class.
 
-  use Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass
+  use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
   !#  <description>A cold mode infall rate property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorRateInfallColdMode
 
 contains
-  
+
   function rateInfallColdModeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -78,16 +78,16 @@ contains
     !# <objectDestructor name="self%coldModeInfallRate_"/>
     return
   end subroutine rateInfallColdModeDestructor
-  
+
   double precision function rateInfallColdModeExtract(self,node,instance)
     !% Implement a {\normalfont \ttfamily rateInfallColdMode} property extractor.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout)           :: self
     type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
     !GCC$ attributes unused :: instance
-    
+
     rateInfallColdModeExtract=self%coldModeInfallRate_%infallRate(node)
     return
   end function rateInfallColdModeExtract
@@ -116,7 +116,7 @@ contains
 
   double precision function rateInfallColdModeUnitsInSI(self)
     !% Return the units of the {\normalfont \ttfamily rateInfallColdMode} property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar, gigaYear
+    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -127,7 +127,7 @@ contains
 
   integer function rateInfallColdModeType(self)
     !% Return the type of the {\normalfont \ttfamily rateInfallColdMode} property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
     !GCC$ attributes unused :: self

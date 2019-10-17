@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a conversion of ISM mass to HI mass analysis property operator class.
 
-  use Output_Analysis_Molecular_Ratios
-  
+  use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
   !#  <description>A conversion of ISM mass to HI mass analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
@@ -43,7 +43,7 @@ contains
 
   function hiMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``hiMass'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
@@ -59,7 +59,6 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !% Internal constructor for the ``hiMass'' output analysis distribution operator class.
-    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
     class(outputAnalysisMolecularRatioClass   ), intent(in   ), target :: outputAnalysisMolecularRatio_
@@ -70,7 +69,6 @@ contains
 
   subroutine hiMassDestructor(self)
     !% Destructor for the ``hiMass'' output analysis distribution operator class.
-    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
 
@@ -80,9 +78,8 @@ contains
 
   double precision function hiMassOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an hiMass output analysis property operator.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: Numerical_Constants_Astronomical
     implicit none
     class           (outputAnalysisPropertyOperatorHIMass), intent(inout)           :: self
     double precision                                      , intent(in   )           :: propertyValue

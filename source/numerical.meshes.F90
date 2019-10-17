@@ -33,8 +33,8 @@ contains
 
   subroutine Meshes_Apply_Point(mesh,boxLength,pointPosition,pointWeight,cloudType)
     !% Apply a point to a mesh.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     complex(c_double_complex), intent(inout), dimension(:,:,:) :: mesh
     double precision                  , intent(in   ) :: boxLength

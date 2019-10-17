@@ -29,10 +29,10 @@ module Galacticus_Versioning
   include 'galacticus.output.version.revision.inc'
 
 contains
-  
+
   subroutine Galacticus_Version(gitHash_,gitBranch_,buildTime_)
     !% Return version information
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     character(len=42        ), intent(  out), optional :: gitHash_
     type     (varying_string), intent(  out), optional :: gitBranch_  , buildTime_
@@ -42,11 +42,10 @@ contains
     if (present(buildTime_ )) buildTime_ =trim(buildTime)
     return
   end subroutine Galacticus_Version
-  
+
   function Galacticus_Version_String()
     !% Returns a string describing the version of \glc.
-    use ISO_Varying_String
-    use String_Handling
+    use :: ISO_Varying_String
     implicit none
     type(varying_string) :: Galacticus_Version_String
 
@@ -59,15 +58,15 @@ contains
   !# </outputFileOpenTask>
   subroutine Galacticus_Version_Output
     !% Output version information to the main output file.
-    use Galacticus_HDF5
-    use IO_HDF5
-    use ISO_Varying_String
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Dates_and_Times
-    use File_Utilities
-    use FoX_dom
-    use FoX_utils
-    use IO_XML
+    use :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use :: File_Utilities    , only : File_Exists
+    use :: FoX_dom
+    use :: FoX_utils
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_HDF5   , only : galacticusOutputFile
+    use :: IO_HDF5           , only : hdf5Access                       , hdf5Object
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: ISO_Varying_String
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode
     integer                            :: ioErr

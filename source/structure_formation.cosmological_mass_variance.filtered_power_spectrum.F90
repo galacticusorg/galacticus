@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
-  
+
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
   !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
@@ -51,10 +51,10 @@
   !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
   !#  </stateStorable>
   !# </cosmologicalMassVariance>
-  use Tables
-  use Cosmology_Parameters
-  use Power_Spectra_Primordial_Transferred
-  use Power_Spectrum_Window_Functions
+  use :: Cosmology_Parameters                , only : cosmologyParametersClass
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
+  use :: Tables                              , only : table                                  , table1DLinearCSpline
 
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
@@ -105,7 +105,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -153,7 +153,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
+    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>
     ! Construct the instance.
     self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
@@ -188,14 +188,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
     type (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
     !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
     if (self%initialized) call self%rootVarianceTable%destroy()
-    if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     ) 
-    if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable) 
+    if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     )
+    if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable)
     return
   end subroutine filteredPowerDestructor
 
@@ -208,7 +208,7 @@ contains
     filteredPowerPowerNormalization=self%sigmaNormalization**2
     return
   end function filteredPowerPowerNormalization
-  
+
   double precision function filteredPowerSigma8(self)
     !% Return the value of $\sigma_8$.
     implicit none
@@ -217,7 +217,7 @@ contains
     filteredPowerSigma8=self%sigma8Value
     return
   end function filteredPowerSigma8
-  
+
   double precision function filteredPowerRootVariance(self,mass)
     !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
     !% \ttfamily mass} on average.
@@ -229,11 +229,11 @@ contains
     filteredPowerRootVariance=self%rootVarianceTable%interpolate(mass)
     return
   end function filteredPowerRootVariance
-  
+
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass)
     !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass
@@ -258,11 +258,11 @@ contains
     end if
     return
   end function filteredPowerRootVarianceLogarithmicGradient
-  
+
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,rootVariance,rootVarianceLogarithmicGradient)
     !% Return the value and logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a
     !% spherical region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass
@@ -298,7 +298,7 @@ contains
     double precision                                                       :: h
     integer                                                                :: i            , iBoundLeft, &
          &                                                                    iBoundRight
-    
+
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
     if (.not.self%initialized) call self%retabulate()
@@ -330,18 +330,20 @@ contains
     end if
     return
   end function filteredPowerMass
- 
+
   subroutine filteredPowerRetabulate(self,mass)
     !% Tabulate the cosmological mass variance.
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Warn
+    use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: Galacticus_Error        , only : Galacticus_Warn
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
     double precision                                         , intent(in   ), optional     :: mass
     ! Radius for σ(M) normalization in Mpc/h.
     double precision                                         , parameter                   :: radiusNormalization                =8.0d0
     integer                                                                                :: i                                        , rootVarianceTableCount , &
-         &                                                                                    j                                        , rootVarianceUniqueCount      
+         &                                                                                    j                                        , rootVarianceUniqueCount
     double precision                                                                       :: sigma                                    , smoothingMass          , &
          &                                                                                    massMinimum
     logical                                                  , allocatable  , dimension(:) :: rootVarianceIsUnique
@@ -447,22 +449,22 @@ contains
        self%initialized=.true.
     end if
     return
-    
+
   contains
-  
+
     double precision function rootVariance(useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      use            :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
       use, intrinsic :: ISO_C_Binding
-      use            :: Numerical_Constants_Math
-      use            :: Numerical_Integration
-      use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+      use            :: Numerical_Constants_Math, only : Pi
+      use            :: Numerical_Integration   , only : Integrate         , Integrate_Done
       implicit none
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &
            &                                                         wavenumberMinimum
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
-      
+
       topHatRadius     =(                                             &
            &             +(                                           &
            &               +3.0d0                                     &
@@ -507,7 +509,7 @@ contains
       rootVariance=sqrt(rootVariance)
       return
     end function rootVariance
-    
+
     double precision function varianceIntegrand(wavenumber)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
@@ -522,12 +524,12 @@ contains
            &             )**2
       return
     end function varianceIntegrand
-    
+
     double precision function varianceIntegrandTopHat(wavenumber)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
       double precision, intent(in   ) :: wavenumber
-      
+
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
       varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &

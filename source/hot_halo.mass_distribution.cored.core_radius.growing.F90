@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
-  
-  use Tables
-  use Cosmology_Parameters
-  use Dark_Matter_Halo_Scales
+
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
   !#  <description>Provides an implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.</description>
@@ -57,14 +57,14 @@ contains
   function growingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class which builds the object
     !% from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
     class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
     double precision                                                          :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
-    
+
     !# <inputParameter>
     !#   <name>coreRadiusOverScaleRadius</name>
     !#   <cardinality>1</cardinality>
@@ -92,8 +92,8 @@ contains
 
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
-    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
-    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
     double precision                                          , intent(in   )         :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
@@ -133,7 +133,7 @@ contains
 
   double precision function growingRadius(self,node)
     !% Return the core radius of the hot halo mass distribution.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

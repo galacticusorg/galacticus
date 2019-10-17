@@ -43,7 +43,7 @@ contains
 
   double precision function Error_Function_Real(argument)
     !% Computes the error function.
-    use FGSL, only : FGSL_SF_Erf
+    use :: FGSL, only : FGSL_SF_Erf
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -53,14 +53,14 @@ contains
 
   double precision function Error_Function_Complementary_Real(argument)
     !% Computes the complementary error function.
-    use FGSL, only : FGSL_SF_ErfC
+    use :: FGSL, only : FGSL_SF_ErfC
     implicit none
     double precision, intent(in   ) :: argument
 
     Error_Function_Complementary_Real=FGSL_SF_ErfC(argument)
     return
   end function Error_Function_Complementary_Real
-  
+
   elemental double complex function Error_Function_Complex(argument)
     !% Computes the complex complementary error function.
     implicit none
@@ -72,7 +72,7 @@ contains
 
   elemental double complex function Error_Function_Complementary_Complex(argument)
     !% Computes the complex complementary error function, using the algorithm of \cite{abrarov_rapid_2013}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double complex  , intent(in   ) :: argument
     integer         , parameter     :: N        =23
@@ -162,16 +162,16 @@ contains
     !% The \href{http://en.wikipedia.org/wiki/Faddeeva_function}{Fadeeva function}.
     implicit none
     double complex  , intent(in   ) :: argument
-    
+
     Faddeeva=exp(-argument**2)*Error_Function_Complementary(-dcmplx(0.0d0,1.0d0)*argument)
     return
   end function Faddeeva
-  
+
  function erfApproximateQuad(x)
     !% An \href{http://sites.google.com/site/winitzki/sergei-winitzkis-files/erf-approx.pdf}{approximation to the error function}
     !% that is designed to be very accurate in the vicinity of zero and infinity.
-    use Kind_Numbers
-    use Numerical_Constants_Math
+    use :: Kind_Numbers            , only : kind_quad
+    use :: Numerical_Constants_Math, only : PiQuadPrecision
     implicit none
     real(kind=kind_quad)                :: erfApproximateQuad
     real(kind=kind_quad), intent(in   ) :: x

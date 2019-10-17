@@ -21,10 +21,10 @@
 
 program Test_Sort_Topological
   !% Tests of topological sorting functions.
-  use Unit_Tests         , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
-  use Sorting_Topological, only : Sort_Topological
-  use Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use Galacticus_Error   , only : errorStatusFail               , errorStatusSuccess
+  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error   , only : errorStatusFail               , errorStatusSuccess
+  use :: Sorting_Topological, only : Sort_Topological
+  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer, parameter                      :: countObjects=10, countDependencies=5
   integer, dimension(countObjects       ) :: order
@@ -32,7 +32,7 @@ program Test_Sort_Topological
   integer                                 :: countOrdered   , status             , &
        &                                     i              , j
   logical                                 :: success
-  
+
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   call Unit_Tests_Begin_Group("Topological sorting")
   ! A case with circular dependencies.

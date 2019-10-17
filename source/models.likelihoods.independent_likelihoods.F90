@@ -19,6 +19,8 @@
 
   !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
 
+  use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
+
   type, public :: posteriorSampleLikelihoodList
      class  (posteriorSampleLikelihoodClass), pointer                   :: modelLikelihood_
      integer                                , dimension(:), allocatable :: parameterMap                     , parameterMapInactive
@@ -47,15 +49,15 @@
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
   end interface posteriorSampleLikelihoodIndependentLikelihoods
-  
+
 contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters
+    use :: String_Handling , only : String_Count_Words     , String_Split_Words                 , char
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
@@ -63,7 +65,7 @@ contains
     integer                                                                 :: i                 , parameterMapCount, &
          &                                                                     errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
-    
+
     if     (                                                                                   &
          &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
          &  /=                                                                                 &
@@ -115,7 +117,7 @@ contains
 
     return
   end function independentLikelihoodsConstructorInternal
-  
+
   subroutine independentLikelihoodsDestructor(self)
     !% Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
@@ -139,10 +141,10 @@ contains
     end if
     return
   end subroutine independentLikelihoodsDestructor
-  
+
   double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
@@ -155,7 +157,7 @@ contains
     logical                                                          , intent(inout), optional     :: forceAcceptance
     type            (posteriorSampleLikelihoodList                  ), pointer                     :: modelLikelihood_
     double precision                                                 , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
-    real                                                                                           :: timeEvaluate_ 
+    real                                                                                           :: timeEvaluate_
     double precision                                                                               :: logLikelihoodVariance_
     integer                                                                                        :: i                     , j
     !GCC$ attributes unused :: forceAcceptance
@@ -178,7 +180,7 @@ contains
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
+             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
@@ -229,9 +231,9 @@ contains
             &                                                        +timeEvaluate
        modelLikelihood_                                           =>  modelLikelihood_%next
     end do
-    return    
+    return
   end function independentLikelihoodsEvaluate
-  
+
   subroutine independentLikelihoodsFunctionChanged(self)
     !% Respond to possible changes in the likelihood function.
     implicit none

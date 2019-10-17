@@ -39,13 +39,13 @@ contains
 
   function isolatedNodesParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
-    
+
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function isolatedNodesParameters
@@ -109,7 +109,7 @@ contains
           self%nodesRemain_ =  .false.
           node              => null()
           isolatedNodesNext =  .false.
-          return  
+          return
        end if
     end if
     ! Walk to the next node in the tree.

@@ -21,9 +21,9 @@
 
 program Tests_Regular_Expressions
   !% Tests regular expression functionality.
-  use Unit_Tests
-  use Regular_Expressions
-  use Galacticus_Display
+  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Regular_Expressions, only : regEx
+  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(regEx) :: thisRegEx
 

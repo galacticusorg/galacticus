@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
-  
+
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl">
   !#  <description>
   !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
@@ -52,19 +52,19 @@
   end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
   double precision, parameter :: indpndntLklhdsSqntLogLikelihoodIncrement=1.0d2
-  
+
 contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
     integer                                                              :: i
-    
+
     !# <inputParameter>
     !#   <name>finalLikelihoodFullEvaluation</name>
     !#   <variable>self%finalLikelihoodFullEvaluation</variable>
@@ -117,7 +117,7 @@ contains
     logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation, restoreLevels
     double precision                                              , intent(in   ), dimension(:) :: likelihoodMultiplier         , likelihoodAccept
     !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, restoreLevels, likelihoodMultiplier, likelihoodAccept"/>
-    
+
     ! The evaluateCount value is the likelihood number at which we have achieved success so far.
     self%evaluateCount      =0
     self%evaluateCountGlobal=0
@@ -128,12 +128,12 @@ contains
 
   double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use Models_Likelihoods_Constants
-    use MPI_Utilities
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: MPI_Utilities               , only : mpiSelf
+    use :: Models_Likelihoods_Constants, only : logImpossible             , logImprobable
+    use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
     class           (posteriorSampleStateClass                   ), intent(inout)               :: simulationState
@@ -207,7 +207,7 @@ contains
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
+             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
@@ -269,8 +269,8 @@ contains
        if (timeEvaluate_     >= 0.0d0        ) timeEvaluate                            =+timeEvaluate                             &
             &                                                                           +timeEvaluate_
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
-          if (likelihoodCount > evaluateCounts(simulationState%chainIndex()) .or. self%restored) then                
-             ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaulation after being restored.)      
+          if (likelihoodCount > evaluateCounts(simulationState%chainIndex()) .or. self%restored) then
+             ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaulation after being restored.)
              ! Force acceptance if this is the first time we have reached this far (unless the proposed prior is impossible - we
              ! do not want to accept states outside of the prior bounds).
              if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex()) .and. logPriorProposed > logImpossible) then
@@ -281,7 +281,7 @@ contains
              ! Check for acceptable likelihood.
              if (logLikelihood >= 0.0d0) then
                 ! We have achieved a match at a new likelihood.
-                evaluateCounts(simulationState%chainIndex())=likelihoodCount                   
+                evaluateCounts(simulationState%chainIndex())=likelihoodCount
              else
                 ! We have evaluated at least as many likelihoods as previously, but now have a negative likelihood. Do not evaluate
                 ! further.
@@ -311,7 +311,7 @@ contains
     end do
     ! Unset restored status - the likelihood has now been evaluated.
     self%restored=.false.
-    return    
+    return
   end function independentLikelihoodsSequantialEvaluate
 
   subroutine independentLikelihoodsSequentialRestore(self,simulationState,logLikelihood)
@@ -321,7 +321,7 @@ contains
     double precision                                              , intent(in   ), dimension(:) :: simulationState
     double precision                                              , intent(in   )               :: logLikelihood
     !GCC$ attributes unused :: simulationState
-    
+
     ! Detect the sequential state jumping to the next level.
     if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then
        ! Increment the record of the level achieved.

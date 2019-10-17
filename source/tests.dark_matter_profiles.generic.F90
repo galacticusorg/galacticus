@@ -21,21 +21,22 @@
 
 program Test_Dark_Matter_Profiles_Generic
   !% Tests that numerical differentiation functions work.
-  use Input_Parameters
-  use Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard   , Galacticus_Display_Message
-  use Unit_Tests                  , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish             , Assert                      , &
-       &                                   Skip
-  use Galacticus_Nodes            , only : treeNode                      , nodeComponentBasic  , nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, &
-       &                                   nodeClassHierarchyFinalize
-  use Functions_Global_Utilities  , only : Functions_Global_Set
-  use Node_Components
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Dark_Matter_Profiles_DMO
-  use Dark_Matter_Profiles
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use Events_Hooks                , only : eventsHooksInitialize
+  use :: Cosmology_Functions         , only : cosmologyFunctions           , cosmologyFunctionsClass
+  use :: Cosmology_Parameters        , only : cosmologyParameters          , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale          , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles        , only : darkMatterProfile            , darkMatterProfileDarkMatterOnly
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert  , darkMatterProfileDMOEinasto             , darkMatterProfileDMOIsothermal     , darkMatterProfileDMONFW       , &
+          &                                   darkMatterProfileDMOTruncated, darkMatterProfileDMOTruncatedExponential
+  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
+  use :: Events_Hooks                , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities  , only : Functions_Global_Set
+  use :: Galacticus_Display          , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level_Set          , verbosityStandard
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize   , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                   treeNode
+  use :: Input_Parameters            , only : inputParameters
+  use :: Node_Components             , only : Node_Components_Initialize   , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                       , Skip                                    , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
+          &                                   Unit_Tests_Finish
   implicit none
   class           (darkMatterHaloScaleClass                ), pointer      :: darkMatterHaloScale_
   type            (darkMatterProfileDMOIsothermal          ), pointer      :: darkMatterProfileIsothermal_
@@ -138,7 +139,7 @@ program Test_Dark_Matter_Profiles_Generic
   radiusVirial =+darkMatterHaloScale_%virialRadius      (node_)
   timeDynamical=+darkMatterHaloScale_%dynamicalTimescale(node_)
   radiusScale  =+radiusVirial &
-       &        /concentration             
+       &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale )
   call darkMatterProfile_%shapeSet(shapeProfile)
   call Unit_Tests_Begin_Group("Isothermal profile"   )

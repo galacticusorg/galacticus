@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger mass movements class which uses a simple calculation.
-  
+
   !# <mergerMassMovements name="mergerMassMovementsSimple">
   !#  <description>A merger mass movements class which uses a simple calculation.</description>
   !# </mergerMassMovements>
@@ -41,7 +41,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} merger mass movements class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsSimple)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -76,14 +76,14 @@ contains
     double precision                           , intent(in   ) :: massRatioMajorMerger
     integer                                    , intent(in   ) :: destinationGasMinorMerger
     !# <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger"/>
-    
+
     return
   end function simpleConstructorInternal
 
   subroutine simpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none
     class           (mergerMassMovementsSimple), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node

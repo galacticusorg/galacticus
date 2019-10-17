@@ -19,11 +19,11 @@
 
   !% An implementation of calculations of chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and
   !% \cite{tegmark_small_1997}.
-  
-  use Atomic_Rates_Ionization_Collisional
-  use Atomic_Rates_Recombination_Radiative
-  use Atomic_Cross_Sections_Ionization_Photo
-  
+
+  use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
+  use :: Atomic_Rates_Ionization_Collisional   , only : atomicIonizationRateCollisionalClass
+  use :: Atomic_Rates_Recombination_Radiative  , only : atomicRecombinationRateRadiativeClass
+
   !# <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
   !#  <description>A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.</description>
   !# </chemicalReactionRate>
@@ -175,28 +175,28 @@
      !@ </objectMethods>
      final     ::                                        hydrogenNetworkDestructor
      procedure :: rates                               => hydrogenNetworkRates
-     procedure :: rateH_Electron_to_Hplus_2Electron   => hydrogenNetworkRateH_Electron_to_Hplus_2Electron  
-     procedure :: rateHplus_Electron_to_H_Photon      => hydrogenNetworkRateHplus_Electron_to_H_Photon     
-     procedure :: rateH_Electron_to_Hminus_Photon     => hydrogenNetworkRateH_Electron_to_Hminus_Photon    
-     procedure :: rateH_Hminus_to_H2_Electron         => hydrogenNetworkRateH_Hminus_to_H2_Electron        
-     procedure :: rateH_Hplus_to_H2plus_Photon        => hydrogenNetworkRateH_Hplus_to_H2plus_Photon       
-     procedure :: rateH2plus_H_to_H2_Hplus            => hydrogenNetworkRateH2plus_H_to_H2_Hplus           
-     procedure :: rateH2_Hplus_to_H2plus_H            => hydrogenNetworkRateH2_Hplus_to_H2plus_H           
-     procedure :: rateH2_Electron_to_2H_Electron      => hydrogenNetworkRateH2_Electron_to_2H_Electron     
-     procedure :: rateH2_H_to_3H                      => hydrogenNetworkRateH2_H_to_3H                     
-     procedure :: rateHminus_Electron_to_H_2Electron  => hydrogenNetworkRateHminus_Electron_to_H_2Electron 
-     procedure :: rateHminus_H_to_2H_Electron         => hydrogenNetworkRateHminus_H_to_2H_Electron        
-     procedure :: rateHminus_Hplus_to_2H              => hydrogenNetworkRateHminus_Hplus_to_2H             
+     procedure :: rateH_Electron_to_Hplus_2Electron   => hydrogenNetworkRateH_Electron_to_Hplus_2Electron
+     procedure :: rateHplus_Electron_to_H_Photon      => hydrogenNetworkRateHplus_Electron_to_H_Photon
+     procedure :: rateH_Electron_to_Hminus_Photon     => hydrogenNetworkRateH_Electron_to_Hminus_Photon
+     procedure :: rateH_Hminus_to_H2_Electron         => hydrogenNetworkRateH_Hminus_to_H2_Electron
+     procedure :: rateH_Hplus_to_H2plus_Photon        => hydrogenNetworkRateH_Hplus_to_H2plus_Photon
+     procedure :: rateH2plus_H_to_H2_Hplus            => hydrogenNetworkRateH2plus_H_to_H2_Hplus
+     procedure :: rateH2_Hplus_to_H2plus_H            => hydrogenNetworkRateH2_Hplus_to_H2plus_H
+     procedure :: rateH2_Electron_to_2H_Electron      => hydrogenNetworkRateH2_Electron_to_2H_Electron
+     procedure :: rateH2_H_to_3H                      => hydrogenNetworkRateH2_H_to_3H
+     procedure :: rateHminus_Electron_to_H_2Electron  => hydrogenNetworkRateHminus_Electron_to_H_2Electron
+     procedure :: rateHminus_H_to_2H_Electron         => hydrogenNetworkRateHminus_H_to_2H_Electron
+     procedure :: rateHminus_Hplus_to_2H              => hydrogenNetworkRateHminus_Hplus_to_2H
      procedure :: rateHminus_Hplus_to_H2plus_Electron => hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron
-     procedure :: rateH2plus_Electron_to_2H           => hydrogenNetworkRateH2plus_Electron_to_2H          
-     procedure :: rateH2plus_Hminus_to_H2_H           => hydrogenNetworkRateH2plus_Hminus_to_H2_H          
-     procedure :: rateH_Gamma_to_Hplus_Electron       => hydrogenNetworkRateH_Gamma_to_Hplus_Electron      
-     procedure :: rateHminus_Gamma_to_H_Electron      => hydrogenNetworkRateHminus_Gamma_to_H_Electron     
-     procedure :: rateH2_Gamma_to_H2plus_Electron     => hydrogenNetworkRateH2_Gamma_to_H2plus_Electron    
-     procedure :: rateH2plus_Gamma_to_H_Hplus         => hydrogenNetworkRateH2plus_Gamma_to_H_Hplus        
+     procedure :: rateH2plus_Electron_to_2H           => hydrogenNetworkRateH2plus_Electron_to_2H
+     procedure :: rateH2plus_Hminus_to_H2_H           => hydrogenNetworkRateH2plus_Hminus_to_H2_H
+     procedure :: rateH_Gamma_to_Hplus_Electron       => hydrogenNetworkRateH_Gamma_to_Hplus_Electron
+     procedure :: rateHminus_Gamma_to_H_Electron      => hydrogenNetworkRateHminus_Gamma_to_H_Electron
+     procedure :: rateH2_Gamma_to_H2plus_Electron     => hydrogenNetworkRateH2_Gamma_to_H2plus_Electron
+     procedure :: rateH2plus_Gamma_to_H_Hplus         => hydrogenNetworkRateH2plus_Gamma_to_H_Hplus
      procedure :: rateH2plus_Gamma_to_2Hplus_Electron => hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron
-     procedure :: rateH2_Gamma_to_H2star_to_2H        => hydrogenNetworkRateH2_Gamma_to_H2star_to_2H       
-     procedure :: rateH2_Gamma_to_2H                  => hydrogenNetworkRateH2_Gamma_to_2H                 
+     procedure :: rateH2_Gamma_to_H2star_to_2H        => hydrogenNetworkRateH2_Gamma_to_H2star_to_2H
+     procedure :: rateH2_Gamma_to_2H                  => hydrogenNetworkRateH2_Gamma_to_2H
   end type chemicalReactionRateHydrogenNetwork
 
   interface chemicalReactionRateHydrogenNetwork
@@ -208,13 +208,13 @@
   ! Module-scope pointer to self used in integrations.
   class(chemicalReactionRateHydrogenNetwork), pointer :: hydrogenNetworkSelf
   !$omp threadprivate(hydrogenNetworkSelf)
-  
+
 contains
 
   function hydrogenNetworkConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                :: self
     type   (inputParameters                       ), intent(inout) :: parameters
@@ -247,7 +247,8 @@ contains
   function hydrogenNetworkConstructorInternal(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
     !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     !% input.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                        :: self
     logical                                        , intent(in   )         :: fast
@@ -255,7 +256,7 @@ contains
     class  (atomicRecombinationRateRadiativeClass ), intent(in   ), target :: atomicRecombinationRateRadiative_
     class  (atomicCrossSectionIonizationPhotoClass), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     !# <constructorAssign variables="fast, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_"/>
-    
+
     ! Get indices for chemicals as necessary.
     if (self%fast) then
        ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
@@ -282,11 +283,11 @@ contains
     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
     return
   end subroutine hydrogenNetworkDestructor
-  
+
   subroutine hydrogenNetworkRates(self,temperature,chemicalDensity,radiation,chemicalRates,node)
     !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
-    use Radiation_Fields
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Radiation_Fields, only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
@@ -348,7 +349,8 @@ contains
 
   subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -360,7 +362,7 @@ contains
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                     , rateCoefficient
     !GCC$ attributes unused :: self, radiation
-    
+
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hplus_2Electron_Init)
@@ -398,7 +400,8 @@ contains
 
   subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -448,7 +451,8 @@ contains
 
   subroutine hydrogenNetworkRateH_Electron_to_Hminus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -528,7 +532,8 @@ contains
 
   subroutine hydrogenNetworkRateH_Hminus_to_H2_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -586,8 +591,8 @@ contains
 
   double precision function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
     !% Computes the rate coefficient (in units of c$^3$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use :: Numerical_Constants_Units   , only : electronVolt
     implicit none
     double precision, intent(in   ) :: temperature
     double precision                :: logNaturalTemperatureElectronVolts, temperatureElectronVolts
@@ -617,9 +622,10 @@ contains
 
   subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : boltzmannsConstant
+    use :: Numerical_Constants_Units    , only : electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -678,7 +684,8 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -734,9 +741,10 @@ contains
 
   subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$.
-    use Radiation_Fields
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : boltzmannsConstant
+    use :: Numerical_Constants_Units    , only : electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -809,7 +817,8 @@ contains
 
   subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -860,9 +869,10 @@ contains
 
   subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : boltzmannsConstant
+    use :: Numerical_Constants_Units    , only : electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -918,7 +928,8 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -970,8 +981,8 @@ contains
 
   double precision function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
     !% Computes the rate coefficient (in units of cm$^3$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use :: Numerical_Constants_Units   , only : electronVolt
     implicit none
     double precision, intent(in   ) :: temperature
     double precision                :: logNaturalTemperatureElectronVolts, temperatureElectronVolts
@@ -997,9 +1008,10 @@ contains
 
   subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : boltzmannsConstant
+    use :: Numerical_Constants_Units    , only : electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1070,7 +1082,8 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1131,9 +1144,10 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : boltzmannsConstant
+    use :: Numerical_Constants_Units    , only : electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1146,7 +1160,7 @@ contains
     double precision                                                     :: rate                                       , rateCoefficient                          , &
          &                                                                  temperatureElectronVolts
     !GCC$ attributes unused :: radiation
-    
+
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
@@ -1202,7 +1216,8 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1257,7 +1272,8 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$.
-    use Radiation_Fields
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1314,10 +1330,11 @@ contains
   end subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H
 
   subroutine hydrogenNetworkRateHminus_Gamma_to_H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
-    !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$.
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass, radiationFieldCosmicMicrowaveBackground
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1334,7 +1351,7 @@ contains
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                            , rateCoefficient
     !GCC$ attributes unused :: self, temperature
-    
+
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
@@ -1381,8 +1398,8 @@ contains
     !% using the fitting function given by \cite{shapiro_hydrogen_1987}, renormalized\footnote{It seems unclear what units were
     !% used in \protect\cite{shapiro_hydrogen_1987}, hence the recalibration.} to match the results of
     !% \cite{nascimento_photodetachment_1977}.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
     implicit none
     double precision, intent(in   ) :: wavelength
     double precision, parameter     :: energyThreshold=0.755d0
@@ -1401,9 +1418,10 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass, radiationFieldCosmicMicrowaveBackground
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1422,7 +1440,7 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
     !GCC$ attributes unused :: self, temperature
-    
+
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
@@ -1466,8 +1484,8 @@ contains
   double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$
     !% as given by \cite{shapiro_hydrogen_1987}.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
     implicit none
     double precision, intent(in   ) :: wavelength
     double precision                :: energy
@@ -1496,9 +1514,11 @@ contains
   subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow H_2^* \rightarrow
     !% 2\hbox{H}$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Math     , only : Pi
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1548,9 +1568,10 @@ contains
 
   subroutine hydrogenNetworkRateH2_Gamma_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1611,8 +1632,8 @@ contains
     !% \hbox{e}^-$ as given by\footnote{\protect\cite{abel_modeling_1997} cite ``O'Neil \& Reinhardt (1978)'' as the source for
     !% this fit, but it is not listed in their bibliography, and I have not been able to locate by any other means.}
     !% \cite{abel_modeling_1997}.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
     implicit none
     double precision, intent(in   ) :: wavelength
     double precision                :: energy
@@ -1635,9 +1656,10 @@ contains
   subroutine hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1697,8 +1719,8 @@ contains
   double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
     implicit none
     double precision, intent(in   ) :: wavelength
     double precision                :: energy
@@ -1722,9 +1744,10 @@ contains
   subroutine hydrogenNetworkRateH2_Gamma_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
@@ -1778,8 +1801,8 @@ contains
   double precision function hydrogenNetworkCrossSection_H2_Gamma_to_2H(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     !% \cite{abel_modeling_1997}.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
     implicit none
     double precision, intent(in   ) :: wavelength
     double precision, parameter     :: ratioOrthoToPara       =0.0d0                         !   Assume all H_2 is in the para- configuration.
@@ -1823,9 +1846,10 @@ contains
   subroutine hydrogenNetworkRateH_Gamma_to_Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ +
     !% \hbox{e}^-$.
-    use Radiation_Fields
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
+    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), target   , intent(inout) :: self
     double precision                                                , intent(in   ) :: temperature
@@ -1842,7 +1866,7 @@ contains
          &                                                                             electronChemicalIndex
     double precision                                                                :: rate                                                                                                             , rateCoefficient
     !GCC$ attributes unused :: self, temperature
-    
+
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(hydrogenNetworkRateH_Gamma_to_H_Electron)

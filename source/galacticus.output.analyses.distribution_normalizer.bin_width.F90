@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a bin width output analysis distribution normalizer class.
-  
+
   !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth">
   !#  <description>A bin width output analysis distribution normalizer class.</description>
   !# </outputAnalysisDistributionNormalizer>
@@ -38,12 +38,12 @@ contains
 
   function binWidthConstructorParameters(parameters) result(self)
     !% Constructor for the ``binWidth'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=outputAnalysisDistributionNormalizerBinWidth()
     return
   end function binWidthConstructorParameters

@@ -19,11 +19,11 @@
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
 
-  use Stateful_Types
-  use ISO_Varying_String
-  use Pseudo_Random
-  use Cosmology_Functions
-  use Cosmology_Parameters
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: ISO_Varying_String
+  use :: Pseudo_Random       , only : pseudoRandom
+  use :: Stateful_Types
 
   !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
   !#  <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
@@ -117,7 +117,7 @@
      module procedure sussingConstructorParameters
      module procedure sussingConstructorInternal
   end interface mergerTreeImporterSussing
-  
+
   ! Enumeration of bad value test options
   !# <enumeration>
   !#  <name>sussingBadValueTest</name>
@@ -126,7 +126,7 @@
   !#  <entry label="lessThan"   />
   !#  <entry label="greaterThan"/>
   !# </enumeration>
-  
+
   ! Enumeration of halo mass definitions.
   !# <enumeration>
   !#  <name>sussingMassOption</name>
@@ -138,12 +138,12 @@
   !#  <entry label="200Crit"/>
   !#  <entry label="topHat" />
   !# </enumeration>
- 
+
 contains
 
   function sussingConstructorParameters(parameters) result(self)
     !% Constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeImporterSussing)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -245,7 +245,7 @@ contains
          &                         cosmologyParameters_                                                               , &
          &                         cosmologyFunctions_                                                                  &
          &                        )
-    !# <inputParametersValidate source="parameters"/>    
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
@@ -279,13 +279,13 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine sussingDestructor
-  
+
   subroutine sussingClose(self)
     !% Close a {\normalfont \ttfamily sussing} format merger tree file.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     return
   end subroutine sussingClose
 
@@ -301,7 +301,7 @@ contains
 
   integer function sussingTreesHaveSubhalos(self)
     !% Return a Boolean integer specifying whether or not the trees have subhalos.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -312,7 +312,7 @@ contains
 
   logical function sussingMassesIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -323,7 +323,7 @@ contains
 
   logical function sussingAngularMomentaIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -334,7 +334,7 @@ contains
 
   integer function sussingTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -345,7 +345,7 @@ contains
 
   integer function sussingVelocitiesIncludeHubbleFlow(self)
     !% Return a Boolean integer specifying whether or not velocities include the Hubble flow.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanFalse
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -356,7 +356,7 @@ contains
 
   integer function sussingPositionsArePeriodic(self)
     !% Return a Boolean integer specifying whether or not positions are periodic.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -367,13 +367,13 @@ contains
 
   double precision function sussingCubeLength(self,time,status)
     !% Return the length of the simulation cube.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Boolean     , only : booleanTrue
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)           :: self
     double precision                           , intent(in   )           :: time
     integer                                    , intent(  out), optional :: status
- 
+
     sussingCubeLength=importerUnitConvert(self%boxLength,time,self%boxLengthUnits,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
     if (present(status)) status=booleanTrue
     return
@@ -414,17 +414,17 @@ contains
 
   subroutine sussingTreeIndicesRead(self)
     !% Read the tree indices.
+    use            :: Arrays_Search                   , only : Search_Indexed
+    use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                                    Galacticus_Display_Unindent, Galacticus_Verbosity_Level      , verbosityWorking
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Kind_Numbers
-    use String_Handling
-    use Sort
-    use Memory_Management
-    use Arrays_Search
-    use Array_Utilities
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use            :: Kind_Numbers                    , only : kind_int8
+    use            :: Memory_Management               , only : allocateArray              , deallocateArray
+    use            :: Numerical_Constants_Astronomical, only : massSolar                  , megaParsec
+    use            :: Numerical_Constants_Prefixes    , only : kilo
+    use            :: Sort                            , only : Sort_Index_Do
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussing), intent(inout)                 :: self
     integer  (kind=kind_int8           ), allocatable  , dimension(:  ) :: nodeSelfIndices            , nodeTreeIndices
@@ -442,7 +442,7 @@ contains
     type     (varying_string           )                                :: message
     integer  (kind=kind_int8           )                                :: treeIndexPrevious          , treeIndexCurrent       , &
          &                                                                 treeIndexTo                , treeIndexFrom
- 
+
     ! Return if indices have been read previously.
     if (self%treeIndicesRead) return
     self%treeIndicesRead=.true.
@@ -465,7 +465,7 @@ contains
     do i=1,nodeCountTrees
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
           l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
-          ! Detect missing host.          
+          ! Detect missing host.
           if (l < 1 .or. l > nodeCountTrees) cycle
           l=nodeIndexRanks(l)
           if (self%nodes(l)%nodeIndex /= self%nodes(i)%hostIndex) cycle
@@ -487,7 +487,7 @@ contains
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
           ! Find the host.
           l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
-          ! Detect missing host.          
+          ! Detect missing host.
           if (l < 1 .or. l > nodeCountTrees) cycle
           l=nodeIndexRanks(l)
           if (self%nodes(l)%nodeIndex /= self%nodes(i)%hostIndex) cycle
@@ -496,7 +496,7 @@ contains
           do while (self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
              ! Find the host.
              j=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
-             ! Detect missing host.          
+             ! Detect missing host.
              if (j < 1 .or. j > nodeCountTrees) exit
              j=nodeIndexRanks(j)
              if (self%nodes(j)%nodeIndex /= self%nodes(l)%hostIndex) exit
@@ -527,7 +527,7 @@ contains
           call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
           l=i
           hostStepCount=0
-          do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
+          do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
              ! Find the host halo.
              k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
              ! Check for missing hosts.
@@ -591,11 +591,11 @@ contains
              end if
              l=k
              hostStepCount=0
-             do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
+             do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
                 k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
                 ! Check for missing hosts.
                 if (self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) exit
-                ! Perform sanity checks. 
+                ! Perform sanity checks.
                 if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
                    message='host exists at different time from hosted node'
                    message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
@@ -814,9 +814,7 @@ contains
 
   double precision function sussingTreeWeight(self,i)
     !% Return the weight to assign to trees.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
@@ -833,7 +831,7 @@ contains
     class  (mergerTreeImporterSussing), intent(inout) :: self
     logical                           , intent(in   ) :: positions, velocities
     !GCC$ attributes unused :: self, positions, velocities
-    
+
     sussingPositionsAvailable=.true.
     return
   end function sussingPositionsAvailable
@@ -853,7 +851,7 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     sussingParticleCountAvailable=.false.
     return
   end function sussingParticleCountAvailable
@@ -883,7 +881,7 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     sussingAngularMomentaAvailable=.false.
     return
   end function sussingAngularMomentaAvailable
@@ -902,7 +900,7 @@ contains
     !% Return true if spins are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    
+
     call sussingTreeIndicesRead(self)
     sussingSpinAvailable=self%spinsAvailableValue
     return
@@ -920,7 +918,7 @@ contains
 
   subroutine sussingSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                 :: self
     class           (nodeData                 ), intent(in   )                 :: node
@@ -939,7 +937,7 @@ contains
     class  (mergerTreeImporterSussing), intent(inout) :: self
     class  (nodeData                 ), intent(in   ) :: node
     !GCC$ attributes unused :: self, node
-    
+
     ! No particle data is available.
     sussingSubhaloTraceCount=0
     return
@@ -947,8 +945,8 @@ contains
 
   subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                            :: self
     integer                                    , intent(in   )                            :: i
@@ -961,7 +959,7 @@ contains
     type            (varying_string           ), intent(in   ), optional   , dimension(:) :: requireNamedReals         , requireNamedIntegers
     integer         (c_size_t                 )                                           :: j
     !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireSpin, requireSpin3D, requireNamedReals, requireNamedIntegers
-    
+
     ! Decide if this tree should be included.
     if (self%randomSequence%uniformSample() <= self%treeSampleRate) then
     ! Validate arguments.
@@ -987,7 +985,7 @@ contains
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x,y,z
     logical                                    , intent(in   ) :: buffered
-    
+
     sussingInSubvolume=                                                       &
          &              self%inSubvolume1D(x,self%subvolumeIndex(1),buffered) &
          &             .and.                                                  &
@@ -999,7 +997,7 @@ contains
 
   logical function sussingInSubvolume1D(self,x,iSubvolume,buffered)
     !% Determine if a point lies within the 1-D range of a subvolume of the simulation box (possibly with some buffering).
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : kiloParsec, megaParsec
     implicit none
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
@@ -1007,7 +1005,7 @@ contains
     logical                                    , intent(in   ) :: buffered
     double precision                                           :: subvolumeCenter, boxLength, &
          &                                                        buffer
-  
+
     if (self%subvolumeCount <= 1) then
        sussingInSubvolume1D=.true.
     else
@@ -1030,7 +1028,7 @@ contains
     !% Determine the separation between two points in a periodic cube.
     implicit none
     double precision, intent(in   ) :: x1,x2,periodicLength
-    
+
     sussingPeriodicSeparation=x1-x2
     do while (sussingPeriodicSeparation > 0.5d0*periodicLength)
        sussingPeriodicSeparation=sussingPeriodicSeparation-periodicLength
@@ -1040,10 +1038,10 @@ contains
     end do
     return
   end function sussingPeriodicSeparation
-  
+
   logical function sussingValueIsBad(self,x)
     !% Determine if a value in a ``Sussing'' merger tree file is bad
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
@@ -1062,7 +1060,7 @@ contains
 
   subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout)                            :: self
     integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices
@@ -1073,8 +1071,8 @@ contains
     type   (importerUnits            ), intent(  out)                            :: massUnits          , lengthUnits            , &
          &                                                                          velocityUnits
     !GCC$ attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
-    
+
     call Galacticus_Error_Report('this function should not be accessed'//{introspection:location})
     return
   end subroutine sussingLoad
-  
+

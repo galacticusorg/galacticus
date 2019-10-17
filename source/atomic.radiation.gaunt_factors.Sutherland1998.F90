@@ -19,7 +19,7 @@
 
   !% An implementation of Gaunt factors using the \cite{sutherland_accurate_1998} fitting function.
 
-  use Atomic_Ionization_Potentials
+  use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
   !# <gauntFactor name="gauntFactorSutherland1998">
   !#  <description>Gaunt factors are computed using the fitting function of \cite{sutherland_accurate_1998}.</description>
@@ -38,7 +38,7 @@
      module procedure sutherland1998ConstructorParameters
      module procedure sutherland1998ConstructorInternal
   end interface gauntFactorSutherland1998
-  
+
   ! Arrays to hold coefficients of the fitting function.
   integer         , parameter                                 :: sutherland1998CoefficientCount       =  41
   double precision, dimension(sutherland1998CoefficientCount) :: sutherland1998EnergyScalesLogarithmic=[                                                                 &
@@ -111,7 +111,7 @@ contains
 
   function sutherland1998ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gauntFactorSutherland1998     )                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -145,19 +145,19 @@ contains
 
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    !% \cite{sutherland_accurate_1998}. 
+    !% \cite{sutherland_accurate_1998}.
+    use            :: Arrays_Search               , only : Search_Array
+    use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Constants_Physical
-    use               Numerical_Constants_Units
-    use               Arrays_Search
-    use               Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use            :: Numerical_Constants_Units   , only : electronVolt
     implicit none
     class           (gauntFactorSutherland1998), intent(inout) :: self
     integer                                    , intent(in   ) :: atomicNumber     , electronNumber
     double precision                           , intent(in   ) :: temperature
     integer         (c_size_t                 )                :: iTable
     double precision                                           :: energyScaleOffset, energyScaleLogarithmic
-    
+
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
        sutherland1998Total=0.0d0

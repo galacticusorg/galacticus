@@ -35,18 +35,18 @@ module Array_Utilities
      module procedure Array_Reverse_Double
      module procedure Array_Reverse_SizeT
   end interface Array_Reverse
-  
+
   interface Array_Cumulate
      !% Interface to generic routines which cumulate values in an array.
      module procedure Array_Cumulate_Double
   end interface Array_Cumulate
-  
+
   interface Array_Is_Monotonic
      !% Interface to generic routines which check if an array is monotonic.
      module procedure Array_Is_Monotonic_Integer8
      module procedure Array_Is_Monotonic_Double
   end interface Array_Is_Monotonic
-  
+
   interface Array_Index
      !% Interface to generic routines which return a subset of an array given indices into the array.
      module procedure Array_Index_Integer8
@@ -54,7 +54,7 @@ module Array_Utilities
      module procedure Array_Index_Double
      module procedure Array_Index_Double_2D
   end interface Array_Index
-  
+
   ! Types of direction for monotonic arrays.
   integer, parameter, public :: directionDecreasing=-1
   integer, parameter, public :: directionIncreasing=1
@@ -204,7 +204,7 @@ contains
 
   subroutine Array_Which(mask,indices)
     !% Return an array of indices for which {\normalfont \ttfamily mask} is true.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     logical, intent(in   ) :: mask   (:)
     integer, intent(  out) :: indices(:)
@@ -252,7 +252,7 @@ contains
 
   function Array_Index_Integer8(array,indices) result (arraySubset)
     !% Return a subset of an integer array given a set of indices into the array.
-    use Kind_Numbers
+    use :: Kind_Numbers, only : kind_int8
     implicit none
     integer(kind=kind_int8), dimension(:)            , intent(in   ) :: array
     integer                , dimension(:)            , intent(in   ) :: indices
@@ -267,7 +267,7 @@ contains
 
   function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
     !% Return a subset of a 2D double precision array given a set of indices into the array.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision             , dimension(:,:), intent(in   )           :: array
     integer                      , dimension(:  ), intent(in   )           :: indices
@@ -297,7 +297,7 @@ contains
 
   logical function Array_Is_Monotonic_Integer8(array,direction,allowEqual)
     !% Checks if an integer array is monotonic.
-    use Kind_Numbers
+    use :: Kind_Numbers, only : kind_int8
     implicit none
     integer(kind=kind_int8), intent(in   )           :: array           (:)
     integer                , intent(in   ), optional :: direction
@@ -382,7 +382,7 @@ contains
   end function Array_Is_Monotonic_Integer8
 
   function Array_Intersection_Varying_String(a,b)
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     type   (varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
     type   (varying_string), intent(in   ), dimension(:) :: a, b
@@ -408,7 +408,7 @@ contains
   logical function Array_Is_Uniform(array,tolerance,logarithmic)
     !% Return true if an array is uniformly distributed (optionally in the logarithm of its
     !% values) to the given tolerance.
-    use Numerical_Comparison
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     double precision, intent(in   ), dimension(:) :: array
     double precision, intent(in   )               :: tolerance
@@ -435,5 +435,5 @@ contains
     end do
     return
   end function Array_Is_Uniform
-  
+
 end module Array_Utilities

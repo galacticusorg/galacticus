@@ -85,11 +85,11 @@
      !@ </objectMethods>
      procedure :: destroy              => Merger_Tree_Destroy
      procedure :: getNode              => Merger_Tree_Node_Get
-     procedure :: createEvent          => Merger_Tree_Create_Event                      
-     procedure :: removeEvent          => Merger_Tree_Remove_Event               
-     procedure :: earliestTime         => Merger_Tree_Earliest_Time               
+     procedure :: createEvent          => Merger_Tree_Create_Event
+     procedure :: removeEvent          => Merger_Tree_Remove_Event
+     procedure :: earliestTime         => Merger_Tree_Earliest_Time
      procedure :: earliestTimeEvolving => Merger_Tree_Earliest_Time_Evolving
-     procedure :: latestTime           => Merger_Tree_Latest_Time               
+     procedure :: latestTime           => Merger_Tree_Latest_Time
      procedure :: sizeOf               => Merger_Tree_Size_Of
   end type mergerTree
 
@@ -97,24 +97,24 @@
      !% Interface to merger tree constructors.
      module procedure mergerTreeConstructor
   end interface mergerTree
-  
+
   type, public :: treeEvent
      !% Type for events attached to trees.
     private
-    integer         (kind=kind_int8)         , public :: ID   
-    type            (mergerTree    ), pointer, public :: tree 
-    double precision                         , public :: time 
-    type            (treeEvent     ), pointer, public :: next 
-    procedure       (treeEventTask ), pointer, public :: task 
+    integer         (kind=kind_int8)         , public :: ID
+    type            (mergerTree    ), pointer, public :: tree
+    double precision                         , public :: time
+    type            (treeEvent     ), pointer, public :: next
+    procedure       (treeEventTask ), pointer, public :: task
  end type treeEvent
 
  ! Interface for tree event tasks.
  abstract interface
     logical function treeEventTask(thisEvent,thisTree,deadlockStatus)
       import treeEvent, mergerTree
-      class  (treeEvent ), intent(in   ) :: thisEvent      
-      type   (mergerTree), intent(inout) :: thisTree       
-      integer            , intent(inout) :: deadlockStatus 
+      class  (treeEvent ), intent(in   ) :: thisEvent
+      type   (mergerTree), intent(inout) :: thisTree
+      integer            , intent(inout) :: deadlockStatus
     end function treeEventTask
  end interface
- 
+

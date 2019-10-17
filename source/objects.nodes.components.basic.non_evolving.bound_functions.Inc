@@ -29,7 +29,7 @@ double precision function BasicNonEvolvingTimeLastIsolated(self)
   if (selfNode%isSatellite()) then
      BasicNonEvolvingTimeLastIsolated=self%timeLastIsolatedData
   else
-     BasicNonEvolvingTimeLastIsolated=self%timeData            
+     BasicNonEvolvingTimeLastIsolated=self%timeData
   end if
   return
 end function BasicNonEvolvingTimeLastIsolated

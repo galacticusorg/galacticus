@@ -19,12 +19,12 @@
 
 program Tests_Linear_Growth_EdS
   !% Tests linear growth calculations.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Linear_Growth
-  use Cosmology_Functions
-  use Galacticus_Display
+  use :: Cosmology_Functions, only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters   , only : inputParameters
+  use :: Linear_Growth      , only : componentDarkMatter           , linearGrowth           , linearGrowthClass
+  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
   class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
@@ -50,7 +50,7 @@ program Tests_Linear_Growth_EdS
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowthFactor=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)
-     write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"     
+     write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowthFactor,expansionFactor,relTol=1.0d-3)
   end do
   ! End unit tests.

@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a color distribution output analysis class for SDSS data.
-  
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <outputAnalysis name="outputAnalysisColorDistributionSDSS">
   !#  <description>An SDSS color distribution function output analysis class.</description>
@@ -43,7 +43,7 @@ contains
 
   function colorDistributionSDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``colorDistributionSDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisColorDistributionSDSS)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -69,18 +69,24 @@ contains
 
   function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the ``colorDistributionSDSS'' output analysis class.
-    use ISO_Varying_String
-    use Output_Times
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Paths
-    use IO_HDF5
-    use Memory_Management
-    use Numerical_Comparison
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Cosmology_Parameters            , only : cosmologyParametersSimple
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
+    use :: Galactic_Filters                        , only : galacticFilterStellarMass
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                        , only : galacticusPath                                    , pathTypeDataStatic
+    use :: Geometry_Surveys                        , only : surveyGeometryMonteroDorta2009SDSS
+    use :: IO_HDF5                                 , only : hdf5Access                                        , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorFixed
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorMagnitude     , outputAnalysisPropertyOperatorSequence       , &
+          &                                                 propertyOperatorList
+    use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNormal
+    use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisColorDistributionSDSS               )                              :: self
     integer                                                                          , intent(in   )  :: distributionNumber
@@ -88,8 +94,8 @@ contains
     class           (outputTimesClass                                  ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                         ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                     :: cosmologyFunctionsData
-    type            (nodePropertyExtractorRatio              ), pointer                     :: nodePropertyExtractorRatio_
-    type            (nodePropertyExtractorLmnstyStllrCF2000  ), pointer                     :: nodePropertyExtractorBandR_            , nodePropertyExtractorBandU_
+    type            (nodePropertyExtractorRatio                        ), pointer                     :: nodePropertyExtractorRatio_
+    type            (nodePropertyExtractorLmnstyStllrCF2000            ), pointer                     :: nodePropertyExtractorBandR_                     , nodePropertyExtractorBandU_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorMagnitude           ), pointer                     :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorSequence            ), pointer                     :: outputAnalysisWeightPropertyOperatorSequence_
@@ -269,9 +275,9 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    !# <objectDestructor name="nodePropertyExtractorBandR_"           />
-    !# <objectDestructor name="nodePropertyExtractorBandU_"           />
-    !# <objectDestructor name="nodePropertyExtractorRatio_"           />
+    !# <objectDestructor name="nodePropertyExtractorBandR_"                     />
+    !# <objectDestructor name="nodePropertyExtractorBandU_"                     />
+    !# <objectDestructor name="nodePropertyExtractorRatio_"                     />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
     !# <objectDestructor name="galacticFilter_"                                 />
     !# <objectDestructor name="cosmologyParametersData"                         />
@@ -286,7 +292,7 @@ contains
     !% Destructor for the ``colorDistributionSDSS'' output analysis class.
     implicit none
     type(outputAnalysisColorDistributionSDSS), intent(inout) :: self
-    
-    !# <objectDestructor name="self%cosmologyFunctions_" />    
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine colorDistributionSDSSDestructor

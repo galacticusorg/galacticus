@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body data importer for Gadget HDF5 files.
 
-  use IO_HDF5
-  
+  use :: IO_HDF5, only : hdf5Object
+
   !# <nbodyImporter name="nbodyImporterGadgetHDF5">
   !#  <description>An importer for Gadget HDF5 files.</description>
   !# </nbodyImporter>
@@ -46,7 +46,7 @@ contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
     !% Constructor for the ``gadgetHDF5'' N-body importer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
     type            (inputParameters        ), intent(inout) :: parameters
@@ -102,7 +102,7 @@ contains
     double precision                         , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                      unitLengthInSI ,unitVelocityInSI
     !# <constructorAssign variables="particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
-    
+
     return
   end function gadgetHDF5ConstructorInternal
 
@@ -110,16 +110,16 @@ contains
     !% Destructor for Gadget HF5 importer class.
     implicit none
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
-    
+
     if (self%file%isOpen()) call self%file%close()
     return
   end subroutine gadgetHDF5Destructor
-  
+
   function gadgetHDF5Import(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type            (nBodyData              )                          :: gadgetHDF5Import
     class           (nbodyImporterGadgetHDF5), intent(inout)           :: self

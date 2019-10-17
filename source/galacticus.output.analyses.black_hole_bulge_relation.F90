@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a mass-metallicity relation analysis class.
-  
+
   !# <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
   !#  <description>A mass-metallicity relation output analysis class.</description>
   !# </outputAnalysis>
@@ -37,17 +37,17 @@ contains
 
   function blackHoleBulgeRelationConstructorParameters(parameters) result (self)
     !% Constructor for the ``blackHoleBulgeRelation'' output analysis class which takes a parameter set as input.
-    use Cosmology_Functions
-    use Input_Parameters
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (outputAnalysisBlackHoleBulgeRelation)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
     double precision                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
-    double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum 
+    double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum
 
-    
+
     ! Check and read parameters.
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -99,21 +99,22 @@ contains
 
   function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``blackHoleBulgeRelation'' output analysis class for internal use.
-    use Memory_Management
-    use IO_HDF5
-    use Galacticus_Paths  
-    use Output_Times
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Numerical_Constants_Astronomical
-    use Numerical_Ranges
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterSpheroidStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
+    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
+    use :: Numerical_Comparison                  , only : Values_Agree
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorMinMax, &
+          &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                          , only : outputTimesClass
     implicit none
     type            (outputAnalysisBlackHoleBulgeRelation               )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum

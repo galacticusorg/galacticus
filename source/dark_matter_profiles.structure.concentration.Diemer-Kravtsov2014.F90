@@ -20,11 +20,13 @@
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{diemer_universal_2014} algorithm.
 
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Cosmology_Parameters
-  use Power_Spectra
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Power_Spectra             , only : powerSpectrumClass
+  use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
   !#  <deepCopy>
@@ -74,8 +76,8 @@ contains
     type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                         ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass                        ), pointer       :: cosmologyParameters_     
-    class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_     
+    class           (cosmologyParametersClass                        ), pointer       :: cosmologyParameters_
+    class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
     class           (powerSpectrumClass                              ), pointer       :: powerSpectrum_
     double precision                                                                  :: kappa                    , phi0   , &
@@ -171,21 +173,22 @@ contains
     !# <objectDestructor name="powerSpectrum_"           />
     return
   end function diemerKravtsov2014ConstructorParameters
-  
+
   function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
     !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
     !% concentration class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-      use Dark_Matter_Halo_Scales
-  implicit none
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014  )                         :: self
     double precision                                                    , intent(in   )          :: kappa                          , phi0   , &
          &                                                                                          phi1                           , eta0   , &
          &                                                                                          eta1                           , alpha  , &
          &                                                                                          beta                           , scatter
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
-    class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_     
-    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_     
+    class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
+    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     class           (powerSpectrumClass                                ), intent(in   ), target  :: powerSpectrum_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
@@ -208,7 +211,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%criticalOverdensity_"            />
@@ -242,9 +245,9 @@ contains
   double precision function diemerKravtsov2014ConcentrationMean(self,node)
     !% Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_universal_2014} algorithm.
-    use Numerical_Constants_Math
-    use Math_Exponentiation
-    use Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Math_Exponentiation     , only : cubeRoot
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
     type            (treeNode                                        ), intent(inout), target  :: node
@@ -252,7 +255,7 @@ contains
     double precision                                                                           :: radiusHaloLagrangian, peakHeight        , &
          &                                                                                        wavenumber          , powerSpectrumSlope, &
          &                                                                                        concentrationMinimum, peakHeightMinimum
-    
+
     basic => node%basic()
     if     (                                   &
          &   basic%mass() /= self%massPrevious &
@@ -299,7 +302,7 @@ contains
     implicit none
     class(virialDensityContrastClass                      ), pointer       :: diemerKravtsov2014DensityContrastDefinition
     class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-    
+
     diemerKravtsov2014DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function diemerKravtsov2014DensityContrastDefinition
@@ -307,11 +310,10 @@ contains
   function diemerKravtsov2014DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{diemer_universal_2014} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
     class(darkMatterProfileDMOClass                       ), pointer       :: diemerKravtsov2014DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-  
+
     diemerKravtsov2014DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function diemerKravtsov2014DarkMatterProfileDefinition

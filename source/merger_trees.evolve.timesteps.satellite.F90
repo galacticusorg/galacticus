@@ -39,12 +39,12 @@ contains
 
   function satelliteConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
-    
+
     !# <inputParameter>
     !#   <name>timeOffsetMaximumAbsolute</name>
     !#   <cardinality>1</cardinality>
@@ -70,7 +70,7 @@ contains
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-    use Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -82,9 +82,9 @@ contains
 
   double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
-    use Galacticus_Nodes      , only : nodeComponentBasic, nodeComponentSatellite
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
+    use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
+    use :: ISO_Varying_String
     implicit none
     class           (mergerTreeEvolveTimestepSatellite), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node
@@ -151,10 +151,10 @@ contains
 
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use Merger_Trees_Evolve_Deadlock_Status
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Display
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: ISO_Varying_String
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: String_Handling                    , only : operator(//)
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
@@ -166,7 +166,7 @@ contains
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
     !GCC$ attributes unused :: self, tree
-    
+
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['

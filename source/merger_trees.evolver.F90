@@ -21,11 +21,11 @@
 
 module Merger_Trees_Evolve
   !% Provides a class that implements evolution of merger trees.
-  use    Galacticus_Nodes, only : mergerTree
-  use    Kind_Numbers    , only : kind_int8
-  !$ use OMP_Lib         , only : omp_lock_kind
+  use    :: Galacticus_Nodes, only : mergerTree
+  use    :: Kind_Numbers    , only : kind_int8
+  !$ use :: OMP_Lib         , only : omp_lock_kind
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeEvolver</name>
   !#  <descriptiveName>Merger Tree Evolvers</descriptiveName>
@@ -44,5 +44,5 @@ module Merger_Trees_Evolve
   !#   <argument>integer                        , optional, intent(  out) :: status                         </argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Trees_Evolve

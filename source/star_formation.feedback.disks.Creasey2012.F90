@@ -19,8 +19,8 @@
 
   !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
 
-  use Star_Formation_Rate_Surface_Density_Disks
- 
+  use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
+
   !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
   !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
@@ -45,7 +45,7 @@ contains
 
   function creasey2012ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{creasey_how_2012} star formation feedback in disks class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackDisksCreasey2012    )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -95,7 +95,7 @@ contains
     double precision                                           , intent(in   )         :: mu                                   , nu, &
          &                                                                                beta0
     !# <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_"/>
-    
+
     return
   end function creasey2012ConstructorInternal
 
@@ -107,7 +107,7 @@ contains
     !# <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
     return
   end subroutine creasey2012Destructor
-  
+
   double precision function creasey2012OutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} using
     !% the model of \cite{creasey_how_2012}. The outflow rate is given by
@@ -117,11 +117,11 @@ contains
     !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
     !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
-    use Numerical_Constants_Math
-    use Stellar_Feedback
-    use Numerical_Integration
-    use FGSL                    , only : fgsl_function    , fgsl_integration_workspace
-    use Galacticus_Nodes        , only : nodeComponentDisk
+    use :: FGSL                    , only : fgsl_function                         , fgsl_integration_workspace
+    use :: Galacticus_Nodes        , only : nodeComponentDisk                     , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate                             , Integrate_Done
+    use :: Stellar_Feedback        , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node
@@ -165,14 +165,14 @@ contains
          &                /feedbackEnergyInputAtInfinityCanonical
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
-    
+
   contains
-  
+
     double precision function outflowRateIntegrand(radius)
       !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
-      use Galactic_Structure_Surface_Densities
-      use Galactic_Structure_Options
-      use Numerical_Constants_Prefixes
+      use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+      use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
+      use :: Numerical_Constants_Prefixes        , only : mega
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: fractionGas      , densitySurfaceRateStarFormation, &

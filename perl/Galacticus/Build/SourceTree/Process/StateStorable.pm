@@ -64,7 +64,7 @@ sub Process_StateStorable {
 	(
 	 "fgsl_interp_type"
 	);
-    # Process any stateSotrable directives.
+    # Process any stateStorable directives.
     foreach my $directiveNode ( @directiveNodes ) {
 	my $directive = $directiveNode->{'directive'};
 	# Assert that class must exist.

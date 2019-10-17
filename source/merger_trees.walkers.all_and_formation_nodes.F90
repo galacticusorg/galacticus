@@ -41,13 +41,13 @@ contains
 
   function allAndFormationNodesParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerAllAndFormationNodes)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
-    
+
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function allAndFormationNodesParameters
@@ -58,7 +58,7 @@ contains
     type   (mergerTreeWalkerAllAndFormationNodes)                          :: self
     type   (mergerTree                          ), intent(in   ), target   :: tree
     logical                                      , intent(in   ), optional :: spanForest
-    
+
     self%mergerTreeWalkerAllNodes=mergerTreeWalkerAllNodes(tree,spanForest)
     return
   end function allAndFormationNodesInternal
@@ -93,12 +93,12 @@ contains
 
   subroutine allAndFormationNodesPrevious(self,node)
     !% Step back to the previously visited node.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeWalkerAllAndFormationNodes), intent(inout)          :: self
     type (treeNode                            ), intent(inout), pointer :: node
     !GCC$ attributes unused :: self, node
-    
+
     call Galacticus_Error_Report('returning to previous node is not supported'//{introspection:location})
     return
   end subroutine allAndFormationNodesPrevious

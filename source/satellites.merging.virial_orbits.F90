@@ -21,9 +21,9 @@
 
 module Virial_Orbits
   !% Provides a class implementing satellite orbital parameters at virial radius crossing.
-  use Galacticus_Nodes       , only : treeNode
-  use Virial_Density_Contrast
-  use Kepler_Orbits
+  use :: Galacticus_Nodes       , only : treeNode
+  use :: Kepler_Orbits          , only : keplerOrbit
+  use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
   private
 
   !# <functionClass>

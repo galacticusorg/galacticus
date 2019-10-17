@@ -41,7 +41,7 @@ contains
 
   function mainBranchStatusConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily mainBranchStatus} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
@@ -60,7 +60,7 @@ contains
     double precision                                       , intent(in   )           :: time
     type            (multiCounter                         ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance, time
-    
+
     if (node%isOnMainBranch()) then
        mainBranchStatusExtract=1
     else
@@ -71,7 +71,7 @@ contains
 
   integer function mainBranchStatusType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
     !GCC$ attributes unused :: self

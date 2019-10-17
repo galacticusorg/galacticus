@@ -19,8 +19,8 @@
 
   !% Implements a class for the cosmic microwave background radiation field.
 
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <radiationField name="radiationFieldCosmicMicrowaveBackground">
   !#  <description>A radiation field class for the cosmic microwave background.</description>
   !# </radiationField>
@@ -53,7 +53,7 @@ contains
 
   function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
     self%temperature_=-1.0d0 ! Initialize to an unphysical value.
     return
   end function cosmicMicrowaveBackgroundConstructorInternal
-  
+
   subroutine cosmicMicrowaveBackgroundDestructor(self)
     !% Destructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
     implicit none
@@ -85,7 +85,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine cosmicMicrowaveBackgroundDestructor
-  
+
   subroutine cosmicMicrowaveBackgroundTimeSet(self,time)
     !% Set the time (and temperature) of the cosmic microwave background radiation field.
     implicit none

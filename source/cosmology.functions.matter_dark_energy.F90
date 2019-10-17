@@ -20,9 +20,8 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  use FGSL                , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-       &                           FGSL_Success
-  use Cosmology_Parameters
+  use :: FGSL, only : FGSL_Success     , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
+          &           fgsl_odeiv_system
 
   integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterDarkEnergyAgeTableNPointsPerOctave     =dble(matterDarkEnergyAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
@@ -89,13 +88,13 @@ contains
 
   function matterDarkEnergyConstructorParameters(parameters) result(self)
     !% Default constructor for the matter plus dark energy cosmological functions class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     double precision                                                    :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
-    
+
     !# <inputParameter>
     !#   <name>darkEnergyEquationOfStateW0</name>
     !#   <source>parameters</source>
@@ -126,7 +125,7 @@ contains
 
   function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1) result(self)
     !% Constructor for the matter plus dark energy cosmological functions class.
-    use Cosmology_Parameters
+    use :: Cosmology_Parameters, only : cosmologyParametersClass
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
@@ -143,8 +142,8 @@ contains
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Interpolation
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   )           :: expansionFactor
@@ -193,14 +192,15 @@ contains
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Parameters, only : hubbleUnitsStandard
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual
     !GCC$ attributes unused :: collapsingPhase
-    
+
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
@@ -226,8 +226,8 @@ contains
   end function matterDarkEnergyOmegaDarkEnergyEpochal
 
   double precision function matterDarkEnergyDominationEpochMatter(self,dominateFactor)
-    use Cosmology_Functions_Parameters
-    use Root_Finder
+    use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
+    use :: Root_Finder                   , only : rangeExpandMultiplicative , rootFinder
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     type            (rootFinder                        ), save          :: finder
@@ -299,7 +299,8 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Parameters, only : hubbleUnitsStandard
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -347,7 +348,7 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -400,9 +401,8 @@ contains
 
   double precision function matterDarkEnergyEqualityEpochMatterDarkEnergy(self,requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
-    use Cosmology_Functions_Parameters
-    use Cosmology_Parameters
-    use Root_Finder
+    use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
+    use :: Root_Finder                   , only : rangeExpandMultiplicative , rootFinder
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   ), optional :: requestType
@@ -491,10 +491,10 @@ contains
 
   subroutine matterDarkEnergyMakeExpansionFactorTable(self,time)
     !% Builds a table of expansion factor vs. time for dark energy universes.
-    use Numerical_Interpolation
-    use Numerical_Ranges
-    use Memory_Management
-    use Cosmology_Parameters
+    use :: Cosmology_Parameters   , only : hubbleUnitsTime
+    use :: Memory_Management      , only : allocateArray   , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
     double precision                                                 , intent(in   ), optional :: time
@@ -643,7 +643,7 @@ contains
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
     !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
     !% expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
-    use ODE_Solver
+    use :: ODE_Solver, only : ODE_Solve, ODE_Solver_Free
     implicit none
     double precision                    , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
          &                                                 timeStart
@@ -671,7 +671,7 @@ contains
     double precision, dimension(:), intent(in   ) :: a
     double precision, dimension(:), intent(  out) :: dadt
     !GCC$ attributes unused :: t
-    
+
     if (a(1) <= 0.0d0) then
        dadt(1)=0.0d0
     else
@@ -682,7 +682,7 @@ contains
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: comovingDistance
@@ -695,7 +695,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
     !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
@@ -708,7 +708,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   )           :: output
@@ -723,7 +723,7 @@ contains
 
   double precision function matterDarkEnergyEquationOfStateDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy equation of state.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -749,7 +749,7 @@ contains
 
   double precision function matterDarkEnergyExponentDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy exponent.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -773,7 +773,7 @@ contains
 
   double precision function matterDarkEnergyExponentDarkEnergyDerivative(self,time,expansionFactor)
     !% Return the derivative of the dark energy exponent with respect to expansion factor.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time

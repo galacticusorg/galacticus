@@ -31,7 +31,7 @@
      procedure :: probability  => farahiMidpointProbability
      procedure :: rateTabulate => farahiMidpointRateTabulate
   end type excursionSetFirstCrossingFarahiMidpoint
-  
+
   interface excursionSetFirstCrossingFarahiMidpoint
      !% Constructors for the Farahi-midpoint excursion set barrier class.
      module procedure farahiMidpointConstructorParameters
@@ -42,7 +42,7 @@ contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
@@ -53,7 +53,6 @@ contains
 
   function farahiMidpointConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
-    use Input_Parameters
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
@@ -67,13 +66,15 @@ contains
 
   double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -90,7 +91,7 @@ contains
          &                                                                                      i                            , j             , &
          &                                                                                      jTime                        , jVariance
     double precision                                                                         :: sigma1f
-    real            (kind=kind_quad                         )                                :: integralKernel                        
+    real            (kind=kind_quad                         )                                :: integralKernel
     character       (len =6                                 )                                :: label
     type            (varying_string                         )                                :: message
     logical                                                                                  :: locked
@@ -287,7 +288,7 @@ contains
        !# <objectDestructor name="excursionSetBarrier_"/>
        call deallocateArray(barrierTable   )
        call deallocateArray(barrierMidTable)
-       !$omp end parallel       
+       !$omp end parallel
        ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
        ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
        ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
@@ -316,7 +317,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          if (self%useFile) call self%fileWrite()       
+          if (self%useFile) call self%fileWrite()
 #ifdef USEMPI
        end if
 #endif
@@ -343,13 +344,15 @@ contains
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)               :: self
     double precision                                         , intent(in   )               :: time                             , varianceProgenitor
@@ -375,7 +378,7 @@ contains
          &                                                                                    sigma1f                          , varianceTableStepRate    , &
          &                                                                                    barrier                          , integralKernelRate
     logical                                                                                :: locked
-   
+
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
     locked=.false.
@@ -559,7 +562,7 @@ contains
                      &                         )                                                              &
                      &                         /varianceTableStepRate                                         &
                      &                         /integralKernelRate
-             end if             
+             end if
              do i=2,self%varianceTableCountRate
                 if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(i)=0.0_kind_quad

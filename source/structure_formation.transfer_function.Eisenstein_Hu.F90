@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
-  
+
   !% Contains a module which implements a transfer function class using the fitting function of
   !% \cite{eisenstein_power_1999}.
 
-  use Cosmology_Parameters
-  use Dark_Matter_Particles
+  use :: Cosmology_Parameters , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionEisensteinHu1999">
   !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>
@@ -70,8 +70,8 @@ contains
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
-    use Input_Parameters
-    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -112,8 +112,9 @@ contains
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Dark_Matter_Particles
+    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type            (transferFunctionEisensteinHu1999)                        :: self
     double precision                                  , intent(in   )         :: neutrinoNumberEffective     , neutrinoMassSummed
@@ -127,7 +128,7 @@ contains
          &                                                                       massFractionBaryonsNeutrinos, suppressionDarkMatter , &
          &                                                                       suppressionMatter
     !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
-    
+
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
        class is (darkMatterParticleCDM)
@@ -303,12 +304,13 @@ contains
 
   subroutine eisensteinHu1999ComputeFactors(self,wavenumber)
     !% Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
     double precision                                                  :: wavenumberScaleFree
 
-    
+
     ! If called again with the same wavenumber, return without recomputing result.
     if (wavenumber == self%wavenumberPrevious) return
     self%wavenumberPrevious=wavenumber
@@ -365,7 +367,7 @@ contains
     end if
     return
   end subroutine eisensteinHu1999ComputeFactors
-  
+
   double precision function eisensteinHu1999Value(self,wavenumber)
     !% Return the transfer function at the given wavenumber.
     implicit none
@@ -381,7 +383,7 @@ contains
          &                    +self%L                      &
          &                    +self%C                      &
          &                    *self%wavenumberEffective**2 &
-         &                   )                              
+         &                   )
     ! Apply correction for scales close to horizon.
     if     (                                    &
          &   self%neutrinoMassFraction >  0.0d0 &
@@ -405,6 +407,7 @@ contains
 
   double precision function eisensteinHu1999LogarithmicDerivative(self,wavenumber)
     !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
@@ -517,7 +520,7 @@ contains
   double precision function eisensteinHu1999HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status

@@ -21,8 +21,8 @@
 
 module Quasi_Random
   !% Implements quasi-random sequences.
-  use FGSL, only : fgsl_qrng      , fgsl_qrng_type, FGSL_qRng_Sobol, FGSL_Well_Defined, &
-       &           FGSL_qRng_Alloc, FGSL_qRng_Get , FGSL_qRng_Free
+  use :: FGSL, only : FGSL_Well_Defined, FGSL_qRng_Alloc, FGSL_qRng_Free, FGSL_qRng_Get, &
+          &           FGSL_qRng_Sobol  , fgsl_qrng      , fgsl_qrng_type
   implicit none
   private
   public :: Quasi_Random_Get, Quasi_Random_Free

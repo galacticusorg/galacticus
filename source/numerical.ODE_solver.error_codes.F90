@@ -21,7 +21,7 @@
 
 module ODE_Solver_Error_Codes
   !% Defines internal error codes for the \glc\ ODE solver.
-  use FGSL, only : FGSL_EBADFUNC
+  use :: FGSL, only : FGSL_EBADFUNC
   implicit none
   public
 

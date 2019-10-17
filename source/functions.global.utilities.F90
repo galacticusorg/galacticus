@@ -33,12 +33,12 @@ contains
     include 'functionGlobal.modules.inc'
     !# </include>
     implicit none
-    
+
     !# <include directive="functionGlobal" type="functionGlobalEstablish" >
     include 'functionGlobal.establish.inc'
     !# </include>
     return
   end subroutine Functions_Global_Set
-  
+
 end module Functions_Global_Utilities
 

@@ -21,8 +21,8 @@
 
   !% Implements a satellite merging timescale class which uses the \cite{wetzel_what_2010} method.
 
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
   !#  <description>Computes the merging timescale using the method of \cite{wetzel_what_2010}.</description>
   !# </satelliteMergingTimescales>
@@ -46,7 +46,7 @@ contains
 
   function wetzelWhite2010ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{wetzel_what_2010} merging timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesWetzelWhite2010)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -90,8 +90,8 @@ contains
 
   double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Kepler_Orbits
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
     class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
@@ -101,7 +101,7 @@ contains
     double precision                                           , parameter     :: timeScaleNormalization=0.2d0        !   C_dyn from Wetzel & White (2010).
     double precision                                                           :: massRatio
     !GCC$ attributes unused :: self, orbit
-    
+
     ! Find the host node.
     nodeHost  =>  node     %parent
     ! Compute mass ratio.

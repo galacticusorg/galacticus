@@ -19,8 +19,8 @@
 
   !% Implements a stellar winds class based on \cite{leitherer_deposition_1992}.
 
-  use Numerical_Constants_Astronomical
-  use Stellar_Astrophysics_Tracks
+  use :: Numerical_Constants_Astronomical, only : metallicitySolar
+  use :: Stellar_Astrophysics_Tracks     , only : stellarTracksClass
 
   !# <stellarWinds name="stellarWindsLeitherer1992">
   !#  <description>A stellar winds class based on \cite{leitherer_deposition_1992}.</description>
@@ -34,7 +34,7 @@
      procedure :: rateMassLoss     => leitherer1992RateMassLoss
      procedure :: velocityTerminal => leitherer1992VelocityTerminal
   end type stellarWindsLeitherer1992
-  
+
   interface stellarWindsLeitherer1992
      !% Constructors for the {\normalfont \ttfamily leitherer1992} stellar winds class.
      module procedure leitherer1992ConstructorParameters
@@ -48,7 +48,7 @@ contains
 
   function leitherer1992ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (stellarWindsLeitherer1992)                :: self
     type (inputParameters          ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
     type (stellarWindsLeitherer1992)                        :: self
     class(stellarTracksClass       ), intent(in   ), target :: stellarTracks_
     !# <constructorAssign variables="*stellarTracks_"/>
-    
+
     return
   end function leitherer1992ConstructorInternal
 
@@ -79,7 +79,7 @@ contains
     !# <objectDestructor name="self%stellarTracks_"/>
     return
   end subroutine leitherer1992Destructor
-  
+
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
     !% Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont
     !% \ttfamily age} and {\normalfont \ttfamily metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
@@ -122,7 +122,7 @@ contains
          &                                                         metallicity
     double precision                                            :: stellarEffectiveTemperature, stellarLuminosity
     !GCC$ attributes unused :: self
-    
+
     ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)
     stellarEffectiveTemperature=self%stellarTracks_%temperatureEffective(initialMass,metallicity,age)

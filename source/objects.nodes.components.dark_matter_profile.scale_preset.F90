@@ -55,8 +55,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
-    use Galacticus_Nodes       , only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, propertyTypeInactive, defaultDarkMatterProfileComponent
-    use Dark_Matter_Halo_Scales
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     logical                                         , intent(in   )          :: odeConverged
@@ -65,7 +65,7 @@ contains
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -86,7 +86,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic, defaultDarkMatterProfileComponent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
@@ -128,8 +128,8 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic, nodeComponentDarkMatterProfileScalePreset
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
@@ -157,7 +157,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile

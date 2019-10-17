@@ -29,8 +29,8 @@ contains
 
   subroutine Merger_Tree_Initialize(thisTree,endTime)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
-    use Galacticus_Nodes   , only : mergerTree, treeNode, nodeComponentBasic
-    use Merger_Tree_Walkers    
+    use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     !# <include directive="mergerTreeInitializeTask" type="moduleUse">
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>

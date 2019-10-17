@@ -48,7 +48,7 @@ sub Process_ObjectBuilder {
     # Walk the tree, looking for code blocks.
     my $node               = $tree;
     my $xml                = new XML::Simple();
-    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
+    my $stateStorables     = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml"    );
     my $depth              = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
@@ -209,6 +209,38 @@ sub Process_ObjectBuilder {
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Add the required module.
+	    if ( exists($stateStorables->{'functionClasses'}->{$node->{'directive'}->{'class'}."Class"}->{'module'}) ) {
+		my $searchNode  = $tree;
+		my $searchDepth = 0;
+		my $isSelf      = 0;
+		while ( $searchNode ) {
+		    if ( exists($searchNode->{'directive'}) ) {
+			if ( grep {$_ eq $searchNode->{'type'}."Class"} keys(%{$stateStorables->{'functionClasses'}}) ) {
+			    if ( $stateStorables->{'functionClasses'}->{$searchNode->{'type'}."Class"}->{'module'} eq $stateStorables->{'functionClasses'}->{$node->{'directive'}->{'class'}."Class"}->{'module'} ) {
+				$isSelf = 1;
+				last;
+			    }
+			}
+		    }
+		    $searchNode = &Galacticus::Build::SourceTree::Walk_Tree($searchNode,\$searchDepth);
+		}
+		my $moduleName = $stateStorables->{'functionClasses'}->{$node->{'directive'}->{'class'}."Class"}->{'module'};
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			$moduleName =>
+			{
+			    intrinsic => 0,
+			    only      => {$node->{'directive'}->{'class'} => 1, $node->{'directive'}->{'class'}."Class" => 1}
+			}
+		    }
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode)
+		    unless ( $isSelf );
+	    }	    
 	    # Add new variables and attributes.
 	    unless ( exists($node->{'parent'}->{'objectBuilderDeclarations'}) ) {
 		my @declarations =
@@ -233,7 +265,7 @@ sub Process_ObjectBuilder {
 		     }
 		    );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
-		# Ensure error reporting module is used.
+		# Add module requirements.
 		my $usesNode =
 		{
 		    type      => "moduleUse",

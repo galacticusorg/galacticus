@@ -41,7 +41,7 @@ contains
 
   function nullConstructorParameters(parameters)
     !% Constructor for the ``null'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisNull)                :: nullConstructorParameters
     type(inputParameters   ), intent(inout) :: parameters
@@ -58,7 +58,7 @@ contains
     type   (treeNode          ), intent(inout) :: node
     integer(c_size_t          ), intent(in   ) :: iOutput
     !GCC$ attributes unused :: self, node, iOutput
-    
+
     return
   end subroutine nullAnalyze
 
@@ -67,7 +67,7 @@ contains
     implicit none
     class(outputAnalysisNull), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     return
   end subroutine nullFinalize
 

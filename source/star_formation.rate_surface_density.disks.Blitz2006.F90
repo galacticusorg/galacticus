@@ -19,8 +19,8 @@
 
   !% Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
 
-  use Kind_Numbers
-  
+  use :: Kind_Numbers, only : kind_int8
+
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
   !#  <description>The \cite{blitz_role_2006} star formation rate surface density law for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
@@ -44,7 +44,7 @@
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
      !@     <description>Reset memoized calculations.</description>
      !@   </objectMethod>
-     !@ </objectMethods>                                                                                                                                                                                   
+     !@ </objectMethods>
      final     ::                     blitz2006Destructor
      procedure :: autoHook         => blitz2006AutoHook
      procedure :: calculationReset => blitz2006CalculationReset
@@ -68,7 +68,7 @@ contains
          &                                                                            surfaceDensityCritical             , surfaceDensityExponent , &
          &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
          &                                                                            pressureExponent
-    
+
     !# <inputParameter>
     !#   <name>velocityDispersionDiskGas</name>
     !#   <cardinality>1</cardinality>
@@ -146,10 +146,10 @@ contains
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent) result(self)
     !% Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes    , only : giga                   , hecto     , kilo, mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
     double precision                                               , intent(in   ) :: velocityDispersionDiskGas          , heightToRadialScaleDisk, &
@@ -171,17 +171,17 @@ contains
 
   subroutine blitz2006AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
     call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine blitz2006AutoHook
-  
+
   subroutine blitz2006Destructor(self)
     !% Destructor for the blitz2006 cooling radius class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
@@ -204,12 +204,12 @@ contains
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
     !% in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
     !% \cite{blitz_role_2006} star formation rule.
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
-    use Abundances_Structure
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use Galacticus_Nodes                    , only : nodeComponentDisk
+    use :: Abundances_Structure                , only : abundances
+    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
+    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node

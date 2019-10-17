@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling state class which stores history.
-  
+
   !# <posteriorSampleState name="posteriorSampleStateHistory">
   !#  <description>A posterior sampling state class which stores history.</description>
   !# </posteriorSampleState>
@@ -46,7 +46,7 @@ contains
   function historyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateHistory)                :: self
     type   (inputParameters            ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
   function historyConstructorInternal(acceptedStateCount) result(self)
     !% Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
     !% parameter set.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateHistory)                :: self
     integer                             , intent(in   ) :: acceptedStateCount
@@ -113,7 +113,7 @@ contains
 
   function historyMean(self)
     !% Return the mean over state history.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
     double precision                             , dimension(self%parameterCount) :: historyMean
@@ -124,7 +124,7 @@ contains
 
   function historyVariance(self)
     !% Return the mean over state history.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
     double precision                             , dimension(self%parameterCount) :: historyVariance
@@ -146,8 +146,7 @@ contains
 
   subroutine historyRestore(self,stateVector,first)
     !% Restore the state object from file.
-    use MPI_Utilities
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)               :: self
     double precision                             , intent(in   ), dimension(:) :: stateVector

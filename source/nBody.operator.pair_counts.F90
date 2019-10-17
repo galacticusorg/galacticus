@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which computes pair counts in bins of separation.
-  
+
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !# <nbodyOperator name="nbodyOperatorPairCounts">
@@ -41,10 +41,10 @@
   end interface nbodyOperatorPairCounts
 
 contains
-  
+
   function pairCountsConstructorParameters(parameters) result (self)
     !% Constructor for the ``pairCounts'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorPairCounts)                :: self
     type            (inputParameters        ), intent(inout) :: parameters
@@ -108,13 +108,11 @@ contains
 
   subroutine pairCountsOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use Nearest_Neighbors
-    use Memory_Management
-    use Galacticus_Display
-    use Numerical_Ranges
-    use OMP_Lib
-    use Pseudo_Random
-    use Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
+    use :: Nearest_Neighbors , only : nearestNeighbors
+    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
+    use :: OMP_Lib
+    use :: Pseudo_Random     , only : pseudoRandom
     implicit none
     class           (nbodyOperatorPairCounts), intent(inout)                 :: self
     type            (nBodyData              ), intent(inout)                 :: simulation

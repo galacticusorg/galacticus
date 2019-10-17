@@ -41,7 +41,7 @@ contains
 
   function indicesTreeConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily indicesTree} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorIndicesTree)                :: indicesTreeConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
 
   integer function indicesTreeType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -97,4 +97,4 @@ contains
     indicesTreeDescription=var_str('Tree index for this node.')
     return
   end function indicesTreeDescription
-  
+

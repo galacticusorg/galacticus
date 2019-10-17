@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
-  
-  use Dark_Matter_Halo_Scales
-  use Cooling_Infall_Radii
-  use Hot_Halo_Mass_Distributions
+
+  use :: Cooling_Infall_Radii       , only : coolingInfallRadiusClass
+  use :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <coolingRate name="coolingRateWhiteFrenk1991">
   !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
@@ -37,7 +37,7 @@
      final     ::         whiteFrenk1991Destructor
      procedure :: rate => whiteFrenk1991Rate
   end type coolingRateWhiteFrenk1991
-   
+
   interface coolingRateWhiteFrenk1991
      !% Constructors for the \cite{white_galaxy_1991} cooling rate class.
      module procedure whiteFrenk1991ConstructorParameters
@@ -48,7 +48,7 @@ contains
 
   function whiteFrenk1991ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{white_galaxy_1991} cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateWhiteFrenk1991   )                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -78,9 +78,9 @@ contains
 
   function whiteFrenk1991ConstructorInternal(velocityCutOff,darkMatterHaloScale_,coolingInfallRadius_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
-    use Galacticus_Nodes, only : defaultHotHaloComponent
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
-    use Array_Utilities
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coolingRateWhiteFrenk1991   )                        :: self
     double precision                              , intent(in   )         :: velocityCutOff
@@ -88,7 +88,7 @@ contains
     class           (coolingInfallRadiusClass    ), intent(in   ), target :: coolingInfallRadius_
     class           (hotHaloMassDistributionClass), intent(in   ), target :: hotHaloMassDistribution_
     !# <constructorAssign variables="velocityCutOff, *darkMatterHaloScale_, *coolingInfallRadius_, *hotHaloMassDistribution_"/>
-    
+
     ! Check that the properties we need are gettable.
     if     (                                                                                                              &
          &  .not.(                                                                                                        &
@@ -124,11 +124,11 @@ contains
   double precision function whiteFrenk1991Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
-    use Galacticus_Nodes        , only : nodeComponentHotHalo
-    use Numerical_Constants_Math
+    use :: Galacticus_Nodes        , only : nodeComponentHotHalo, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (coolingRateWhiteFrenk1991), intent(inout) :: self
-    type            (treeNode                 ), intent(inout) :: node    
+    type            (treeNode                 ), intent(inout) :: node
     class           (nodeComponentHotHalo     ), pointer       :: hotHalo
     double precision                                           :: densityCooling          , radiusInfall  , &
          &                                                        radiusOuter             , velocityVirial, &

@@ -37,22 +37,22 @@ contains
 
   function reportParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily report} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskReport     )                :: self
     type(inputParameters), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskReport()
     return
   end function reportParameters
 
   subroutine reportPerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message
-    use Galacticus_Error     , only : errorStatusSuccess
-    use Galacticus_Versioning, only : Galacticus_Version_String
-    use Galacticus_Build     , only : Galacticus_Build_String
+    use :: Galacticus_Build     , only : Galacticus_Build_String
+    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error     , only : errorStatusSuccess
+    use :: Galacticus_Versioning, only : Galacticus_Version_String
     implicit none
     class  (taskReport), intent(inout), target   :: self
     integer            , intent(  out), optional :: status
@@ -69,7 +69,7 @@ contains
   logical function reportRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskReport), intent(inout) :: self    
+    class(taskReport), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     reportRequiresOutputFile=.false.

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a top-hat power spectrum window function class.
-  use Cosmology_Parameters
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat">
   !#  <description>A top-hat in real space window function for filtering of power spectra.</description>
@@ -43,12 +43,12 @@ contains
 
   function topHatConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily topHat} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
-    class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_    
- 
+    class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=powerSpectrumWindowFunctionTopHat(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
@@ -60,7 +60,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                        :: self
-    class(cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
     !# <constructorAssign variables="*cosmologyParameters_"/>
 
     return
@@ -78,8 +78,7 @@ contains
   double precision function topHatValue(self,wavenumber,smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum.
-    use Numerical_Constants_Math
-    use Cosmology_Parameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self
     double precision                                   , intent(in   ) :: smoothingMass        , wavenumber
@@ -124,7 +123,7 @@ contains
     double precision                                   , intent(in   ) :: smoothingMass
     double precision                                   , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !GCC$ attributes unused :: self, smoothingMass
-    
+
     topHatWavenumberMaximum=wavenumberLarge
     return
   end function topHatWavenumberMaximum

@@ -43,11 +43,11 @@ contains
 
   function dumpToGraphVizConstructorParameters(parameters)
     !% Constructor for the dump-to-\gls{graphviz} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
-    
+
     !# <inputParameter>
     !#   <name>path</name>
     !#   <defaultValue>var_str('.')</defaultValue>
@@ -115,21 +115,21 @@ contains
     implicit none
     type(mergerTreeOperatorDumpToGraphViz), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine dumpToGraphVizDestructor
 
   subroutine dumpToGraphVizOperate(self,tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes , only : nodeComponentBasic
-    use Merger_Trees_Dump
+    use :: Galacticus_Nodes , only : mergerTree      , nodeComponentBasic
+    use :: Merger_Trees_Dump, only : Merger_Tree_Dump
     implicit none
     class(mergerTreeOperatorDumpToGraphViz), intent(inout), target :: self
     type (mergerTree                      ), intent(inout), target :: tree
     type (mergerTree                      ), pointer               :: treeCurrent
     class(nodeComponentBasic              ), pointer               :: basicBase
-    
+
     ! Iterate over trees.
     treeCurrent => tree
     do while (associated(treeCurrent))

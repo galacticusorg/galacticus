@@ -36,14 +36,14 @@
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
   end interface mergerTreeMassResolutionScaled
-  
+
 contains
 
   function scaledConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily scaled} merger tree building mass resolution class which reads parameters from a
     !% provided parameter list.
     implicit none
-    type            (mergerTreeMassResolutionScaled)                :: self    
+    type            (mergerTreeMassResolutionScaled)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     double precision                                                :: massResolutionMinimum    , massResolutionMaximum, &
          &                                                             massResolutionFractional
@@ -85,13 +85,13 @@ contains
     double precision                                , intent(in   ) :: massResolutionMinimum    , massResolutionMaximum, &
          &                                                             massResolutionFractional
     !# <constructorAssign variables="massResolutionMinimum, massResolutionMaximum, massResolutionFractional"/>
-    
+
     return
   end function scaledConstructorInternal
 
   double precision function scaledResolution(self,tree)
     !% Returns a scaled mass resolution to use when building merger trees.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic
     implicit none
     class(mergerTreeMassResolutionScaled), intent(inout) :: self
     type (mergerTree                    ), intent(in   ) :: tree

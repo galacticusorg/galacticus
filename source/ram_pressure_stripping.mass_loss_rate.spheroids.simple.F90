@@ -19,7 +19,7 @@
 
   !% Implementation of a simple ram pressure stripping of spheroids class.
 
-  use Hot_Halo_Ram_Pressure_Forces
+  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple">
   !#  <description>A simple model of ram pressure stripping in galactic spheroids.</description>
@@ -41,11 +41,11 @@
   end interface ramPressureStrippingSpheroidsSimple
 
 contains
-  
+
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} timescale for star formation feedback in spheroids class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (ramPressureStrippingSpheroidsSimple)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -74,7 +74,7 @@ contains
     double precision                                     , intent(in   )         :: rateFractionalMaximum
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
     !# <constructorAssign variables="rateFractionalMaximum, *hotHaloRamPressureForce_"/>
-    
+
     return
   end function simpleConstructorInternal
 
@@ -86,7 +86,7 @@ contains
     !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
     return
   end subroutine simpleDestructor
-  
+
   double precision function simpleRateMassLoss(self,node)
     !% Computes the mass loss rate from spheroids due to ram pressure stripping assuming a simple model. Specifically, the mass loss
     !% rate is
@@ -102,12 +102,13 @@ contains
     !% F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
     !% \end{equation}
     !% is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
-    use Galactic_Structure_Options
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Enclosed_Masses
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                  , only : nodeComponentSpheroid
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , coordinateSystemSpherical, massTypeAll, massTypeGaseous
+    use :: Galacticus_Nodes                  , only : nodeComponentSpheroid           , treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes      , only : kilo
     implicit none
     class           (ramPressureStrippingSpheroidsSimple), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

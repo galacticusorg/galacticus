@@ -23,7 +23,7 @@ module Output_Times
   !% Provides a class that implements output times for \glc.
   use, intrinsic :: ISO_C_Binding
   private
-  
+
   !# <functionClass>
   !#  <name>outputTimes</name>
   !#  <descriptiveName>Output Times</descriptiveName>
@@ -67,5 +67,5 @@ module Output_Times
   !#   <argument>double precision, intent(in   ) :: timeCurrent</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Output_Times

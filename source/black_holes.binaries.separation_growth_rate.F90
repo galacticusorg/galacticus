@@ -23,7 +23,7 @@
 
 module Black_Hole_Binary_Separations
   !% Implements a class for calculations of black hole binary separation growth rate.
-  use Galacticus_Nodes, only : nodeComponentBlackHole
+  use :: Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
@@ -39,5 +39,5 @@ module Black_Hole_Binary_Separations
   !#   <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Black_Hole_Binary_Separations

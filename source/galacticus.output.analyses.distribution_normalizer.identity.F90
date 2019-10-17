@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements an identity output analysis distribution normalizer class.
-  
+
   !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity">
   !#  <description>An identity output analysis distribution normalizer class.</description>
   !# </outputAnalysisDistributionNormalizer>
@@ -38,7 +38,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the ``identity'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerIdentity)                :: self
     type(inputParameters                             ), intent(inout) :: parameters

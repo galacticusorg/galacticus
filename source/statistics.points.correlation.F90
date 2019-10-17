@@ -28,13 +28,13 @@ contains
 
   subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum,halfIntegral)
     !% Compute the correlation function from a set of points.
-    use Nearest_Neighbors
-    use Memory_Management
-    use Numerical_Ranges
-    use Kind_Numbers
-    use Galacticus_Display
-    use Vectors
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Kind_Numbers      , only : kind_int8
+    use :: Memory_Management , only : allocateArray             , deallocateArray
+    use :: Nearest_Neighbors , only : nearestNeighbors
+    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
+    use :: Vectors           , only : Vector_Magnitude
     implicit none
     double precision                  , intent(in   ), dimension(:,:), target      :: dataPosition                    , randomPosition
     double precision                  , intent(in   )                              :: separationMinimum               , separationMaximum
@@ -59,7 +59,7 @@ contains
          &                                                                            iBin                            , neighborCount               , &
          &                                                                            pointCount                      , iPass                       , &
          &                                                                            radialBinCount                  , jBin
-    double precision                                                               :: separationLimit                 , separationLogarithmicMinimum, & 
+    double precision                                                               :: separationLimit                 , separationLogarithmicMinimum, &
          &                                                                            separationLogarithmicStepInverse, radialPositionFrom          , &
          &                                                                            radialPositionTo                , separationRadial            , &
          &                                                                            separationProjected             , cosTheta                    , &

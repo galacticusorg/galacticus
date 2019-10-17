@@ -30,7 +30,10 @@ contains
   double precision function Chemicals_Mass_To_Density_Conversion(radius)
     !% Returns the conversion factor from mass of chemicals in ($M_\odot/M_\mathrm{atomic}$) to number density in cm$^{-3}$ assuming
     !% that the mass is distributed uniformly in a sphere of the given {\normalfont \ttfamily radius} (in Mpc).
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec
+    use :: Numerical_Constants_Atomic      , only : atomicMassUnit
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : hecto
     implicit none
     double precision, intent(in   ) :: radius
 

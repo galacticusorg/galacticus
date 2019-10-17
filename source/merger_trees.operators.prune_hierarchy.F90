@@ -40,7 +40,7 @@
      final     ::            pruneHierarchyDestructor
      procedure :: operate => pruneHierarchyOperate
   end type mergerTreeOperatorPruneHierarchy
-  
+
   interface mergerTreeOperatorPruneHierarchy
      !% Constructors for the prune-hierarchy merger tree operator class.
      module procedure pruneHierarchyConstructorParameters
@@ -55,7 +55,7 @@ contains
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
     type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
-        
+
     !# <inputParameter>
     !#   <name>hierarchyDepth</name>
     !#   <source>parameters</source>
@@ -71,7 +71,7 @@ contains
 
   function pruneHierarchyConstructorInternal(hierarchyDepth)
     !% Internal constructor for the prune-hierarchy merger tree operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorInternal
     integer                                  , intent(in   ) :: hierarchyDepth
@@ -86,15 +86,15 @@ contains
     implicit none
     type(mergerTreeOperatorPruneHierarchy), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine pruneHierarchyDestructor
 
   subroutine pruneHierarchyOperate(self,tree)
     !% Perform a prune-hierarchy operation on a merger tree.
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none
     class  (mergerTreeOperatorPruneHierarchy), intent(inout), target  :: self
     type   (mergerTree                      ), intent(inout), target  :: tree
@@ -103,7 +103,7 @@ contains
     type   (mergerTreeWalkerIsolatedNodes   )                         :: treeWalker
     logical                                                           :: didPruning
     integer                                                           :: hierarchyDepth
-    
+
     ! Iterate over nodes.
     treeCurrent => tree
     do while (associated(treeCurrent))
@@ -152,4 +152,4 @@ contains
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
   end subroutine pruneHierarchyOperate
-  
+

@@ -19,10 +19,10 @@
 
   !% Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is estimated from the ram
   !% pressure acceleration.
-  
-  use Dark_Matter_Halo_Scales
-  use Hot_Halo_Mass_Distributions
-  use Hot_Halo_Ram_Pressure_Forces
+
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.</description>
@@ -46,10 +46,10 @@
   end interface hotHaloRamPressureTimescaleRamPressureAcceleration
 
 contains
-  
+
   function ramPressureAccelerationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters
@@ -67,10 +67,9 @@ contains
     !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function ramPressureAccelerationConstructorParameters
-  
+
   function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class.
-    use Input_Parameters
     implicit none
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                        :: self
     class(darkMatterHaloScaleClass                          ), intent(in   ), target :: darkMatterHaloScale_
@@ -98,10 +97,9 @@ contains
     !% ram}}$, where $r_\mathrm{outer}$ is the current outer radius of the hot halo, $\Sigma_\mathrm{outer}$ is the surface density at
     !% that radius, and $P_\mathrm{ram}$ is the ram pressure force (per unit area). The surface density is approximated as
     !% $\Sigma_\mathrm{outer} \approx r_\mathrm{outer} \rho_\mathrm{outer}$, where $\rho_\mathrm{outer}$ is the density at the outer radius.
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : nodeComponentHotHalo
+    use :: Galacticus_Nodes                , only : nodeComponentHotHalo, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear            , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node

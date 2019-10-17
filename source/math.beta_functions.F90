@@ -21,9 +21,9 @@
 
 module Beta_Functions
   !% Implements beta functions.
+  use            :: FGSL         , only : FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, FGSL_Success, fgsl_int, &
+          &                               fgsl_sf_result    , gsl_sf_result
   use, intrinsic :: ISO_C_Binding
-  use            :: FGSL         , only : fgsl_int      , FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, &
-       &                                  fgsl_sf_result, gsl_sf_result     , FGSL_Success
   implicit none
   private
   public :: Beta_Function, Beta_Function_Incomplete_Normalized
@@ -54,7 +54,7 @@ contains
     implicit none
     double precision, intent(in   ) :: a, b
 
-    Beta_Function=GSL_SF_Beta(a,b)    
+    Beta_Function=GSL_SF_Beta(a,b)
     return
   end function Beta_Function
 
@@ -64,7 +64,7 @@ contains
     double precision, intent(in   ) :: a, b, &
          &                             x
 
-    Beta_Function_Incomplete_Normalized=GSL_SF_Beta_Inc(a,b,x)    
+    Beta_Function_Incomplete_Normalized=GSL_SF_Beta_Inc(a,b,x)
     return
   end function Beta_Function_Incomplete_Normalized
 

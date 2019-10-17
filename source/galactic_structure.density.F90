@@ -35,10 +35,11 @@ contains
   double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
-    use Galacticus_Nodes          , only : treeNode, optimizeForDensitySummation, reductionSummation
-    use Galactic_Structure_Options
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Coordinate_Systems
+    use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
+    use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
+          &                                   massTypeAll                       , weightByLuminosity                  , weightByMass
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes          , only : optimizeForDensitySummation       , reductionSummation                  , treeNode
     !# <include directive="densityTask" type="moduleUse">
     include 'galactic_structure.density.tasks.modules.inc'
     !# </include>
@@ -105,7 +106,7 @@ contains
 
   double precision function Component_Density(component)
     !% Unary function returning the density in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent
+    use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

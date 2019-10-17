@@ -21,10 +21,12 @@
 
 program Test_Initial_Mass_Functions
   !% Tests of stellar initial mass functions.
-  use Unit_Tests
-  use Galacticus_Display
-  use Numerical_Integration2
-  use Stellar_Populations_Initial_Mass_Functions
+  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Integration2                    , only : integratorCompositeTrapezoidal1D
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001   , initialMassFunctionClass            , &
+          &                                                 initialMassFunctionKennicutt1983, initialMassFunctionKroupa2001       , initialMassFunctionMillerScalo1979, initialMassFunctionPiecewisePowerLaw, &
+          &                                                 initialMassFunctionSalpeter1955 , initialMassFunctionScalo1986
+  use :: Unit_Tests                                , only : Assert                          , Unit_Tests_Begin_Group              , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   class           (initialMassFunctionClass            ), pointer :: imf
   type            (initialMassFunctionChabrier2001     ), target  :: imfChabrier2001
@@ -48,7 +50,7 @@ program Test_Initial_Mass_Functions
   imfChabrier2001     =initialMassFunctionChabrier2001     (                                       &
        &                                                    massLower         =+  0.10d0         , &
        &                                                    massUpper         =+125.00d0         , &
-       &                                                    massTransition    =+  1.00d0         , & 
+       &                                                    massTransition    =+  1.00d0         , &
        &                                                    massCharacteristic=+  0.08d0         , &
        &                                                    exponent          =-  2.30d0         , &
        &                                                    sigma             =+  0.69d0           &
@@ -95,7 +97,7 @@ program Test_Initial_Mass_Functions
        &                                            imf%massMaximum()  &
        &                                           )
   call Assert('BPASS'                        ,massInInitialMassFunction,1.0d0,relTol=1.0d-6)
- 
+
   imf                       => imfBaugh2005TopHeavy
   massInInitialMassFunction =  integrator_%evaluate(                   &
        &                                            imf%massMinimum(), &
@@ -141,7 +143,7 @@ contains
          &                       *imf%phi(mass)
     return
   end function initialMassFunctionIntegrand
-  
+
 end program Test_Initial_Mass_Functions
 
 

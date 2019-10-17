@@ -19,8 +19,7 @@
 
 !% Contains a module which implements a stellar mass function output analysis class.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS">
   !#  <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.</description>
   !# </outputAnalysis>
@@ -39,7 +38,8 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
+    use :: Input_Parameters     , only : inputParameter      , inputParameters
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
@@ -168,12 +168,16 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryFullSky
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: String_Handling                       , only : operator(//)
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
@@ -197,7 +201,7 @@ contains
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                                                   :: errorPolynomialZeroPoint
     type            (varying_string                                     )                              :: fileName
-    
+
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
     allocate(galacticFilter_)
     !# <referenceConstruct object="galacticFilter_" constructor="galacticFilterStellarMass(massThreshold=1.0d3)"/>

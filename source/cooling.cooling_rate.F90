@@ -21,9 +21,9 @@
 
 module Cooling_Rates
   !% Provides a class that implements calculations of the cooling rate.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>coolingRate</name>
   !#  <descriptiveName>Cooling rates.</descriptiveName>

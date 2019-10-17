@@ -29,48 +29,48 @@ module Trigonometric_Functions
      module procedure cotDouble
      module procedure cotDoubleComplex
   end interface cot
-  
+
   interface cosec
      module procedure cosecDouble
      module procedure cosecDoubleComplex
   end interface cosec
-  
+
 contains
-  
+
   double precision function cotDouble(x)
     !% Implements cotangent for double precision {\normalfont \ttfamily x}.
     implicit none
     double precision, intent(in   ) :: x
-    
+
     cotDouble=1.0d0/tan(x)
     return
   end function cotDouble
-  
+
   double complex function cotDoubleComplex(x)
     !% Implements cotangent for double precision complex {\normalfont \ttfamily x}.
     implicit none
     double complex, intent(in   ) :: x
-    
+
     cotDoubleComplex=1.0d0/tan(x)
     return
   end function cotDoubleComplex
-  
+
   double precision function cosecDouble(x)
     !% Implements cosecant for double precision {\normalfont \ttfamily x}.
     implicit none
     double precision, intent(in   ) :: x
-    
+
     cosecDouble=1.0d0/sin(x)
     return
   end function cosecDouble
-  
+
   double complex function cosecDoubleComplex(x)
     !% Implements cosecant for double precision complex {\normalfont \ttfamily x}.
     implicit none
     double complex, intent(in   ) :: x
-    
+
     cosecDoubleComplex=1.0d0/sin(x)
     return
   end function cosecDoubleComplex
-  
+
 end module Trigonometric_Functions

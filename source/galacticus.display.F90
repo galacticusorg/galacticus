@@ -21,8 +21,8 @@
 
 module Galacticus_Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
-  !$ use OMP_Lib
-  use ISO_Varying_String
+  use    :: ISO_Varying_String
+  !$ use :: OMP_Lib
   implicit none
   private
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
@@ -34,7 +34,7 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
   character(len=20)                            :: threadFormat                              , masterFormat
-  
+
   logical                                      :: displayInitialized        =.false.
   integer          , parameter  , public       :: verbosityDebug            =5              , verbosityInfo   =4, &
        &                                          verbosityWarn             =3              , verbosityWorking=2, &
@@ -82,16 +82,16 @@ contains
   subroutine Initialize_Display
     !% Initialize the module by determining the requested verbosity level.
 #ifdef USEMPI
-    use MPI
+    use :: MPI, only : MPI_Comm_Size, MPI_Comm_Rank, MPI_Comm_World
 #endif
     implicit none
     integer           :: ompDigitsMaximum
 #ifdef USEMPI
-    integer           :: mpiDigitsMaximum , iError  , &
+    integer           :: mpiDigitsMaximum , iError           , &
          &               mpiRank          , mpiCount
     character(len=32) :: masterHyperFormat, threadHyperFormat
 #endif
-    
+
     if (.not.displayInitialized) then
        !$omp critical (Initialize_Display)
        if (.not.displayInitialized) then

@@ -23,8 +23,8 @@
 
 module Stellar_Population_Spectra
   !% Provides a class implementing stellar population spectra.
-  use Abundances_Structure
-  private 
+  use :: Abundances_Structure, only : abundances
+  private
 
   !# <functionClass>
   !#  <name>stellarPopulationSpectra</name>
@@ -60,5 +60,5 @@ module Stellar_Population_Spectra
   !#   <argument>double precision, intent(in   ) :: wavelength</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Stellar_Population_Spectra

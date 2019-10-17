@@ -21,9 +21,9 @@
 
 module Dark_Matter_Profiles_DMO
   !% Provides an object that implements dark matter halo profiles.
-  use Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
-  use Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass, darkMatterHaloScale
-  use Galacticus_Nodes            , only : treeNode
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale     , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
+  use :: Galacticus_Nodes            , only : treeNode
   private
 
   !# <functionClass>
@@ -226,14 +226,14 @@ module Dark_Matter_Profiles_DMO
   type            (treeNode                 ), pointer :: darkMatterProfileDMONode   => null()
   double precision                                     :: darkMatterProfileDMOMass_
   !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMOMass_)
-  
+
 contains
-  
+
   double precision function darkMatterProfileDMOEnclosedMassRoot(radius)
     !% Root function used in solving for the radius that encloses a given mass.
     implicit none
     double precision,intent(in) :: radius
-    
+
     darkMatterProfileDMOEnclosedMassRoot=darkMatterProfileDMOSelf%enclosedMass(darkMatterProfileDMONode,radius)-darkMatterProfileDMOMass_
     return
   end function darkMatterProfileDMOEnclosedMassRoot

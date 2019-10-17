@@ -22,9 +22,9 @@
 
 module Node_Component_Basic_Standard_Extended
   !% Extends the standard implementation of basic component to track the Bertschinger mass.
-  use Virial_Density_Contrast
-  use Cosmology_Functions
-  use Cosmology_Parameters
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
   implicit none
   private
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
@@ -45,7 +45,7 @@ module Node_Component_Basic_Standard_Extended
   !#     <name>massBertschinger</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" /> 
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming universal baryon fraction."/>
   !#   </property>
@@ -71,12 +71,12 @@ module Node_Component_Basic_Standard_Extended
   !#   </property>
   !#  </properties>
   !# </component>
-  
+
   ! Objects used by this component.
   class(cosmologyParametersClass), pointer :: cosmologyParameters_
   class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
   !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_)
-  
+
   ! Options controlling spherical collapse model to use.
   integer                                        :: nodeComponentBasicExtendedSphericalCollapseType                 , nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda         =0
@@ -96,10 +96,10 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Basic_Extended_Bindings(globalParameters_)
     !% Initializes the ``extended'' implementation of the basic component.
-    use Galacticus_Nodes                     , only : nodeComponentBasicStandardExtended
-    use ISO_Varying_String
-    use Input_Parameters
-    use Spherical_Collapse_Matter_Dark_Energy
+    use :: Galacticus_Nodes                     , only : nodeComponentBasicStandardExtended
+    use :: ISO_Varying_String
+    use :: Input_Parameters                     , only : inputParameter                                           , inputParameters
+    use :: Spherical_Collapse_Matter_Dark_Energy, only : enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode
     implicit none
     type(inputParameters                   ), intent(inout) :: globalParameters_
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
@@ -141,17 +141,17 @@ contains
     call basic%radiusTurnaroundFunction(Node_Component_Basic_Extended_Radius_Turnaround)
     return
   end subroutine Node_Component_Basic_Extended_Bindings
-  
+
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultBasicComponent
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Input_Parameters, only : inputParameter       , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
-    
+
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="globalParameters_"/>
        !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="globalParameters_"/>
@@ -164,9 +164,9 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
-    use Galacticus_Nodes, only : defaultBasicComponent
+    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
-    
+
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !# <objectDestructor name="cosmologyParameters_"/>
        !# <objectDestructor name="cosmologyFunctions_" />
@@ -176,8 +176,9 @@ contains
 
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii
-    use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasicStandardExtended
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasicStandardExtended                , treeNode
+    use :: Virial_Density_Contrast             , only : virialDensityContrastSphericalCollapseMatterLambda, virialDensityContrastSphericalCollapseMatterDE, virialDensityContrastBryanNorman1998
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode
@@ -185,7 +186,7 @@ contains
 
     ! Initialize virial density contrast objects.
     if (.not.virialDensityContrastInitialized) then
-      select case (nodeComponentBasicExtendedSphericalCollapseType)
+       select case (nodeComponentBasicExtendedSphericalCollapseType)
        case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
           select type (virialDensityContrast_)
@@ -222,13 +223,13 @@ contains
     call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=self%time())*radiusVirial)
     return
   end subroutine Node_Component_Basic_Extended_Bertschinger_Solver
-  
+
   double precision function Node_Component_Basic_Extended_Mass_Bertschinger(self)
     !% Return the Bertschinger mass.
-    use Galacticus_Nodes, only : nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
-    
+
     if (self%massBertschingerValue() <= 0.0d0) call Node_Component_Basic_Extended_Bertschinger_Solver(self)
     Node_Component_Basic_Extended_Mass_Bertschinger=self%massBertschingerValue()
     return
@@ -236,10 +237,10 @@ contains
 
   double precision function Node_Component_Basic_Extended_Radius_Turnaround(self)
     !% Return the turnaround radius.
-    use Galacticus_Nodes, only : nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
-    
+
     if (self%radiusTurnaroundValue() <= 0.0d0) call Node_Component_Basic_Extended_Bertschinger_Solver(self)
     Node_Component_Basic_Extended_Radius_Turnaround=self%radiusTurnaroundValue()
     return
@@ -250,7 +251,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
     !% Set the mass accretion rate for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeChild          , nodeParent
@@ -322,7 +323,7 @@ contains
 
   double precision function Node_Component_Basic_Standard_Extended_Unresolved_Mass(node)
     !% Return the unresolved mass for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: child
@@ -347,7 +348,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive, treeNode
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
@@ -356,7 +357,7 @@ contains
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basic
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
@@ -377,7 +378,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Basic_Standard_Extended_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: scaleLengthRelative=1.0d-6
@@ -402,7 +403,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Basic_Standard_Extended_Node_Merger(node)
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     class(nodeComponentBasic)               , pointer :: basic
@@ -425,8 +426,8 @@ contains
    subroutine Node_Component_Basic_Standard_Extended_Promote(node)
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
      !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
-     use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
-     use Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicStandardExtended, treeNode
      implicit none
      type (treeNode          ), intent(inout), pointer :: node
      type (treeNode          )               , pointer :: nodeParent

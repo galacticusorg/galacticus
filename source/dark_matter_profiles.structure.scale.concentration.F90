@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo profile scale radii in which radii are computed from the concentration.
-  
-  use Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO                              , darkMatterProfileDMOClass
-  use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration                    , darkMatterProfileConcentrationClass
-  use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale                               , darkMatterHaloScaleClass           , &
-       &                                         darkMatterHaloScaleVirialDensityContrastDefinition
-  use Cosmology_Functions               , only : cosmologyFunctions                                , cosmologyFunctionsClass
-  use Cosmology_Parameters              , only : cosmologyParameters                               , cosmologyParametersClass
-  use Virial_Density_Contrast           , only : virialDensityContrast                             , virialDensityContrastClass
-  use Galacticus_Nodes                  , only : nodeComponentBasic                                , nodeComponentDarkMatterProfile
+
+  use :: Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScale           , darkMatterHaloScaleClass           , darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
+  use :: Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO          , darkMatterProfileDMOClass
+  use :: Galacticus_Nodes                  , only : nodeComponentBasic            , nodeComponentDarkMatterProfile     , treeNode
+  use :: Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
 
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
   !#  <description>Dark matter halo scale radii are computed from the concentration.</description>
@@ -50,7 +49,7 @@
      final     ::           concentrationDestructor
      procedure :: radius => concentrationRadius
   end type darkMatterProfileScaleRadiusConcentration
-  
+
   interface darkMatterProfileScaleRadiusConcentration
      !% Constructors for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
      module procedure concentrationConstructorParameters
@@ -70,20 +69,20 @@
   type   (concentrationState), allocatable, dimension(:) :: concentrationState_
   integer                                                :: concentrationStateCount=0
   !$omp threadprivate(concentrationStateCount,concentrationState_)
-  
+
 contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     class  (cosmologyParametersClass                 ), pointer       :: cosmologyParameters_
     class  (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class  (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_ 
+    class  (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class  (virialDensityContrastClass               ), pointer       :: virialDensityContrast_
     class  (darkMatterProfileConcentrationClass      ), pointer       :: darkMatterProfileConcentration_
     logical                                                           :: correctForConcentrationDefinition, useMeanConcentration
@@ -130,7 +129,7 @@ contains
     class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class  (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
-    class  (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_ 
+    class  (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
     class  (virialDensityContrastClass               ), intent(in   ), target :: virialDensityContrast_
     class  (darkMatterProfileConcentrationClass      ), intent(in   ), target :: darkMatterProfileConcentration_
     logical                                           , intent(in   )         :: correctForConcentrationDefinition, useMeanConcentration
@@ -161,13 +160,12 @@ contains
     !# <objectDestructor name="self%virialDensityContrastDefinition"/>
     return
   end subroutine concentrationDestructor
-  
+
   double precision function concentrationRadius(self,node)
     !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
-    use Root_Finder
-    use Galacticus_Calculations_Resets
-    use Numerical_Constants_Math
-    use Numerical_Comparison
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Numerical_Comparison          , only : Values_Differ
+    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusConcentration), intent(inout), target        :: self
     type            (treeNode                                 ), intent(inout), target        :: node
@@ -290,10 +288,10 @@ contains
     concentrationStateCount=concentrationStateCount-1
     return
   end function concentrationRadius
-  
+
   double precision function concentrationMassRoot(massDefinitionTrial)
     !% Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
-    use Galacticus_Calculations_Resets
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     implicit none
     double precision, intent(in   ) :: massDefinitionTrial
     double precision                :: radiusOuterDefinition, concentrationDefinition, &
@@ -317,13 +315,13 @@ contains
             &                  *concentrationState_(concentrationStateCount)%self%darkMatterProfileConcentration_%concentrationMean    (concentrationState_(concentrationStateCount)%nodeWork) &
             &                  /concentrationState_(concentrationStateCount)%self%darkMatterProfileConcentration_%concentrationMean    (concentrationState_(concentrationStateCount)%node    )
     end if
-    ! Get core radius.      
+    ! Get core radius.
     radiusCore=radiusOuterDefinition/concentrationDefinition
     call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleSet(radiusCore)
     call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Find the non-alt density.
     densityOuter=+concentrationState_(concentrationStateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          concentrationState_(concentrationStateCount)%basic%time()) &
-         &       *concentrationState_(concentrationStateCount)%self%virialDensityContrast_%densityContrast     (concentrationState_(concentrationStateCount)%basic%mass(),concentrationState_(concentrationStateCount)%basic%time())      
+         &       *concentrationState_(concentrationStateCount)%self%virialDensityContrast_%densityContrast     (concentrationState_(concentrationStateCount)%basic%mass(),concentrationState_(concentrationStateCount)%basic%time())
     ! Solve for radius which encloses required non-alt density.
     radiusOuter=concentrationState_(concentrationStateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(concentrationState_(concentrationStateCount)%nodeWork,densityOuter)
     ! Get the mass within this radius.

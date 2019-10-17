@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a cosmological luminosity distance corrector analysis property operator class.
 
+  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
   use, intrinsic :: ISO_C_Binding
-  use            :: Cosmology_Functions
-  use            :: Output_Times
+  use            :: Output_Times       , only : outputTimesClass
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc">
   !#  <description>A cosmological luminosity distance corrector analysis property operator class.</description>
@@ -47,14 +47,14 @@ contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
     !% Constructor for the ``csmlgyLuminosityDistance'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
     type (inputParameters                                ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class(outputTimesClass                               ), pointer       :: outputTimes_
     type (inputParameters                                )                :: dataAnalysisParameters
-    
+
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     !# <objectBuilder class="outputTimes"        name="outputTimes_"            source="parameters"            />
@@ -71,9 +71,9 @@ contains
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    use               Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Memory_Management, only : allocateArray
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
@@ -106,7 +106,7 @@ contains
        ! Compute the correction factor - the assumption here is that the property was derived from a flux. Therefore, we first find
        ! the true flux observed in the model by dividing by the model luminosity distance squared, and then convert back to the
        ! property of interest under the assumptions of the data analysis by multiplying by the luminosity distance squared in the
-       ! data analysis cosmological model.    
+       ! data analysis cosmological model.
        ! Handle zero distance (i.e. present day outputs - and in fact we test for very small rather than zero distance to catch
        ! rounding errors) as a special case.
        if (distanceModel < distanceSmall) then
@@ -124,7 +124,7 @@ contains
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
     !% Destructorfor the ``randomErrorPolynomial'' output analysis property operator class.
-    use               Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
 
@@ -137,8 +137,8 @@ contains
 
   double precision function csmlgyLuminosityDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an csmlgyLuminosityDistance output analysis property operator.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Output_Analyses_Options
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeMagnitude
     implicit none
     class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue

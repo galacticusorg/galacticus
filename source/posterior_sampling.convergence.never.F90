@@ -42,7 +42,7 @@ contains
 
   function neverConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily never} merger tree halo mass function sampling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleConvergenceNever)                :: self
     type(inputParameters                ), intent(inout) :: parameters
@@ -59,7 +59,7 @@ contains
     class           (posteriorSampleStateClass      ), intent(inout), optional :: simulationState
     double precision                                 , intent(in   ), optional :: logLikelihood
     !GCC$ attributes unused :: self, simulationState, logLikelihood
-    
+
     neverIsConverged=.false.
     return
   end function neverIsConverged

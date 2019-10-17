@@ -21,14 +21,13 @@
 
 program Tests_Spherical_Collapse_NonLinear
   !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
-  use Tables
-  use Unit_Tests
-  use Input_Parameters
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Linear_Growth
-  use Spherical_Collapse_Matter_Lambda
-  use Galacticus_Display
+  use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters            , only : cosmologyParametersSimple
+  use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Linear_Growth                   , only : linearGrowthSimple
+  use :: Spherical_Collapse_Matter_Lambda, only : Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
+  use :: Tables                          , only : table2DLinLinLin
+  use :: Unit_Tests                      , only : Assert                                            , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   ! Target nonlinear overdensities are computed using the analytic solutions for expanding/collapsing perturbations in an
   ! Einstein-de Sitter universe.

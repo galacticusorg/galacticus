@@ -44,5 +44,5 @@ contains
     end if
     return
   end function FFTW_Wavenumber
-  
+
 end module FFTW3

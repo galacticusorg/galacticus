@@ -21,29 +21,29 @@
 
 program Test_DiemerKravtsov2014_Concentration
   !% Tests the \cite{diemer_universal_2014} halo concentration algorithm. Values of concentration are taken from their \href{http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt}{website}.
-  use ISO_Varying_String
-  use Input_Parameters
-  use Dark_Matter_Profiles_Concentration
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Unit_Tests
-  use System_Command
-  use Galacticus_Error, only : Galacticus_Error_Report
-  use File_Utilities
-  use Galacticus_Paths
-  use Cosmological_Density_Field
-  use Power_Spectra
-  use Galacticus_Display
-  use Galacticus_Nodes                    , only : treeNode                           , nodeComponentBasic               , nodeClassHierarchyInitialize
-  use Node_Components                     , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
-  use Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-  use Events_Hooks                        , only : eventsHooksInitialize
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                        , cosmologicalMassVarianceClass    , criticalOverdensity                , criticalOverdensityClass
+  use :: Cosmology_Functions                 , only : cosmologyFunctions                              , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                , only : cosmologyParameters                             , cosmologyParametersClass         , hubbleUnitsLittleH
+  use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationDiemerKravtsov2014
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: File_Utilities                      , only : File_Exists
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error                    , only : Galacticus_Error_Report
+  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                    , nodeComponentBasic               , treeNode
+  use :: Galacticus_Paths                    , only : galacticusPath                                  , pathTypeExec
+  use :: ISO_Varying_String
+  use :: Input_Parameters                    , only : inputParameters
+  use :: Node_Components                     , only : Node_Components_Initialize                      , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Power_Spectra                       , only : powerSpectrum                                   , powerSpectrumClass
+  use :: System_Command                      , only : System_Command_Do
+  use :: Unit_Tests                          , only : Assert                                          , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                                        ), pointer :: node
   class           (nodeComponentBasic                              ), pointer :: basic
   class           (cosmologyFunctionsClass                         ), pointer :: cosmologyFunctions_
   class           (cosmologyParametersClass                        ), pointer :: cosmologyParameters_
-  class           (criticalOverdensityClass                        ), pointer :: criticalOverdensity_     
+  class           (criticalOverdensityClass                        ), pointer :: criticalOverdensity_
   class           (cosmologicalMassVarianceClass                   ), pointer :: cosmologicalMassVariance_
   class           (powerSpectrumClass                              ), pointer :: powerSpectrum_
   type            (darkMatterProfileConcentrationDiemerKravtsov2014)          :: darkMatterProfileConcentration_
@@ -68,7 +68,7 @@ program Test_DiemerKravtsov2014_Concentration
   call eventsHooksInitialize()
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
-  call Node_Components_Thread_Initialize(parameters)    
+  call Node_Components_Thread_Initialize(parameters)
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
@@ -86,10 +86,10 @@ program Test_DiemerKravtsov2014_Concentration
   basic                           => node%basic                                      (autoCreate=.true.)
   ! Get required objects.
   cosmologyFunctions_             => cosmologyFunctions                              (                 )
-  cosmologyParameters_            => cosmologyParameters                             (                 )  
-  criticalOverdensity_            => criticalOverdensity                             (                 )  
-  cosmologicalMassVariance_       => cosmologicalMassVariance                        (                 )  
-  powerSpectrum_                  => powerSpectrum                                   (                 )  
+  cosmologyParameters_            => cosmologyParameters                             (                 )
+  criticalOverdensity_            => criticalOverdensity                             (                 )
+  cosmologicalMassVariance_       => cosmologicalMassVariance                        (                 )
+  powerSpectrum_                  => powerSpectrum                                   (                 )
   darkMatterProfileConcentration_ =  darkMatterProfileConcentrationDiemerKravtsov2014(                           &
        &                                                                              0.69d0                   , &
        &                                                                              6.58d0                   , &

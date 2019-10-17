@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
-  
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
   !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
   !# </satelliteMergingTimescales>
@@ -48,10 +48,9 @@ contains
 
   function jiang2008ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
-    use Galacticus_Nodes  , only : defaultBasicComponent
-    use Galacticus_Display
-    use Input_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -76,7 +75,7 @@ contains
     !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !# </inputParameter>       
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_)
@@ -110,9 +109,9 @@ contains
 
   double precision function jiang2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Satellite_Orbits
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
+    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesJiang2008), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

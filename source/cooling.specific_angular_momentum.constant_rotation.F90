@@ -20,9 +20,9 @@
   !% Implementation of a specific angular momentum of cooling gas class assuming a constant rotation velocity as a function of
   !% radius.
 
-  use Kind_Numbers
-  use Dark_Matter_Profiles_DMO
-  use Hot_Halo_Mass_Distributions
+  use :: Dark_Matter_Profiles_DMO   , only : darkMatterProfileDMOClass
+  use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
+  use :: Kind_Numbers               , only : kind_int8
 
   !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
   !#  <description>
@@ -31,7 +31,7 @@
   !# </coolingSpecificAngularMomentum>
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation
      !% Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
-     private 
+     private
      class           (darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_             => null()
      class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_          => null()
      integer         (kind=kind_int8              )          :: lastUniqueID
@@ -74,7 +74,7 @@ contains
 
   function constantRotationConstructorParameters(parameters) result(self)
     !% Constructor for the constantRotation freefall radius class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (coolingSpecificAngularMomentumConstantRotation)                :: self
     type   (inputParameters                               ), intent(inout) :: parameters
@@ -142,20 +142,20 @@ contains
     self%angularMomentumSpecificComputed=.false.
     return
   end function constantRotationConstructorInternal
-  
+
   subroutine constantRotationAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
     call calculationResetEvent%attach(self,constantRotationCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine constantRotationAutoHook
-  
+
   subroutine constantRotationDestructor(self)
     !% Destructor for the constant rotation specific angular momentum of cooling gas class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
@@ -164,12 +164,12 @@ contains
     call calculationResetEvent%detach(self,constantRotationCalculationReset)
     return
   end subroutine constantRotationDestructor
-  
+
   double precision function constantRotationAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the constantRotation model.
-    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentSpin, nodeComponentHotHalo
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Physical
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

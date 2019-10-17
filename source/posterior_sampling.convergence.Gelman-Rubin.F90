@@ -19,8 +19,8 @@
 
   !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
 
-  use ISO_Varying_String
-  
+  use :: ISO_Varying_String
+
   !# <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
   !#  <description>A posterior sampling convergence class which implements the Gelman-Rubin statistic.</description>
   !# </posteriorSampleConvergence>
@@ -74,8 +74,8 @@ contains
   function gelmanRubinConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use ISO_Varying_String
+    use :: ISO_Varying_String
+    use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -155,9 +155,9 @@ contains
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !% Constructor for ``GelmanRubin'' convergence class.
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use MPI_Utilities
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: MPI_Utilities    , only : mpiSelf
+    use :: Memory_Management, only : allocateArray
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     double precision                                       , intent(in   ) :: thresholdHatR             , outlierSignificance, &
          &                                                                    outlierLogLikelihoodOffset
@@ -165,7 +165,7 @@ contains
          &                                                                    outlierCountMaximum       , reportCount
     type            (varying_string                       ), intent(in   ) :: logFileName
     !# <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
-    
+
     call allocateArray(self%chainMask,[mpiSelf%count()])
     self%estimateCount       = 0
     self%converged           =.false.
@@ -181,7 +181,7 @@ contains
 
   subroutine gelmanRubinDestructor(self)
     !% Destroy a Gelman-Rubin convergence object.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     type(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
 
@@ -192,13 +192,13 @@ contains
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !% Return whether the simulation is converged.
-    use Posterior_Sampling_State
-    use Memory_Management
-    use MPI_Utilities
-    use FGSL                    , only : FGSL_CDF_tDist_Qinv
-    use ISO_Varying_String
-    use Galacticus_Display
-    use String_Handling
+    use :: FGSL                    , only : FGSL_CDF_tDist_Qinv
+    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    use :: ISO_Varying_String
+    use :: MPI_Utilities           , only : mpiBarrier                , mpiSelf
+    use :: Memory_Management       , only : allocateArray
+    use :: Posterior_Sampling_State, only : posteriorSampleStateClass
+    use :: String_Handling         , only : operator(//)
     implicit none
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout)               :: self
     class           (posteriorSampleStateClass            ), intent(inout), optional     :: simulationState
@@ -259,7 +259,7 @@ contains
        currentStateMeanSquared=mpiSelf%average(simulationState%get()**2,self%chainMask)
        currentStateVariance   = (currentStateMeanSquared-currentStateMean**2) &
             &                  *dble(activeChainCount  )                      &
-            &                  /dble(activeChainCount-1) 
+            &                  /dble(activeChainCount-1)
        allocate(chainDeviation(size(currentStateVariance)))
        where (currentStateVariance > 0.0d0)
           chainDeviation         = abs(simulationState%get()-currentStateMean)   &
@@ -492,7 +492,6 @@ contains
 
   subroutine gelmanRubinLogReport(self,fileUnit)
     !% Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
-    use MPI_Utilities
     implicit none
     class    (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
     integer                                         , intent(in   ) :: fileUnit
@@ -525,7 +524,7 @@ contains
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
     double precision                                       , parameter     :: convergenceMeasureLarge=100.0d0
 
-    if (allocated(self%correctedHatR)) then     
+    if (allocated(self%correctedHatR)) then
        gelmanRubinConvergenceMeasure=maxval(self%correctedHatR)
     else
        ! Convergence has not yet been computed - return a suitably large value.

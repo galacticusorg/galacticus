@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a ``superwind'' expulsive outflow rate due to star formation feedback in galactic spheroids.
-  
+
   !# <starFormationExpulsiveFeedbackSpheroids name="starFormationExpulsiveFeedbackSpheroidsSuperWind">
   !#  <description>A superwind expulsive outflow rate due to star formation feedback in galactic spheroids.</description>
   !# </starFormationExpulsiveFeedbackSpheroids>
@@ -40,7 +40,7 @@ contains
 
   function superWindConstructorParameters(parameters) result(self)
     !% Constructor for the superwind expulsive star formation feedback in spheroids class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationExpulsiveFeedbackSpheroidsSuperWind)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
     type            (starFormationExpulsiveFeedbackSpheroidsSuperWind)                :: self
     double precision                                                  , intent(in   ) :: velocityCharacteristic, massLoading
     !# <constructorAssign variables="velocityCharacteristic, massLoading"/>
-    
+
     return
   end function superWindConstructorInternal
 
@@ -87,8 +87,8 @@ contains
     !% [massLoadnig]}. Note that the velocity $V_\mathrm{ spheroid}$ is whatever characteristic value returned by the spheroid
     !% method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     !% except that they specifically used the circular velocity at half-mass radius.
-    use Stellar_Feedback
-    use Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid                 , treeNode
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationExpulsiveFeedbackSpheroidsSuperWind), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node
@@ -107,7 +107,7 @@ contains
             &                         *(                                      &
             &                           +    self%velocityCharacteristic      &
             &                           /max(                                 &
-            &                                     velocitySpheroid      ,     & 
+            &                                     velocitySpheroid      ,     &
             &                                self%velocityCharacteristic      &
             &                               )                                 &
             &                         )**2

@@ -37,21 +37,21 @@ contains
 
   function agnSpectraHopkins2008BuildFileParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskAGNSpectraHopkins2008BuildFile)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskAGNSpectraHopkins2008BuildFile()
     return
   end function agnSpectraHopkins2008BuildFileParameters
 
   subroutine agnSpectraHopkins2008BuildFilePerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Display    
-    use Accretion_Disk_Spectra
-    use Galacticus_Error      , only : errorStatusSuccess
+    use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
+    use :: Galacticus_Display    , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use :: Galacticus_Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
@@ -68,7 +68,7 @@ contains
   logical function agnSpectraHopkins2008BuildFileRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self    
+    class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     agnSpectraHopkins2008BuildFileRequiresOutputFile=.false.

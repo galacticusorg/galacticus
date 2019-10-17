@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% A simple implementation of the cosmological parameters class.
-  
+
   !# <cosmologyParameters name="cosmologyParametersSimple">
   !#  <description>Provides basic cosmological parameters: $(H_0,\Omega_\mathrm{M},\Omega_\Lambda,\Omega_\mathrm{b},T_\mathrm{CMB})$. Also provides derived quantities $(\Omega_\mathrm{K},\Omega_\mathrm{r},\rho_\mathrm{crit})$.</description>
   !# </cosmologyParameters>
@@ -48,7 +48,7 @@ contains
 
   function simpleConstructorParameters(parameters)
     !% Constructor for the simple cosmological parameters class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Warn
+    use :: Galacticus_Error, only : Galacticus_Warn
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
@@ -128,7 +128,7 @@ contains
 
   double precision function simpleOmegaMatter(self)
     !% Return the cosmological matter density in units of the critical density at the present day.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -138,7 +138,7 @@ contains
 
   double precision function simpleOmegaBaryon(self)
     !% Return the cosmological baryon density in units of the critical density at the present day.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -148,7 +148,7 @@ contains
 
   double precision function simpleOmegaDarkEnergy(self)
     !% Return the cosmological dark energy density in units of the critical density at the present day.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -158,8 +158,8 @@ contains
 
   double precision function simpleOmegaRadiation(self)
     !% Return the cosmological radiation density in units of the critical density at the present day.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
+    use :: Numerical_Constants_Physical    , only : radiationConstant, speedLight
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -194,9 +194,9 @@ contains
 
   double precision function simpleHubbleConstant(self,units)
     !% Return the present day value of the Hubble constant.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (cosmologyParametersSimple), intent(inout)           :: self
     integer                                    , intent(in   ), optional :: units
@@ -223,8 +223,8 @@ contains
 
   double precision function simpleDensityCritical(self)
     !% Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 

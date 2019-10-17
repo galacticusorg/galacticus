@@ -33,29 +33,29 @@
      !% Constructors for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class.
      module procedure identityConstructorParameters
   end interface stellarPopulationSpectraPostprocessorIdentity
-    
+
 contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorIdentity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarPopulationSpectraPostprocessorIdentity()
     return
   end function identityConstructorParameters
-  
+
   double precision function identityMultiplier(self,wavelength,age,redshift)
     !% Perform an identity postprocessing on a spectrum.
     implicit none
     class           (stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
     double precision                                               , intent(in   ) :: age , redshift, wavelength
     !GCC$ attributes unused :: self, age, redshift, wavelength
-    
+
     identityMultiplier=1.0d0
     return
   end function identityMultiplier

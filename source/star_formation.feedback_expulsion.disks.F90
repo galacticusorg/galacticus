@@ -21,9 +21,9 @@
 
 module Star_Formation_Feedback_Expulsion_Disks
   !% Provides a class that implements calculations of expulsive feedback from star formation in disks.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>starFormationExpulsiveFeedbackDisks</name>
   !#  <descriptiveName>Expulsive feedback from star formation in disks</descriptiveName>

@@ -40,18 +40,18 @@ module System_Limits
   end interface
 
   integer(c_int), bind(C) :: rLimitCPU
-  
+
 contains
 
   subroutine System_Limits_Set()
     !% Set system resource limits.
-    !$ use OMP_Lib
-    use    Input_Parameters
-    use    Galacticus_Error, only : Galacticus_Error_Report
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    use    :: Input_Parameters, only : globalParameters       , inputParameter
+    !$ use :: OMP_Lib
     implicit none
     integer(c_int ) :: status
     integer(c_long) :: cpuLimit
-    
+
     !# <inputParameter>
     !#   <name>cpuLimit</name>
     !#   <cardinality>1</cardinality>

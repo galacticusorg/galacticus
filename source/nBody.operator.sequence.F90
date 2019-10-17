@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which applies a sequence of other operators.
-  
+
   type, public :: nbodyOperatorList
      class(nbodyOperatorClass), pointer :: operator_
      type (nbodyOperatorList ), pointer :: next     => null()
@@ -44,10 +44,10 @@
   end interface nbodyOperatorSequence
 
 contains
-  
+
   function sequenceConstructorParameters(parameters) result (self)
     !% Constructor for the ``sequence'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorSequence)                :: self
     type   (inputParameters      ), intent(inout) :: parameters
@@ -68,10 +68,9 @@ contains
     end do
     return
   end function sequenceConstructorParameters
-  
+
   function sequenceConstructorInternal(operators) result (self)
     !% Internal constructor for the ``sequence'' N-body operator class.
-    use Input_Parameters
     implicit none
     type(nbodyOperatorSequence)                        :: self
     type(nbodyOperatorList    ), target, intent(in   ) :: operators
@@ -91,7 +90,7 @@ contains
     implicit none
     type(nbodyOperatorSequence), intent(inout) :: self
     type(nbodyOperatorList    ), pointer       :: operator_, operatorNext
-    
+
     if (associated(self%operators)) then
        operator_ => self%operators
        do while (associated(operator_))
@@ -103,7 +102,7 @@ contains
     end if
     return
   end subroutine sequenceDestructor
-  
+
   subroutine sequenceOperate(self,simulation)
     !% Apply a sequence of N-body simulation operators.
     implicit none
@@ -121,7 +120,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} N-body operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(nbodyOperatorSequence), intent(inout) :: self
     class(nbodyOperatorClass   ), intent(inout) :: destination
@@ -138,7 +137,7 @@ contains
           allocate(operatorNew_)
           if (associated(operatorDestination_)) then
              operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_             
+             operatorDestination_            => operatorNew_
           else
              destination          %operators => operatorNew_
              operatorDestination_            => operatorNew_
@@ -146,7 +145,7 @@ contains
           allocate(operatorNew_%operator_,mold=operator_%operator_)
           !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

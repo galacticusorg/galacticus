@@ -21,7 +21,7 @@
 
   !% Contains a module which implements a excursion set first crossing statistics class utilizing a higher order generalization of
   !% the algorithm of \cite{zhang_random_2006}.
-  
+
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHuiHighOrder">
   !#  <description>An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of \cite{zhang_random_2006}.</description>
   !# </excursionSetFirstCrossing>
@@ -43,7 +43,7 @@
      procedure :: initialize  => zhangHuiHighOrderInitialize
      procedure :: probability => zhangHuiHighOrderProbability
   end type excursionSetFirstCrossingZhangHuiHighOrder
-  
+
   interface excursionSetFirstCrossingZhangHuiHighOrder
      !% Constructors for the \cite{zhang_random_2006} excursion set barrier class.
      module procedure zhangHuiHighOrderConstructorParameters
@@ -54,7 +54,7 @@ contains
 
   function zhangHuiHighOrderConstructorParameters(parameters) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -66,7 +66,6 @@ contains
 
   function zhangHuiHighOrderConstructorInternal(excursionSetBarrier_) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                        :: self
     class(excursionSetBarrierClass                  ), intent(in   ), target :: excursionSetBarrier_
@@ -88,11 +87,12 @@ contains
 
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
+    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                            verbosityWorking
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
-    use               Numerical_Ranges
-    use               Memory_Management
-    use               Galacticus_Display
+    use            :: Memory_Management      , only : allocateArray             , deallocateArray
+    use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLogarithmic               , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time

@@ -21,9 +21,9 @@
 
 module Posterior_Sampling_State_Initialize
   !% Implements a class for posterior sampling state initialization.
-  use Model_Parameters
-  use Posterior_Sampling_State
-  use Models_Likelihoods
+  use :: Model_Parameters        , only : modelParameterList
+  use :: Models_Likelihoods      , only : posteriorSampleLikelihoodClass
+  use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
   !# <functionClass>

@@ -20,7 +20,7 @@
 !% Contains a module which provides an enumeration for tree deadlock statuses.
 
 module Merger_Trees_Evolve_Deadlock_Status
-  !% Provides an enumeration for tree deadlock statuses.  
+  !% Provides an enumeration for tree deadlock statuses.
   public
 
   !# <enumeration>

@@ -19,7 +19,7 @@
 
   !% An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
 
-  use Atomic_Ionization_Potentials
+  use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
   !# <gauntFactor name="gauntFactorVanHoof2014">
   !#  <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
@@ -32,13 +32,13 @@
      final     ::          vanHoof2014Destructor
      procedure :: total => vanHoof2014Total
   end type gauntFactorVanHoof2014
-  
+
   interface gauntFactorVanHoof2014
      !% Constructors for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
      module procedure vanHoof2014ConstructorParameters
      module procedure vanHoof2014ConstructorInternal
   end interface gauntFactorVanHoof2014
-  
+
   ! Arrays to hold coefficients of the fitting function.
   double precision, dimension(0:4,2) :: vanHoof2014FitA=reshape(                       &
        &                                                        [                      &
@@ -72,10 +72,10 @@
        &                                                       )
 
 contains
-  
+
   function vanHoof2014ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type (gauntFactorVanHoof2014        )                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -109,19 +109,18 @@ contains
 
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    !% \cite{van_hoof_accurate_2014}. 
+    !% \cite{van_hoof_accurate_2014}.
+    use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Arrays_Search
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use            :: Numerical_Constants_Units   , only : rydbergs
     implicit none
     class           (gauntFactorVanHoof2014), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber
-    double precision                        , intent(in   ) :: temperature       
+    double precision                        , intent(in   ) :: temperature
     double precision                                        :: gammaSquared, g
     integer                                                 :: i
-    
+
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
        vanHoof2014Total=0.0d0

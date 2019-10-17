@@ -52,10 +52,10 @@ end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
 
 double precision function SatellitePresetMergeBoundMass(self)
   !% Return the satellite bound mass at the current time.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Histories
   use            :: FGSL                   , only : fgsl_interp_accel
-  use            :: Numerical_Interpolation
+  use            :: Histories              , only : history
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : Interpolate_Done , Interpolate_Locate
   implicit none
   class  (nodeComponentSatellitePreset), intent(inout) :: self
   class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
@@ -94,11 +94,11 @@ end function SatellitePresetMergeBoundMass
 
 function SatellitePresetNodeIndex(self)
   !% Return the satellite node index.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Histories
   use            :: FGSL                   , only : fgsl_interp_accel
-  use            :: Numerical_Interpolation
-  use            :: Kind_Numbers
+  use            :: Histories              , only : longIntegerHistory
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Kind_Numbers           , only : kind_int8
+  use            :: Numerical_Interpolation, only : Interpolate_Done  , Interpolate_Locate
   implicit none
   integer(kind=kind_int8              )                :: SatellitePresetNodeIndex
   class  (nodeComponentSatellitePreset), intent(inout) :: self

@@ -19,8 +19,8 @@
 
   !% Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-  use FGSL, only : fgsl_interp_accel
-  
+  use :: FGSL, only : fgsl_interp_accel
+
   !# <chemicalState name="chemicalStateCIEFile">
   !#  <description>
   !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
@@ -119,7 +119,7 @@
   !#   \scshape ii} relative to hydrogen respectively The {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily
   !#   extrapolateHigh} attributes of the {\normalfont \ttfamily temperature} and {\normalfont \ttfamily metallicity} datasets
   !#   specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
-  !#   are: 
+  !#   are:
   !#   \begin{description}
   !#    \item[{\normalfont \ttfamily zero}] The electron density is set to zero beyond the relevant limit.
   !#    \item[{\normalfont \ttfamily fixed}] The electron density is held fixed at the value at the relevant limit.
@@ -204,7 +204,6 @@ contains
 
   function cieFileConstructorParameters(parameters)
     !% Constructor for the ``CIE file'' chemical state class which takes a parameter set as input.
-    use Galacticus_Paths
     implicit none
     type(chemicalStateCIEFile)                :: cieFileConstructorParameters
     type(inputParameters     ), intent(inout) :: parameters
@@ -217,18 +216,19 @@ contains
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    ! Construct the instance.    
+    ! Construct the instance.
     cieFileConstructorParameters=cieFileConstructorInternal(char(fileName))
     !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
-  
+
   function cieFileConstructorInternal(fileName)
     !% Internal constructor for the ``CIE file'' chemical state class.
+    use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
     type     (chemicalStateCIEFile)                :: cieFileConstructorInternal
     character(len=*               ), intent(in   ) :: fileName
-    
+
     ! Read the file.
     cieFileConstructorInternal%fileName=fileName
     call cieFileConstructorInternal%readFile(fileName)
@@ -246,10 +246,10 @@ contains
     cieFileConstructorInternal%resetTemperature               =.true.
     return
   end function cieFileConstructorInternal
-  
+
   subroutine cieFileDestructor(self)
     !% Destructor for the ``CIE file'' chemical state class.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(chemicalStateCIEFile), intent(inout) :: self
 
@@ -267,10 +267,10 @@ contains
 
   double precision function cieFileElectronDensity(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Radiation_Fields
-    use               Table_Labels
+    use            :: Radiation_Fields    , only : radiationFieldClass
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -280,7 +280,7 @@ contains
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
     !GCC$ attributes unused :: radiation
-    
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -343,10 +343,10 @@ contains
   double precision function cieFileElectronDensityTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Radiation_Fields
-    use               Table_Labels
+    use            :: Radiation_Fields    , only : radiationFieldClass
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -439,8 +439,8 @@ contains
 
   double precision function cieFileElectronDensityDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE.
-    use Abundances_Structure
-    use Radiation_Fields
+    use :: Abundances_Structure, only : abundances
+    use :: Radiation_Fields    , only : radiationFieldClass
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -456,11 +456,11 @@ contains
   subroutine cieFileChemicalDensities(self,chemicalDensities,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Radiation_Fields
-    use               Chemical_Abundances_Structure
-    use               Table_Labels
+    use            :: Radiation_Fields             , only : radiationFieldClass
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     type            (chemicalAbundances  ), intent(inout) :: chemicalDensities
@@ -556,7 +556,7 @@ contains
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: metallicity   , temperature
@@ -633,12 +633,13 @@ contains
 
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from an chemical state file.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use ISO_Varying_String
-    use IO_HDF5
-    use Table_Labels
-    use File_Utilities
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: File_Utilities               , only : File_Name_Expand
+    use :: Galacticus_Display           , only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityDebug
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: IO_HDF5                      , only : hdf5Access                        , hdf5Object
+    use :: ISO_Varying_String
+    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName

@@ -42,7 +42,7 @@ contains
 
   function switchedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (posteriorSampleStateInitializeSwitched)                            :: self
     type (inputParameters                       ), intent(inout)             :: parameters
@@ -81,7 +81,7 @@ contains
     type (varying_string                        ), dimension(:), intent(in   ) :: modelParameterName1   , modelParameterName2
     class(posteriorSampleStateInitializeClass   ), target      , intent(in   ) :: stateInitializeMethod1, stateInitializeMethod2
     !# <constructorAssign variables="modelParameterName1, modelParameterName2, *stateInitializeMethod1, *stateInitializeMethod2"/>
-    
+
     return
   end function switchedConstructorInternal
 
@@ -94,11 +94,12 @@ contains
     !# <objectDestructor name="self%stateInitializeMethod2"/>
     return
   end subroutine switchedDestructor
- 
+
   subroutine switchedInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use                          Models_Likelihoods_Constants
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
     implicit none
     class           (posteriorSampleStateInitializeSwitched), intent(inout)               :: self
     class           (posteriorSampleStateClass             ), intent(inout)               :: simulationState
@@ -115,7 +116,7 @@ contains
     integer                                                                               :: i                   , j            , &
          &                                                                                   initializor
     logical                                                                               :: matched
-    
+
     ! Validate that all parameters are in one of our lists.
     do i=1,size(modelParameters_)
        matched=.false.
@@ -139,7 +140,7 @@ contains
     end do
     ! Iterate over both initializors.
     allocate(stateVector(size(modelParameters_)))
-    do initializor=1,2       
+    do initializor=1,2
        select case (initializor)
        case (1)
           allocate(modelParameterNames(size(self%modelParameterName1)))
@@ -171,7 +172,7 @@ contains
           !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
        end do
        ! Apply the initializor
-       call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)       
+       call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
        ! Combine states into the final state.
        stateVector__=simulationState__%get()
        do i=1,size(modelParameterNames)
@@ -188,7 +189,7 @@ contains
        deallocate(mapping__          )
     end do
     ! Set the initial state.
-    call simulationState%update(stateVector,.false.,.false.)    
+    call simulationState%update(stateVector,.false.,.false.)
     deallocate(stateVector)
     ! We have no information about evaluation time.
     timeEvaluatePrevious=-1.0d0

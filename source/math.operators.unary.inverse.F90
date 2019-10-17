@@ -40,12 +40,12 @@ contains
   function inverseConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily inverse} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryInverse)                :: self
     type(inputParameters     ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=operatorUnaryInverse()
     return
   end function inverseConstructorParameters

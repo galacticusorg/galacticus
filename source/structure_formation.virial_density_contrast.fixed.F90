@@ -19,8 +19,8 @@
 
   !% An implementation of fixed dark matter halo virial density contrasts.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastFixed">
   !#  <description>Fixed dark matter halo virial density contrasts.</description>
@@ -54,13 +54,13 @@
   !#  <entry label="critical" />
   !#  <entry label="mean"     />
   !# </enumeration>
-  
+
 contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters
-    use ISO_Varying_String
+    use :: ISO_Varying_String
+    use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (virialDensityContrastFixed)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -68,7 +68,7 @@ contains
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     double precision                                            :: densityContrastValue
     type            (varying_string            )                :: densityType
-    
+
     !# <inputParameter>
     !#  <name>densityContrastValue</name>
     !#  <source>parameters</source>
@@ -96,7 +96,7 @@ contains
 
   function fixedConstructorInternal(densityContrastValue,densityType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialDensityContrastFixed)                        :: self
     double precision                            , intent(in   )         :: densityContrastValue
@@ -108,19 +108,20 @@ contains
     if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
     return
   end function fixedConstructorInternal
-  
+
   subroutine fixedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily fixed} virial density contrast class.
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine fixedDestructor
-  
+
   double precision function fixedDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    use :: Cosmology_Functions, only : cosmologyFunctionsStaticUniverse
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
     double precision                            , intent(in   )           :: mass

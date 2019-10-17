@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{gordon_quantitative_2003}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationGordon2003">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -49,7 +49,7 @@ contains
 
   function gordon2003ConstructorParameters(parameters) result(self)
     !% Default constructor for the ``gordon2003'' stellar spectra dust attenuation class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarSpectraDustAttenuationGordon2003)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
@@ -70,12 +70,12 @@ contains
 
   function gordon2003ConstructorInternal(sample) result(self)
     !% Constructor for the ``gordon2003'' stellar spectra dust attenuation class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Table_Labels
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
     type   (stellarSpectraDustAttenuationGordon2003)                :: self
     integer                                         , intent(in   ) :: sample
-    
+
     ! Initialize fitting function parameters for the chosen sample (values from Tables 2 & 3 of Gordon et al.).
     if (.not.enumerationGordon2003SampleIsValid(sample)) call Galacticus_Error_Report('invalid sample'//{introspection:location})
     select case (sample)

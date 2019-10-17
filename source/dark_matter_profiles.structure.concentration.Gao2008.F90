@@ -18,9 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
-  
-  use Cosmology_Parameters
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions      , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters     , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO , only : darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast  , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
@@ -44,7 +46,7 @@
      procedure :: densityContrastDefinition      => gao2008DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => gao2008DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationGao2008
-  
+
   interface darkMatterProfileConcentrationGao2008
      !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
      module procedure gao2008ConstructorParameters
@@ -56,7 +58,7 @@ contains
   function gao2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class which takes a parameter
     !% list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationGao2008)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
@@ -74,7 +76,8 @@ contains
 
   function gao2008ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type (darkMatterProfileConcentrationGao2008             )                         :: self
     class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
@@ -103,11 +106,11 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine gao2008Destructor
-  
+
   double precision function gao2008Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
     !% algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
@@ -137,14 +140,14 @@ contains
     gao2008DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function gao2008DensityContrastDefinition
-  
+
   function gao2008DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{gao_redshift_2008} algorithm.
     implicit none
     class(darkMatterProfileDMOClass            ), pointer       :: gao2008DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationGao2008), intent(inout) :: self
-    
+
     gao2008DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function gao2008DarkMatterProfileDefinition

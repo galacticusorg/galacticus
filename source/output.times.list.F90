@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <outputTimes name="outputTimesList">
   !#  <description>An output times class which simply reads a list of output times from a parameter.</description>
   !# </outputTimes>
@@ -47,10 +47,10 @@ contains
 
   function listConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
-    use Input_Parameters
-    use Sort
-    use Array_Utilities
-    use Memory_Management
+    use :: Array_Utilities  , only : Array_Reverse
+    use :: Input_Parameters , only : inputParameter, inputParameters
+    use :: Memory_Management, only : allocateArray
+    use :: Sort             , only : Sort_Do
     implicit none
     type            (outputTimesList        )                            :: self
     type            (inputParameters        ), intent(inout)             :: parameters
@@ -102,11 +102,11 @@ contains
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (outputTimesList        )                              :: self
     double precision                         , intent(in   ), dimension(:) :: times
-    class           (cosmologyFunctionsClass), intent(in   ), target       :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass), intent(in   ), target       :: cosmologyFunctions_
     integer         (c_size_t               )                              :: i
     !# <constructorAssign variables="times, *cosmologyFunctions_"/>
 
@@ -166,10 +166,9 @@ contains
 
   function listIndex(self,time,findClosest)
     !% Returns the index of the output given the corresponding time.
-    use Kind_Numbers
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Comparison
-    use Arrays_Search
+    use :: Arrays_Search       , only : Search_Array           , Search_Array_For_Closest
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     integer         (c_size_t       )                          :: listIndex
     class           (outputTimesList), intent(inout)           :: self
@@ -188,8 +187,7 @@ contains
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
     !% Returns the time of the next output after {\normalfont \ttfamily currentTime}.
-    use Arrays_Search
-    use Kind_Numbers
+    use :: Arrays_Search, only : Search_Array
     implicit none
     class           (outputTimesList), intent(inout)           :: self
     double precision                 , intent(in   )           :: timeCurrent
@@ -213,7 +211,7 @@ contains
 
   double precision function listTimePrevious(self,timeCurrent)
     !% Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
-    use Arrays_Search
+    use :: Arrays_Search, only : Search_Array
     implicit none
     class           (outputTimesList), intent(inout) :: self
     double precision                 , intent(in   ) :: timeCurrent

@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorSatelliteOrbitalExtrema
 
 contains
-  
+
   function satelliteOrbitalExtremaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
 
   function satelliteOrbitalExtremaConstructorInternal(extractPericenter, extractApocenter) result(self)
     !% Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     logical                                            , intent(in   ) :: extractPericenter, extractApocenter
@@ -101,16 +101,16 @@ contains
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
     double precision                                              , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     satelliteOrbitalExtremaElementCount=self%elementCount_
     return
   end function satelliteOrbitalExtremaElementCount
 
   function satelliteOrbitalExtremaExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor
-    use Kepler_Orbits   , only : keplerOrbit
-    use Satellite_Orbits, only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter, extremumApocenter
-    use Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Satellite_Orbits, only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumApocenter, extremumPericenter
     implicit none
     double precision                                              , dimension(:) , allocatable :: satelliteOrbitalExtremaExtract
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout), target      :: self
@@ -122,7 +122,7 @@ contains
     type            (keplerOrbit                                 )                             :: orbit
     double precision                                                                           :: radiusOrbital                 , velocityOrbital
     !GCC$ attributes unused :: time, instance
-    
+
     allocate(satelliteOrbitalExtremaExtract(self%elementCount_))
     if (self%extractPericenter) then
        if (node%isSatellite()) then
@@ -181,8 +181,8 @@ contains
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily satelliteOrbitalExtrema} property in the SI system.
-    use Numerical_Constants_Astronomical, only : megaParsec
-    use Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                              , allocatable  , dimension(:) :: satelliteOrbitalExtremaUnitsInSI
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)               :: self
@@ -197,7 +197,7 @@ contains
 
   integer function satelliteOrbitalExtremaType(self)
     !% Return the type of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
     !GCC$ attributes unused :: self

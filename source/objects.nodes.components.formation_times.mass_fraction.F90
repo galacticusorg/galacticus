@@ -20,7 +20,6 @@
 
 module Node_Component_Formation_Times_Mass_Fraction
   !% Implement tracking of halo formation times.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Time_Mass_Fraction_Node_Promotion, &
@@ -51,7 +50,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize(globalParameters_)
     !% Initializes the tree node formation time tracking module.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -71,14 +70,14 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion(node)
     !% Handle node promotion for formation times.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes  , only : treeNode               , nodeComponentFormationTime, nodeComponentFormationTimeMassFraction
+    use :: ISO_Varying_String
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime, formationTimeParent
     type (treeNode                  )               , pointer :: nodeParent
-    
+
     ! Get the formationTime component.
     formationTime => node%formationTime()
     ! Ensure that it is of the standard class.
@@ -98,13 +97,14 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
+    use :: Galacticus_Nodes  , only : treeNode, nodeComponentFormationTime, nodeComponentBasic, defaultFormationTimeComponent
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
     type            (treeNode                  )               , pointer :: nodeProgenitor
     class           (nodeComponentBasic        )               , pointer :: basic         , basicProgenitor
     class           (nodeComponentFormationTime)               , pointer :: formationTime
     double precision                                                     :: timeFormation , massFormation
-    
+
     ! Return immediately if this implementation is not active.
     if (.not.defaultFormationTimeComponent%massFractionIsActive()) return
     ! Compute the formation time.

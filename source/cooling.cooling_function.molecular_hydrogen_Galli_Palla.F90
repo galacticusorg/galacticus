@@ -19,7 +19,7 @@
 
   !% Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of
   !% \cite{galli_chemistry_1998}.
-  
+
   !# <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla">
   !#  <description>Cooling function class which implements cooling from molecular hydrogen using the cooling function of \cite{galli_chemistry_1998}.</description>
   !# </coolingFunction>
@@ -32,7 +32,7 @@
      double precision :: coolingFunctionH2PlusElectronTemperatureLogGradient , coolingFunctionH2PlusHTemperatureLogGradient        , &
          &               coolingFunctionLowDensityLimitTemperatureLogGradient, temperaturePrevious1                                , &
          &               temperaturePrevious2                                , temperaturePrevious3                                , &
-         &               temperaturePrevious4                                
+         &               temperaturePrevious4
     double precision  :: coolingFunctionLowDensityLimit                      , coolingFunctionRotationalTemperaturePart            , &
          &               coolingFunctionVibrationalTemperaturePart           , temperatureCommonPrevious                           , &
          &               temperatureHH2PlusPrevious                          , coolingFunctionAtomicHydrogenMolecularHydrogenCation, &
@@ -107,21 +107,22 @@ contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters)
     !% Constructor for the ``molecular hydrogen (Galli \& Palla)'' cooling function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: molecularHydrogenGalliPallaConstructorParameters
     type(inputParameters                           ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     molecularHydrogenGalliPallaConstructorParameters=molecularHydrogenGalliPallaConstructorInternal()
     return
   end function molecularHydrogenGalliPallaConstructorParameters
-  
+
   function molecularHydrogenGalliPallaConstructorInternal()
     !% Internal constructor for the ``molecular hydrogen (Galli \& Palla)'' cooling function class.
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla) :: molecularHydrogenGalliPallaConstructorInternal
-    
+
     ! Get the indices of chemicals that will be used.
     molecularHydrogenGalliPallaConstructorInternal%electronIndex               =Chemicals_Index("Electron"               )
     molecularHydrogenGalliPallaConstructorInternal%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         )
@@ -137,15 +138,15 @@ contains
     molecularHydrogenGalliPallaConstructorInternal%temperatureH2PlusElectronPrevious=-1.0d0
     return
   end function molecularHydrogenGalliPallaConstructorInternal
-  
+
   double precision function molecularHydrogenGalliPallaCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
     !% involving H$_2^+$ are computed using polynomial fits to the results of \cite{suchkov_cooling_1978} found by Andrew
     !% Benson by measuring curves from the original paper.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen, temperature
@@ -153,7 +154,7 @@ contains
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass                       ), intent(inout) :: radiation
     !GCC$ attributes unused :: radiation, gasAbundances
-    
+
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
        molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
@@ -169,9 +170,9 @@ contains
   double precision function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
     !% of \cite{galli_chemistry_1998}.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen         , temperature
@@ -241,10 +242,10 @@ contains
   double precision function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
     !% function of \cite{galli_chemistry_1998}.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
-    use Numerical_Constants_Prefixes
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Numerical_Constants_Prefixes , only : milli
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen                                          , temperature
@@ -257,7 +258,7 @@ contains
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen                 , temperatureThousand                            , &
          &                                                                         coolingFunctionCumulative
     !GCC$ attributes unused :: gasAbundances, radiation
-    
+
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
        coolingFunctionCumulative=0.0d0
@@ -440,7 +441,7 @@ contains
 
   subroutine molecularHydrogenGalliPallaCommonFactors(self,numberDensityHydrogen,temperature,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium,coolingFunctionLowDensityLimit)
     !% Compute the ratio of critical number density to the hydrogen number density for use in molecular hydrogen cooling functions.
-    use Numerical_Constants_Prefixes
+    use :: Numerical_Constants_Prefixes, only : milli
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen                         , temperature
@@ -516,7 +517,7 @@ contains
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH2Plus_Electron(self,temperature,chemicalDensities)
     !% Compute the cooling function due to H$_2^+$--e$^-$ interactions.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: temperature
@@ -553,7 +554,7 @@ contains
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2Plus(self,temperature,chemicalDensities)
     !% Compute the cooling function due to H--H$_2^+$ interactions.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: temperature
@@ -589,7 +590,7 @@ contains
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2(self,numberDensityHydrogen,temperature,chemicalDensities)
     !% Compute the cooling function due to H--H$_2$ interactions.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen                         , temperature

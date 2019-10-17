@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a power-law outflow rate due to star formation feedback in galactic spheroids.
-  
+
   !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsPowerLaw">
   !#  <description>A power-law outflow rate due to star formation feedback in galactic spheroids.</description>
   !# </starFormationFeedbackSpheroids>
@@ -50,7 +50,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !% Constructor for the power-law star formation feedback in spheroids class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -79,12 +79,12 @@ contains
 
   function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from spheroids class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
     double precision                                        , intent(in   ) :: velocityCharacteristic_, exponent
     character       (len=13                                )                :: label
-    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
+    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>
 
     if (velocityCharacteristic_ < 0.0d0) then
        write (label,'(e13.6)') velocityCharacteristic_
@@ -101,8 +101,8 @@ contains
     !% spheroid,outflow}$(={\normalfont \ttfamily exponent}) controls the scaling with velocity. Note that the velocity
     !% $V_\mathrm{spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
-    use Stellar_Feedback
-    use Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid                 , treeNode
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

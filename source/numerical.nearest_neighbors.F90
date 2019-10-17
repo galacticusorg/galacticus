@@ -94,7 +94,7 @@ module Nearest_Neighbors
        real   (c_double), value       , intent(in   ) :: tolerance
      end function nearestNeighborsSearchFixedRadiusC
   end interface
-  
+
   interface
      subroutine nearestNeighborsDestructorC(ANN) bind(c,name='nearestNeighborsDestructorC')
        !% Template for a C function that destroys an {\normalfont \ttfamily ANNkd\_tree}.
@@ -102,7 +102,7 @@ module Nearest_Neighbors
        type(c_ptr), intent(in   ), value :: ANN
      end subroutine nearestNeighborsDestructorC
   end interface
-  
+
   interface
      subroutine nearestNeighborsCloseC() bind(c,name='nearestNeighborsCloseC')
        !% Template for a C function that closes the ANN library.
@@ -112,12 +112,12 @@ module Nearest_Neighbors
 #endif
 
 contains
-  
+
   function nearestNeighborsConstructor(points)
     !% Constructs a nearest neighor search object.
 #ifndef ANNAVAIL
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type            (nearestNeighbors)                                :: nearestNeighborsConstructor
@@ -129,14 +129,14 @@ contains
     !GCC$ attributes unused :: points
     nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
-#endif   
+#endif
     return
   end function nearestNeighborsConstructor
 
   subroutine nearestNeighborsDestructor(self)
     !% Destroys a nearest neighbor search object.
 #ifndef ANNAVAIL
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type(nearestNeighbors), intent(inout) :: self
@@ -153,7 +153,7 @@ contains
   subroutine nearestNeighborsClose()
     !% Closes the ANN (Approximate Nearest Neighbor) library.
 #ifndef ANNAVAIL
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
 
@@ -168,7 +168,7 @@ contains
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     !% Return indices and distances to the (approximate) nearest neighbors.
 #ifndef ANNAVAIL
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     class           (nearestNeighbors)              , intent(inout) :: self
@@ -195,9 +195,9 @@ contains
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
     !% Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
 #ifndef ANNAVAIL
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error , only : Galacticus_Error_Report
 #endif
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (nearestNeighbors)                           , intent(inout) :: self
     double precision                  , dimension(:)             , intent(in   ) :: point
@@ -210,7 +210,7 @@ contains
     double precision                                                             :: radiusSquared
     integer                                                                      :: arraySize
 
-    ! Get the squared radius.    
+    ! Get the squared radius.
     radiusSquared=radius**2
     ! Call once with current array sizes.
     if (allocated(neighborIndex)) then
@@ -218,7 +218,7 @@ contains
     else
        arraySize=0
     end if
-    neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)    
+    neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
     ! Resize arrays if necessary.
     if (neighborCount > arraySize) then
        if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )

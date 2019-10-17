@@ -42,11 +42,11 @@
   end interface mergerTreeBuildMassesUnion
 
 contains
-  
+
   function unionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily union} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeBuildMassesUnion)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
@@ -98,10 +98,10 @@ contains
 
   subroutine unionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Sort
-    use            :: Memory_Management
-    use            :: Galacticus_Error
+    use            :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Sort             , only : Sort_Index_Do
     implicit none
     class           (mergerTreeBuildMassesUnion), intent(inout)                            :: self
     double precision                            , intent(in   )                            :: time

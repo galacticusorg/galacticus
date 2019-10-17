@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
-  
-  use Cosmology_Functions
-  use Stellar_Population_Selectors
-  use Stellar_Population_Spectra_Postprocess
+
+  use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+  use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
+  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilderClass, stellarPopulationSpectraPostprocessorList
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
@@ -84,7 +84,7 @@ contains
   function sedFitConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sedFit} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
@@ -169,17 +169,17 @@ contains
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_) result(self)
     !% Constructor for ``sedFit'' posterior sampling likelihood class.
-    use Instruments_Filters
-    use ISO_Varying_String
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Instruments_Filters, only : Filter_Get_Index       , Filter_Vega_Offset, Filter_Wavelength_Effective
+    use :: Memory_Management  , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
     double precision                                                   , intent(in   ), dimension(:) :: magnitude                                    , error
     type            (varying_string                                   ), intent(in   ), dimension(:) :: filter                                       , system
     integer                                                            , intent(in   )               :: burstCount                                   , dustType, &
          &                                                                                              startTimeType
-    class           (cosmologyFunctionsClass                          ), intent(in   ), target       :: cosmologyFunctions_ 
+    class           (cosmologyFunctionsClass                          ), intent(in   ), target       :: cosmologyFunctions_
     class           (stellarPopulationSelectorClass                   ), intent(in   ), target       :: stellarPopulationSelector_
     class           (stellarPopulationSpectraPostprocessorBuilderClass), intent(in   ), target       :: stellarPopulationSpectraPostprocessorBuilder_
     integer                                                                                          :: i
@@ -227,23 +227,23 @@ contains
     !# <objectDestructor name="self%stellarPopulationSpectraPostprocessorBuilder_"/>
     return
   end subroutine sedFitDestructor
-  
+
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the SED fitting likelihood function.
+    use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
+    use            :: FGSL                             , only : FGSL_Integ_Gauss61                  , fgsl_function                            , fgsl_integration_workspace
+    use            :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               FGSL                             , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
-    use               Models_Likelihoods_Constants
-    use               Posterior_Sampling_State
-    use               Posterior_Sampling_Convergence
-    use               Numerical_Integration
-    use               Galactic_Structure_Options
-    use               Abundances_Structure
-    use               Cosmology_Functions
-    use               Stellar_Spectra_Dust_Attenuations
-    use               Stellar_Population_Luminosities
-    use               Galacticus_Nodes                 , only : nodeComponentDisk
-    use               Stellar_Populations
+    use            :: Models_Likelihoods_Constants     , only : logImpossible
+    use            :: Numerical_Integration            , only : Integrate                           , Integrate_Done
+    use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
+    use            :: Posterior_Sampling_State         , only : posteriorSampleStateClass
+    use            :: Stellar_Population_Luminosities  , only : Stellar_Population_Luminosity_Track
+    use            :: Stellar_Populations              , only : stellarPopulationClass
+    use            :: Stellar_Spectra_Dust_Attenuations, only : gordon2003SampleLMC                 , stellarSpectraDustAttenuationCalzetti2000, stellarSpectraDustAttenuationCardelli1989  , stellarSpectraDustAttenuationCharlotFall2000, &
+          &                                                     stellarSpectraDustAttenuationClass  , stellarSpectraDustAttenuationGordon2003  , stellarSpectraDustAttenuationWittGordon2000, stellarSpectraDustAttenuationZero           , &
+          &                                                     wittGordon2000ModelMilkyWayShellTau3
     implicit none
     class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self
     class           (posteriorSampleStateClass         ), intent(inout)                 :: simulationState
@@ -445,7 +445,7 @@ contains
              agePrevious=min(ages(i-1),timeObserved-timeStart)
           end if
           ageNow =min(ages(i  ),timeObserved-timeStart)
-          ageNext=min(ages(i+1),timeObserved-timeStart)        
+          ageNext=min(ages(i+1),timeObserved-timeStart)
           termConstant=0.0d0
           if (ageNext     > ageNow) termConstant=                                                                                  &
                &                                 +termConstant                                                                     &
@@ -475,11 +475,11 @@ contains
                &                                   -exp(-((timeObserved-agePrevious)-timeStart)/timeScale)*(agePrevious-timeScale) &
                &                                   +exp(-((timeObserved-ageNow     )-timeStart)/timeScale)*(ageNow     -timeScale) &
                &                                 )                                                                                 &
-               &                                 /(ageNow-agePrevious)        
+               &                                 /(ageNow-agePrevious)
           ! Find the recycled fraction.
           stellarPopulation_            => self              %stellarPopulationSelector_%select                       (1.0d0,abundancesStars,disk)
           recycledFractionInstantaneous =  stellarPopulation_                           %recycledFractionInstantaneous(                          )
-          weights(i)=(termConstant+termLinear)*starFormationRateNormalization*timeScale/(1.0d0-recycledFractionInstantaneous)        
+          weights(i)=(termConstant+termLinear)*starFormationRateNormalization*timeScale/(1.0d0-recycledFractionInstantaneous)
           if (.not.dust%isSeparable())                                       &
                & weights(i)=                                                 &
                &            +weights(i)                                      &
@@ -507,7 +507,7 @@ contains
     do iMagnitude=0,size(self%magnitude)
        ! Compute luminosity.
        if (useRapidEvaluation) then
-          if (iMagnitude > 0) then 
+          if (iMagnitude > 0) then
              luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
                   &     *10.0d0**(                                                        &
                   &               -0.4d0                                                  &
@@ -576,8 +576,8 @@ contains
 
     double precision function luminosityIntegrand(time)
       !% Star formation rate integrand.
-      use Stellar_Population_Luminosities
-      use Numerical_Constants_Math
+      use :: Numerical_Constants_Math       , only : Pi
+      use :: Stellar_Population_Luminosities, only : Stellar_Population_Luminosity
       implicit none
       double precision, intent(in   ) :: time
       double precision                :: recycledFractionInstantaneous, starFormationRate

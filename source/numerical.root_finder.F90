@@ -20,19 +20,19 @@
 !% Contains a module which does root finding.
 module Root_Finder
   !% Implements root finding.
+  use            :: FGSL         , only : FGSL_Error_Handler_Init       , FGSL_Function_FdF_Free     , FGSL_Function_Free       , FGSL_Function_Init       , &
+          &                               FGSL_Function_fdf_Init        , FGSL_Root_FSolver_Free     , FGSL_Root_FdFSolver_Free , FGSL_Root_Test_Delta     , &
+          &                               FGSL_Root_Test_Interval       , FGSL_Root_fSolver_Alloc    , FGSL_Root_fSolver_Brent  , FGSL_Root_fSolver_Iterate, &
+          &                               FGSL_Root_fSolver_Root        , FGSL_Root_fSolver_Set      , FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, &
+          &                               FGSL_Root_fdfSolver_Alloc     , FGSL_Root_fdfSolver_Iterate, FGSL_Root_fdfSolver_Root , FGSL_Root_fdfSolver_Set  , &
+          &                               FGSL_Root_fdfSolver_Steffenson, FGSL_Set_Error_Handler     , FGSL_Success             , fgsl_error_handler_t     , &
+          &                               fgsl_function                 , fgsl_function_fdf          , fgsl_root_fdfsolver      , fgsl_root_fdfsolver_type , &
+          &                               fgsl_root_fsolver             , fgsl_root_fsolver_type
   use, intrinsic :: ISO_C_Binding
-  use               FGSL         , only : fgsl_function            , fgsl_function_fdf        , fgsl_root_fsolver        , fgsl_root_fdfsolver           , &
-       &                                  fgsl_root_fsolver_type   , fgsl_root_fdfsolver_type , FGSL_Root_fSolver_Brent  , FGSL_Root_fdfSolver_Steffenson, &
-       &                                  FGSL_Root_FdFSolver_Free , FGSL_Function_FdF_Free   , FGSL_Root_FSolver_Free   , FGSL_Function_Free            , &
-       &                                  fgsl_error_handler_t     , FGSL_Root_Test_Interval  , FGSL_Function_fdf_Init   , FGSL_Root_fdfSolver_Alloc     , &
-       &                                  FGSL_Function_Init       , FGSL_Root_fSolver_Alloc  , FGSL_Root_fdfSolver_Set  , FGSL_Root_fSolver_Set         , &
-       &                                  FGSL_Error_Handler_Init  , FGSL_Set_Error_Handler   , FGSL_Success             , FGSL_Root_fdfSolver_Iterate   , &
-       &                                  FGSL_Root_fdfSolver_Root , FGSL_Root_Test_Delta     , FGSL_Root_fSolver_Iterate, FGSL_Root_fSolver_Root        , &
-       &                                  FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper
   implicit none
   private
   public :: rootFinder
-  
+
   ! Enumeration of range expansion types.
   !# <enumeration>
   !#  <name>rangeExpand</name>
@@ -180,14 +180,14 @@ module Root_Finder
   integer                                            :: currentFinderIndex=0
   type   (rootFinderList), allocatable, dimension(:) :: currentFinders
   !$omp threadprivate(currentFinders,currentFinderIndex)
-  
+
 contains
 
   subroutine Root_Finder_Destroy(self)
     !% Destroy a root finder object.
     implicit none
     class(rootFinder), intent(inout) :: self
-    
+
     if (self%initialized) then
        if (self%useDerivative) then
           call FGSL_Root_FdFSolver_Free(self%solverDerivative      )
@@ -205,7 +205,7 @@ contains
     !% Finalize a root finder object.
     implicit none
     type(rootFinder), intent(inout) :: self
-    
+
     call self%destroy()
     return
   end subroutine Root_Finder_Finalize
@@ -221,9 +221,9 @@ contains
 
   recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
-    use Galacticus_Error  , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusOutOfRange
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)        , operator(//)
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
@@ -491,7 +491,7 @@ contains
        end do
        if (statusActual /= FGSL_Success) then
           Root_Finder_Find=0.0d0
-          if (present(status)) then 
+          if (present(status)) then
              status=statusActual
           else
              call Galacticus_Error_Report('failed to find root'//{introspection:location})
@@ -508,18 +508,18 @@ contains
     return
 
   contains
-    
+
     subroutine Root_Finder_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
       !% Handle errors from the GSL library during root finding.
       use, intrinsic :: ISO_C_Binding
       type   (c_ptr     ), value :: file       , reason
       integer(kind=c_int), value :: errorNumber, line
       !GCC$ attributes unused :: reason, file, line
-      
+
       statusActual=errorNumber
       return
     end subroutine Root_Finder_GSL_Error_Handler
-    
+
   end function Root_Finder_Find
 
   subroutine Root_Finder_Root_Function(self,rootFunction)
@@ -591,7 +591,7 @@ contains
 
   subroutine Root_Finder_Range_Expand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
     !% Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (rootFinder), intent(inout)           :: self
     integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &
@@ -637,7 +637,7 @@ contains
        self%rangeExpandUpwardSignExpect  =rangeExpandUpwardSignExpect
     else
        self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-    end if    
+    end if
     return
   end subroutine Root_Finder_Range_Expand
 
@@ -648,7 +648,7 @@ contains
     type(c_ptr        ), value :: parameterPointer
     real(kind=c_double)        :: Root_Finder_Wrapper_Function
     !GCC$ attributes unused :: parameterPointer
-    
+
     ! Attempt to use previously computed solutions if possible.
     if      (.not.currentFinders(currentFinderIndex)%lowInitialUsed  .and. x == currentFinders(currentFinderIndex)%xLowInitial ) then
        Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%fLowInitial

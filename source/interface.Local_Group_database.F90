@@ -21,7 +21,7 @@
 
 module Interface_Local_Group_DB
   !% Interfaces with the Local Group database.
-  use FoX_DOM, only : node, nodeList
+  use :: FoX_DOM, only : node, nodeList
   private
   public  :: localGroupDB, vector3D
 
@@ -30,7 +30,7 @@ module Interface_Local_Group_DB
   !#  <instance label="VarStr" intrinsic="type            (varying_string)"/>
   !#  <instance label="Vector" intrinsic="type            (vector3D      )"/>
   !# </generic>
-  
+
   !# <enumeration>
   !#  <name>comparison</name>
   !#  <description>Comparison operators.</description>
@@ -39,7 +39,7 @@ module Interface_Local_Group_DB
   !#  <entry label="greaterThan"/>
   !#  <entry label="lessThan"   />
   !# </enumeration>
-  
+
   !# <enumeration>
   !#  <name>setOperator</name>
   !#  <description>Set operators.</description>
@@ -59,7 +59,7 @@ module Interface_Local_Group_DB
      generic   :: operator(<)  => vector3DComparisonUnimplemented
      generic   :: operator(>)  => vector3DComparisonUnimplemented
   end type vector3D
-  
+
   type :: localGroupDB
      !% Local Group database class.
      private
@@ -107,15 +107,15 @@ module Interface_Local_Group_DB
      !% Constructors for the Local Group database class.
      module procedure localGroupDBConstructorInternal
   end interface localGroupDB
-  
+
 contains
 
   function localGroupDBConstructorInternal() result(self)
     !% Constructor for the Local Group database class.
-    use FoX_DOM           , only : getElementsByTagName, getLength
-    use IO_XML            , only : XML_Parse           , XML_Get_First_Element_By_Tag_Name
-    use Galacticus_Paths  , only : galacticusPath      , pathTypeDataStatic
-    use ISO_Varying_String, only : char
+    use :: FoX_DOM           , only : getElementsByTagName             , getLength
+    use :: Galacticus_Paths  , only : galacticusPath                   , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: ISO_Varying_String, only : char
     implicit none
     type(localGroupDB) :: self
 
@@ -125,23 +125,23 @@ contains
     self%selected=.false.
     return
   end function localGroupDBConstructorInternal
-  
+
   subroutine localGroupDBDestructor(self)
     !% Destructor for the Local Group database class.
-    use FoX_DOM, only : destroy
+    use :: FoX_DOM, only : destroy
     implicit none
     type(localGroupDB), intent(inout) :: self
 
     call destroy(self%database)
     return
   end subroutine localGroupDBDestructor
-  
+
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
     !% Get a named text property from the Local Group database.
-    use FoX_DOM           , only : getLength              , item          , hasAttribute      , getElementsByTagName, &
-         &                         getAttributeNode       , getTextContent, extractDataContent
-    use Galacticus_Error  , only : Galacticus_Error_Report
-    use ISO_Varying_String
+    use :: FoX_DOM           , only : extractDataContent     , getAttributeNode, getElementsByTagName, getLength, &
+          &                           getTextContent         , hasAttribute    , item
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
     implicit none
     class           (localGroupDB  ), intent(inout)                                      :: self
     character       (len=*         ), intent(in   )                                      :: name
@@ -151,7 +151,7 @@ contains
          &                                                                                  attribute
     type            (nodeList      )               , pointer                             :: properties
     integer                                                                              :: i         , countGalaxies
-    
+
     ! Iterate over galaxies to count how many have this property.
     countGalaxies=0
     do i=0,getLength(self%galaxies)-1
@@ -208,21 +208,21 @@ contains
     end do
     return
   end subroutine localGroupDBGetProperty{Type¦label}
-    
+
   subroutine localGroupDBSelectAll(self)
     !% Select all galaxies in the database.
     implicit none
     class(localGroupDB), intent(inout) :: self
-    
+
     self%selected=.true.
     return
   end subroutine localGroupDBSelectAll
 
   subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
     !% Impose a selection on the database.
-    use ISO_Varying_String
-    use FoX_DOM           , only : getLength              , getAttributeNode, getTextContent, item
-    use Galacticus_Error  , only : Galacticus_Error_Report
+    use :: FoX_DOM           , only : getAttributeNode       , getLength, getTextContent, item
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
     implicit none
     class           (localGroupDB  ), intent(inout)               :: self
     character       (len=*         ), intent(in   )               :: name
@@ -255,7 +255,7 @@ contains
        case default
           comparisonResult=.false.
           call Galacticus_Error_Report('unknown comparison operator'//{introspection:location})
-       end select       
+       end select
        select case (setOperator)
        case (setOperatorIntersection)
           selectedCurrent(i)=selectedCurrent(i) .and. comparisonResult
@@ -273,13 +273,13 @@ contains
 
   subroutine localGroupDBUpdate(self)
     !% Update the database.
-    use FoX_DOM                         , only : getLength          , item               , getElementsByTagName, getAttributeNode, &
-         &                                       extractDataContent , createElementNS    , getNamespaceURI     , appendChild     , &
-         &                                       setAttribute       , serialize          , hasAttribute        , getTextContent
-    use Numerical_Constants_Astronomical, only : arcminutesToDegrees, arcsecondsToDegrees, hoursToDegrees      , minutesToDegrees, &
-         &                                       secondsToDegrees   , degreesToRadians
-    use Galacticus_Paths                , only : galacticusPath     , pathTypeDataStatic
-    use ISO_Varying_String              , only : char
+    use :: FoX_DOM                         , only : appendChild         , createElementNS    , extractDataContent, getAttributeNode, &
+          &                                         getElementsByTagName, getLength          , getNamespaceURI   , getTextContent  , &
+          &                                         hasAttribute        , item               , serialize         , setAttribute
+    use :: Galacticus_Paths                , only : galacticusPath      , pathTypeDataStatic
+    use :: ISO_Varying_String              , only : char
+    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
+          &                                         minutesToDegrees    , secondsToDegrees
     implicit none
     class           (localGroupDB  ), intent(inout) :: self
     type            (node          ), pointer       :: galaxy                        , attribute                       , newNode
@@ -409,7 +409,7 @@ contains
           end do
           newNode => appendChild(galaxy,newNode)
        else if (.not.hasHeliocentric .and. hasModulus) then
-          ! Convert distance modules to a heliocentric distance.          
+          ! Convert distance modules to a heliocentric distance.
           attribute => getAttributeNode(item(propertyList2,0),'value')
           call extractDataContent(attribute,distanceModulus)
           distanceHeliocentric=10.0d0**((distanceModulus-25.0d0)/5.0d0)
@@ -438,9 +438,9 @@ contains
        hasPosition=getLength(propertyList4) == 1
        if (hasDistance .and. hasRightAscension .and. hasDeclination .and. .not. hasPosition) then
           attribute => getAttributeNode(item(propertyList1,0),'value')
-          call extractDataContent(attribute,distanceHeliocentric )         
+          call extractDataContent(attribute,distanceHeliocentric )
           attribute => getAttributeNode(item(propertyList2,0),'value')
-          call extractDataContent(attribute,rightAscensionDecimal)         
+          call extractDataContent(attribute,rightAscensionDecimal)
           attribute => getAttributeNode(item(propertyList3,0),'value')
           call extractDataContent(attribute,declinationDecimal   )
           positionHeliocentricX=distanceHeliocentric*cos(declinationDecimal*degreesToRadians)*cos(rightAscensionDecimal*degreesToRadians)
@@ -468,16 +468,16 @@ contains
     galaxy        => item                (     self%galaxies   ,indexMilkyWay                  )
     propertyList1 => getElementsByTagName(          galaxy     ,'positionHeliocentricCartesian')
     attribute     => getAttributeNode    (item(propertyList1,0),'value'                        )
-    call extractDataContent(attribute,positionMilkyWay           )             
+    call extractDataContent(attribute,positionMilkyWay           )
     attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
-    call extractDataContent(attribute,uncertaintyPositionMilkyWay)             
+    call extractDataContent(attribute,uncertaintyPositionMilkyWay)
     galaxy        => item                (     self%galaxies   ,indexM31                       )
     propertyList1 => getElementsByTagName(          galaxy     ,'positionHeliocentricCartesian')
     attribute     => getAttributeNode    (item(propertyList1,0),'value'                        )
-    call extractDataContent(attribute,positionM31)             
+    call extractDataContent(attribute,positionM31)
     attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
-    call extractDataContent(attribute,uncertaintyPositionM31)             
-    ! Compute galacto-centric distances.    
+    call extractDataContent(attribute,uncertaintyPositionM31)
+    ! Compute galacto-centric distances.
     do i=0,getLength(self%galaxies)-1
        ! Milky Way.
        galaxy        => item(self%galaxies,i)
@@ -532,7 +532,7 @@ contains
           newNode => appendChild(galaxy,newNode)
        end if
     end do
-    ! Write out the updated database.    
+    ! Write out the updated database.
     call serialize(self%database,char(galacticusPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
     return
   end subroutine localGroupDBUpdate
@@ -545,17 +545,17 @@ contains
     vector3DEquals=all(self%x == other%x)
     return
   end function vector3DEquals
-  
+
   logical function vector3DComparisonUnimplemented(self,other)
     !% Unimplemented comparison operators for 3D vectors.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(vector3D), intent(in   ) :: self, other
     !GCC$ attributes unused :: self, other
-    
+
     vector3DComparisonUnimplemented=.false.
     call Galacticus_Error_Report('comparison operator is unimplemented'//{introspection:location})
     return
   end function vector3DComparisonUnimplemented
-  
+
 end module Interface_Local_Group_DB

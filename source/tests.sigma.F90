@@ -19,18 +19,18 @@
 
 program Tests_Sigma
   !% Tests
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmological_Density_Field
-  use Power_Spectrum_Window_Functions
-  use Power_Spectra_Primordial
-  use Power_Spectra_Primordial_Transferred
-  use Numerical_Ranges
-  use Cosmology_Parameters
-  use Numerical_Constants_Math
-  use Transfer_Functions
-  use Galacticus_Display
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                , cosmologicalMassVarianceClass, cosmologicalMassVarianceFilteredPower
+  use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters                    , only : inputParameters
+  use :: Numerical_Constants_Math            , only : Pi
+  use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
+  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
+  use :: Transfer_Functions                  , only : transferFunctionIdentity
+  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group                 , Unit_Tests_Finish
   implicit none
   type            (varying_string                          )                       :: parameterFile
   integer                                                   , parameter            :: massCount                             =10
@@ -82,7 +82,7 @@ program Tests_Sigma
        &                                                                             wavenumberReference                =+1.0d0                                     &
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
-       &                                                                             time                               =13.8d0                                     & 
+       &                                                                             time                               =13.8d0                                     &
    &                                                                            )
   powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                               &
        &                                                                             powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &

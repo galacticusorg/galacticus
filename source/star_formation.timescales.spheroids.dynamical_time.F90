@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a timescale for star formation in galactic spheroids which scales with the spheroid dynamical time.
-  
+
   !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsDynamicalTime">
   !#  <description>A timescale for star formation in galactic spheroids which scales with the spheroid dynamical time.</description>
   !# </starFormationTimescaleSpheroids>
@@ -42,13 +42,13 @@ contains
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleSpheroidsDynamicalTime)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
     double precision                                                              :: efficiency      , exponentVelocity, &
          &                                                                           timescaleMinimum
-    
+
     !# <inputParameter>
     !#   <name>efficiency</name>
     !#   <cardinality>1</cardinality>
@@ -83,9 +83,9 @@ contains
 
   function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
     !% Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class.
-    use Galacticus_Error, only : Galacticus_Error_Report , Galacticus_Component_List
-    use Array_Utilities
-    use Galacticus_Nodes, only : defaultSpheroidComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
     type            (starFormationTimescaleSpheroidsDynamicalTime)                :: self
     double precision                                              , intent(in   ) :: efficiency      , exponentVelocity, &
@@ -122,8 +122,8 @@ contains
     !% spheroid}/V_\mathrm{spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : nodeComponentSpheroid
+    use :: Galacticus_Nodes                , only : nodeComponentSpheroid  , treeNode
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (starFormationTimescaleSpheroidsDynamicalTime), intent(inout)         :: self
     type            (treeNode                                    ), intent(inout), target :: node

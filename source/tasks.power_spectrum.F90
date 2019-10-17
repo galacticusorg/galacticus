@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Power_Spectra
-  use Power_Spectrum_Window_Functions
-  use Power_Spectra_Nonlinear
-  use Linear_Growth
-  use Output_Times
+  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions            , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters           , only : cosmologyParametersClass
+  use :: Linear_Growth                  , only : linearGrowthClass
+  use :: Output_Times                   , only : outputTimesClass
+  use :: Power_Spectra                  , only : powerSpectrumClass
+  use :: Power_Spectra_Nonlinear        , only : powerSpectrumNonlinearClass
+  use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionClass
 
   !# <task name="taskPowerSpectra">
   !#  <description>A task which computes and outputs the power spectrum and related quantities.</description>
@@ -59,7 +59,7 @@ contains
 
   function powerSpectraConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (taskPowerSpectra                )                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -115,7 +115,7 @@ contains
     !#   <description>The HDF5 output group within which to write power spectrum data.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     !# <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
@@ -182,10 +182,10 @@ contains
     logical                                           , intent(in   )         :: includeNonLinear
     type            (varying_string                  ), intent(in   )         :: outputGroup
     !# <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
-    
+
     return
   end function powerSpectraConstructorInternal
-  
+
   subroutine powerSpectraDestructor(self)
     !% Destructor for the {\normalfont \ttfamily powerSpectrum} task class.
     implicit none
@@ -204,17 +204,18 @@ contains
 
   subroutine powerSpectraPerform(self,status)
     !% Compute and output the halo mass function.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_HDF5
-    use            :: Galacticus_Display
-    use            :: Numerical_Ranges
+    use            :: FGSL                            , only : FGSL_Integ_Gauss15       , fgsl_function              , fgsl_integration_workspace
+    use            :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: FGSL                            , only : fgsl_function     , fgsl_integration_workspace, FGSL_Integ_Gauss15
-    use            :: Memory_Management
-    use            :: Numerical_Constants_Astronomical
-    use            :: IO_HDF5
-    use            :: String_Handling
-    use            :: Numerical_Integration
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: IO_HDF5                         , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding
+    use            :: Memory_Management               , only : allocateArray
+    use            :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
+    use            :: Numerical_Constants_Math        , only : Pi
+    use            :: Numerical_Integration           , only : Integrate                , Integrate_Done
+    use            :: Numerical_Ranges                , only : Make_Range               , rangeTypeLogarithmic
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskPowerSpectra          ), intent(inout), target         :: self
     integer                                     , intent(  out), optional       :: status
@@ -370,5 +371,5 @@ contains
            &             )**2
       return
     end function varianceIntegrand
-    
+
  end subroutine powerSpectraPerform

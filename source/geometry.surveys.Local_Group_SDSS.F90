@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.
-  
+
   !# <surveyGeometry name="surveyGeometryLocalGroupSDSS">
   !#  <description>Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.</description>
   !# </surveyGeometry>
@@ -38,12 +38,12 @@ contains
 
   function localGroupSDSSConstructorParameters(parameters) result (self)
     !% Constructor for the Local Group SDSS survey geometry class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLocalGroupSDSS)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: distanceMaximumSurvey
-    
+
     !# <inputParameter>
     !#   <name>distanceMaximumSurvey</name>
     !#   <source>parameters</source>
@@ -51,26 +51,26 @@ contains
     !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     self=surveyGeometryLocalGroupSDSS(distanceMaximumSurvey)
     !# <inputParametersValidate source="parameters"/>
     return
   end function localGroupSDSSConstructorParameters
-  
+
   function localGroupSDSSConstructorInternal(distanceMaximumSurvey) result (self)
     !% Internal constructor for the Local Group SDSS survey geometry class
     implicit none
     type            (surveyGeometryLocalGroupSDSS)                :: self
     double precision                              , intent(in   ) :: distanceMaximumSurvey
     !# <constructorAssign variables="distanceMaximumSurvey"/>
-    
+
     call self%initialize()
     return
   end function localGroupSDSSConstructorInternal
 
   double precision function localGroupSDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupSDSS), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity

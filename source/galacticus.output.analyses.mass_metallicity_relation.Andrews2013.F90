@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a mass-metallicity relation analysis class.
-  
+
   !# <outputAnalysis name="outputAnalysisMassMetallicityAndrews2013">
   !#  <description>A mass-metallicity relation output analysis class.</description>
   !# </outputAnalysis>
@@ -37,8 +37,8 @@ contains
 
   function massMetallicityAndrews2013ConstructorParameters(parameters) result (self)
     !% Constructor for the ``massMetallicityAndrews2013'' output analysis class which takes a parameter set as input.
-    use Cosmology_Functions
-    use Input_Parameters
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters
@@ -46,9 +46,9 @@ contains
          &                                                                                     metallicitySystematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                        ), pointer                     :: outputTimes_
-    double precision                                                                        :: randomErrorMinimum                             , randomErrorMaximum 
+    double precision                                                                        :: randomErrorMinimum                             , randomErrorMaximum
 
-    
+
     ! Check and read parameters.
     allocate(metallicitySystematicErrorPolynomialCoefficient(max(1,parameters%count('metallicitySystematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(           systematicErrorPolynomialCoefficient(max(1,parameters%count(           'systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -110,21 +110,25 @@ contains
 
   function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``massMetallicityAndrews2013'' output analysis class for internal use.
-    use Memory_Management
-    use IO_HDF5
-    use Galacticus_Paths  
-    use Output_Times
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Numerical_Constants_Astronomical
-    use Abundances_Structure
-    use Atomic_Data
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
+    use :: Atomic_Data                           , only : Atomic_Mass
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                              , galacticFilterStarFormationRate                , galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
+    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorLog10, &
+          &                                               outputAnalysisPropertyOperatorMetallicity12LogNH   , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                          , only : outputTimesClass
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013           )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
@@ -162,7 +166,7 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
-    
+
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.                  )
@@ -256,7 +260,7 @@ contains
     !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
     !#     &amp;                                            )
     !#  </constructor>
-    !# </referenceConstruct>  
+    !# </referenceConstruct>
     ! Build a metallicity weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
     !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial (metallicityErrorPolynomialZeroPoint,metallicitySystematicErrorPolynomialCoefficient)"/>
@@ -267,7 +271,7 @@ contains
     !#     &amp;                                          Atomic_Mass(shortLabel="O") &amp;
     !#     &amp;                                         )
     !#  </constructor>
-    !# </referenceConstruct>  
+    !# </referenceConstruct>
     allocate(outputAnalysisPropertyOperatorFilterHighPass_         )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorFilterHighPass_"          constructor="outputAnalysisPropertyOperatorFilterHighPass    (0.0d0                                                        )"/>
     allocate(weightPropertyOperators_                              )
@@ -295,7 +299,7 @@ contains
          &                              {introspection:location}                                                   &
          &                             )
     ! Create an ISM metallicity weight property extractor.
-    allocate(outputAnalysisWeightPropertyExtractor_                )    
+    allocate(outputAnalysisWeightPropertyExtractor_                )
     !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM   (Abundances_Index_From_Name('O')                              )"/>
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
@@ -312,7 +316,7 @@ contains
          &                                                         log10(masses)                                          , &
          &                                                         bufferCount                                            , &
          &                                                         outputWeight                                           , &
-         &                                                         nodePropertyExtractor_                       , &
+         &                                                         nodePropertyExtractor_                                 , &
          &                                                         outputAnalysisWeightPropertyExtractor_                 , &
          &                                                         outputAnalysisPropertyOperator_                        , &
          &                                                         outputAnalysisWeightPropertyOperator_                  , &
@@ -356,8 +360,8 @@ contains
     !# <objectDestructor name="cosmologyFunctionsData"                                />
     nullify(propertyOperators_      )
     nullify(weightPropertyOperators_)
-    nullify(filter_                 ) 
-    nullify(filters_                )    
+    nullify(filter_                 )
+    nullify(filters_                )
     return
   end function massMetallicityAndrews2013ConstructorInternal
 

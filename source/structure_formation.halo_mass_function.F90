@@ -20,10 +20,10 @@
 !% Contains a module which provides a class that implements halo mass functions.
 
 module Halo_Mass_Functions
-  use, intrinsic :: ISO_C_Binding
-  use            :: FGSL                , only : fgsl_function           , fgsl_integration_workspace, FGSL_Integ_Gauss15
+  use            :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use            :: FGSL                , only : FGSL_Integ_Gauss15 , fgsl_function           , fgsl_integration_workspace
   use            :: Galacticus_Nodes    , only : treeNode
-  use            :: Cosmology_Parameters, only : cosmologyParametersClass, cosmologyParameters
+  use, intrinsic :: ISO_C_Binding
   implicit none
   private
 

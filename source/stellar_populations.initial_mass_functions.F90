@@ -21,10 +21,10 @@
 
 module Stellar_Populations_Initial_Mass_Functions
   !% Implements a class for stellar initial mass functions.
-  use Tables
+  use :: Tables, only : table1D
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>initialMassFunction</name>
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
@@ -58,5 +58,5 @@ module Stellar_Populations_Initial_Mass_Functions
   !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
-  
+
 end module Stellar_Populations_Initial_Mass_Functions

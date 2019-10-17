@@ -20,7 +20,7 @@
 !% Implements a cold mode hot halo mass distribution core radius class which sets the core radius to a fraction of the virial
 !% radius.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloColdModeCoreRadii name="hotHaloColdModeCoreRadiiVirialFraction">
   !#  <description>Provides an implementation of the cold mode hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.</description>
@@ -46,7 +46,7 @@ contains
   function virialRadiusFractionConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily virialRadiusFraction} cold mode hot halo mass distribution core radius class which builds the
     !% object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloColdModeCoreRadiiVirialFraction)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -70,7 +70,6 @@ contains
 
   function virialRadiusFractionConstructorInternal(coreRadiusOverVirialRadius,darkMatterHaloScale_) result(self)
     !% Default constructor for the {\normalfont \ttfamily virialRadiusFraction} cold mode hot halo mass distribution core radius class.
-    use Input_Parameters
     implicit none
     type            (hotHaloColdModeCoreRadiiVirialFraction)                        :: self
     double precision                                        , intent(in   )         :: coreRadiusOverVirialRadius

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a zero acceleration satellite dynamical friction class.
-  
+
   !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionZero">
   !#  <description>A satellite dynamical friction class in which the acceleration is always zero.</description>
   !# </satelliteDynamicalFriction>
@@ -38,7 +38,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the zero satellite dynamical friction class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteDynamicalFrictionZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters

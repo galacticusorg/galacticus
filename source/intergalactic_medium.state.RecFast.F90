@@ -21,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
 
-  use File_Utilities
+  use :: File_Utilities, only : lockDescriptor
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
   !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
@@ -31,7 +31,7 @@
      private
      type (lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
-  
+
   interface intergalacticMediumStateRecFast
      !% Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
      module procedure recFastConstructorParameters
@@ -42,7 +42,7 @@ contains
 
   function recFastConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -61,16 +61,16 @@ contains
 
   function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
-    use Cosmology_Parameters            , only : hubbleUnitsStandard
-    use System_Command
-    use Numerical_Constants_Astronomical
-    use Galacticus_Paths
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use File_Utilities
-    use Dates_and_Times
-    use IO_HDF5
-    use Interfaces_RecFast
+    use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
+    use :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock  , &
+          &                                         File_Lock_Initialize        , File_Name_Temporary, File_Remove, File_Unlock
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
+    use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
+    use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use :: System_Command                  , only : System_Command_Do
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_

@@ -18,26 +18,22 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+ Contributions to this file made by: Daniel McAndrew.
-  
-  use Cosmology_Functions                     , only : cosmologyFunctions                   , cosmologyFunctionsClass
-  use Cosmology_Parameters                    , only : cosmologyParameters                  , cosmologyParametersClass                , &
-       &                                               hubbleUnitsTime
-  use Cosmological_Density_Field              , only : cosmologicalMassVariance             , cosmologicalMassVarianceClass
-  use Linear_Growth                           , only : linearGrowth                         , linearGrowthClass
-  use Intergalactic_Medium_State              , only : intergalacticMediumState             , intergalacticMediumStateClass           , &
-       &                                               intergalacticMediumStateRecFast      , intergalacticMediumStateInternal
-  use Radiation_Fields                        , only : radiationField                       , radiationFieldClass                     , &
-       &                                               radiationFieldIntergalacticBackground
-  use Output_Times                            , only : outputTimes                          , outputTimesClass
-  use Atomic_Ionization_Potentials            , only : atomicIonizationPotential            , atomicIonizationPotentialClass
-  use Atomic_Rates_Ionization_Collisional     , only : atomicIonizationRateCollisional      , atomicIonizationRateCollisionalClass
-  use Atomic_Rates_Recombination_Radiative    , only : atomicRecombinationRateRadiative     , atomicRecombinationRateRadiativeClass   , &
-       &                                               recombinationCaseB
-  use Atomic_Rates_Recombination_Dielectronic , only : atomicRecombinationRateDielectronic  , atomicRecombinationRateDielectronicClass
-  use Atomic_Radiation_Gaunt_Factors          , only : gauntFactor                          , gauntFactorClass
-  use Atomic_Rates_Excitation_Collisional     , only : atomicExcitationRateCollisional      , atomicExcitationRateCollisionalClass
-  use Atomic_Cross_Sections_Ionization_Photo  , only : atomicCrossSectionIonizationPhoto    , atomicCrossSectionIonizationPhotoClass
-  use Galacticus_Nodes                        , only : treeNode
+
+  use :: Atomic_Cross_Sections_Ionization_Photo , only : atomicCrossSectionIonizationPhoto  , atomicCrossSectionIonizationPhotoClass
+  use :: Atomic_Ionization_Potentials           , only : atomicIonizationPotential          , atomicIonizationPotentialClass
+  use :: Atomic_Radiation_Gaunt_Factors         , only : gauntFactor                        , gauntFactorClass
+  use :: Atomic_Rates_Excitation_Collisional    , only : atomicExcitationRateCollisional    , atomicExcitationRateCollisionalClass
+  use :: Atomic_Rates_Ionization_Collisional    , only : atomicIonizationRateCollisional    , atomicIonizationRateCollisionalClass
+  use :: Atomic_Rates_Recombination_Dielectronic, only : atomicRecombinationRateDielectronic, atomicRecombinationRateDielectronicClass
+  use :: Atomic_Rates_Recombination_Radiative   , only : atomicRecombinationRateRadiative   , atomicRecombinationRateRadiativeClass   , recombinationCaseB
+  use :: Cosmological_Density_Field             , only : cosmologicalMassVariance           , cosmologicalMassVarianceClass
+  use :: Cosmology_Functions                    , only : cosmologyFunctions                 , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                   , only : cosmologyParameters                , cosmologyParametersClass                , hubbleUnitsTime
+  use :: Galacticus_Nodes                       , only : treeNode
+  use :: Intergalactic_Medium_State             , only : intergalacticMediumState           , intergalacticMediumStateClass           , intergalacticMediumStateInternal     , intergalacticMediumStateRecFast
+  use :: Linear_Growth                          , only : linearGrowth                       , linearGrowthClass
+  use :: Output_Times                           , only : outputTimes                        , outputTimesClass
+  use :: Radiation_Fields                       , only : radiationField                     , radiationFieldClass                     , radiationFieldIntergalacticBackground
 
   !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
   !#  <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
@@ -50,15 +46,15 @@
      class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_ => null()
      class           (linearGrowthClass                       ), pointer                     :: linearGrowth_ => null()
      class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_ => null()
-     class           (radiationFieldClass                     ), pointer                     :: radiationField_ => null()  
+     class           (radiationFieldClass                     ), pointer                     :: radiationField_ => null()
      class           (gauntFactorClass                        ), pointer                     :: gauntFactor_ => null()
-     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ => null() 
+     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
      class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_ => null()
      class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_ => null()
      class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_ => null()
      class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_ => null()
      class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_ => null()
-     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_ => null()  
+     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_ => null()
      type            (intergalacticMediumStateRecFast         )                              :: intergalacticMediumStateInitial
      double precision                                          , allocatable, dimension(:  ) :: temperature                         , massFiltering  , &
           &                                                                                     clumpingFactor                      , opticalDepth
@@ -94,10 +90,10 @@
   !$omp threadprivate(intergalacticMediumStateEvolveSelf,intergalacticMediumStateEvolveNode)
 
 contains
-  
+
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (universeOperatorIntergalacticMediumStateEvolve)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
@@ -108,13 +104,13 @@ contains
     class           (cosmologicalMassVarianceClass                 ), pointer       :: cosmologicalMassVariance_
     class           (radiationFieldClass                           ), pointer       :: radiationField_
     class           (gauntFactorClass                              ), pointer       :: gauntFactor_
-    class           (atomicCrossSectionIonizationPhotoClass        ), pointer       :: atomicCrossSectionIonizationPhoto_ 
+    class           (atomicCrossSectionIonizationPhotoClass        ), pointer       :: atomicCrossSectionIonizationPhoto_
     class           (atomicIonizationPotentialClass                ), pointer       :: atomicIonizationPotential_
     class           (atomicRecombinationRateDielectronicClass      ), pointer       :: atomicRecombinationRateDielectronic_
     class           (atomicRecombinationRateRadiativeClass         ), pointer       :: atomicRecombinationRateRadiative_
     class           (atomicIonizationRateCollisionalClass          ), pointer       :: atomicIonizationRateCollisional_
     class           (atomicExcitationRateCollisionalClass          ), pointer       :: atomicExcitationRateCollisional_
-    class           (intergalacticMediumStateClass                 ), pointer       :: intergalacticMediumState_  
+    class           (intergalacticMediumStateClass                 ), pointer       :: intergalacticMediumState_
     integer                                                                         :: timeCountPerDecade
     double precision                                                                :: redshiftMinimum                      , redshiftMaximum, &
          &                                                                             timeMinimum                          , timeMaximum
@@ -186,16 +182,14 @@ contains
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+    use            :: Galacticus_Error                     , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
-    use            :: Memory_Management
-    use            :: Numerical_Ranges
     use            :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
-    use            :: Numerical_Constants_Math
-    use            :: Numerical_Constants_Units
-    use            :: Numerical_Constants_Atomic
-    use            :: Numerical_Constants_Astronomical
-    use            :: Numerical_Comparison
-    use            :: Galacticus_Error
+    use            :: Memory_Management                    , only : allocateArray
+    use            :: Numerical_Comparison                 , only : Values_Agree
+    use            :: Numerical_Constants_Astronomical     , only : heliumByMassPrimordial                    , hydrogenByMassPrimordial, massSolar     , megaParsec
+    use            :: Numerical_Constants_Atomic           , only : atomicMassHelium                          , atomicMassHydrogen      , atomicMassUnit
+    use            :: Numerical_Ranges                     , only : Make_Range                                , rangeTypeLogarithmic
     implicit none
     type            (universeOperatorIntergalacticMediumStateEvolve)                        :: self
     class           (outputTimesClass                              ), intent(in   ), target :: outputTimes_
@@ -203,9 +197,9 @@ contains
     class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
     class           (linearGrowthClass                             ), intent(in   ), target :: linearGrowth_
     class           (cosmologicalMassVarianceClass                 ), intent(in   ), target :: cosmologicalMassVariance_
-    class           (radiationFieldClass                           ), intent(in   ), target :: radiationField_  
+    class           (radiationFieldClass                           ), intent(in   ), target :: radiationField_
     class           (gauntFactorClass                              ), intent(in   ), target :: gauntFactor_
-    class           (atomicCrossSectionIonizationPhotoClass        ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_ 
+    class           (atomicCrossSectionIonizationPhotoClass        ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     class           (atomicIonizationPotentialClass                ), intent(in   ), target :: atomicIonizationPotential_
     class           (atomicRecombinationRateDielectronicClass      ), intent(in   ), target :: atomicRecombinationRateDielectronic_
     class           (atomicRecombinationRateRadiativeClass         ), intent(in   ), target :: atomicRecombinationRateRadiative_
@@ -240,7 +234,7 @@ contains
      call allocateArray(self%densityHelium         ,[self%timeCount,3])
      call allocateArray(self%time                  ,[self%timeCount  ])
      call allocateArray(self%redshift              ,[self%timeCount  ])
-     call allocateArray(self%massFilteringComposite,[self%timeCount,2]) 
+     call allocateArray(self%massFilteringComposite,[self%timeCount,2])
      call allocateArray(self%clumpingFactor        ,[self%timeCount  ])
      call allocateArray(self%opticalDepth          ,[self%timeCount  ])
      call allocateArray(self%massFiltering         ,[self%timeCount  ])
@@ -269,7 +263,7 @@ contains
      self%massFilteringComposite=-1.0d0
      self%clumpingFactor        =-1.0d0
      self%opticalDepth          =-1.0d0
-     self%massFiltering         =-1.0d0 
+     self%massFiltering         =-1.0d0
      ! Initialize the temperature to that computed by RecFast at the initial time.
      self%temperature(1)=self%intergalacticMediumStateInitial%temperature(self%timeMinimum)
      ! Initialize the densities of ionic species using fractions from RecFast at the initial time.
@@ -327,7 +321,7 @@ contains
      self%massFilteringComposite(1,:)=massFilteringODEs(1:2)
      self%massFiltering         (1  )=massFilteringODEs(3  )
      ! Find the initial mass variance on the filtering mass scale.
-     massFilteringVarianceInitial=self%cosmologicalMassVariance_%rootVariance(self%massFiltering(1))        
+     massFilteringVarianceInitial=self%cosmologicalMassVariance_%rootVariance(self%massFiltering(1))
      ! Set the initial clumping factor.
      self%clumpingFactor(1)=1.0d0+(massFilteringVarianceInitial**2*self%linearGrowth_%value(timeMinimum)**2)
      ! Initialize optical depth.
@@ -358,15 +352,15 @@ contains
      !# <objectDestructor name="self%intergalacticMediumState_"           />
      return
    end subroutine intergalacticMediumStateEvolveDestructor
-   
+
    subroutine intergalacticMediumStateEvolveOperate(self,universe_)
      !% Attach an initial event to a merger tree to cause the properties update function to be called.
-     use Galacticus_Nodes, only : universeEvent
+     use :: Galacticus_Nodes, only : universe, universeEvent
      implicit none
      class(universeOperatorIntergalacticMediumStateEvolve), intent(inout), target :: self
      type (universe                                      ), intent(inout)         :: universe_
      type (universeEvent                                 ), pointer               :: event
-     
+
      ! Create the first interrupt event in the universe object.
      event         => universe_%createEvent( )
      event%time    =  self     %time       (1)
@@ -374,26 +368,21 @@ contains
      event%task    => intergalacticMediumStateEvolveUpdate
      return
    end subroutine intergalacticMediumStateEvolveOperate
-   
+
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
-     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-     use               Galacticus_Nodes                , only : universeEvent, mergerTree, nodeComponentBasic, mergerTreeList
-     use               Galacticus_Display
-     use               Galactic_Structure_Options
-     use               Galacticus_Error, only : Galacticus_Error_Report
-     use               Arrays_Search
-     use               FODEIV2
-     use               ODEIV2_Solver
-     use               Numerical_Constants_Prefixes
-     use               Numerical_Constants_Math
-     use               Numerical_Constants_Physical
-     use               Numerical_Constants_Units
-     use               Numerical_Constants_Astronomical
-     use               Numerical_Integration
-     use               ISO_Varying_String
-     use               Galacticus_HDF5
-     use               IO_HDF5
+     use            :: Arrays_Search           , only : Search_Array_For_Closest
+     use            :: FODEIV2
+     use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+     use            :: Galacticus_Error        , only : Galacticus_Error_Report
+     use            :: Galacticus_HDF5         , only : galacticusOutputFile
+     use            :: Galacticus_Nodes        , only : mergerTree               , mergerTreeList            , nodeComponentBasic         , treeNode, &
+          &                                             universe                 , universeEvent
+     use            :: IO_HDF5                 , only : hdf5Access               , hdf5Object
+     use, intrinsic :: ISO_C_Binding           , only : c_size_t
+     use            :: ISO_Varying_String
+     use            :: Numerical_Constants_Math, only : Pi
+     use            :: ODEIV2_Solver           , only : ODEIV2_Solve             , ODEIV2_Solver_Free
      implicit none
      class           (universeEvent     ), intent(in   )            :: event
      type            (universe          ), intent(inout)            :: universe_
@@ -401,8 +390,8 @@ contains
      double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3,                 &
           &                                                            odeToleranceRelative =1.0d-3,                 &
           &                                                            timeToleranceRelative=1.0d-6
-     type            (mergerTree        ), pointer                  :: tree       
-     type            (mergerTreeList    ), pointer                  :: forest       
+     type            (mergerTree        ), pointer                  :: tree
+     type            (mergerTreeList    ), pointer                  :: forest
      type            (treeNode          ), pointer                  :: node
      class           (nodeComponentBasic), pointer                  :: basic
      type            (fodeiv2_system    ), save                     :: ode2System
@@ -430,7 +419,7 @@ contains
         ! Find the current timestep.
         iNow = Search_Array_For_Closest(self%time,event%time)
         ! Evolve the properties up to this timestep.
-        if (iNow > 1) then        
+        if (iNow > 1) then
            ! Get required objects.
            intergalacticMediumStateEvolveSelf => self
            intergalacticMediumStateEvolveNode => universe_%trees%tree%baseNode
@@ -528,13 +517,13 @@ contains
            call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,1),'densityHelium1'  ,'Density of He1 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()  
+           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,2),'densityHelium2'  ,'Density of He2 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close() 
+           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,3),'densityHelium3'  ,'Density of He3 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()  
+           call igmDataset%close()
            call igmGroup  %writeDataset  (self%clumpingFactor      ,'clumpingFactor'  ,'Clumping factor in the IGM [].'                ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
            call igmDataset%close()
@@ -561,16 +550,16 @@ contains
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
      !% Evaluates the ODEs controlling the evolution temperature.
-     use ODE_Solver_Error_Codes
-     use Numerical_Constants_Astronomical
-     use Numerical_Constants_Math
-     use Numerical_Constants_Physical
-     use Numerical_Constants_Units
-     use Numerical_Constants_Prefixes
-     use Numerical_Constants_Atomic
-     use Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES
-     use Numerical_Integration
-     use FGSL                                 , only : fgsl_function , fgsl_integration_workspace, FGSL_Success
+     use :: FGSL                                 , only : FGSL_Success      , fgsl_function    , fgsl_integration_workspace
+     use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
+     use :: Numerical_Constants_Astronomical     , only : gigaYear
+     use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
+     use :: Numerical_Constants_Math             , only : Pi
+     use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius            , fineStructure      , &
+          &                                               plancksConstant   , radiationConstant, speedLight                , thomsonCrossSection
+     use :: Numerical_Constants_Prefixes         , only : centi
+     use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
+     use :: Numerical_Integration                , only : Integrate         , Integrate_Done
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties
@@ -669,7 +658,7 @@ contains
               densityLowerIon=                            0.0d0
            end if
            ! Specify electron shell number. For H and He, this is always the 1s shell.
-           shellNumber=1          
+           shellNumber=1
            ! Compute collisional ionization rates from this ion.
            if (electronNumber  > 0) then
               collisionIonizationRateFrom=-intergalacticMediumStateEvolveSelf%atomicIonizationRateCollisional_%rate    (atomicNumber,ionizationState  ,temperature) &
@@ -691,7 +680,7 @@ contains
                    &                      *densityLowerIon                                                                                                           &
                    &                      *densityElectron
            else
-              collisionIonizationRateTo  =+0.0d0  
+              collisionIonizationRateTo  =+0.0d0
            end if
            ! Compute recombination rates from this ion.
            if (ionizationState > 1) then
@@ -769,7 +758,7 @@ contains
                    &                             reset                         =integrationReset  &
                    &                            )                                                 &
                    &                  *densityThisIon
-              call Integrate_Done(integrationFunction,integrationWorkspace) 
+              call Integrate_Done(integrationFunction,integrationWorkspace)
            else
               ionizationPhotoRateFrom =+0.0d0
            end if
@@ -797,7 +786,7 @@ contains
                    &                           reset                         =integrationReset  &
                    &                          )                                                 &
                    &                  *densityLowerIon
-              call Integrate_Done(integrationFunction,integrationWorkspace) 
+              call Integrate_Done(integrationFunction,integrationWorkspace)
               integrationReset=.true.
               heatingRate                      =+heatingRate                                                     &
                    &                            +Integrate(                                                      &
@@ -812,8 +801,8 @@ contains
                    &                                      )                                                      &
                    &                            *densityLowerIon                                                 &
                    &                            *gigaYear
-              call Integrate_Done(integrationFunction,integrationWorkspace)               
-           else 
+              call Integrate_Done(integrationFunction,integrationWorkspace)
+           else
               ionizationPhotoRateTo =+0.0d0
            end if
            ! Compute heating rate due to Bremsstrahlung.
@@ -878,12 +867,12 @@ contains
                 ! Cosmological expansion.
                 & -3.0d0                                                                        &
                 & *intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate(intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)) &
-                & *densityThisIon  
+                & *densityThisIon
         end do
      end do
      ! Compute the rate of change of electron density.
      electronDensityRateOfChange=+propertiesRateOfChange(3) &
-          &                      +propertiesRateOfChange(5) & 
+          &                      +propertiesRateOfChange(5) &
           &                      +propertiesRateOfChange(6)
      ! Compute rate of change of temperature due to cosmological expansion.
      propertiesRateOfChange(1)=-2.0d0                                                                        &
@@ -892,8 +881,8 @@ contains
           &                                                                                             time &
           &                                                                                            )     &
           &                                                                                           )      &
-          &                    * temperature                                                       
-     ! Compute rate of change of temperature due to atomic processes.                         
+          &                    * temperature
+     ! Compute rate of change of temperature due to atomic processes.
      if (densityTotal > 0.0d0)                                                                                         &
           & propertiesRateOfChange(1)=                                                                                 &
           &                    +propertiesRateOfChange(1)                                                              &
@@ -918,26 +907,27 @@ contains
           &                   /1.5d0                                                                                   &
           &                   /densityTotal                                                                            &
           &                   *gigaYear                                                                                &
-          ! Particle number rate of change. 
-          &    +electronDensityRateOfChange                                                                            & 
+          ! Particle number rate of change.
+          &    +electronDensityRateOfChange                                                                            &
           &    /densityTotal                                                                                           &
           &    +3.0d0                                                                                                  &
           &    *intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate  (                                &
           &     intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor (                               &
           &                                                                             time                           &
           &                                                                            )                               &
-          &                                                                           ) 
+          &                                                                           )
      ! Transfer rates of change to contiguous array.
      propertiesRateOfChange( 7: 8)=massFilteringCompositeRateOfChange
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
      propertiesRateOfChange(10   )=massFilteringRateOfChange
      ! Return success.
      intergalacticMediumStateEvolveODEs=FGSL_Success
-     
+
    contains
 
      double precision function integrandPhotoionizationRate(wavelength)
        !% Integrand function used to compute the rate of photoionizations of an ionic species.
+       use :: Numerical_Constants_Units, only : ergs
        implicit none
        double precision, intent(in   ) :: wavelength
        double precision                :: photonDensity, photonFlux
@@ -951,7 +941,7 @@ contains
           photonDensity=+4.0d0                                                                                                  &
                &        *Pi                                                                                                     &
                &        *photonFlux                                                                                             &
-               &        /plancksConstant                                                                                        & 
+               &        /plancksConstant                                                                                        &
                &        /speedLight                                                                                             &
                &        /wavelength
           integrandPhotoionizationRate=+speedLight                                                                                                               &
@@ -966,13 +956,14 @@ contains
        end if
        return
      end function integrandPhotoionizationRate
- 
+
      double precision function integrandPhotoionizationHeatingRate(wavelength)
        !% Integrand function used to compute the rate of photoionization heating of an ionic species.
+       use :: Numerical_Constants_Units, only : ergs
        implicit none
        double precision, intent(in   ) :: wavelength
        double precision                :: photonDensity, photonFlux
-       
+
        if (wavelength < 0.0d0) then
           integrandPhotoionizationHeatingRate=0.0d0
        else
@@ -982,7 +973,7 @@ contains
           photonDensity=+4.0d0                                                                                                  &
                &        *Pi                                                                                                     &
                &        *photonFlux                                                                                             &
-               &        /plancksConstant                                                                                        & 
+               &        /plancksConstant                                                                                        &
                &        /speedLight                                                                                             &
                &        /wavelength
           integrandPhotoionizationHeatingRate=+speedLight                                                                            &
@@ -1016,7 +1007,7 @@ contains
      implicit none
      class  (universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
      integer(c_size_t                                      ), intent(in   ) :: iNow
-     
+
      !# <eventHook name="intergalacticMediumStateEvolveUpdate">
      !#  <interface>
      !#    double precision, intent(in   ), dimension(:) :: time            , densityHydrogen1

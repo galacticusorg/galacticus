@@ -22,7 +22,7 @@
 module Merger_Trees_Build_Masses
   !% Implements a class for creating sets of tree masses to use when building merger trees.
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeBuildMasses</name>
   !#  <descriptiveName>Merger Tree Build Masses</descriptiveName>
@@ -36,5 +36,5 @@ module Merger_Trees_Build_Masses
   !#   <argument>double precision, intent(  out), allocatable, dimension(:) :: mass, massMinimum, massMaximum, weight</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Trees_Build_Masses

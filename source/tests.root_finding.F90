@@ -21,11 +21,12 @@
 
 program Test_Root_Finding
   !% Tests that routine finding routines work.
-  use Unit_Tests
-  use Root_Finder
-  use Test_Root_Finding_Functions
-  use Galacticus_Error           , only : errorStatusDivideByZero
-  use Galacticus_Display
+  use :: Galacticus_Display         , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error           , only : errorStatusDivideByZero
+  use :: Root_Finder                , only : rangeExpandAdditive           , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder
+  use :: Test_Root_Finding_Functions, only : Root_Function_1               , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
+          &                                  Root_Function_3               , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
+  use :: Unit_Tests                 , only : Assert                        , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   type            (rootFinder)               :: finder1, finder2
   double precision                           :: xGuess , xRoot

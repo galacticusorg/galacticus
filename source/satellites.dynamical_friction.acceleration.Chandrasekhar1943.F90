@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
-  
+
   !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
-  
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
+
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
   !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
@@ -45,10 +45,10 @@
   end interface satelliteDynamicalFrictionChandrasekhar1943
 
 contains
-  
+
   function chandrasekhar1943ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteDynamicalFrictionChandrasekhar1943)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -81,10 +81,10 @@ contains
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                             , intent(in   )         :: logarithmCoulomb
     !# <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
-    
+
     return
   end function chandrasekhar1943ConstructorInternal
-  
+
   subroutine chandrasekhar1943Destructor(self)
     !% Destructor for the simple cooling radius class.
     implicit none
@@ -97,15 +97,15 @@ contains
 
   function chandrasekhar1943Acceleration(self,node)
     !% Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
-    use Galacticus_Nodes                , only : nodeComponentSatellite
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
-    use Error_Functions
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Options
-    use Vectors
+    use :: Error_Functions                 , only : Error_Function
+    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self

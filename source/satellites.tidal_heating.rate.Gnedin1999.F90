@@ -21,8 +21,8 @@
 
   !% Contains a class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
 
-  use Cosmology_Parameters
-  use Dark_Matter_Halo_Scales
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
   !#  <description>A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.</description>
@@ -45,10 +45,10 @@
   end interface satelliteTidalHeatingRateGnedin1999
 
 contains
-  
+
   function gnedin1999ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -107,18 +107,18 @@ contains
 
   double precision function gnedin1999HeatingRate(self,node)
     !% Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
-    use Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentSatellite
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
-    use Error_Functions
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Rotation_Curves
-    use Galactic_Structure_Options
-    use Vectors
-    use Tensors
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll                 , coordinateSystemCartesian               , massTypeDark
+    use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
+    use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentSatellite                  , treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
+    use :: Numerical_Constants_Math          , only : Pi
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes      , only : kilo
+    use :: Tensors                           , only : max                              , tensorIdentityR2D3Sym                   , tensorRank2Dimension3Symmetric, assignment(=), &
+         &                                            operator(*)
+    use :: Vectors                           , only : Vector_Magnitude                 , Vector_Outer_Product
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -165,7 +165,7 @@ contains
          &                      *min(               &
          &                           satelliteMass, &
          &                           basic%mass()   &
-         &                      )    
+         &                      )
     radiusHalfMassSatellite  =  Galactic_Structure_Radius_Enclosing_Mass(                                         &
          &                                                             node                                     , &
          &                                                             mass                   =satelliteHalfMass, &

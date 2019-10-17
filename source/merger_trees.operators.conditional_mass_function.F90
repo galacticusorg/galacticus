@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
-  
-  use Cosmology_Functions
-  use Statistics_NBody_Halo_Mass_Errors
-  !$ use OMP_Lib
+
+  use    :: Cosmology_Functions              , only : cosmologyFunctionsClass
+  !$ use :: OMP_Lib
+  use    :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
   !#  <description>
@@ -45,7 +45,7 @@
   !#   \item[{\normalfont \ttfamily subhaloHierarchyDepth}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
   !#   \item[{\normalfont \ttfamily formationRateTimeFraction}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
   !#   \item[{\normalfont \ttfamily outputGroupName}] The name of the \gls{hdf5} group to which mass functions will be written.
-  !#   \end{description}  
+  !#   \end{description}
   !#   If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
   !#   mass functions to those already written to the group, weighting by the inverse of the variance
   !#   in each bin. The structure of the \gls{hdf5} group is as follows:
@@ -140,9 +140,9 @@
   !#   {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
   !#   formation rate function. The first uses the mass of the forming halo at the time of formation,
   !#   the second uses the mass of the node immediately prior to it becoming a subhalo.
-  !#  
+  !#
   !#   Mass functions are output as $\mathrm{d}N/\mathrm{d}\log_{10}m$ where $N$ is the number of halos per
-  !#   parent halo, and $m$ is the mass ratio.  
+  !#   parent halo, and $m$ is the mass ratio.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorConditionalMF
@@ -193,7 +193,7 @@
      procedure :: binWeights   => conditionalMFBinWeights
      procedure :: binWeights2D => conditionalMFBinWeights2D
   end type mergerTreeOperatorConditionalMF
-  
+
   interface mergerTreeOperatorConditionalMF
      !% Constructors for the conditional mass function merger tree operator class.
      module procedure conditionalMFConstructorParameters
@@ -201,10 +201,10 @@
   end interface mergerTreeOperatorConditionalMF
 
 contains
-  
+
   function conditionalMFConstructorParameters(parameters) result(self)
     !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     type            (inputParameters                ), intent(inout), target       :: parameters
@@ -372,10 +372,10 @@ contains
 
   function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,cosmologyFunctions_,haloMassError_) result(self)
     !% Internal constructor for the conditional mass function merger tree operator class.
-    use Numerical_Ranges
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report          , Galacticus_Component_List
-    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
+    use :: Galacticus_Error , only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Galacticus_Nodes , only : defaultMergingStatisticsComponent
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range                       , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     double precision                                 , intent(in   ), dimension(:) :: parentRedshifts                 , progenitorRedshifts
@@ -391,7 +391,7 @@ contains
     class           (nbodyHaloMassErrorClass        ), intent(in   ), target       :: haloMassError_
     integer                                                                        :: i
     !# <constructorAssign variables="parentMassCount,massRatioCount,primaryProgenitorDepth,subhaloHierarchyDepth,formationRateTimeFraction,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,*haloMassError_,*cosmologyFunctions_"/>
-    
+
     ! Store array sizes.
     self%timeCount                       =size(parentRedshifts)
     self%primaryProgenitorStatisticsValid=self%haloMassError_%errorZeroAlways()
@@ -407,7 +407,7 @@ contains
          &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                  &
          &                                )                                                                                                                 // &
          &       {introspection:location}                                                                                                                      &
-         &      )     
+         &      )
     ! Allocate arrays.
     call allocateArray(self%parentRedshifts    ,[self%timeCount        ])
     call allocateArray(self%progenitorRedshifts,[self%timeCount        ])
@@ -573,7 +573,7 @@ contains
     ! Construct arrays of times for parents.
     self%parentRedshifts=parentRedshifts
     do i=1,self%timeCount
-       self%timeParents(i)=                                          & 
+       self%timeParents(i)=                                          &
             & self%cosmologyFunctions_%cosmicTime(                   &
             &  self%cosmologyFunctions_%expansionFactorFromRedshift( &
             &   parentRedshifts(i)                                   &
@@ -608,7 +608,7 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%haloMassError_"     />
     ! Destroy OpenMP lock.
@@ -618,12 +618,10 @@ contains
 
   subroutine conditionalMFOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
-    use Input_Parameters
-    use Memory_Management
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Merger_Tree_Walkers
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                               , target :: self
     type            (mergerTree                     ), intent(inout)                               , target :: tree
@@ -656,13 +654,13 @@ contains
          &                                                       )                                          :: primaryProgenitorMass
     double precision                                  , dimension(self%parentMassCount                    ) :: weights1D
     double precision                                  , dimension(self%parentMassCount,self%massRatioCount) :: weights2D
-    
+
     ! Iterate over trees.
-    treeCurrent => tree    
+    treeCurrent => tree
     do while (associated(treeCurrent))
        ! Initialize primary progenitor masses to zero.
        primaryProgenitorMass=0.0d0
-       ! Get root node of the tree.       
+       ! Get root node of the tree.
        node => treeCurrent%baseNode
        ! Accumulate normalization for subhalo mass function.
        if (self%extendedStatistics) then
@@ -854,7 +852,7 @@ contains
                                !$ call OMP_Set_Lock(self%accumulateLock)
                                self%conditionalMassFunction     (i,:,:)=+self          %conditionalMassFunction     (i,:,:) &
                                     &                                   +weights2D                                          &
-                                    &                                   *treeCurrent   %volumeWeight         
+                                    &                                   *treeCurrent   %volumeWeight
                                self%conditionalMassFunctionError(i,:,:)=+self          %conditionalMassFunctionError(i,:,:) &
                                     &                                   +weights2D                  **2                     &
                                     &                                   *treeCurrent   %volumeWeight**2
@@ -893,10 +891,10 @@ contains
                                      !$ call OMP_Set_Lock(self%accumulateLock)
                                      self%formationRateFunction     (i,:,:,1)=+self          %formationRateFunction     (i,:,:,1) &
                                           &                                   +weights2D                                          &
-                                          &                                   *treeCurrent   %volumeWeight               
+                                          &                                   *treeCurrent   %volumeWeight
                                      self%formationRateFunctionError(i,:,:,1)=+self          %formationRateFunctionError(i,:,:,1) &
                                           &                                   +weights2D                  **2                     &
-                                          &                                   *treeCurrent   %volumeWeight**2                                  
+                                          &                                   *treeCurrent   %volumeWeight**2
                                      !$ call OMP_Unset_Lock(self%accumulateLock)
                                      ! Find the mass of this node just prior to it becoming a subhalo.
                                      descendentNode => node
@@ -920,10 +918,10 @@ contains
                                      !$ call OMP_Set_Lock(self%accumulateLock)
                                      self%formationRateFunction     (i,:,:,2)=+self          %formationRateFunction     (i,:,:,2) &
                                           &                                   +weights2D                                          &
-                                          &                                   *treeCurrent   %volumeWeight               
+                                          &                                   *treeCurrent   %volumeWeight
                                      self%formationRateFunctionError(i,:,:,2)=+self          %formationRateFunctionError(i,:,:,2) &
                                           &                                   +weights2D                  **2                     &
-                                          &                                   *treeCurrent   %volumeWeight**2                                  
+                                          &                                   *treeCurrent   %volumeWeight**2
                                      !$ call OMP_Unset_Lock(self%accumulateLock)
                                   end if
                                   ! Accumulate to the primary progenitor mass array if necessary.
@@ -963,7 +961,7 @@ contains
                 if (self%extendedStatistics) then
                    if (.not.associated(nodeChild%firstChild)) then
                       ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and
-                      ! the hierarchy depth.                
+                      ! the hierarchy depth.
                       depthHierarchy =  0
                       descendentNode => nodeChild
                       do while (associated(descendentNode).and.depthHierarchy <= self%subhaloHierarchyDepth)
@@ -995,10 +993,10 @@ contains
                          !$ call OMP_Set_Lock(self%accumulateLock)
                          self%subhaloMassFunction     (:,:,depthHierarchy)=+self          %subhaloMassFunction     (:,:,depthHierarchy) &
                               &                                            +weights2D                                                   &
-                              &                                            *treeCurrent   %volumeWeight               
+                              &                                            *treeCurrent   %volumeWeight
                          self%subhaloMassFunctionError(:,:,depthHierarchy)=+self          %subhaloMassFunctionError(:,:,depthHierarchy) &
                               &                                            +weights2D                  **2                              &
-                              &                                            *treeCurrent   %volumeWeight**2                                  
+                              &                                            *treeCurrent   %volumeWeight**2
                          !$ call OMP_Unset_Lock(self%accumulateLock)
                       end if
                    end if
@@ -1032,7 +1030,7 @@ contains
                               & +(                                                                                 &
                               &   +     primaryProgenitorMass             (i,binMassParent,             iPrimary)  &
                               &   *treeCurrent%volumeWeight                                                        &
-                              &  )**2                      
+                              &  )**2
                          !$ call OMP_Unset_Lock(self%accumulateLock)
                       end if
                    end if
@@ -1048,7 +1046,7 @@ contains
 
   function conditionalMFBinWeights(self,mass,time,massLogarithmicMinimumBins,massLogarithmicWidthInverseBins,countBins)
     !% Computes the weight that a given halo contributes to an array of bins.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)        :: self
     double precision                                 , intent(in   )        :: mass                      , time                           , &
@@ -1114,10 +1112,10 @@ contains
 
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
     !% Computes the weight that a given halo contributes to a 2D array of bins.
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use Galacticus_Nodes     , only : treeNode     , nodeComponentBasic
-    use Numerical_Integration
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: FGSL                 , only : fgsl_function          , fgsl_integration_workspace
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
+    use :: Numerical_Integration, only : Integrate              , Integrate_Done
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
     double precision                                 , intent(in   )                    :: mass1                                  , time1                                , &
@@ -1158,7 +1156,7 @@ contains
     call node1%destroy()
     call node2%destroy()
     deallocate(node1)
-    deallocate(node2)    
+    deallocate(node2)
     ! Handle zero errors.
     if (massError1 <= 0.0d0 .or. massError2 <= 0.0d0) then
        ! We currently do not handle cases where only one error is zero.
@@ -1196,7 +1194,7 @@ contains
                &              *massError1                             &
                &             )
           mass1UpperLimit=min(                                        &
-               &              +exp(                                   &  
+               &              +exp(                                   &
                &                   +massLogarithmicMinimumBins1       &
                &                   +dble(i  )                         &
                &                   /massLogarithmicWidthInverseBins1  &
@@ -1245,8 +1243,8 @@ contains
                      &   mass2LowerLimit > mass2 &
                      &  .or.                     &
                      &   mass2UpperLimit < mass2 &
-                     & ) then                   
-                   conditionalMFBinWeights2D(i,j)=0.0d0 
+                     & ) then
+                   conditionalMFBinWeights2D(i,j)=0.0d0
                 else
                    conditionalMFBinWeights2D(i,j)=max(                                                      &
                         &                             Integrate(                                            &
@@ -1261,10 +1259,10 @@ contains
                         &                             0.0d0                                                 &
                         &                            )
                    call Integrate_Done(integrandFunction,integrationWorkspace)
-                end if                
+                end if
              end do
           else
-             conditionalMFBinWeights2D(i,:)=0.0d0 
+             conditionalMFBinWeights2D(i,:)=0.0d0
           end if
        end do
     end if
@@ -1274,13 +1272,13 @@ contains
 
     double precision function conditionalMFBinWeights2DIntegrand(mass1Primed)
       !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
-      use Numerical_Constants_Math
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error        , only : Galacticus_Error_Report
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: mass1Primed
       double precision                :: mass2LowerLimit, mass2UpperLimit, &
            &                             mass2Shifted
-      
+
       mass2LowerLimit                   =+exp(                                       &
            &                                  +massRatioLogarithmicMinimumBins2      &
            &                                  +dble(j-1)                             &
@@ -1471,14 +1469,14 @@ contains
     end function conditionalMFBinWeights2DIntegrand
 
   end function conditionalMFBinWeights2D
-  
+
   subroutine conditionalMFFinalize(self)
     !% Outputs conditional mass function.
-    use ISO_Varying_String
-    use IO_HDF5
-    use Galacticus_HDF5
-    use Numerical_Constants_Astronomical
-    use Memory_Management
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management               , only : allocateArray       , deallocateArray
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                         :: self
     type            (hdf5Object                     )                                        :: conditionalMassFunctionGroup       , massDataset
@@ -1504,7 +1502,7 @@ contains
     if (self%extendedStatistics) then
        self%normalizationSubhaloMassFunction=self%normalizationSubhaloMassFunction     /self%massRatioLogarithmicBinWidthInverse   /log(10.0d0)
        self%normalizationSubhaloMassFunction=self%normalizationSubhaloMassFunctionError/self%massRatioLogarithmicBinWidthInverse**2/log(10.0d0)**2
-    end if    
+    end if
     ! Populate lower triangles of covariance matrices. We consider only the diagonal blocks of the output time dimensions, since
     ! throughout this module we assume no correlation between times. Also note that the indices on the parent mass dimensions must
     ! be switched in this assignment to ensure that we copy the correct transposed section of the covariance matrix.
@@ -1558,18 +1556,18 @@ contains
           call conditionalMassFunctionGroup%readDataset('subhaloMassFunctionError'             ,subhaloMassFunctionError             )
        end if
        ! Accumulate the conditional mass functions.
-       self       %conditionalMassFunction          =self%conditionalMassFunction           +conditionalMassFunction     
+       self       %conditionalMassFunction          =self%conditionalMassFunction           +conditionalMassFunction
        self       %conditionalMassFunctionError     =self%conditionalMassFunctionError      +conditionalMassFunctionError
        if (self%computeCovariances) then
           self    %conditionalMassFunctionCovariance=self%conditionalMassFunctionCovariance +conditionalMassFunctionCovariance
        end if
        if (self%extendedStatistics) then
-          self    %formationRateFunction            =self%formationRateFunction             +formationRateFunction     
+          self    %formationRateFunction            =self%formationRateFunction             +formationRateFunction
           self    %formationRateFunctionError       =self%formationRateFunctionError        +formationRateFunctionError
-          self    %subhaloMassFunction              =self%subhaloMassFunction               +subhaloMassFunction     
+          self    %subhaloMassFunction              =self%subhaloMassFunction               +subhaloMassFunction
           self    %subhaloMassFunctionError         =self%subhaloMassFunctionError          +subhaloMassFunctionError
           if (self%primaryProgenitorStatisticsValid) then
-             self%primaryProgenitorMassFunction     =self%primaryProgenitorMassFunction     +primaryProgenitorMassFunction     
+             self%primaryProgenitorMassFunction     =self%primaryProgenitorMassFunction     +primaryProgenitorMassFunction
              self%primaryProgenitorMassFunctionError=self%primaryProgenitorMassFunctionError+primaryProgenitorMassFunctionError
           else
              self%primaryProgenitorMassFunction     =-1.0d0
@@ -1626,7 +1624,7 @@ contains
                 do k=1,self%massRatioCount
                    do j1=1,self%parentMassCount
                       if (self%normalization(i,j1) <= 0.0d0) cycle
-                      do k1=1,self%massRatioCount                      
+                      do k1=1,self%massRatioCount
                          self%conditionalMassFunctionCovariance(i,j,k,i,j1,k1)=+self%conditionalMassFunctionCovariance(i,j,k,i,j1,k1)    &
                               &                                                /self%normalization                    (i,j          )    &
                               &                                                /self%normalization                    (      i,j1   )    &
@@ -1698,7 +1696,7 @@ contains
                         &                                     *self%subhaloMassFunction                  (j,:,:)**2 &
                         &                                     /self%normalizationSubhaloMassFunction     (j    )**2 &
                         &                                    )                                                      &
-                        &                               /      self%normalizationSubhaloMassFunction     (j    ) 
+                        &                               /      self%normalizationSubhaloMassFunction     (j    )
                 end where
                 self%subhaloMassFunction     (j,:,:)=     self%subhaloMassFunction     (j,:,:) /self%normalizationSubhaloMassFunction(j)
                 ! Convert from squared error to error for normalization.
@@ -1726,7 +1724,7 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunction                  ,"subhaloMassFunction"                  ,"Unevolved subhalo mass functions []"                       )
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunctionError             ,"subhaloMassFunctionError"             ,"Unevolved subhalo mass function errors []"                 )
     end if
-    call    conditionalMassFunctionGroup%close         (                                                                                                                                               )    
+    call    conditionalMassFunctionGroup%close         (                                                                                                                                               )
     call    galacticusOutputFile        %flush         (                                                                                                                                               )
     !$ call hdf5Access%unset()
     return

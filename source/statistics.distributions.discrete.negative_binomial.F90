@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a negative binomial 1D discrete distibution function.
-  
+
   !# <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
   !#  <description>A negative binomial 1D discrete distribution function class.</description>
   !# </distributionFunctionDiscrete1D>
@@ -46,12 +46,12 @@ contains
   function negativeBinomialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     double precision                                                                :: probabilitySuccess, countFailures
-    
+
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
     !#   <cardinality>1</cardinality>
@@ -73,7 +73,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures) result(self)
     !% Constructor for ``negativeBinomial'' 1D distribution function class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: self
     double precision                                                , intent(in   ) :: probabilitySuccess, countFailures
@@ -87,8 +87,8 @@ contains
 
   double precision function negativeBinomialMass(self,x)
     !% Return the mass of a negative binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Gamma_Functions , only : Gamma_Function_Logarithmic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Gamma_Functions , only : Gamma_Function_Logarithmic
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
@@ -106,8 +106,8 @@ contains
 
   double precision function negativeBinomialMassLogarithmic(self,x)
     !% Return the logarithmic mass of a negative binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Gamma_Functions , only : Gamma_Function_Logarithmic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Gamma_Functions , only : Gamma_Function_Logarithmic
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
@@ -123,12 +123,12 @@ contains
 
   double precision function negativeBinomialCumulative(self,x)
     !% Return the cumulative probability of a negativeBinomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
     !GCC$ attributes unused :: self, x
-    
+
     negativeBinomialCumulative=0.0d0
     call Galacticus_Error_Report('cumulative distribution function is not implemented'//{introspection:location})
     return
@@ -136,12 +136,12 @@ contains
 
   integer function negativeBinomialInverse(self,p)
     !% Return the inverse of a negative binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     double precision                                                , intent(in   ) :: p
     !GCC$ attributes unused :: self, p
-    
+
     negativeBinomialInverse=0
     call Galacticus_Error_Report('inverse function is not implemented'//{introspection:location})
     return

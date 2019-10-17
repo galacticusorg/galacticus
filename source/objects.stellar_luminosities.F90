@@ -23,8 +23,8 @@
 
 module Stellar_Luminosities_Structure
   !% Defines the stellar luminosities object.
-  use ISO_Varying_String
-  use Stellar_Population_Spectra_Postprocess
+  use :: ISO_Varying_String
+  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
   implicit none
   private
   public :: stellarLuminosities               , max                             , &
@@ -36,7 +36,7 @@ module Stellar_Luminosities_Structure
   interface Stellar_Luminosities_Parameter_Map
      module procedure Stellar_Luminosities_Parameter_Map_Double
   end interface Stellar_Luminosities_Parameter_Map
-  
+
   ! Interface to max() function for stellar luminosities objects.
   interface max
      module procedure stellarLuminositiesMax
@@ -298,15 +298,15 @@ contains
 
   subroutine Stellar_Luminosities_Initialize()
     !% Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
+    use            :: Array_Utilities                       , only : Array_Reverse
+    use            :: Cosmology_Functions                   , only : cosmologyFunctions                          , cosmologyFunctionsClass
+    use            :: Galacticus_Error                      , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Input_Parameters
-    use            :: Galacticus_Error
-    use            :: Memory_Management
-    use            :: Instruments_Filters
-    use            :: Cosmology_Functions
-    use            :: Array_Utilities
-    use            :: Sort
-    use            :: HII_Region_Emission_Lines
+    use            :: Input_Parameters                      , only : globalParameters                            , inputParameter
+    use            :: Instruments_Filters                   , only : Filter_Get_Index
+    use            :: Memory_Management                     , only : Memory_Usage_Record                         , allocateArray
+    use            :: Sort                                  , only : Sort_Index_Do                               , sortByIndex
+    use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
     implicit none
     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
@@ -315,7 +315,7 @@ contains
     character       (len=10                                           )                            :: redshiftLabel
     type            (varying_string                                   )                            :: luminosityOutputOptionText
     integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
-    
+
     ! Initialize the module if necessary.
     if (.not.luminositiesInitialized) then
        !$omp critical (Stellar_Luminosities_Initialize)
@@ -396,7 +396,7 @@ contains
                 !#   <source>globalParameters</source>
                 !#   <type>real</type>
                 !# </inputParameter>
-             else                
+             else
                 luminosityBandRedshift=luminosityRedshift
              end if
              !# <inputParameter>
@@ -498,10 +498,10 @@ contains
              call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)
              call sortByIndex             (luminosityName          ,luminosityTimeIndex)
              call sortByIndex             (luminosityRedshift      ,luminosityTimeIndex)
-             call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)             
-             call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)             
-             call sortByIndex             (luminosityType          ,luminosityTimeIndex)             
-             call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)             
+             call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)
+             call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)
+             call sortByIndex             (luminosityType          ,luminosityTimeIndex)
+             call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)
              ! Allocate unit and zero stellar abundance objects.
              call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
@@ -526,8 +526,8 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
-    use FoX_DOM
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_DOM
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout)          :: self
     type   (node               ), intent(in   ), pointer :: stellarLuminositiesDefinition
@@ -548,7 +548,7 @@ contains
 
   subroutine Stellar_Luminosities_Dump(self)
     !% Dump a stellar luminosities object.
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
     implicit none
     class    (stellarLuminosities), intent(in   ) :: self
     integer                                       :: i
@@ -590,12 +590,11 @@ contains
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
     !% Read an stellarLuminosities object from binary.
-    use Memory_Management
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: fileHandle
     integer                                     :: luminosityActiveCount
-    
+
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Read the content.
@@ -654,7 +653,7 @@ contains
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
     !% Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: index
@@ -688,7 +687,7 @@ contains
     end if
     return
   end function stellarLuminositiesCountMaximum
-  
+
   function stellarLuminositiesMax(luminosities1,luminosities2)
     !% Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
     implicit none
@@ -873,7 +872,7 @@ contains
 
   function Stellar_Luminosities_Name(index)
     !% Return a name for the specified entry in the stellar luminosities structure.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Stellar_Luminosities_Name
     integer                , intent(in   ) :: index
@@ -891,7 +890,6 @@ contains
 
   subroutine Stellar_Luminosities_Create(self)
     !% Ensure that the {\normalfont \ttfamily luminosity} array in a {\normalfont \ttfamily stellarLuminosities} is allocated.
-    use Memory_Management
     implicit none
     type(stellarLuminosities), intent(inout) :: self
 
@@ -937,9 +935,8 @@ contains
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time,outputInstance)
     !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
-    use Kind_Numbers
-    use Memory_Management
-    use Multi_Counters
+    use :: Kind_Numbers  , only : kind_int8
+    use :: Multi_Counters, only : multiCounter
     implicit none
     class           (stellarLuminosities)                , intent(inout) :: self
     double precision                                     , intent(in   ) :: time
@@ -950,7 +947,7 @@ contains
     type            (multiCounter       )                , intent(in   ) :: outputInstance
     integer                                                              :: i
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, outputInstance
-    
+
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
@@ -1002,7 +999,7 @@ contains
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision                     , intent(in   ) :: time
     !GCC$ attributes unused :: self, integerPropertyCount
-    
+
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     doublePropertyCount=doublePropertyCount+Stellar_Luminosities_Output_Count_Get(time)
@@ -1037,8 +1034,8 @@ contains
     character       (len=*              )              , intent(in   ) :: comment                , prefix
     double precision                                   , intent(in   ) :: unitsInSI
     integer                                                            :: i
-    !GCC$ attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, 
-    
+    !GCC$ attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI,
+
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
@@ -1056,7 +1053,7 @@ contains
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
     !% Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         , intent(in   )           :: luminosityIndex
     double precision, intent(in   )           :: time
@@ -1090,9 +1087,9 @@ contains
     !% Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
     !% time}.
-    use Abundances_Structure
-    use Stellar_Population_Luminosities
-    use Stellar_Populations
+    use :: Abundances_Structure           , only : abundances
+    use :: Stellar_Population_Luminosities, only : Stellar_Population_Luminosity
+    use :: Stellar_Populations            , only : stellarPopulationClass
     implicit none
     class           (stellarLuminosities   )                             :: self
     class           (stellarPopulationClass), intent(inout)              :: stellarPopulation_
@@ -1102,17 +1099,17 @@ contains
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
-    
+
     ! Return if no luminosities are tracked.
     if (luminosityCount == 0) return
 
     ! Allocate workspace.
     allocate(ages            (luminosityCount))
     allocate(massToLightRatio(luminosityCount))
-    
+
     ! Get the ages that this stellar population will have at the various output times.
     ages=luminosityCosmicTime-time
-       
+
     ! Get the luminosities for each requested band.
     massToLightRatio=Stellar_Population_Luminosity(                         &
          &                                         luminosityIndex        , &
@@ -1130,7 +1127,7 @@ contains
 
   integer function Stellar_Luminosities_Index_From_Name(name)
     !% Return the index of and specified entry in the luminosity list given its name.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
@@ -1149,10 +1146,10 @@ contains
 
   integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
     !% Return the index of and specified entry in the luminosity list given its properties.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Comparison
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: String_Handling     , only : operator(//)
     implicit none
     character       (len=*         ), intent(in   )           :: filterName      , filterType
     double precision                , intent(in   )           :: redshift
@@ -1213,18 +1210,18 @@ contains
     return
   end function Stellar_Luminosities_Index_From_Properties
 
-  
+
   subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_)
     !% Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
-    use Stellar_Population_Spectra
-    implicit none 
+    use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
+    implicit none
     double precision                               , intent(inout)          :: wavelengthCentral        , filterWidth
     double precision                               , intent(in   )          :: wavelengthMinimum        , wavelengthMaximum    , &
          &                                                                     observedWidth            , redshift
     class           (stellarPopulationSpectraClass), intent(in   ), pointer :: stellarPopulationSpectra_
     double precision                                                        :: restWavelengthMinimum    , restWavelengthMaximum, &
          &                                                                     restWidth                , wavelengthLowerEdge  , &
-         &                                                                     tabulatedWidth 
+         &                                                                     tabulatedWidth
 
     ! Determine rest-frame wavelength extent.
     restWavelengthMinimum=wavelengthMinimum/(1.0d0+redshift)
@@ -1234,8 +1231,8 @@ contains
     wavelengthLowerEdge=wavelengthCentral+filterWidth/2.0d0
     ! Get wavelength interval in stellar population spectra at lower edge wavelength
     tabulatedWidth=stellarPopulationSpectra_%wavelengthInterval(wavelengthLowerEdge)
-    ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range, 
-    ! or (iii) inbetween the observed and rest wavelength ranges.    
+    ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range,
+    ! or (iii) inbetween the observed and rest wavelength ranges.
     if      (wavelengthLowerEdge < restWavelengthMaximum) then
        ! Option (i): still inside rest-frame wavelength range.
        if (tabulatedWidth > restWidth) filterWidth=tabulatedWidth
@@ -1261,16 +1258,16 @@ contains
        end if
     end if
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
-  
+
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
+    use            :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+    use            :: HII_Region_Emission_Lines , only : emissionLineWavelength
     use, intrinsic :: ISO_C_Binding
-    use Output_Times
-    use Cosmology_Functions
-    use Memory_Management
-    use String_Handling
-    use HII_Region_Emission_Lines
-    use Stellar_Population_Spectra
+    use            :: Memory_Management         , only : deallocateArray
+    use            :: Output_Times              , only : outputTimes             , outputTimesClass
+    use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
+    use            :: String_Handling           , only : String_Split_Words      , char
     implicit none
     integer                                        , intent(inout), allocatable, dimension(:) :: luminosityMap
     type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
@@ -1296,7 +1293,7 @@ contains
          &                                                                                       wavelengthRatio          , wavelengthCentral        , &
          &                                                                                       observedWidth            , restWidth                , &
          &                                                                                       tabulatedWidth           , filterWidth
-    
+
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
@@ -1341,7 +1338,7 @@ contains
           deallocate        (luminosityRedshiftTextTmp  )
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)     
+          deallocate        (luminosityPostprocessSetTmp)
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
@@ -1434,7 +1431,7 @@ contains
           deallocate        (luminosityRedshiftTextTmp  )
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)     
+          deallocate        (luminosityPostprocessSetTmp)
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
@@ -1461,7 +1458,7 @@ contains
           filterWidth      =restWidth
           if(tabulatedWidth > restWidth) filterWidth=tabulatedWidth
           do while (wavelengthCentral < wavelengthMaximum)
-             if(wavelengthCentral < wavelengthMaximum) newFilterCount=newFilterCount+1             
+             if(wavelengthCentral < wavelengthMaximum) newFilterCount=newFilterCount+1
              call Stellar_Luminosities_SED_Top_Hat_Step(                              &
                   &                                     wavelengthCentral           , &
                   &                                     filterWidth                 , &
@@ -1496,8 +1493,8 @@ contains
           wavelengthCentral=restWavelengthMinimum
           filterWidth      =restWidth
           tabulatedWidth   =stellarPopulationSpectra_%wavelengthInterval(wavelengthCentral)
-          if(tabulatedWidth > restWidth) filterWidth = tabulatedWidth   
-          do while (wavelengthCentral < wavelengthMaximum)        
+          if(tabulatedWidth > restWidth) filterWidth = tabulatedWidth
+          do while (wavelengthCentral < wavelengthMaximum)
              if(wavelengthCentral < wavelengthMaximum) then
                 j=j+1
                 ! Compute the appropriate filter name.
@@ -1526,7 +1523,7 @@ contains
           deallocate          (luminosityRedshiftTextTmp  )
           deallocate          (luminosityFilterTmp        )
           deallocate          (luminosityTypeTmp          )
-          deallocate          (luminosityPostprocessSetTmp)     
+          deallocate          (luminosityPostprocessSetTmp)
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
@@ -1535,14 +1532,14 @@ contains
        if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
           call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
           lineName=char(specialFilterWords(2))
-          ! Determine emission line wavelength         
+          ! Determine emission line wavelength
           wavelengthCentral=emissionLineWavelength(lineName)
           ! Read resolution
           word=char(specialFilterWords(3))
           read (word,*) resolution
           ! Determine minimum and maximum wavelengths to draw filters between
           wavelengthRatio=+(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
-               &          /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)                  
+               &          /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)
           wavelengthMinimum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution
           wavelengthMinimum = wavelengthMinimum/wavelengthRatio
           wavelengthMaximum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution
@@ -1583,7 +1580,7 @@ contains
              write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
              write (       resolutionLabel,'(f10.2)') resolution
              write (newFilterName,'(a,a,a,a,a,a)') "emissionLineContinuumBracketed_",trim(adjustl(lineName)),&
-                  "_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))             
+                  "_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))
              ! Create new filter.
              if (k == 1 .or. k == 3) then
                 j=j+1
@@ -1600,13 +1597,13 @@ contains
           deallocate        (luminosityRedshiftTextTmp  )
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)     
+          deallocate        (luminosityPostprocessSetTmp)
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
        end if
-       ! Next luminosity.      
-       i=i+1       
+       ! Next luminosity.
+       i=i+1
     end do
     return
   end subroutine Stellar_Luminosities_Special_Cases
@@ -1631,7 +1628,7 @@ contains
        &                                           )
     !% Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
     use, intrinsic :: ISO_C_Binding
-    use Memory_Management
+    use            :: Memory_Management, only : allocateArray
     implicit none
     integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
     integer                         , intent(inout), allocatable, dimension(:) :: luminosityMap
@@ -1695,7 +1692,7 @@ contains
     double precision                     , allocatable  , dimension(:) :: luminositiesTmp
     integer                                                            :: templateCount       , selfCount, &
          &                                                                minCount
-    
+
     if (allocated(templateLuminosities%luminosityValue)) then
        templateCount=size(templateLuminosities%luminosityValue)
        if (allocated(self%luminosityValue)) then
@@ -1724,12 +1721,12 @@ contains
 
   subroutine Stellar_Luminosities_Parameter_Map_Double(parameters)
     !% Map an array of luminosity-related input parameters into a new array accounting for special case processing.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, intent(inout), allocatable, dimension(:) :: parameters
     double precision               , allocatable, dimension(:) :: parametersMapped
     integer                                                    :: i
-    
+
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Allocate new array.
@@ -1743,17 +1740,17 @@ contains
     call Move_Alloc(parametersMapped,parameters)
     return
   end subroutine Stellar_Luminosities_Parameter_Map_Double
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Stellar_Luminosities_State_Store</unitName>
   !# </galacticusStateStoreTask>
   subroutine Stellar_Luminosities_State_Store(stateFile,fgslStateFile,stateOperationID)
     !% Write the luminosities state to file.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Display
     use            :: FGSL              , only : fgsl_file
-    use            :: String_Handling
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
+    use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
+    use            :: String_Handling   , only : operator(//)
     implicit none
     integer           , intent(in   ) :: stateFile
     integer(c_size_t ), intent(in   ) :: stateOperationID
@@ -1785,13 +1782,14 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Stellar_Luminosities_State_Restore(stateFile,fgslStateFile,stateOperationID)
     !% Retrieve the luminosities state from the file.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Display
-    use            :: Instruments_Filters
-    use            :: Stellar_Population_Spectra_Postprocess
     use            :: FGSL                                  , only : fgsl_file
-    use            :: String_Handling
+    use            :: Galacticus_Display                    , only : Galacticus_Display_Indent                   , Galacticus_Display_Message                       , Galacticus_Display_Unindent, &
+         &                                                           verbosityWorking
+    use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
+    use            :: Instruments_Filters                   , only : Filter_Get_Index
+    use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
+    use            :: String_Handling                       , only : operator(//)
     implicit none
     integer                                                   , intent(in   ) :: stateFile
     integer(c_size_t                                         ), intent(in   ) :: stateOperationID
@@ -1878,5 +1876,5 @@ contains
     end if
     return
   end function Stellar_Luminosities_Non_Static_Size_Of
-  
+
 end module Stellar_Luminosities_Structure

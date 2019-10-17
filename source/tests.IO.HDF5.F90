@@ -19,12 +19,12 @@
 
 program Tests_IO_HDF5
   !% Tests the HDF5 I/O module.
-  use HDF5
-  use IO_HDF5
-  use Kind_Numbers
-  use Unit_Tests
-  use ISO_Varying_String
-  use Galacticus_Display
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: HDF5
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5               , hdf5Object
+  use :: ISO_Varying_String
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                      groupObject
@@ -67,7 +67,7 @@ program Tests_IO_HDF5
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")
 
@@ -711,7 +711,7 @@ program Tests_IO_HDF5
         call Assert("recover correct number of datasets in group",size(datasetNames),17)
         call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
      end if
-     
+
      ! Close the group.
      call groupObject%close()
 
@@ -743,7 +743,7 @@ program Tests_IO_HDF5
 
   ! Test identifying HDF5 file.
   call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
-  
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

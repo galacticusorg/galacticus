@@ -20,7 +20,7 @@
   !% Contains a module which implements a random error output analysis distribution operator class providing errors in HI mass for
   !% the ALFALFA survey.
 
-  use Output_Analysis_Molecular_Ratios
+  use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorALFLF">
   !#  <description>A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
@@ -46,7 +46,7 @@ contains
 
   function randomErrorHIALFALFAConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorHIALFALFA'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorALFLF)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
@@ -120,7 +120,7 @@ contains
     type            (treeNode                                          ), intent(inout) :: node
     double precision                                                                    :: exponentialArgument, exponentialTerm, &
          &                                                                                 molecularFraction  , mass
-    
+
     ! Compute the random error on the mass.
     exponentialArgument=+(                          &
          &                +max(propertyValue,6.0d0) &
@@ -133,7 +133,7 @@ contains
        exponentialTerm=0.0d0
     end if
     randomErrorHIALFALFARootVariance=+self%a          &
-         &                           +exponentialTerm 
+         &                           +exponentialTerm
     ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
     mass                            =10.0d0**propertyValue
     molecularFraction               =        self%outputAnalysisMolecularRatio_%ratio       (mass,node)

@@ -21,11 +21,11 @@
 
 module Dark_Matter_Profiles
   !% Provides an object that implements non-dark-matter-only dark matter halo profiles.
-  use Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
-  use Galacticus_Nodes            , only : treeNode
-  use Kind_Numbers                , only : kind_int8
+  use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
+  use :: Galacticus_Nodes            , only : treeNode
+  use :: Kind_Numbers                , only : kind_int8
   private
-  
+
   !# <functionClass>
   !#  <name>darkMatterProfile</name>
   !#  <extends>darkMatterProfileGeneric</extends>
@@ -196,5 +196,5 @@ module Dark_Matter_Profiles
   !#   </code>
   !#  </method>
   !# </functionClass>
-  
+
 end module Dark_Matter_Profiles

@@ -21,13 +21,13 @@
 
 module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
-  use Output_Times
+  use :: Output_Times, only : outputTimesClass
   implicit none
   private
   public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset             , &
        &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set         , &
        &    Node_Component_Interoutput_Standard_Thread_Initialize , Node_Component_Interoutput_Standard_Thread_Uninitialize
-  
+
   !# <component>
   !#  <class>interOutput</class>
   !#  <name>standard</name>
@@ -63,13 +63,13 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard interoutput module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultInteroutputComponent
+    use :: Galacticus_Nodes, only : defaultInteroutputComponent
+    use :: Input_Parameters, only : inputParameter             , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       !# <objectBuilder class="outputTimes" name="outputTimes_" source="globalParameters_"/>     
+       !# <objectBuilder class="outputTimes" name="outputTimes_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
@@ -79,11 +79,11 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard interoutput module.
-    use Galacticus_Nodes, only : defaultInteroutputComponent
+    use :: Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       !# <objectDestructor name="outputTimes_"/>     
+       !# <objectDestructor name="outputTimes_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
@@ -93,7 +93,8 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Inter_Output_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentDisk, nodeComponentSpheroid, nodeComponentInterOutputStandard
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentInterOutput, nodeComponentInterOutputStandard, nodeComponentSpheroid, &
+          &                         treeNode
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     class           (nodeComponentInterOutput)               , pointer :: interOutput
@@ -110,7 +111,7 @@ contains
     class is (nodeComponentInterOutputStandard)
        ! Get disk and spheroid components.
        disk     => node%disk    ()
-       spheroid => node%spheroid()       
+       spheroid => node%spheroid()
        ! Set scale for masses.
        mass   = disk%massGas    ()+spheroid%massGas    () &
             &  +disk%massStellar()+spheroid%massStellar()
@@ -125,8 +126,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Nodes, only : treeNode          , nodeComponentInterOutput, nodeComponentDisk   , nodeComponentSpheroid      , &
-         &                       nodeComponentBasic, interruptTask           , propertyTypeInactive, defaultInteroutputComponent
+    use :: Galacticus_Nodes, only : defaultInteroutputComponent, interruptTask        , nodeComponentBasic  , nodeComponentDisk, &
+          &                         nodeComponentInterOutput   , nodeComponentSpheroid, propertyTypeInactive, treeNode
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -141,7 +142,7 @@ contains
          &                                                                    timeCurrent          , timeOutputNext           , &
          &                                                                    timeOutputPrevious
     !GCC$ attributes unused :: odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if the standard inter-output component is not active.
@@ -173,9 +174,9 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
+    use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Kind_Numbers
-    use            :: Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentInterOutputStandard
+    use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     integer(c_size_t                ), intent(in   )          :: iOutput
@@ -183,7 +184,7 @@ contains
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: interOutput
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
-    
+
     ! Get the interoutput component and check it is of our class.
     interOutput => node%interOutput()
     select type (interOutput)
@@ -200,10 +201,10 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Remnant_Properties
-    use Satellite_Merging_Mass_Movements
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentInterOutputStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
+    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid       , destinationMergerUnmoved
+    use :: Satellite_Merging_Remnant_Properties, only : destinationStarsHost    , destinationStarsSatellite
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     type   (treeNode                )               , pointer :: nodeHost

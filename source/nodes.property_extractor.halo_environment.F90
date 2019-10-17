@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a node property extractor class for halo environment.
 
-  use Cosmological_Density_Field, only : haloEnvironmentClass, haloEnvironment
-  
+  use :: Cosmological_Density_Field, only : haloEnvironment, haloEnvironmentClass
+
   !# <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment">
   !#  <description>A node property extractor class for halo environment.</description>
   !# </nodePropertyExtractor>
@@ -48,7 +48,7 @@ contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloEnvironment} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
     type (nodePropertyExtractorHaloEnvironment)                        :: self
     class(haloEnvironmentClass                ), intent(in   ), target :: haloEnvironment_
     !# <constructorAssign variables="*haloEnvironment_"/>
-    
+
     return
   end function haloEnvironmentConstructorInternal
 
@@ -79,14 +79,14 @@ contains
     !# <objectDestructor name="self%haloEnvironment_"/>
     return
   end subroutine haloEnvironmentDestructor
-  
+
   integer function haloEnvironmentElementCount(self,time)
     !% Return the number of elements in the {\normalfont \ttfamily haloEnvironment} property extractor.
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout) :: self
     double precision                                      , intent(in   ) :: time
     !GCC$ attributes unused :: self, time
-    
+
     haloEnvironmentElementCount=2
     return
   end function haloEnvironmentElementCount
@@ -132,7 +132,7 @@ contains
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
     double precision                                      , intent(in   )              :: time
     !GCC$ attributes unused :: self, time
-    
+
     allocate(haloEnvironmentDescriptions(2))
     haloEnvironmentDescriptions=[                                                                 &
          &                       var_str('Environmental linear overdensity of the halo [].'    ), &
@@ -156,7 +156,7 @@ contains
 
   integer function haloEnvironmentType(self)
     !% Return the type of the {\normalfont \ttfamily haloEnvironment} property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
     !GCC$ attributes unused :: self

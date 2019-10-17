@@ -34,13 +34,13 @@
      module procedure sampledDistributionPseudoRandomConstructorParameters
      module procedure sampledDistributionPseudoRandomConstructorInternal
   end interface mergerTreeBuildMassesSampledDistributionPseudoRandom
-  
+
 contains
 
   function sampledDistributionPseudoRandomConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom)                :: self
     type(inputParameters                                     ), intent(inout) :: parameters
@@ -65,15 +65,15 @@ contains
     !% Destructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
     return
   end subroutine sampledDistributionPseudoRandomDestructor
-  
+
   subroutine sampledDistributionPseudoRandomSampleCMF(self,x)
     !% Generate a pseudoRandom sample of points from the merger tree mass distribution.
     use, intrinsic :: ISO_C_Binding
-    use               Pseudo_Random
+    use            :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout)               :: self
     double precision                                                      , intent(  out), dimension(:) :: x

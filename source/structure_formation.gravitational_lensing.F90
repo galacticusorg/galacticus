@@ -22,7 +22,6 @@
 module Gravitational_Lensing
   !% Implements gravitational lensing from large scale structure.
   use, intrinsic :: ISO_C_Binding
-  use            :: Tables
   private
 
   !# <functionClass>

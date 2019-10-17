@@ -43,7 +43,7 @@ contains
 
   function massStellarConstructorParameters(parameters)
     !% Constructor for the ``massStellar'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellar)                :: massStellarConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
@@ -55,8 +55,8 @@ contains
 
   double precision function massStellarExtract(self,node,instance)
     !% Implement a massStellar output analysis.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeStellar                 , radiusLarge
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout)           :: self
     type (treeNode                        ), intent(inout), target   :: node
@@ -91,7 +91,7 @@ contains
 
   double precision function massStellarUnitsInSI(self)
     !% Return the units of the massStellar property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -102,7 +102,7 @@ contains
 
   integer function massStellarType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -113,7 +113,7 @@ contains
 
   integer function massStellarQuantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !GCC$ attributes unused :: self

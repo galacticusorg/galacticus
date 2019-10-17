@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !$ use OMP_Lib
+  !$ use :: OMP_Lib
 
   !# <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
   !#  <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>
@@ -44,12 +44,12 @@ contains
   function cyclicConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(evolveForestsWorkShareCyclic)                :: self
     type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=evolveForestsWorkShareCyclic()
     return
   end function cyclicConstructorParameters
@@ -76,14 +76,14 @@ contains
 
   function cyclicForestNumber(self,utilizeOpenMPThreads)
     !% Return the number of the next forest to process.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: cyclicForestNumber
     class  (evolveForestsWorkShareCyclic), intent(inout) :: self
     logical                              , intent(in   ) :: utilizeOpenMPThreads
     integer(c_size_t                    )                :: i
 
-    !$ call OMP_Set_Lock(self%lock)    
+    !$ call OMP_Set_Lock(self%lock)
     if (self%first) then
        self%utilizeOpenMPThreads=utilizeOpenMPThreads
        self%first               =.false.

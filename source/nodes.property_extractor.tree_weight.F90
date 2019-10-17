@@ -39,15 +39,15 @@
   end interface nodePropertyExtractorTreeWeight
 
 contains
-  
+
   function treeWeightConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily treeWeight} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorTreeWeight)                :: self
     type(inputParameters                ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=nodePropertyExtractorTreeWeight()
     return
   end function treeWeightConstructorParameters
@@ -59,7 +59,7 @@ contains
     type (treeNode                       ), intent(inout), target   :: node
     type (multiCounter                   ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance
-    
+
     treeWeightExtract=node%hostTree%volumeWeight
     return
   end function treeWeightExtract
@@ -88,7 +88,7 @@ contains
 
   double precision function treeWeightUnitsInSI(self)
     !% Return the units of the last isolated redshift property in the SI system.
-    use Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -99,7 +99,7 @@ contains
 
   integer function treeWeightType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
     !GCC$ attributes unused :: self

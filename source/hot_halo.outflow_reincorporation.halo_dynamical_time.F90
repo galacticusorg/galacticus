@@ -19,8 +19,8 @@
 
 !% An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo
 !% dynamical timescale.
-  
-  use Dark_Matter_Halo_Scales
+
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHaloDynamicalTime">
   !#  <description>An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.</description>
@@ -46,7 +46,7 @@ contains
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class which
     !% takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloOutflowReincorporationHaloDynamicalTime)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
@@ -63,7 +63,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloOutflowReincorporationHaloDynamicalTime(multiplier,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>  
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloDynamicalTimeConstructorParameters
@@ -90,7 +90,7 @@ contains
 
   double precision function haloDynamicalTimeRate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self
     type (treeNode                                      ), intent(inout) :: node

@@ -21,7 +21,7 @@
 
 module Satellites_Tidal_Fields
   !% Implements calculations of tidal fields acting on satellites.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

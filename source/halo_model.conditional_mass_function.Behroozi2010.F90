@@ -19,7 +19,7 @@
 
 !% Implements a class for the conditional mass functions using the \cite{behroozi_comprehensive_2010} fitting function.
 
-  use Tables
+  use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <conditionalMassFunction name="conditionalMassFunctionBehroozi2010">
   !#  <description>A class which implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.</description>
@@ -64,7 +64,7 @@
      procedure :: massFunctionVariance => behroozi2010MassFunctionVariance
      procedure :: compute              => behroozi2010Compute
   end type conditionalMassFunctionBehroozi2010
-  
+
   interface conditionalMassFunctionBehroozi2010
      !% Constructors for the \cite{behroozi_comprehensive_2010} merging timescale class.
      module procedure behroozi2010ConstructorParameters
@@ -73,7 +73,7 @@
 
   ! Table resolution.
   integer                                              , parameter :: behroozi2010MassTablePointsPerDecade=10
-  
+
   ! Module scope pointer to the current object.
   class           (conditionalMassFunctionBehroozi2010), pointer   :: behroozi2010Self
   !$omp threadprivate(behroozi2010Self)
@@ -84,7 +84,7 @@ contains
   function behroozi2010ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily behroozi2010} conditional mass function class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (conditionalMassFunctionBehroozi2010)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -244,7 +244,7 @@ contains
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
     !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
     !% \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
     double precision                                     , intent(in   )           :: massHalo        , mass
@@ -301,7 +301,7 @@ contains
   subroutine behroozi2010Compute(self,massHalo,mass,numberCentrals,numberSatellites)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
-    use Table_Labels
+    use :: Table_Labels, only : extrapolationTypeFix
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout), target :: self
     double precision                                     , intent(in   )         :: massHalo                , mass
@@ -338,7 +338,7 @@ contains
             &                        self%fMassTableMinimum                       , &
             &                        self%fMassTableMaximum                       , &
             &                        self%fMassTableCount                         , &
-            &                   extrapolationType=spread(extrapolationTypeFix,1,2)  &          
+            &                   extrapolationType=spread(extrapolationTypeFix,1,2)  &
             &                       )
        call self%fMassTable%populate(                                               &
             &                        behroozi2010fSHMRInverse(self%fMassTable%xs()) &

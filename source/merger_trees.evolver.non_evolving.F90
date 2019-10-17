@@ -38,21 +38,21 @@ contains
 
   function nonEvolvingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeEvolverNonEvolving)                :: self
     type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeEvolverNonEvolving()
     return
   end function nonEvolvingConstructorParameters
 
   subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
-    !$ use OMP_Lib
-    use Merger_Trees_Initialize, only : Merger_Tree_Initialize
-    use Galacticus_Error       , only : errorStatusSuccess
+    use    :: Galacticus_Error       , only : errorStatusSuccess
+    use    :: Merger_Trees_Initialize, only : Merger_Tree_Initialize
+    !$ use :: OMP_Lib
     implicit none
     class           (mergerTreeEvolverNonEvolving)                   , intent(inout) :: self
     integer                                       , optional         , intent(  out) :: status

@@ -50,7 +50,7 @@ module Galactic_Structure_Options
   !#  <entry label="darkHalo"  />
   !#  <entry label="blackHole" />
   !# </enumeration>
- 
+
   !# <enumeration>
   !#  <name>coordinateSystem</name>
   !#  <description>Used to specify the coordinate system of the input coordinates in galactic structure functions.</description>

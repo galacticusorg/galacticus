@@ -21,7 +21,7 @@
 
 module Exponential_Integrals
   !% Implements exponential integrals.
-  use FGSL, only : FGSL_SF_Si, FGSL_SF_Ci
+  use :: FGSL, only : FGSL_SF_Ci, FGSL_SF_Si
   implicit none
   private
   public :: Sine_Integral, Cosine_Integral, Exponential_Integral
@@ -53,7 +53,7 @@ contains
 
   double complex function Exponential_Integral_Double_Complex(z)
     !% Exponential integral, $E_\mathrm{i}(z)$, for complex argument {\normalfont \ttfamily z}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double complex, intent(in   ) :: z
 
@@ -73,5 +73,5 @@ contains
 
   ! Include functions.
   include "math.exponential_integrals.functions.inc"
-  
+
 end module Exponential_Integrals

@@ -41,14 +41,14 @@ contains
   function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters
-    use Dark_Matter_Particles
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Dark_Matter_Particles, only : darkMatterParticle     , darkMatterParticleClass
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Input_Parameters     , only : inputParameter         , inputParameters
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterDE)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_    
-    class           (linearGrowthClass                           ), pointer       :: linearGrowth_    
+    class           (cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass                           ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass               ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                     ), pointer       :: darkMatterParticle_
     double precision                                                              :: normalization
@@ -76,12 +76,12 @@ contains
 
   function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
-    use Dark_Matter_Particles
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseMatterDE)                          :: self
-    class           (cosmologyFunctionsClass                     ), target  , intent(in   ) :: cosmologyFunctions_    
-    class           (linearGrowthClass                           ), target  , intent(in   ) :: linearGrowth_    
+    class           (cosmologyFunctionsClass                     ), target  , intent(in   ) :: cosmologyFunctions_
+    class           (linearGrowthClass                           ), target  , intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass               ), target  , intent(in   ) :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                     ), target  , intent(in   ) :: darkMatterParticle_
     double precision                                              , optional, intent(in   ) :: normalization
@@ -101,7 +101,7 @@ contains
 
   subroutine sphericalCollapseMatterDERetabulate(self,time)
     !% Recompute the look-up tables for critical overdensity for collapse.
-    use Spherical_Collapse_Matter_Dark_Energy
+    use :: Spherical_Collapse_Matter_Dark_Energy, only : Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
     double precision                                              , intent(in   ) :: time

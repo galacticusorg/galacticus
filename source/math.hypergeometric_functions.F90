@@ -24,9 +24,9 @@
 
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
+  use            :: FGSL         , only : FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, FGSL_Success, fgsl_int, &
+          &                               fgsl_sf_result    , gsl_sf_result
   use, intrinsic :: ISO_C_Binding
-  use            :: FGSL         , only : fgsl_int      , FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, &
-       &                                  fgsl_sf_result, gsl_sf_result     , FGSL_Success
   implicit none
   private
   public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
@@ -49,7 +49,7 @@ module Hypergeometric_Functions
   ! Error status.
   integer(fgsl_int) :: statusActual
   !$omp threadprivate(statusActual)
-  
+
 contains
 
   double precision function Hypergeometric_1F1(a,b,x)
@@ -63,7 +63,7 @@ contains
 
   double precision function Hypergeometric_2F1(a,b,x,status,error,toleranceRelative)
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
+    use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     implicit none
     double precision                , intent(in   )           :: a(2)             , b(1), &
          &                                                       x
@@ -140,7 +140,7 @@ contains
     implicit none
     double precision, intent(in   ), dimension(:) :: a  , b
     double precision, intent(in   )               :: x
-    
+
     Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x)))
     return
   end function Hypergeometric_pFq_Real

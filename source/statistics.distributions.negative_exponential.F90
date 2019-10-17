@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a negative exponential density 1D distibution function.
-  
+
   !# <distributionFunction1D name="distributionFunction1DNegativeExponential">
   !#  <description>A negative exponential 1D distribution function class.</description>
   !# </distributionFunction1D>
@@ -43,7 +43,7 @@ contains
   function negativeExponentialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily negativeExponential} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DNegativeExponential)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -66,7 +66,7 @@ contains
     type            (distributionFunction1DNegativeExponential)                :: self
     double precision                                           , intent(in   ) :: rate
     !# <constructorAssign variables="rate"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function negativeExponentialConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   double precision function negativeExponentialInverse(self,p)
     !% Return the inverse of a negative exponential distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout), target :: self
     double precision                                           , intent(in   )         :: p

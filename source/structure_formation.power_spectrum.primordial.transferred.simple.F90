@@ -19,9 +19,9 @@
 
   !% A simple transferred primordial power spectrum class.
 
-  use Power_Spectra_Primordial
-  use Transfer_Functions, only : transferFunction, transferFunctionClass
-  
+  use :: Power_Spectra_Primordial, only : powerSpectrumPrimordialClass
+  use :: Transfer_Functions      , only : transferFunction            , transferFunctionClass
+
   !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>
   !# </powerSpectrumPrimordialTransferred>
@@ -47,12 +47,12 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the ``simple'' transferred primordial power spectrum class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
     class(transferFunctionClass                   ), pointer       :: transferFunction_
-    class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_ 
+    class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_
 
     !# <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>
     !# <objectBuilder class="transferFunction"        name="transferFunction_"        source="parameters"/>

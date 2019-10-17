@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_2013}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
   !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
@@ -56,13 +55,13 @@ contains
 
   function moustakas2013PRIMUSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{moustakas_primus:_2013} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryMoustakas2013PRIMUS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     integer                                                   :: redshiftBin
- 
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
@@ -80,10 +79,9 @@ contains
 
   function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{moustakas_primus:_2013} mass function class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Input_Parameters
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions        , only : cosmologyFunctionsClass
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type   (surveyGeometryMoustakas2013PRIMUS)                        :: self
     integer                                   , intent(in   )         :: redshiftBin
@@ -129,22 +127,22 @@ contains
     call self%initialize()
     return
   end function moustakas2013PRIMUSConstructorInternal
-  
+
   subroutine moustakas2013PRIMUSDestructor(self)
     !% Destructor for the ``moustakas2013PRIMUS'' survey geometry class.
     implicit none
     type(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine moustakas2013PRIMUSDestructor
-  
+
   integer function moustakas2013PRIMUSFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
     return
   end function moustakas2013PRIMUSFieldCount
@@ -156,15 +154,15 @@ contains
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
   end function moustakas2013PRIMUSDistanceMinimum
 
   double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions_Options
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -220,7 +218,7 @@ contains
 
   double precision function moustakas2013PRIMUSVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
@@ -245,15 +243,16 @@ contains
 
   function moustakas2013PRIMUSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
     return
   end function moustakas2013PRIMUSMangleDirectory
-  
+
   subroutine moustakas2013PRIMUSMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
@@ -277,11 +276,11 @@ contains
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
     return
   end function moustakas2013PRIMUSAngularPowerMaximumDegree
-  
+
   integer function moustakas2013PRIMUSFieldPairIndex(i,j)
     !% Compute the index of a pair of fields in the \cite{moustakas_primus:_2013} survey.
     implicit none
@@ -293,4 +292,4 @@ contains
     moustakas2013PRIMUSFieldPairIndex=(ii-1)*(2*moustakas2013PRIMUSFields-ii+2)/2+(jj-ii+1)
     return
   end function moustakas2013PRIMUSFieldPairIndex
-  
+

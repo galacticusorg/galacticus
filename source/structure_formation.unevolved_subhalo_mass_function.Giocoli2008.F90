@@ -44,11 +44,11 @@ contains
 
   function giocoli2008ConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -110,7 +110,6 @@ contains
 
   double precision function giocoli2008Integrated(self,time,massLow,massHigh,massHost)
     !% Return the integrated unevolved subhalo mass function at the given time and mass.
-    use Gamma_Functions
     implicit none
     class           (unevolvedSubhaloMassFunctionGiocoli2008), intent(inout) :: self
     double precision                                         , intent(in   ) :: time    , massLow , &
@@ -135,12 +134,13 @@ contains
          &                  *gammaIncomplete(        xHigh)                              &
          &                 )
     return
-         
+
   contains
 
     double precision function gammaIncomplete(x)
       !% Evaluate the incomplete gamma function, possibly for a negative exponent.
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Gamma_Functions , only : Gamma_Function         , Gamma_Function_Incomplete
       implicit none
       double precision, intent(in   ) :: x
 
@@ -151,7 +151,7 @@ contains
               &                                    )                                               &
               &          *Gamma_Function           (                                               &
               &                                           -self%exponent/3.0d0                     &
-              &                                    )  
+              &                                    )
       else if (self%exponent < 3.0d0) then
          gammaIncomplete=+Gamma_Function_Incomplete(                                               &
               &                                     +1.0d0-self%exponent/3.0d0                   , &
@@ -171,6 +171,6 @@ contains
       end if
       return
     end function gammaIncomplete
-    
+
   end function giocoli2008Integrated
-       
+

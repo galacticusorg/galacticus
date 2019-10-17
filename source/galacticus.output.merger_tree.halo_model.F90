@@ -43,11 +43,11 @@ contains
 
   subroutine Galacticus_Output_Halo_Model_Initialize
     !% Initializes the module by determining whether or not halo model data should be output.
-    use Galacticus_HDF5
-    use IO_HDF5
-    use Input_Parameters
-    use Numerical_Constants_Astronomical, only : megaParsec
-    use Numerical_Ranges                , only : Make_Range, rangeTypeLogarithmic
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: Input_Parameters                , only : globalParameters    , inputParameter
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Ranges                , only : Make_Range          , rangeTypeLogarithmic
     implicit none
     type(hdf5Object) :: haloModelDataset, haloModelGroup
 
@@ -117,15 +117,16 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(node,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
+    use            :: Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
+    use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+    use            :: Galacticus_HDF5         , only : galacticusOutputFile
+    use            :: Galacticus_Nodes        , only : mergerTree          , nodeComponentBasic       , treeNode
+    use            :: IO_HDF5                 , only : hdf5Object          , hdf5Access
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
-    use Galacticus_HDF5
-    use ISO_Varying_String
-    use String_Handling
-    use Memory_Management
-    use Dark_Matter_Profiles_DMO
-    use Cosmology_Functions
-    use Kind_Numbers
+    use            :: ISO_Varying_String
+    use            :: Kind_Numbers            , only : kind_int8
+    use            :: Memory_Management       , only : allocateArray       , deallocateArray
+    use            :: String_Handling         , only : operator(//)
     implicit none
     type            (treeNode                 ), intent(inout), pointer      :: node
     integer         (c_size_t                 ), intent(in   )               :: iOutput

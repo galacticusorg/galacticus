@@ -47,13 +47,13 @@ contains
 
   function ratioConstructorParameters(parameters) result(self)
     !% Constructor for the ``ratio'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRatio )                :: self
     type (inputParameters                      ), intent(inout) :: parameters
     class(nodePropertyExtractorClass ), pointer       :: propertyNumerator_, propertyDenominator_
     type (varying_string                       )                :: name              , description
-    
+
     !# <inputParameter>
     !#   <name>name</name>
     !#   <source>parameters</source>
@@ -79,7 +79,7 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !% Internal constructor for the ``ratio'' output analysis property extractor class.
-    use Galacticus_Error, only : Galacticus_Error_Report    
+    use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Error_Report
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_
@@ -116,7 +116,7 @@ contains
 
   double precision function ratioExtract(self,node,instance)
     !% Implement a ratio output analysis.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorRatio), intent(inout)           :: self
     type            (treeNode                  ), intent(inout), target   :: node
@@ -151,7 +151,7 @@ contains
     implicit none
     type (varying_string                      )                :: ratioName
     class(nodePropertyExtractorRatio), intent(inout) :: self
-    
+
     ratioName=self%name_
     return
   end function ratioName
@@ -161,7 +161,7 @@ contains
     implicit none
     type (varying_string                      )                :: ratioDescription
     class(nodePropertyExtractorRatio), intent(inout) :: self
-    
+
     ratioDescription=self%description_
     return
   end function ratioDescription
@@ -170,14 +170,14 @@ contains
     !% Return the description of this property.
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self
-    
+
     ratioUnitsInSI=self%unitsInSI_
     return
   end function ratioUnitsInSI
 
   integer function ratioType(self)
     !% Return the type of the ratio property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self
     !GCC$ attributes unused :: self

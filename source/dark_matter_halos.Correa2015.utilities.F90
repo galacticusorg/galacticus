@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
-  
+
 module Dark_Matter_Halos_Correa2015
   !% Implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
   implicit none
@@ -26,12 +26,12 @@ module Dark_Matter_Halos_Correa2015
   public :: Dark_Matter_Halo_Correa2015_Fit_Parameters
 
 contains
-  
+
   subroutine Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,linearGrowth_,cosmologicalMassVariance_,aTilde,bTilde)
     !% Computes fitting function parameters for the \cite{correa_accretion_2015} dark matter halo models.
-    use Cosmological_Density_Field
-    use Numerical_Constants_Math
-    use Linear_Growth
+    use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+    use :: Linear_Growth             , only : linearGrowthClass
+    use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                               , intent(in   ) :: mass                             , expansionFactor
     double precision                               , intent(  out) :: aTilde                           , bTilde
@@ -47,7 +47,7 @@ contains
          &            -0.0064d0*log10(mass)**2
     q     =4.137d0/redshiftFormation**0.9476d0   ! Correa et al. eqn. 5.
     sigma =cosmologicalMassVariance_%rootVariance(mass  )
-    sigmaQ=cosmologicalMassVariance_%rootVariance(mass/q)    
+    sigmaQ=cosmologicalMassVariance_%rootVariance(mass/q)
     f     =1.0d0/sqrt(sigmaQ**2-sigma**2)
     aTilde=+f                                                                                     & ! Correa et al. eqn. 2.
          & *(                                                                                     &

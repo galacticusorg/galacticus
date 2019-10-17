@@ -21,7 +21,7 @@
 
 module Test_ODE_Solver_Functions
   !% Contains ODEs for unit tests.
-  use FGSL, only : FGSL_Success
+  use :: FGSL, only : FGSL_Success
   implicit none
   private
   public :: ODE_Set_1     , ODE_Set_2       , &
@@ -36,7 +36,7 @@ contains
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
     !GCC$ attributes unused :: y
-    
+
     dydx(1)=sin(x)
     ODE_Set_1=FGSL_Success
     return
@@ -61,7 +61,7 @@ contains
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
     !GCC$ attributes unused :: x
-    
+
     dydx(1)=       y(2)
     dydx(2)=-1.0d0*y(1)
     ODE_Set_2=FGSL_Success
@@ -93,8 +93,8 @@ contains
     logical         , intent(inout), dimension(        : ) :: e
     double precision, intent(  out), dimension(nz,size(x)) :: dzdx
     !GCC$ attributes unused :: x, dydx, z0
-    
-    if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)   
+
+    if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)
     if (e(2)) dzdx(2,:)=1.0d0/sqrt(1.0d0+y(2,:)**2)
     return
   end subroutine Integrands_Set_2

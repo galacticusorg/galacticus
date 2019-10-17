@@ -21,10 +21,10 @@
 
 module Output_Analysis_Molecular_Ratios
   !% Provides a class that implements operators on properties for on-the-fly analyses.
-  use               Galacticus_Nodes, only : treeNode
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
   private
-  
+
   !# <functionClass>
   !#  <name>outputAnalysisMolecularRatio</name>
   !#  <descriptiveName>Output Analysis Molecular Ratio</descriptiveName>

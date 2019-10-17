@@ -43,7 +43,7 @@ contains
 
   function ismMassConstructorParameters(parameters)
     !% Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterISMMass)                :: ismMassConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
 
   logical function ismMassPasses(self,node)
     !% Implement an ismMass-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterISMMass), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node

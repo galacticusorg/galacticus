@@ -21,9 +21,8 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use FGSL                        , only : FGSL_CONST_MKSA_RYDBERG, FGSL_CONST_MKSA_ELECTRON_VOLT
-  use Numerical_Constants_Prefixes
-  use Numerical_Constants_Math
+  use :: FGSL                    , only : FGSL_CONST_MKSA_ELECTRON_VOLT, FGSL_CONST_MKSA_RYDBERG
+  use :: Numerical_Constants_Math, only : Pi
   implicit none
   public
 

@@ -28,16 +28,15 @@ contains
 
   subroutine Statistics_Points_Power_Spectrum(dataPosition,boxLength,wavenumberMinimum,wavenumberMaximum,wavenumberCount,wavenumber,powerSpectrum)
     !% Compute the power spectrum from a set of points in a periodic cube.
+    use            :: FFTW3
+    use            :: Galacticus_Display      , only : Galacticus_Display_Message
+    use            :: Galacticus_Error        , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    use               Numerical_Constants_Math
-    use               Meshes
-    use               Numerical_Ranges
-    use               Galacticus_Display
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               FFTW3
-    use               ISO_Varying_String
-    use               String_Handling
+    use            :: ISO_Varying_String
+    use            :: Memory_Management       , only : allocateArray             , deallocateArray
+    use            :: Meshes                  , only : Meshes_Apply_Point        , cloudTypePoint
+    use            :: Numerical_Constants_Math, only : Pi
+    use            :: Numerical_Ranges        , only : Make_Range
     implicit none
     double precision                  , intent(in   ), dimension(:,:  )              :: dataPosition
     double precision                  , intent(in   )                                :: wavenumberMinimum          , wavenumberMaximum       , &

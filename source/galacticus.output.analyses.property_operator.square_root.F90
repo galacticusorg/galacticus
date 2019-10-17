@@ -38,7 +38,7 @@ contains
 
   function squareRootConstructorParameters(parameters)
     !% Constructor for the ``squareRoot'' output analysis property operateor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorSquareRoot)                :: squareRootConstructorParameters
     type(inputParameters                         ), intent(inout) :: parameters
@@ -50,8 +50,8 @@ contains
 
   double precision function squareRootOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an square root output analysis property operator.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
     implicit none
     class           (outputAnalysisPropertyOperatorSquareRoot), intent(inout)           :: self
     double precision                                          , intent(in   )           :: propertyValue

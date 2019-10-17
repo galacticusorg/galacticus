@@ -43,7 +43,7 @@ contains
 
   function massISMConstructorParameters(parameters)
     !% Constructor for the ``massISM'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassISM)                :: massISMConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
@@ -55,8 +55,8 @@ contains
 
   double precision function massISMExtract(self,node,instance)
     !% Implement a massISM output analysis.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid, massTypeGaseous, radiusLarge
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout)           :: self
     type (treeNode                    ), intent(inout), target   :: node
@@ -70,7 +70,7 @@ contains
 
   integer function massISMType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -81,7 +81,7 @@ contains
 
   integer function massISMQuantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -114,7 +114,7 @@ contains
 
   double precision function massISMUnitsInSI(self)
     !% Return the units of the massISM property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
     !GCC$ attributes unused :: self

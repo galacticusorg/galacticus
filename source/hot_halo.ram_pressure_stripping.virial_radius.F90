@@ -19,7 +19,7 @@
 
   !% Implements a class for ram pressure stripping which simply returns the virial radius.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius">
   !#  <description>A hot halo ram pressure stripping class which simply returns the virial radius.</description>
@@ -40,10 +40,10 @@
   end interface hotHaloRamPressureStrippingVirialRadius
 
 contains
-  
+
   function virialRadiusConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloRamPressureStrippingVirialRadius)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -80,7 +80,7 @@ contains
     implicit none
     class(hotHaloRamPressureStrippingVirialRadius), intent(inout), target :: self
     type (treeNode                               ), intent(inout), target :: node
- 
+
     virialRadiusRadiusStripped=self%darkMatterHaloScale_%virialRadius(node)
     return
   end function virialRadiusRadiusStripped

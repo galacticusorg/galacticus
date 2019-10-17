@@ -39,12 +39,12 @@ contains
   function identityConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
     !% object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeBranchingProbabilityModifierIdentity()
     return
   end function identityConstructorParameters
@@ -57,7 +57,7 @@ contains
     double precision                                                , intent(in   ) :: sigmaChild , deltaParent, &
          &                                                                             sigmaParent
     !GCC$ attributes unused :: self, deltaParent, sigmaChild, sigmaParent
-    
+
     identityRateModifier=1.0d0
     return
   end function identityRateModifier

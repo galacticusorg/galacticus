@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
-  
+
   !# <initialMassFunction name="initialMassFunctionMillerScalo1979">
   !#  <description>A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function millerScalo1979ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionMillerScalo1979)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionMillerScalo1979()
     return
   end function millerScalo1979ConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.10d0,+1.00d0,+2.00d0,+1.00d1,+1.25d2], &
          &                                                                         exponent=[-1.25d0,-2.00d0,-2.30d0,-3.30d0        ]  &
          &                                                                        )
-    return    
+    return
   end function millerScalo1979ConstructorInternal
 
   function millerScalo1979Label(self)

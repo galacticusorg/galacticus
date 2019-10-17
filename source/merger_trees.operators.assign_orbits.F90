@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
-  
-  use Virial_Orbits               , only : virialOrbitClass               , virialOrbit
-  use Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass, satelliteMergingTimescales
-  
+
+  use :: Satellite_Merging_Timescales, only : satelliteMergingTimescales, satelliteMergingTimescalesClass
+  use :: Virial_Orbits               , only : virialOrbit               , virialOrbitClass
+
   !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
   !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
   !# </mergerTreeOperator>
@@ -45,7 +45,7 @@ contains
 
   function assignOrbitsConstructorParameters(parameters) result(self)
     !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeOperatorAssignOrbits )                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -63,13 +63,12 @@ contains
 
   function assignOrbitsConstructorInternal(satelliteMergingTimescales_,virialOrbit_) result(self)
     !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
     implicit none
     type (mergerTreeOperatorAssignOrbits )                        :: self
     class(virialOrbitClass               ), intent(in   ), target :: virialOrbit_
     class(satelliteMergingTimescalesClass), intent(in   ), target :: satelliteMergingTimescales_
     !# <constructorAssign variables="*satelliteMergingTimescales_, *virialOrbit_"/>
-    
+
     return
   end function assignOrbitsConstructorInternal
 
@@ -85,9 +84,9 @@ contains
 
   subroutine assignOrbitsOperate(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
-    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentSatellite
-    use Kepler_Orbits
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, nodeComponentSatellite, treeNode
+    use :: Kepler_Orbits      , only : keplerOrbit
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class  (mergerTreeOperatorAssignOrbits), intent(inout), target :: self
     type   (mergerTree                    ), intent(inout), target :: tree
@@ -107,7 +106,7 @@ contains
        if     (                                             &
             &        associated(node%parent               ) &
             &  .and.                                        &
-            &   .not.           node%isPrimaryProgenitor()  &               
+            &   .not.           node%isPrimaryProgenitor()  &
             & ) then
           satellite   => node     %satellite  (autoCreate=.true.)
           virialOrbitNode =  satellite%virialOrbit(                 )
@@ -121,7 +120,7 @@ contains
                 if (virialOrbitProgenitor%isDefined()) then
                    ! A satellite exists in this progenitor.
                    satellite =  satelliteProgenitor
-                   basic     => node               %basic()                      
+                   basic     => node               %basic()
                    if (satellite%timeOfMerging() < basic%time()) call satellite%timeOfMergingSet(basic%time())
                    if (associated(nodeProgenitor%mergeTarget)) then
                       mergee => nodeProgenitor%mergeTarget%firstMergee
@@ -169,7 +168,7 @@ contains
                       if (.not.node%isProgenitorOf(node%mergeTarget)) then
                          nodeProgenitor  => node          %parent
                          basicProgenitor => nodeProgenitor%basic ()
-                         if (basicProgenitor%time() > satellite%timeOfMerging()) then                               
+                         if (basicProgenitor%time() > satellite%timeOfMerging()) then
                             ! Adjust the time of merging.
                             call satellite%timeOfMergingSet(basicProgenitor%time())
                             ! Remove our mergee from its merge target.
@@ -203,7 +202,7 @@ contains
              ! progenitor of it which is reachable at that time.
              if (associated(node%mergeTarget).and.associated(node%mergeTarget%firstChild)) then
                 nodeProgenitor  => node          %mergeTarget
-                basicProgenitor => nodeProgenitor%firstChild %basic()                   
+                basicProgenitor => nodeProgenitor%firstChild %basic()
                 if (basicProgenitor%time() > satellite%timeOfMerging()) then
                    ! Shift to an earlier progenitor as merge target.
                    do while (basicProgenitor%time() > satellite%timeOfMerging())

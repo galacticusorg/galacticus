@@ -42,5 +42,5 @@ module Stellar_Astrophysics_Winds
   !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Stellar_Astrophysics_Winds

@@ -19,8 +19,8 @@
 
   !% Implementation of mass loss rates from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
 
-  use Virial_Density_Contrast
-  use Cosmology_Functions
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
   !#  <description>
@@ -49,7 +49,7 @@ contains
 
   function vanDenBoschConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterHaloMassLossRateVanDenBosch)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -106,7 +106,7 @@ contains
 
   double precision function vanDenBoschRate(self,node)
     !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
     class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node
@@ -114,7 +114,7 @@ contains
     class           (nodeComponentSatellite               ), pointer       :: satellite
     double precision                                                       :: timescaleMassLoss     , massSatelliteBound, &
          &                                                                    ratioMassSatelliteHost, timeSatellite
-    
+
     satellite          => node     %satellite()
     massSatelliteBound =  satellite%boundMass()
     if (massSatelliteBound > 0.0d0) then

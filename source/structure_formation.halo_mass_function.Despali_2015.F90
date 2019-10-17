@@ -19,9 +19,8 @@
 
 !% Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
 
-  use Cosmological_Density_Field
-  use Virial_Density_Contrast
-  use Cosmology_Functions
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseMatterLambda
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
   !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
@@ -65,7 +64,7 @@ contains
 
   function despali2015ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily despali2015} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionDespali2015  )                :: self
     type (inputParameters              ), intent(inout) :: parameters
@@ -95,8 +94,8 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily despali2015} halo mass function class.
     implicit none
     type (haloMassFunctionDespali2015  )                        :: self
-    class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_    
-    class(cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_    
+    class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
+    class(cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
     class(criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
     class(virialDensityContrastClass   ), target, intent(in   ) :: virialDensityContrast_
@@ -120,54 +119,50 @@ contains
 
   double precision function despali2015A(self,time,mass)
     !% Return the parameter $a$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
-    use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
-    double precision                             , intent(in   ) :: time , mass    
+    double precision                             , intent(in   ) :: time , mass
     double precision                                             :: x
-    
+
     x=self%x(time,mass)
     despali2015A=+0.4332d0*x**2 &
          &       +0.2263d0*x    &
          &       +0.7665d0
     return
   end function despali2015A
- 
+
   double precision function despali2015P(self,time,mass)
     !% Return the parameter $p$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
-    use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
-    double precision                             , intent(in   ) :: time , mass    
+    double precision                             , intent(in   ) :: time , mass
     double precision                                             :: x
-    
+
     x=self%x(time,mass)
     despali2015P=-0.1151d0*x**2 &
          &       +0.2554d0*x    &
          &       +0.2488d0
     return
   end function despali2015P
-  
+
   double precision function despali2015Normalization(self,time,mass)
     !% Return the normalization, $A$, in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
-    use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
-    double precision                             , intent(in   ) :: time , mass    
+    double precision                             , intent(in   ) :: time , mass
     double precision                                             :: x
-    
+
     x=self%x(time,mass)
     despali2015Normalization=-0.1362d0*x    &
          &                   +0.3292d0
     return
   end function despali2015Normalization
- 
+
   double precision function despali2015X(self,time,mass)
     !% Return the parameter $x$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
-    use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
-    double precision                             , intent(in   ) :: time , mass    
+    double precision                             , intent(in   ) :: time , mass
 
     despali2015X=log10(                                                                    &
          &             +self%virialDensityContrast_  %densityContrast(mass=mass,time=time) &
@@ -175,4 +170,4 @@ contains
          &            )
     return
   end function despali2015X
- 
+

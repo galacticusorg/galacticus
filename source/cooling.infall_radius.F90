@@ -21,7 +21,7 @@
 
 module Cooling_Infall_Radii
   !% Provides a class that implements calculations of the infall radius for cooling calculations.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -43,5 +43,5 @@ module Cooling_Infall_Radii
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Cooling_Infall_Radii

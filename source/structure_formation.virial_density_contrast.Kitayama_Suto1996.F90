@@ -19,7 +19,7 @@
 
   !% An implementation of \cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.
 
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <virialDensityContrast name="virialDensityContrastKitayamaSuto1996">
   !#  <description>\cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.</description>
@@ -41,10 +41,10 @@
   end interface virialDensityContrastKitayamaSuto1996
 
 contains
-  
+
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialDensityContrastKitayamaSuto1996)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
@@ -56,11 +56,10 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function kitayamaSuto1996ConstructorParameters
-  
+
   function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Comparison
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (virialDensityContrastKitayamaSuto1996)                        :: self
     class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
@@ -73,14 +72,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self
- 
+
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine kitayamaSuto1996Destructor
-  
+
   double precision function kitayamaSuto1996DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass
@@ -88,7 +87,7 @@ contains
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: omegaf
     !GCC$ attributes unused :: self, mass
-    
+
     omegaf=max(0.0d0,1.0d0/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
     kitayamaSuto1996DensityContrast=18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0)
     return
@@ -96,7 +95,7 @@ contains
 
   double precision function kitayamaSuto1996DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass

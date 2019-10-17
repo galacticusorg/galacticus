@@ -28,8 +28,8 @@
   !
   !  Licensing:
   !
-  !    This routine is copyrighted by Shanjie Zhang and Jianming Jin.  However, 
-  !    they give permission to incorporate this routine into a user program 
+  !    This routine is copyrighted by Shanjie Zhang and Jianming Jin.  However,
+  !    they give permission to incorporate this routine into a user program
   !    provided that the copyright is acknowledged.
   !
   !  Modified:
@@ -47,7 +47,7 @@
   !    Wiley, 1996,
   !    ISBN: 0-471-11963-6,
   !    LC: QA351.C45.
-  ! 
+  !
   !  Parameters:
   !
   !    Input, complex ( kind = 8 ) Z, the argument.

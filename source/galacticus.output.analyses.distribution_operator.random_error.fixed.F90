@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a random error output analysis distribution operator class. 
+!% Contains a module which implements a random error output analysis distribution operator class.
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorFixed">
   !#  <description>A random error output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
@@ -39,7 +39,7 @@ contains
 
   function randomErrorFixedConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorFixed'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorFixed)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters

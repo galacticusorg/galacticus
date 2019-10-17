@@ -20,9 +20,9 @@
 !% Contains a module which implements an N-body dark matter halo mass error class which
 !% implements a model for errors in spherical overdensity halo finders.
 
-  use Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass , darkMatterHaloScale
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass, darkMatterProfileDMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
   !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
   !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
   !# </nbodyHaloMassError>
@@ -49,7 +49,7 @@ contains
 
   function soHaloFinderParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -82,7 +82,7 @@ contains
     class           (darkMatterProfileDMOClass     ), target, intent(in   ) :: darkMatterProfileDMO_
     double precision                                        , intent(in   ) :: massParticle
     !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle"/>
-    
+
     return
   end function soHaloFinderInternal
 
@@ -95,11 +95,11 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine soHaloFinderDestructor
-  
+
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -144,10 +144,10 @@ contains
          &                                )
     return
   end function soHaloFinderErrorFractional
-  
+
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2
@@ -167,4 +167,4 @@ contains
     end if
     return
   end function soHaloFinderCorrelation
-  
+

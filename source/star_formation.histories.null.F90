@@ -41,12 +41,12 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the ``null'' star formation history class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(starFormationHistoryNull)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=starFormationHistoryNull()
     return
   end function nullConstructorParameters
@@ -90,7 +90,7 @@ contains
     integer  (kind=kind_int8          ), intent(in   )         :: indexTree
     character(len=*                   ), intent(in   )         :: labelComponent
     !GCC$ attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, labelComponent
-    
+
     ! Do nothing.
     return
   end subroutine nullOutput
@@ -103,7 +103,7 @@ contains
     type            (abundances              ), intent(in   ) :: abundancesStellar
     type            (history                 ), intent(inout) :: historyStarFormation
     !GCC$ attributes unused :: self, historyStarFormation, massStellar, abundancesStellar
-    
+
     ! Do nothing.
     return
   end subroutine nullScales

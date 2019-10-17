@@ -19,10 +19,11 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Virial_Density_Contrast   , only : virialDensityContrastClass, virialDensityContrast
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
@@ -50,7 +51,7 @@
      procedure :: densityContrastDefinition      => nfw1996DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => nfw1996DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationNFW1996
-  
+
   interface darkMatterProfileConcentrationNFW1996
      !% Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
      module procedure nfw1996ConstructorParameters
@@ -60,19 +61,19 @@
   ! Target value used in concentration root finder.
   double precision :: nfw1996RootTarget
   !$omp threadprivate(nfw1996RootTarget)
-  
+
 contains
 
   function nfw1996ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
     !% concentration class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileConcentrationNFW1996)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
-    class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_     
+    class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
     class           (virialDensityContrastClass           ), pointer       :: virialDensityContrast_
     double precision                                                       :: f                        , C
@@ -112,17 +113,18 @@ contains
     !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function nfw1996ConstructorParameters
-  
+
   function nfw1996ConstructorInternal(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
     !% concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationNFW1996             )                         :: self
     double precision                                                    , intent(in   )          :: f                         , C
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
-    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_     
+    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     class           (virialDensityContrastClass                        ), intent(in   ), target  :: virialDensityContrast_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
@@ -156,9 +158,8 @@ contains
   double precision function nfw1996Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{navarro_structure_1996} algorithm.
-    use Root_Finder
-    use Virial_Density_Contrast
-    use Galacticus_Nodes       , only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic       , treeNode
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rootFinder
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
@@ -207,29 +208,29 @@ contains
     !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
     implicit none
     double precision, intent(in   ) :: concentration
-    
+
     nfw1996ConcentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996RootTarget
     return
   end function nfw1996ConcentrationRoot
-    
+
   function nfw1996DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of
     !% concentration in the \cite{navarro_structure_1996} algorithm.
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
-    
+
     nfw1996DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function nfw1996DensityContrastDefinition
-  
+
   function nfw1996DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{navarro_structure_1996} algorithm.
     implicit none
     class(darkMatterProfileDMOClass            ), pointer       :: nfw1996DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
-  
+
     nfw1996DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function nfw1996DarkMatterProfileDefinition

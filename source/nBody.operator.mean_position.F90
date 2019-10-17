@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
-  
+
   use, intrinsic :: ISO_C_Binding
 
   !# <nbodyOperator name="nbodyOperatorMeanPosition">
@@ -28,7 +28,7 @@
      !% An N-body data operator which determines the mean position and velocity of particles.
      private
      logical           :: selfBoundParticlesOnly
-     integer(c_size_t) :: bootstrapSampleCount 
+     integer(c_size_t) :: bootstrapSampleCount
    contains
      procedure :: operate => meanPositionOperate
   end type nbodyOperatorMeanPosition
@@ -43,7 +43,7 @@ contains
 
   function meanPositionConstructorParameters(parameters) result (self)
     !% Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorMeanPosition)                :: self
     type   (inputParameters          ), intent(inout) :: parameters
@@ -72,7 +72,6 @@ contains
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount) result (self)
     !% Internal constructor for the ``meanPosition'' N-body operator class.
-    use Input_Parameters
     implicit none
     type   (nbodyOperatorMeanPosition)                :: self
     logical                           , intent(in   ) :: selfBoundParticlesOnly
@@ -84,9 +83,9 @@ contains
 
   subroutine meanPositionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Pseudo_Random
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Pseudo_Random    , only : pseudoRandom
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout)                 :: simulation

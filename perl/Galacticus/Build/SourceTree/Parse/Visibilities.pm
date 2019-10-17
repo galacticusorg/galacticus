@@ -80,16 +80,16 @@ sub Parse_Visibilities {
 		    {
 			type       => "visibility"  ,
 			visibility => $visibilities
-		    };		    
+		    };	
 		    $newNode->{'firstChild'} =
 		    {
-			type       => "code"            ,
-			content    => $rawVisibility    ,
-			parent     => $newNode          ,
-			sibling    => undef()           ,
-			firstChild => undef()           ,
-			source     => $source           ,
-			line       => $rawVisibilityLine
+		    	type       => "code"            ,
+		    	content    => $rawVisibility    ,
+		    	parent     => $newNode          ,
+		    	sibling    => undef()           ,
+		    	firstChild => undef()           ,
+		    	source     => $source           ,
+		    	line       => $rawVisibilityLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -105,6 +105,7 @@ sub Parse_Visibilities {
 			if ( eof($code) && $isVisibility == 0 );		    
 		    # Reset the raw visibility text.
 		    undef($rawVisibility);
+		    undef($visibilities);
 		    $rawCodeLine       = $lineNumber;
 		    $rawVisibilityLine = $lineNumber;
 		}

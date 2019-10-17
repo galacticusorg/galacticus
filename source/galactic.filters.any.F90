@@ -43,7 +43,7 @@ contains
 
   function anyConstructorParameters(parameters) result(self)
     !% Constructor for the ``any'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticFilterAny)                :: self
     type   (inputParameters  ), intent(inout) :: parameters
@@ -123,7 +123,7 @@ contains
 
   subroutine anyDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily any} galactic filter class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(galacticFilterAny  ), intent(inout) :: self
     class(galacticFilterClass), intent(inout) :: destination
@@ -140,7 +140,7 @@ contains
           allocate(filterNew_)
           if (associated(filterDestination_)) then
              filterDestination_%next       => filterNew_
-             filterDestination_            => filterNew_             
+             filterDestination_            => filterNew_
           else
              destination          %filters => filterNew_
              filterDestination_            => filterNew_
@@ -148,7 +148,7 @@ contains
           allocate(filterNew_%filter_,mold=filter_%filter_)
           !# <deepCopy source="filter_%filter_" destination="filterNew_%filter_"/>
           filter_ => filter_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

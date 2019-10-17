@@ -19,9 +19,9 @@
 
   !% Implementation of a cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
 
-  use Math_Exponentiation
-  use Cosmology_Functions     , only : cosmologyFunctionsClass, cosmologyFunctions
-  use Dark_Matter_Profiles_DMO
+  use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <coolingRate name="coolingRateVelocityMaximumScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
@@ -58,7 +58,7 @@ contains
 
   function velocityMaximumScalingConstructorParameters(parameters) result(self)
     !% Constructor for the velocity maximum scaling cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateVelocityMaximumScaling)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -144,9 +144,9 @@ contains
 
   function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the velocity maximum scaling cooling rate class.
-    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
-    use Array_Utilities
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent    , defaultHotHaloComponent
     implicit none
     type            (coolingRateVelocityMaximumScaling)                        :: self
     double precision                                   , intent(in   )         :: timeScale                    , timescaleMinimum              , &
@@ -157,7 +157,7 @@ contains
     class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                   , parameter             :: velocityNormalization=200.0d0
     !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
-    
+
     ! Check that the properties we need are gettable.
     if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
          & call Galacticus_Error_Report(                                                                                                &
@@ -211,7 +211,7 @@ contains
 
   double precision function velocityMaximumScalingRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRateVelocityMaximumScaling), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
@@ -219,8 +219,8 @@ contains
     class           (nodeComponentBasic               ), pointer       :: basic
     class           (nodeComponentHotHalo             ), pointer       :: hotHalo
     double precision                                                   :: expFactor                 , expansionFactor, &
-         &                                                                expArgument               , velocityMaximum  
-    
+         &                                                                expArgument               , velocityMaximum
+
     ! Compute expansion factor and maximum velocity.
     basic               => node                      %basic                  (            )
     hotHalo             => node                      %hotHalo                (            )
@@ -240,7 +240,7 @@ contains
        end if
        self%coolingRateStored=+self%normalization                                              &
             &                 *self%exponentiatorExpansionFactor%exponentiate(expansionFactor) &
-            &                 *self%exponentiatorVelocity       %exponentiate(velocityMaximum) &            
+            &                 *self%exponentiatorVelocity       %exponentiate(velocityMaximum) &
             &                 *expFactor
        self%coolingRateStored=min(                                                        &
             &                     self%coolingRateStored                                , &

@@ -21,14 +21,14 @@
 
 program Test_Parameters
   !% Test reading of input parameters.
+  use            :: Cosmological_Density_Field, only : cosmologicalMassVariance      , cosmologicalMassVarianceClass
+  use            :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass
+  use            :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use            :: IO_HDF5                   , only : hdf5Object
   use, intrinsic :: ISO_C_Binding
-  use               Unit_Tests
-  use               IO_HDF5
-  use               ISO_Varying_String
-  use               Input_Parameters
-  use               Cosmology_Parameters
-  use               Cosmological_Density_Field
-  use               Galacticus_Display
+  use            :: ISO_Varying_String
+  use            :: Input_Parameters          , only : inputParameters
+  use            :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type (hdf5Object                   )          :: outputFile
   type (varying_string               )          :: parameterFile

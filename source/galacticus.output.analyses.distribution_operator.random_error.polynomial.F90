@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a random error output analysis distribution operator class with an error magnitude that is
   !% a polynomial function of the property value.
-  
+
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml">
   !#  <description>A random error output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
@@ -44,7 +44,7 @@ contains
 
   function randomErrorPolynomialConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorPolynomial'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
     type            (inputParameters                                    ), intent(inout)               :: parameters
@@ -112,7 +112,7 @@ contains
     type            (treeNode                                           ), intent(inout) :: node
     integer                                                                              :: i
     !GCC$ attributes unused :: node
-    
+
     randomErrorPolynomialRootVariance=0.0d0
     do i=1,size(self%coefficient)
        randomErrorPolynomialRootVariance=+randomErrorPolynomialRootVariance &

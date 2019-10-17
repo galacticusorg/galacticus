@@ -20,9 +20,9 @@
 !% Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the
 !% main branch galaxy.
 
-  use FGSL               , only : fgsl_interp_accel
-  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  use Output_Times       , only : outputTimes       , outputTimesClass
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: FGSL               , only : fgsl_interp_accel
+  use :: Output_Times       , only : outputTimes       , outputTimesClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
@@ -65,7 +65,7 @@ contains
 
   function recordEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepRecordEvolution)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -74,7 +74,7 @@ contains
     double precision                                                         :: timeBegin          , timeEnd, &
          &                                                                      ageUniverse
     integer                                                                  :: countSteps
-    
+
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
@@ -112,17 +112,17 @@ contains
   function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
     use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management
-    use            :: Numerical_Ranges
+    use            :: Memory_Management, only : allocateArray
+    use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeEvolveTimestepRecordEvolution)                        :: self
-    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_    
-    class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_    
+    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_
     double precision                                         , intent(in   )         :: timeBegin          , timeEnd
     integer                                                  , intent(in   )         :: countSteps
     integer         (c_size_t                               )                        :: timeIndex
     !# <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_"/>
-    
+
     call allocateArray(self%time           ,[self%countSteps])
     call allocateArray(self%expansionFactor,[self%countSteps])
     call allocateArray(self%massStellar    ,[self%countSteps])
@@ -138,10 +138,10 @@ contains
 
   subroutine recordEvolutionAutoHook(self)
     !% Create a hook to the merger tree extra output event to allow us to write out our data.
-    use Events_Hooks
+    use :: Events_Hooks, only : mergerTreeExtraOutputEvent
     implicit none
     class(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
-    
+
     call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput)
    return
   end subroutine recordEvolutionAutoHook
@@ -158,11 +158,11 @@ contains
 
   double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
+    use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic
-    use            :: Numerical_Interpolation
-    use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
+    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target  :: self
     type            (treeNode                               ), intent(inout), target  :: node
@@ -198,12 +198,12 @@ contains
 
   subroutine recordEvolutionStore(self,tree,node,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
+    use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use            :: Galactic_Structure_Options        , only : massTypeGalactic                , massTypeStellar
+    use            :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes                  , only : nodeComponentBasic
-    use            :: Numerical_Interpolation
-    use            :: Galactic_Structure_Options
-    use            :: Galactic_Structure_Enclosed_Masses
-    use            :: Galacticus_Error
+    use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
@@ -213,7 +213,7 @@ contains
     integer         (c_size_t          )                         :: indexTime
     double precision                                             :: time
     !GCC$ attributes unused :: deadlockStatus, tree
-    
+
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)
        basic => node %basic()
@@ -233,12 +233,14 @@ contains
 
   subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter)
     !% Store main branch evolution to the output file.
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: IO_HDF5                         , only : hdf5Object             , hdf5Access
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: Galacticus_HDF5
     use            :: ISO_Varying_String
-    use            :: String_Handling
-    use            :: Numerical_Constants_Astronomical
+    use            :: Kind_Numbers                    , only : kind_int8
+    use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class  (*             ), intent(inout) :: self
     type   (treeNode      ), intent(inout) :: node

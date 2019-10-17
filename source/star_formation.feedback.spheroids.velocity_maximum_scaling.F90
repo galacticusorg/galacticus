@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.
-  
-  use Math_Exponentiation
-  use Cosmology_Functions
-  use Dark_Matter_Profiles_DMO
+
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.</description>
@@ -52,7 +52,7 @@ contains
   function vlctyMxSclngConstructorParameters(parameters) result(self)
     !% Constructor for the velocity maximum scaling fraction star formation feedback in spheroids class which takes a parameter set as
     !% input.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsVlctyMxSclng)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -96,7 +96,7 @@ contains
 
   function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the halo scaling star formation feedback from spheroids class.
-    use Stellar_Feedback
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     type            (starFormationFeedbackSpheroidsVlctyMxSclng)                        :: self
     double precision                                            , intent(in   )         :: fraction                     , exponentRedshift, &
@@ -125,15 +125,15 @@ contains
     !% Destructor for the velocity maximum scaling feedback from star formation in spheroids class.
     implicit none
     type(starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
-  
+
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine vlctyMxSclngDestructor
-  
+
   double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -151,7 +151,7 @@ contains
     if (velocityMaximum /= self%velocityPrevious) then
        self%velocityPrevious       =                                                     velocityMaximum
        self%velocityFactor         =      self%velocityExponentiator       %exponentiate(velocityMaximum)
-    end if    
+    end if
     ! Compute the expansion-factor factor.
     if (expansionFactor /= self%expansionFactorPrevious) then
        self%expansionFactorPrevious=                                                     expansionFactor

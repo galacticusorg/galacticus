@@ -21,9 +21,9 @@
 
 module NBody_Operators
   !% Provides a class that implements operators on data from N-body simulations.
-  use NBody_Simulation_Data
+  use :: NBody_Simulation_Data, only : nBodyData
   private
-  
+
   !# <functionClass>
   !#  <name>nbodyOperator</name>
   !#  <descriptiveName>N-Body Simulation Data Operators</descriptiveName>
@@ -36,5 +36,5 @@ module NBody_Operators
   !#   <argument>type(nBodyData), intent(inout) :: simulation</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module NBody_Operators

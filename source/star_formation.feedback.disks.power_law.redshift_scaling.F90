@@ -19,8 +19,8 @@
 
   !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.
 
-  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLawRedshiftScaling">
   !#  <description>A power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.</description>
   !# </starFormationFeedbackDisks>
@@ -71,7 +71,7 @@ contains
     double precision                                                   , intent(in   )         :: velocityCharacteristic_, exponent, &
          &                                                                                        exponentRedshift
     class           (cosmologyFunctionsClass                          ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="exponentRedshift, *cosmologyFunctions_"/>    
+    !# <constructorAssign variables="exponentRedshift, *cosmologyFunctions_"/>
 
     self%starFormationFeedbackDisksPowerLaw=starFormationFeedbackDisksPowerLaw(velocityCharacteristic_,exponent)
     return
@@ -81,15 +81,15 @@ contains
     !% Destructor for the power-law redshift-scaling feedback from star formation in disks class.
     implicit none
     type(starFormationFeedbackDisksPowerLawRedshiftScaling), intent(inout) :: self
-  
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine powerLawRedshiftScalingDestructor
-  
+
   double precision function powerLawRedshiftScalingVelocityCharacteristic(self,node)
     !% Return the characteristic velocity for power-law feedback models in disks. In this case the characteristic velocity is a
     !% constant.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(starFormationFeedbackDisksPowerLawRedshiftScaling), intent(inout) :: self
     type (treeNode                                         ), intent(inout) :: node

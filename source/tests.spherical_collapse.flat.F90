@@ -22,13 +22,13 @@
 program Tests_Spherical_Collapse_Flat
   !% Tests spherical collapse calculations for a flat Universe. Compares results to the fitting formula of
   !% \cite{bryan_statistical_1998}.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmology_Functions
-  use Virial_Density_Contrast
-  use Numerical_Constants_Math
-  use Galacticus_Display
+  use :: Cosmology_Functions     , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters        , only : inputParameters
+  use :: Numerical_Constants_Math, only : Pi
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast , only : virialDensityContrast         , virialDensityContrastClass
   implicit none
   double precision                            , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_

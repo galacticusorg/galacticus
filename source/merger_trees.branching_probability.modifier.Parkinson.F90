@@ -43,7 +43,7 @@ contains
   function parkinson2008ConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class which builds the
     !% object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
@@ -81,7 +81,6 @@ contains
 
   function parkinson2008ConstructorInternal(G0,gamma1,gamma2) result(self)
     !% Default constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
-    use Input_Parameters
     implicit none
     type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
     double precision                                                     , intent(in   ) :: G0    , gamma1, &
@@ -100,7 +99,7 @@ contains
     class           (mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self
     double precision                                                     , intent(in   ) :: sigmaChild , deltaParent, &
          &                                                                                  sigmaParent
-    
+
     ! Check if we need to update the "parent" term.
     if     (                                         &
          &   deltaParent /= self%deltaParentPrevious &

@@ -37,21 +37,21 @@ contains
 
   function localGroupDatabaseParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily localGroupDatabase} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskLocalGroupDatabase)                :: self
     type(inputParameters       ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskLocalGroupDatabase()
     return
   end function localGroupDatabaseParameters
 
   subroutine localGroupDatabasePerform(self,status)
     !% Update the database.
-    use Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use Galacticus_Error        , only : errorStatusSuccess
-    use Interface_Local_Group_DB, only : localGroupDB
+    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Interface_Local_Group_DB, only : localGroupDB
     implicit none
     class  (taskLocalGroupDatabase), intent(inout), target   :: self
     integer                        , intent(  out), optional :: status
@@ -69,7 +69,7 @@ contains
   logical function localGroupDatabaseRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskLocalGroupDatabase), intent(inout) :: self    
+    class(taskLocalGroupDatabase), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     localGroupDatabaseRequiresOutputFile=.false.

@@ -57,7 +57,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !% Constructor for the ``sequence'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisPropertyOperatorSequence)                :: self
     type   (inputParameters                       ), intent(inout) :: parameters
@@ -131,24 +131,24 @@ contains
     end do
     return
   end function sequenceOperate
-  
+
   subroutine sequencePrepend(self,operator_)
     !% Prepend an operator to the sequence.
     implicit none
     class(outputAnalysisPropertyOperatorSequence), intent(inout)          :: self
     class(outputAnalysisPropertyOperatorClass   ), intent(in   ), target  :: operator_
     type (propertyOperatorList                  )               , pointer :: operatorNew
-    
+
     allocate(operatorNew)
     operatorNew%operator_ => operator_
     operatorNew%next      => self       %operators
     self       %operators => operatorNew
     return
   end subroutine sequencePrepend
-  
+
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis property operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
     class(outputAnalysisPropertyOperatorClass   ), intent(inout) :: destination
@@ -165,7 +165,7 @@ contains
           allocate(operatorNew_)
           if (associated(operatorDestination_)) then
              operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_             
+             operatorDestination_            => operatorNew_
           else
              destination          %operators => operatorNew_
              operatorDestination_            => operatorNew_
@@ -173,10 +173,10 @@ contains
           allocate(operatorNew_%operator_,mold=operator_%operator_)
           !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine sequenceDeepCopy
-  
+

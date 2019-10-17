@@ -35,14 +35,14 @@
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface mergerTreeMassResolutionFixed
-  
+
 contains
 
   function fixedConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
     !% provided parameter list.
     implicit none
-    type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters    
+    type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
 
     ! Check and read parameters.
@@ -75,7 +75,7 @@ contains
     class(mergerTreeMassResolutionFixed), intent(inout) :: self
     type (mergerTree                   ), intent(in   ) :: tree
     !GCC$ attributes unused :: tree
-    
+
     fixedResolution=self%massResolution
     return
   end function fixedResolution

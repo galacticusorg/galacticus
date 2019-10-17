@@ -21,11 +21,11 @@
 
 program Test_Sort
   !% Tests of sorting functions.
-  use Unit_Tests
-  use Kind_Numbers
-  use Sort
+  use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Display
+  use            :: Kind_Numbers      , only : kind_int8
+  use            :: Sort              , only : Sort_Do                       , Sort_Index_Do         , sortByIndex
+  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer         (kind=c_size_t ), dimension(19) :: indexArray
   integer                         , dimension(19) :: integerArray
@@ -93,7 +93,7 @@ program Test_Sort
        &       +5302951902808101060_kind_int8  &
        &      ]                                &
        &     )
-  
+
   ! Test double sorting.
   doubleArray=[-3.0d0,-9.0d0,-4.0d0,-6.0d0,-7.0d0,-2.0d0,-8.0d0,-5.0d0,-1.0d0,6.0d0,4.0d0,9.0d0,8.0d0,1.0d0,5.0d0,7.0d0,0.0d0,2.0d0,3.0d0]
   indexArray=Sort_Index_Do(doubleArray)

@@ -44,7 +44,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(haloEnvironmentUniform)                :: self
     type(inputParameters       ), intent(inout) :: parameters
@@ -99,7 +99,7 @@ contains
 
   double precision function uniformPDF(self,overdensity)
     !% Return the PDF of the environmental overdensity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
@@ -127,7 +127,7 @@ contains
 
   subroutine uniformOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node

@@ -37,21 +37,21 @@ contains
 
   function buildToolCAMBParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily buildToolCAMB} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCAMB)                :: self
     type(inputParameters  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskBuildToolCAMB()
     return
   end function buildToolCAMBParameters
 
   subroutine buildToolCAMBPerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Error  , only : errorStatusSuccess
-    use Galacticus_Display
-    use Interfaces_CAMB
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Interfaces_CAMB   , only : Interface_CAMB_Initialize
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
@@ -60,7 +60,7 @@ contains
 
     call Galacticus_Display_Indent  ('Begin task: CAMB tool build')
     call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
-    call Galacticus_DisplaY_Message('CAMB version '//cambVersion//' successfully built in: '//cambPath)
+    call Galacticus_Display_Message('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: CAMB tool build')
     return
@@ -69,7 +69,7 @@ contains
   logical function buildToolCAMBRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskBuildToolCAMB), intent(inout) :: self    
+    class(taskBuildToolCAMB), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     buildToolCAMBRequiresOutputFile=.false.

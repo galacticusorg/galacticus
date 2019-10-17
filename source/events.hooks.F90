@@ -21,7 +21,7 @@
 
 module Events_Hooks
   !% Handles hooking of object function class into events.
-  !$ use OMP_Lib
+  !$ use :: OMP_Lib
   private
   public :: hook, hookUnspecified
 
@@ -37,7 +37,7 @@ module Events_Hooks
      !% Class for hooked function calls with unspecified interfaces.
      procedure(), pointer, nopass :: function_ => null()
   end type hookUnspecified
-  
+
   type :: eventHook
      !% Class used to define a set of hooked function calls for a given event.
      private
@@ -86,7 +86,7 @@ module Events_Hooks
      procedure :: lock       => eventHookLock
      procedure :: unlock     => eventHookUnlock
   end type eventHook
-  
+
   type, extends(eventHook) :: eventHookUnspecified
      !% Class used to define a set of hooked function calls for a given event.
      private
@@ -126,7 +126,7 @@ module Events_Hooks
   ! Ideally there would be no need for the "allLevels" option, but currently some default functionClass objects are used - for
   ! thread-0 the default at levels greater than 0 is the exact same object as that at level-0 - in many cases
   ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
-  ! lower level. When default functionClass objects are removed this option should be deprecated.  
+  ! lower level. When default functionClass objects are removed this option should be deprecated.
   !# <enumeration>
   !#  <name>openMPThreadBinding</name>
   !#  <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
@@ -137,7 +137,7 @@ module Events_Hooks
   !# </enumeration>
 
   !# <eventHookManager/>
-  
+
 contains
 
   subroutine eventHookInitialize(self)
@@ -150,7 +150,7 @@ contains
     !$ end if
     return
   end subroutine eventHookInitialize
-  
+
   subroutine eventHookDestructor(self)
     !% Destructor for event hook class.
     type(eventHook), intent(inout) :: self
@@ -161,7 +161,7 @@ contains
 
   subroutine eventHookLock(self)
     !% Lock the event to avoid race conditions between OpenMP threads.
-    !$ use OMP_Lib
+    !$ use :: OMP_Lib
     implicit none
     class(eventHook), intent(inout) :: self
 
@@ -171,18 +171,18 @@ contains
 
   subroutine eventHookUnlock(self)
     !% Unlock the event to avoid race conditions between OpenMP threads.
-    !$ use OMP_Lib
+    !$ use :: OMP_Lib
     implicit none
     class(eventHook), intent(inout) :: self
 
     !$ call OMP_Unset_Lock(self%lock_)
     return
   end subroutine eventHookUnlock
-  
+
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding)
     !% Attach an object to an event hook.
-    !$ use OMP_Lib
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    !$ use :: OMP_Lib
     implicit none
     class    (eventHookUnspecified), intent(inout)           :: self
     class    (*                   ), intent(in   ), target   :: object_
@@ -229,13 +229,13 @@ contains
 
   subroutine eventHookUnspecifiedDetach(self,object_,function_)
     !% Attach an object to an event hook.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
     class    (*                   ), intent(in   ), target  :: object_
     procedure(                    )                         :: function_
     class    (hook                )               , pointer :: hook_    , hookPrevious_
-    
+
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
     !$ call OMP_Set_Lock(self%lock_)
@@ -268,7 +268,7 @@ contains
 
   integer function eventHookCount(self)
     !% Return a count of the number of hooks into this event.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(eventHook), intent(inout):: self
 
@@ -281,7 +281,7 @@ contains
 
   function eventHookFirst(self)
     !% Return a pointer to the first hook into this event.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(hook     ), pointer      :: eventHookFirst
     class(eventHook), intent(inout):: self
@@ -290,5 +290,5 @@ contains
     eventHookFirst => self%first_
     return
   end function eventHookFirst
-  
+
 end module Events_Hooks

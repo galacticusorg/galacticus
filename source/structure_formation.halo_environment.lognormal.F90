@@ -19,10 +19,10 @@
 
 !% Contains a module which implements a log-normal halo environment.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Linear_Growth
-  use Statistics_Distributions
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Linear_Growth           , only : linearGrowthClass
+  use :: Statistics_Distributions, only : distributionFunction1DLogNormal
 
   !# <haloEnvironment name="haloEnvironmentLogNormal">
   !#  <description>Implements a log-normal halo environment.</description>
@@ -56,10 +56,10 @@
   end interface haloEnvironmentLogNormal
 
 contains
-  
+
   function logNormalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily logNormal} halo environment class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloEnvironmentLogNormal     )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -96,7 +96,7 @@ contains
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily logNormal} halo mass function class.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (haloEnvironmentLogNormal     )                           :: self
     class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_
@@ -144,8 +144,8 @@ contains
 
   double precision function logNormalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Kind_Numbers
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
     class           (haloEnvironmentLogNormal       ), intent(inout)           :: self
     type            (treeNode                       ), intent(inout)           :: node
@@ -180,7 +180,7 @@ contains
 
   double precision function logNormalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -201,7 +201,7 @@ contains
 
   double precision function logNormalEnvironmentMass(self)
     !% Return the mass of the environment.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
 
@@ -218,7 +218,7 @@ contains
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     logNormalOverdensityLinearMinimum=-1.0d0
     return
   end function logNormalOverdensityLinearMinimum
@@ -245,7 +245,7 @@ contains
 
   subroutine logNormalOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node

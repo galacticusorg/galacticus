@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a \cite{hernquist_analytical_1990} mass distribution class.
-  
+
   !# <massDistribution name="massDistributionHernquist">
   !#  <description>A \cite{hernquist_analytical_1990} mass distribution class.</description>
   !# </massDistribution>
@@ -45,8 +45,8 @@ contains
   function hernquistConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hernquist} mass distribution class which builds the object from a parameter
     !% set.
-    use Numerical_Constants_Math
-    use Input_Parameters
+    use :: Input_Parameters        , only : inputParameter, inputParameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionHernquist)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -99,9 +99,9 @@ contains
 
   function hernquistConstructorInternal(densityNormalization,mass,scaleLength,dimensionless) result(self)
     !% Internal constructor for ``hernquist'' mass distribution class.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Comparison    , only : Values_Differ
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionHernquist)                          :: self
     double precision                           , intent(in   ), optional :: densityNormalization, mass, scaleLength
@@ -145,7 +145,7 @@ contains
 
   double precision function hernquistDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
-    use Coordinates
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
     class           (coordinate               ), intent(in   ) :: coordinates
@@ -165,9 +165,9 @@ contains
 
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Returns a radial density moment for the Hernquist mass distribution.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Comparison    , only : Values_Agree
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (massDistributionHernquist), intent(inout)           :: self
     double precision                           , intent(in   )           :: moment
@@ -206,7 +206,7 @@ contains
 
   double precision function hernquistMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (massDistributionHernquist), intent(inout), target :: self
     double precision                           , intent(in   )         :: radius
@@ -225,8 +225,8 @@ contains
 
   double precision function hernquistPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
-    use Numerical_Constants_Physical
-    use Coordinates
+    use :: Coordinates                 , only : coordinateSpherical            , assignment(=)
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionHernquist), intent(inout) :: self
     class(coordinate               ), intent(in   ) :: coordinates

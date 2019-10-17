@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an HI mass function output analysis class.
 
-  use Geometry_Surveys
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !# <outputAnalysis name="outputAnalysisMassFunctionHI">
   !#  <description>An HI mass function output analysis class.</description>
@@ -31,7 +31,7 @@
      class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
    contains
-     final :: massFunctionHIDestructor     
+     final :: massFunctionHIDestructor
   end type outputAnalysisMassFunctionHI
 
   interface outputAnalysisMassFunctionHI
@@ -45,8 +45,8 @@ contains
 
   function massFunctionHIConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionHI'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Output_Analysis_Molecular_Ratios
+    use :: Input_Parameters                , only : inputParameter              , inputParameters
+    use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio, outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisMassFunctionHI           )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -65,7 +65,7 @@ contains
     type            (inputParameters                        )                              :: dataAnalysisParameters
     type            (varying_string                         )                              :: label                              , comment                          , &
          &                                                                                    targetLabel
-    
+
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(masses(parameters%count('masses')))
@@ -134,7 +134,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -183,8 +183,8 @@ contains
 
   function massFunctionHIConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``massFunctionHI'' output analysis class which reads bin information from a standard format file.
-    use IO_HDF5
-    use Output_Analysis_Molecular_Ratios
+    use :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
+    use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisMassFunctionHI           )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -203,7 +203,7 @@ contains
     type            (hdf5Object                             )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget
- 
+
     !$ call hdf5Access%set()
     call dataFile%openFile   (fileName,readOnly=.true.)
     call dataFile%readDataset('mass'  ,masses         )
@@ -227,15 +227,23 @@ contains
 
   function massFunctionHIConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``massFunctionHI'' output analysis class which takes a parameter set as input.
-    use ISO_Varying_String
-    use Memory_Management
-    use Output_Times
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
-    use Output_Analysis_Molecular_Ratios
-    use Numerical_Constants_Astronomical
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
+    use :: Galactic_Filters                        , only : galacticFilterClass
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Geometry_Surveys                        , only : surveyGeometryClass
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassISM
+    use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
+    use :: Output_Analysis_Molecular_Ratios        , only : outputAnalysisMolecularRatioClass
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorHIMass        , &
+          &                                                 outputAnalysisPropertyOperatorLog10        , outputAnalysisPropertyOperatorSequence      , propertyOperatorList
+    use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
+    use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisMassFunctionHI                   )                                          :: self
     type            (varying_string                                 ), intent(in   )                           :: label                                                 , comment
@@ -382,7 +390,7 @@ contains
   subroutine massFunctionHIDestructor(self)
     !% Destructor for  the ``massFunctionHI'' output analysis class.
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%surveyGeometry_"       />
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%cosmologyFunctionsData"/>

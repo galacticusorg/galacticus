@@ -42,10 +42,10 @@
   end interface criticalOverdensityPeakBackgroundSplit
 
 contains
-  
+
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -72,12 +72,12 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
-    class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_    
-    class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_    
-    class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_    
+    class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_
+    class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_
+    class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass         ), target, intent(in   ) :: cosmologicalMassVariance_
     !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
-    
+
     return
   end function peakBackgroundSplitConstructorInternal
 
@@ -111,7 +111,7 @@ contains
     ! contribution to the critical overdensity should always use the z=0 value.
     if (present(node))                                                                                  &
          & peakBackgroundSplitValue=+peakBackgroundSplitValue                                           &
-         &                          -self%haloEnvironment_   %overdensityLinear(node,presentDay=.true.)       
+         &                          -self%haloEnvironment_   %overdensityLinear(node,presentDay=.true.)
     return
   end function peakBackgroundSplitValue
 

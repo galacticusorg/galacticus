@@ -44,14 +44,14 @@ contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
     !% Constructor for the ``metallicityISM'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
-    use Abundances_Structure
+    use :: Abundances_Structure, only : Abundances_Index_From_Name
+    use :: Input_Parameters    , only : inputParameter            , inputParameters
     implicit none
     type     (nodePropertyExtractorMetallicityISM)                :: self
     type     (inputParameters                    ), intent(inout) :: parameters
     integer                                                       :: indexElement
     character(len=3                              )                :: element
-    
+
     !# <inputParameter>
     !#   <name>element</name>
     !#   <source>parameters</source>
@@ -77,8 +77,8 @@ contains
 
   double precision function metallicityISMExtract(self,node,instance)
     !% Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
-    use Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid
-    use Abundances_Structure
+    use :: Abundances_Structure, only : abundances
+    use :: Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
     type            (treeNode                           ), intent(inout), target   :: node
@@ -116,7 +116,7 @@ contains
 
   integer function metallicityISMType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -127,7 +127,7 @@ contains
 
   function metallicityISMName(self)
     !% Return the name of the metallicityISM property.
-    use Abundances_Structure, only : Abundances_Names
+    use :: Abundances_Structure, only : Abundances_Names
     implicit none
     type (varying_string                     )                :: metallicityISMName
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
@@ -139,7 +139,7 @@ contains
 
   function metallicityISMDescription(self)
     !% Return a description of the metallicityISM property.
-    use Abundances_Structure, only : Abundances_Names
+    use :: Abundances_Structure, only : Abundances_Names
     implicit none
     type (varying_string                     )                :: metallicityISMDescription
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self

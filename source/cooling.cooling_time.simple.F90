@@ -19,9 +19,9 @@
 
   !% Implementation of a simple cooling time class.
 
-  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
-  use Chemical_States  , only : chemicalStateClass  , chemicalState
-  
+  use :: Chemical_States  , only : chemicalState  , chemicalStateClass
+  use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
+
   !# <coolingTime name="coolingTimeSimple">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
   !# </coolingTime>
@@ -35,7 +35,7 @@
      final     ::                                   simpleDestructor
      procedure :: time                           => simpleTime
      procedure :: gradientDensityLogarithmic     => simpleGradientDensityLogarithmic
-     procedure :: gradientTemperatureLogarithmic => simpleGradientTemperatureLogarithmic 
+     procedure :: gradientTemperatureLogarithmic => simpleGradientTemperatureLogarithmic
   end type coolingTimeSimple
 
   interface coolingTimeSimple
@@ -48,14 +48,14 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the simple cooling time class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingTimeSimple   )                :: self
     type            (inputParameters     ), intent(inout) :: parameters
     class           (coolingFunctionClass), pointer       :: coolingFunction_
     class           (chemicalStateClass  ), pointer       :: chemicalState_
     double precision                                      :: degreesOfFreedom
-    
+
     !# <inputParameter>
     !#   <name>degreesOfFreedom</name>
     !#   <source>parameters</source>
@@ -81,10 +81,10 @@ contains
     class           (coolingFunctionClass), intent(in   ), target :: coolingFunction_
     class           (chemicalStateClass  ), intent(in   ), target :: chemicalState_
     !# <constructorAssign variables="degreesOfFreedom, *coolingFunction_, *chemicalState_"/>
-    
+
     return
   end function simpleConstructorInternal
-  
+
   subroutine simpleDestructor(self)
     !% Destructor for the simple cooling time class.
     implicit none
@@ -98,8 +98,11 @@ contains
   double precision function simpleTime(self,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
+    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes    , only : hecto
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     double precision                      , intent(in   ) :: density                       , temperature

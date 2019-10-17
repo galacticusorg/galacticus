@@ -20,7 +20,6 @@
   !% Contains a module which implements a concentration vs. halo mass analysis class matched to the
   !% \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
 
-  use Statistics_NBody_Halo_Mass_Errors
 
   !# <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
   !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample..</description>
@@ -40,17 +39,17 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Cosmology_Parameters
-    use Cosmology_Functions
+    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+    use :: Input_Parameters    , only : inputParameter     , inputParameters
     implicit none
     type (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters
     class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     class(outputTimesClass                                  ), pointer       :: outputTimes_
-    class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_ 
- 
+    class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
@@ -70,27 +69,29 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
-    use ISO_Varying_String
-    use Numerical_Constants_Astronomical
-    use Output_Times
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Virial_Density_Contrast
-    use Numerical_Comparison
-    use IO_HDF5
-    use Memory_Management
-    use Galacticus_Paths
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters                  , only : cosmologyParametersClass
+    use :: Galactic_Filters                      , only : filterList                                        , galacticFilterAll                  , galacticFilterBasicMass, galacticFilterHaloIsolated
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                    , pathTypeDataStatic
+    use :: IO_HDF5                               , only : hdf5Access                                        , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorConcentration                , nodePropertyExtractorMassHalo
+    use :: Numerical_Comparison                  , only : Values_Agree
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRndmErrNbodyMass
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10           , outputAnalysisPropertyOperatorLog10
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                          , only : outputTimesClass
+    use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast               , only : fixedDensityTypeCritical                          , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
     class           (cosmologyParametersClass                          ), target       , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
-    class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_ 
+    class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                       = 1.0d10, massHaloMaximum                    =1.0d15
@@ -106,17 +107,17 @@ contains
     type            (outputAnalysisWeightOperatorIdentity              ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_              , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorConcentration      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                     ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorConcentration                ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrast_
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
-    
+
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
-    call dataFile%readDataset(                              'massHalo'                                                    ,         massHaloLogarithmic)
-    call dataFile%close      (                                                                                                                         )
+    call dataFile%readDataset(                                         'massHalo'                                               ,         massHaloLogarithmic)
+    call dataFile%close      (                                                                                                                               )
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)
     ! Compute weights that apply to each output redshift.

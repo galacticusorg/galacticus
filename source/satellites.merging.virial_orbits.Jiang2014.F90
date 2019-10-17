@@ -19,11 +19,11 @@
 
   !% An implementation of virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.
 
-  use Statistics_Distributions
-  use Tables
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Scales
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Tables                 , only : table1DLinearLinear
+  use :: Virial_Density_Contrast, only : virialDensityContrastFixed
 
   !# <virialOrbit name="virialOrbitJiang2014">
   !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
@@ -84,7 +84,7 @@ contains
 
   function jiang2014ConstructorParameters(parameters) result(self)
     !% Generic constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialOrbitJiang2014    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -95,7 +95,7 @@ contains
          &                                                       gammaRatioLow       , gammaRatioIntermediate, gammaRatioHigh, &
          &                                                       sigmaRatioLow       , sigmaRatioIntermediate, sigmaRatioHigh, &
          &                                                       muRatioLow          , muRatioIntermediate   , muRatioHigh
-    
+
     !# <inputParameter>
     !#   <name>bRatioLow</name>
     !#   <defaultValue>[+0.049d0,+0.548d0,+1.229d0]</defaultValue>
@@ -205,8 +205,10 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
-    use FGSL                 , only : FGSL_Integ_Gauss61, fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
+    use :: FGSL                    , only : FGSL_Integ_Gauss61          , fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Statistics_Distributions, only : distributionFunction1DVoight
+    use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
     implicit none
     type            (virialOrbitJiang2014        )                         :: self
     double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
@@ -243,7 +245,7 @@ contains
     self%sigma(:,3)=sigmaRatioHigh
     self%mu   (:,1)=   muRatioLow
     self%mu   (:,2)=   muRatioIntermediate
-    self%mu   (:,3)=   muRatioHigh    
+    self%mu   (:,3)=   muRatioHigh
     ! Tabulate Voight distribution functions for speed.
     ! Build the distribution function for total velocity.
     do i=1,3
@@ -280,7 +282,7 @@ contains
                   &                           +      0.5346d0                          &
                   &                           *      fullWidthHalfMaximumLorentzian    &
                   &                           +sqrt(                                   &
-                  &                                 +0.2166d0                          & 
+                  &                                 +0.2166d0                          &
                   &                                 *fullWidthHalfMaximumLorentzian**2 &
                   &                                 +fullWidthHalfMaximumGaussian  **2 &
                   &                                )                                   &
@@ -349,10 +351,10 @@ contains
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.
-             previousB                           (i,j)=self%B                            (i,j) 
-             previousGamma                       (i,j)=self%gamma                        (i,j) 
-             previousSigma                       (i,j)=self%sigma                        (i,j) 
-             previousMu                          (i,j)=self%mu                           (i,j) 
+             previousB                           (i,j)=self%B                            (i,j)
+             previousGamma                       (i,j)=self%gamma                        (i,j)
+             previousSigma                       (i,j)=self%sigma                        (i,j)
+             previousMu                          (i,j)=self%mu                           (i,j)
              previousVoightDistributions         (i,j)=self%voightDistributions          (i,j)
              previousVelocityTangentialMean      (i,j)=self%velocityTangentialMean_      (i,j)
              previousVelocityTotalRootMeanSquared(i,j)=self%velocityTotalRootMeanSquared_(i,j)
@@ -369,17 +371,17 @@ contains
 
     double precision function jiang2014DistributionVelocityTangential(velocityTotal)
       !% The integrand used to average the tangential velocity over the distribution function for total velocity.
-      use Struve_Functions        , only : Struve_Function_L1
-      use Bessel_Functions        , only : Bessel_Function_I1
-      use Numerical_Constants_Math, only : Pi
+      use :: Bessel_Functions        , only : Bessel_Function_I1
+      use :: Numerical_Constants_Math, only : Pi
+      use :: Struve_Functions        , only : Struve_Function_L1
       implicit none
       double precision, intent(in   ) :: velocityTotal
-      
+
       jiang2014DistributionVelocityTangential=+voightDistribution%density(velocityTotal) &
            &                                  *Pi                                        &
            &                                  *                           velocityTotal  &
            &                                  *(                                         &
-           &                                    +                         self%B(i,j)    & 
+           &                                    +                         self%B(i,j)    &
            &                                    -2.0d0*Bessel_Function_I1(self%B(i,j))   &
            &                                    -2.0d0*Struve_Function_L1(self%B(i,j))   &
            &                                   )                                         &
@@ -396,7 +398,7 @@ contains
       !% The integrand used to average the squared total velocity over the distribution function for total velocity.
       implicit none
       double precision, intent(in   ) :: velocityTotal
-      
+
       jiang2014DistributionVelocityTotalSquared=+voightDistribution%density(velocityTotal)    &
            &                                    *                           velocityTotal **2
       return
@@ -418,10 +420,10 @@ contains
 
   function jiang2014Orbit(self,node,host,acceptUnboundOrbits)
     !% Return jiang2014 orbital parameters for a satellite.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Root_Finder
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Root_Finder                         , only : rangeExpandMultiplicative          , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout), target :: self
@@ -508,7 +510,7 @@ contains
             &                                  )
        jiang2014XRadial                      =node%hostTree%randomNumberGenerator%uniformSample()
        velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
-       ! Compute tangential velocity.       
+       ! Compute tangential velocity.
        velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
@@ -525,7 +527,7 @@ contains
     if (attempts >= attemptsMaximum) call Galacticus_Error_Report('maximum number of attempts exceeded'//{introspection:location})
     return
   end function jiang2014Orbit
-  
+
   double precision function jiang2014TotalVelocityCDF(velocityTotal)
     !% Cumulative distribution function for the total velocity.
     implicit none
@@ -534,12 +536,12 @@ contains
     jiang2014TotalVelocityCDF=jiang2014Self%voightDistributions(jiang2014I,jiang2014J)%interpolate(velocityTotal)-jiang2014XTotal
     return
   end function jiang2014TotalVelocityCDF
-  
+
   double precision function jiang2014RadialVelocityCDF(velocityRadial)
     !% Cumulative distribution function for the radial velocity.
     implicit none
     double precision, intent(in   ) :: velocityRadial
-    
+
     jiang2014RadialVelocityCDF=+jiang204ProbabilityRadialNormalization                         &
          &                     *(                                                              &
          &                       +       jiang2014VelocityTotalInternal                        &
@@ -570,8 +572,8 @@ contains
 
   double precision function jiang2014VelocityTangentialMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the tangential velocity.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitJiang2014      ), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node                  , host
@@ -595,7 +597,7 @@ contains
 
   function jiang2014VelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -609,8 +611,8 @@ contains
 
   double precision function jiang2014AngularMomentumMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the angular momentum.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
@@ -633,7 +635,7 @@ contains
 
   function jiang2014AngularMomentumVectorMean(self,node,host)
     !% Return the mean of the vector angular momentum.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -647,8 +649,8 @@ contains
 
   double precision function jiang2014VelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared total velocity.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitJiang2014      ), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node                  , host
@@ -672,9 +674,9 @@ contains
 
   double precision function jiang2014EnergyMean(self,node,host)
     !% Return the mean energy of the orbits.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
@@ -691,7 +693,7 @@ contains
          &                   +1.0d0                                         &
          &                   +basic    %mass()                              &
          &                   /hostBasic%mass()                              &
-         &                  )                                               & 
+         &                  )                                               &
          &                 -gravitationalConstantGalacticus                 &
          &                 *massHost                                        &
          &                 /radiusHost
@@ -705,7 +707,7 @@ contains
     double precision                      , intent(in   ) :: massHost, massSatellite
     integer                               , intent(  out) :: i       , j
     !GCC$ attributes unused :: self
-    
+
     if      (              massHost < 10.0d0**12.5d0) then
        i=1
     else if (              massHost < 10.0d0**13.5d0) then

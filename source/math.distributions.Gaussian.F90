@@ -28,7 +28,7 @@ contains
 
   double precision function Gaussian_Distribution(x,sigma)
     !% Computes the Gaussian distribution with dispersion {\normalfont \ttfamily sigma} at argument {\normalfont \ttfamily x}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: sigma, x
 

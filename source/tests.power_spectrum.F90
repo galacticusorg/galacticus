@@ -21,19 +21,19 @@
 
 program Tests_Power_Spectrum
   !% Tests power spectrum calculations.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmological_Density_Field
-  use Power_Spectra
-  use Power_Spectra_Primordial
-  use Power_Spectra_Primordial_Transferred
-  use Transfer_Functions
-  use Numerical_Constants_Math
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Galacticus_Display
-  use Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                , cosmologicalMassVarianceClass
+  use :: Cosmology_Functions                 , only : cosmologyFunctions                      , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
+  use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters                    , only : inputParameters
+  use :: Numerical_Constants_Math            , only : Pi
+  use :: Power_Spectra                       , only : powerSpectrum                           , powerSpectrumClass
+  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (inputParameters                         ), target       :: parameters
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.

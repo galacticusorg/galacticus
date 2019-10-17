@@ -21,9 +21,9 @@
 
 module Spherical_Collapse_Matter_Dark_Energy
   !% Implements calculations of spherical top hat collapse in cosmologies containing matter and dark energy.
-  use FGSL               , only : FGSL_Success
-  use ISO_Varying_String
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: FGSL               , only : FGSL_Success
+  use :: ISO_Varying_String
   implicit none
   private
   public :: Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate, Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate, &
@@ -37,7 +37,7 @@ module Spherical_Collapse_Matter_Dark_Energy
        &                                                      epsilonPerturbationShared            , hubbleParameterInvGyr       , &
        &                                                      perturbationRadiusInitial            , tNow
   !$omp threadprivate(OmegaDE,OmegaM,hubbleParameterInvGyr,tNow,epsilonPerturbationShared,perturbationRadiusInitial)
-  
+
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
   double precision                         , parameter     :: expansionFactorInitialFraction=1.0d-6
 
@@ -64,13 +64,13 @@ contains
 
   subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,deltaCritTable,cosmologyFunctions_,linearGrowth_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
-    use Tables
-    use Linear_Growth
+    use :: Linear_Growth, only : linearGrowthClass
+    use :: Tables       , only : table1D
     implicit none
     double precision                                      , intent(in   ) :: time
     class           (table1D                ), allocatable, intent(inout) :: deltaCritTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
-    class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
+    class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_
 
     call Make_Table(time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_=linearGrowth_)
     return
@@ -78,12 +78,12 @@ contains
 
   subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,energyFixedAt,deltaVirialTable,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
-    use Tables
+    use :: Tables, only : table1D
     implicit none
     double precision                                      , intent(in   ) :: time
     integer                                               , intent(in   ) :: energyFixedAt
     class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
 
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_,energyFixedAt=energyFixedAt)
     return
@@ -91,12 +91,12 @@ contains
 
   subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(time,energyFixedAt,turnaroundTable,cosmologyFunctions_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
-    use Tables
+    use :: Tables, only : table1D
     implicit none
     double precision                                      , intent(in   ) :: time
     integer                                               , intent(in   ) :: energyFixedAt
     class           (table1D                ), allocatable, intent(inout) :: turnaroundTable
-    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_
 
     call Make_Table(time,turnaroundTable,calculationTurnaround,cosmologyFunctions_,energyFixedAt=energyFixedAt)
     return
@@ -104,18 +104,18 @@ contains
 
   subroutine Make_Table(time,deltaTable,calculationType,cosmologyFunctions_,linearGrowth_,energyFixedAt)
     !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
-    use Linear_Growth
-    use Root_Finder
-    use Tables
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use Input_Parameters
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
+         &                            verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Linear_Growth     , only : linearGrowthClass         , normalizeMatterDominated
+    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
+    use :: Tables            , only : table1D                   , table1DLogarithmicLinear
     implicit none
     double precision                                       , intent(in   ) :: time
     integer                                                , intent(in   ) :: calculationType
     class           (table1D                ), allocatable , intent(inout) :: deltaTable
-    class           (cosmologyFunctionsClass)              , intent(inout) :: cosmologyFunctions_    
-    class           (linearGrowthClass      ), optional    , intent(inout) :: linearGrowth_    
+    class           (cosmologyFunctionsClass)              , intent(inout) :: cosmologyFunctions_
+    class           (linearGrowthClass      ), optional    , intent(inout) :: linearGrowth_
     integer                                  , optional    , intent(in   ) :: energyFixedAt
     class           (linearGrowthClass      ), allocatable                 :: linearGrowth__
     double precision                         , parameter                   :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
@@ -182,7 +182,7 @@ contains
             &                          isNew    =.true.          , &
             &                          verbosity=verbosityWorking  &
             &                         )
-       !$omp parallel private(aExpansionNow,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,maximumExpansionExpansionFactor,q,y,timeEnergyFixed,a,b,x,linearGrowth__)       
+       !$omp parallel private(aExpansionNow,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,maximumExpansionExpansionFactor,q,y,timeEnergyFixed,a,b,x,linearGrowth__)
        allocate(cosmologyFunctions__,mold=cosmologyFunctions_)
        !# <deepCopy source="cosmologyFunctions_" destination="cosmologyFunctions__"/>
        if (calculationType == calculationDeltaCrit) then
@@ -330,8 +330,8 @@ contains
   subroutine Perturbation_Dynamics_Solver(epsilonPerturbation,time,perturbationRadius,perturbationExpansionRate)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
-    use ODEIV2_Solver
-    use FODEIV2
+    use :: FODEIV2
+    use :: ODEIV2_Solver, only : ODEIV2_Solve, ODEIV2_Solver_Free
     implicit none
     double precision                                            , intent(in   )           :: epsilonPerturbation                 , time
     double precision                                            , intent(  out), optional :: perturbationExpansionRate           , perturbationRadius

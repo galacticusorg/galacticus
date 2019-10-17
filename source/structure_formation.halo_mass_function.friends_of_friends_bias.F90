@@ -20,9 +20,9 @@
 !% Contains a  module which  implements a  dark matter  halo mass function  class which  modifies another  mass function  to mimic
 !% systematic errors arising in the friends-of-friends halo finding algorithm.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <haloMassFunction name="haloMassFunctionFofBias">
   !#  <description>
   !#   The halo mass function is computed by modifying another halo mass function to mimic systematic
@@ -58,7 +58,7 @@ contains
 
   function fofBiasConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fofBias} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionFofBias  )                :: self
     type            (inputParameters          ), intent(inout) :: parameters
@@ -132,7 +132,7 @@ contains
 
     return
   end function fofBiasConstructorInternal
-  
+
   subroutine fofBiasDestructor(self)
     !% Destructor for the {\normalfont \ttfamily fofBias} halo mass function class.
     implicit none
@@ -148,9 +148,9 @@ contains
 
   double precision function fofBiasDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes        , only : treeNode, nodeComponentBasic
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes        , only : nodeComponentBasic     , treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionFofBias), intent(inout)           :: self
     double precision                         , intent(in   )           :: time                                                                , &
@@ -181,7 +181,7 @@ contains
          &                                                                linkingLength                                                       , &
          &                                                                accuracyIteration                                                   , &
          &                                                                massHaloInfinitePrevious
-    
+
     ! Compute linking length in physical coordinates.
     if (self%linkingLengthIsComoving) then
        ! Linking length is in comoving units, convert it.
@@ -216,7 +216,7 @@ contains
             &                                  /linkingLength
        gradientFractionalAccuracyParameterMass=+2.0d0                  &
             &                                  *gradientRadiusHaloMass &
-            &                                  /linkingLength    
+            &                                  /linkingLength
        ! Compute negative a logarithmic slope of the density profile at the outer edge of the halo.
        densityProfileLogarithmicSlope=+self%darkMatterProfileDMO_%densityLogSlope(nodeWork,radiusHalo)
        ! Compute absolute value of the rate of change of logarithmic mass at halo outer edge as the
@@ -247,7 +247,7 @@ contains
             &                                                   +3.0d0                               &
             &                                                   *gradientRadiusHaloMass              &
             &                                                   *radiusHalo                      **2 &
-            &                                                   /massHaloInfinitePrevious            &         
+            &                                                   /massHaloInfinitePrevious            &
             &                                                   -radiusHalo                      **3 &
             &                                                   /massHaloInfinitePrevious        **2 &
             &                                                  )                                     &
@@ -282,7 +282,7 @@ contains
             &            /0.5d0
        massHaloInfinitePrevious=massHaloInfinite
     end do
-    if (iterationCount >= iterationCountMaximum) call Galacticus_Error_Report('failed to converge after maximum iterations'//{introspection:location})    
+    if (iterationCount >= iterationCountMaximum) call Galacticus_Error_Report('failed to converge after maximum iterations'//{introspection:location})
     ! Compute the Jacobian of the transform. We currently ignore
     ! d/dm(densityProfileLogarithmicSlope) as we have no straightforward way to evaluate
     ! this. It should be a relatively minor correction as this term is likely small for
@@ -301,7 +301,7 @@ contains
          &         /fofFractionalAccuracyExponent                                                                       &
          &         /fractionalAccuracyParameter                           **(1.0d0+1.0d0/fofFractionalAccuracyExponent) &
          &         *gradientFractionalAccuracyParameterMass                                                             &
-         &        )    
+         &        )
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)

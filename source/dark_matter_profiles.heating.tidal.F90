@@ -41,19 +41,19 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileHeatingTidal), target        :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=darkMatterProfileHeatingTidal()
     return
   end function tidalConstructorParameters
 
   double precision function tidalSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
     !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -75,7 +75,7 @@ contains
 
   double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -98,7 +98,7 @@ contains
 
   logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     class(darkMatterProfileHeatingTidal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

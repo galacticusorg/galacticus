@@ -43,15 +43,15 @@ contains
 
   function rodriguezPuebla2016ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionRodriguezPuebla2016   )                :: self
     type (inputParameters              ), intent(inout) :: parameters
-    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_    
+    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     class(linearGrowthClass            ), pointer       :: linearGrowth_
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -73,26 +73,22 @@ contains
 
   function rodriguezPuebla2016ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
-    use FoX_DOM
-    use IO_XML
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Paths
-    use Table_Labels
-    use ISO_Varying_String
-    use File_Utilities
+    use :: FoX_DOM
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
     implicit none
     type            (haloMassFunctionRodriguezPuebla2016)                             :: self
-    class           (cosmologyParametersClass           ), target     , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass           ), target     , intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass      ), target     , intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass                  ), target     , intent(in   ) :: linearGrowth_
     class           (cosmologyFunctionsClass            ), target     , intent(in   ) :: cosmologyFunctions_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_"/>
-    
+
     self%time=-1.0d0
     self%mass=-1.0d0
     return
   end function rodriguezPuebla2016ConstructorInternal
-  
+
   subroutine rodriguezPuebla2016Destructor(self)
     !% Destructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
     implicit none
@@ -183,7 +179,7 @@ contains
          &                                                                  chi1    =+0.000d0,      &
          &                                                                  chi2    =+0.000d0
     !GCC$ attributes unused :: mass
-    
+
     redshift                        =self%cosmologyFunctions_%redshiftFromExpansionFactor(      &
          &                           self%cosmologyFunctions_%expansionFactor             (     &
          &                                                                                 time &

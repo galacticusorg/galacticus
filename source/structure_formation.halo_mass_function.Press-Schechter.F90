@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
-  use Cosmological_Density_Field
-  use Excursion_Sets_First_Crossings
+  use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
+  use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
 
   !# <haloMassFunction name="haloMassFunctionPressSchechter">
   !#  <description>The halo mass function is computed from the function given by \cite{press_formation_1974}.</description>
@@ -44,7 +44,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionPressSchechter)                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
-    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
     class(excursionSetFirstCrossingClass), target, intent(in   ) :: excursionSetFirstCrossing_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_"/>
@@ -88,10 +88,10 @@ contains
 
   double precision function pressSchechterDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout)           :: self
-    double precision                                , intent(in   )           :: time , mass    
+    double precision                                , intent(in   )           :: time , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                                          :: alpha, variance
 

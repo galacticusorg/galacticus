@@ -19,8 +19,8 @@
 
   !% Implements a triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.
 
-  use Tables
-  use Cosmology_Parameters
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Tables              , only : table1DLogarithmicLinear
 
   !# <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierTriaxiality">
   !#  <description>A triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.</description>
@@ -79,29 +79,29 @@ contains
   function triaxialityConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily triaxiality} hot halo outflow reincorporation class which
     !% takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloModelPowerSpectrumModifierTriaxiality)                :: self
     type (inputParameters                          ), intent(inout) :: parameters
     class(cosmologyParametersClass                 ), pointer       :: cosmologyParameters_
-    
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=haloModelPowerSpectrumModifierTriaxiality(cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>  
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function triaxialityConstructorParameters
 
   function triaxialityConstructorInternal(cosmologyParameters_) result(self)
     !% Default constructor for the triaxiality hot halo outflow reincorporation class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Table_Labels
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
     type   (haloModelPowerSpectrumModifierTriaxiality)                        :: self
     class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
     integer                                                                   :: i
     !# <constructorAssign variables="*cosmologyParameters_"/>
-    
+
     call self%triaxialityTable%create(                                          &
          &                            triaxialityWavenumberMinimum            , &
          &                            triaxialityWavenumberMaximum            , &
@@ -127,8 +127,9 @@ contains
 
   subroutine triaxialityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
     !% Applies a triaxiality modification to a halo model power spectrum based on the results of \cite{smith_triaxial_2005}.
-    use Vectors
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Vectors             , only : Vector_Outer_Product
     implicit none
     class           (haloModelPowerSpectrumModifierTriaxiality), intent(inout)                           :: self
     double precision                                           , intent(in   ), dimension(:  )           :: wavenumber
@@ -139,7 +140,7 @@ contains
     double precision                                           , parameter                               :: covarianceFraction     =0.4d0
     double precision                                           , allocatable  , dimension(:  )           :: covariance
     integer                                                                                              :: i                            , tableIndex
-    
+
     ! Mass is required.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required'//{introspection:location})
     ! Determine table to use.

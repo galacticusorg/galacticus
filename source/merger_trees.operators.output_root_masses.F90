@@ -21,7 +21,7 @@
 
   ! Buffer size for tree data.
   integer, parameter :: outputRootMassesBufferSize=1000
-  
+
   !# <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">
   !#  <description>Output a file of tree root masses (and weights).</description>
   !# </mergerTreeOperator>
@@ -48,7 +48,7 @@ contains
 
   function outputRootMassesConstructorParameters(parameters) result(self)
     !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
-    use Cosmology_Functions
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -96,14 +96,15 @@ contains
 
   function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName) result(self)
     !% Internal constructor for the conditional mass function merger tree operator class.
-    use File_Utilities, only : File_Exists, File_Remove
+    use :: File_Utilities, only : File_Exists, File_Remove
+    use :: IO_HDF5       , only : hdf5Access
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
     logical                                             , intent(in   ) :: alwaysIsolatedHalosOnly
     type            (varying_string                    ), intent(in   ) :: fileName
     !# <constructorAssign variables="time,alwaysIsolatedHalosOnly,fileName"/>
-    
+
     ! Initialize.
     self%treeCount=0
     ! Remove any pre-existing file.
@@ -112,13 +113,13 @@ contains
     call hdf5Access%unset()
     return
   end function outputRootMassesConstructorInternal
-  
+
   subroutine outputRootMassesOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Merger_Tree_Walkers
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (mergerTreeOperatorOutputRootMasses), target , intent(inout) :: self
     type            (mergerTree                        ), target , intent(inout) :: tree
@@ -147,7 +148,7 @@ contains
             &   .not.self             %alwaysIsolatedHalosOnly          &
             &  .or.                                                     &
             &        mergingStatistics%nodeHierarchyLevelMaximum() == 0 &
-            & ) then             
+            & ) then
           ! Get the basic components.
           basic      => node     %basic()
           basicChild => nodeChild%basic()
@@ -206,9 +207,8 @@ contains
 
   subroutine outputRootMassesFinalize(self)
     !% Outputs conditional mass function.
-    use ISO_Varying_String
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: IO_HDF5           , only : hdf5Access, hdf5Object
+    use :: ISO_Varying_String
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5Object                        ), target        :: outputFile

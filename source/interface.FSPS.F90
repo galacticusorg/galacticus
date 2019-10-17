@@ -21,26 +21,26 @@
 
 module Interfaces_FSPS
   !% Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
-  use File_Utilities, only : lockDescriptor
+  use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
 
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
   type   (lockDescriptor) :: fspsLock
   logical                 :: fspsLockInitialized=.false.
-  
+
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
-    use ISO_Varying_String
-    use Galacticus_Paths
-    use File_Utilities    , only : File_Lock_Initialize, File_Lock, File_Unlock, File_Remove, &
-         &                         File_Exists
-    use System_Command
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling
+    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Lock_Initialize, File_Remove, &
+          &                           File_Unlock
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : operator(//)
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
     logical                  , intent(in   ), optional :: static
@@ -118,15 +118,17 @@ contains
 
   subroutine Interface_FSPS_SSPs_Tabulate(imf,imfName,fileFormat,spectraFileName)
     !% Tabulate simple stellar populations for the given \gls{imf} using FSPS.
-    use ISO_Varying_String
-    use Tables
-    use System_Command
-    use File_Utilities
-    use String_Handling
-    use IO_HDF5
-    use Dates_and_Times
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
+          &                                         File_Remove
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
+    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: String_Handling                 , only : operator(//)
+    use :: System_Command                  , only : System_Command_Do
+    use :: Tables                          , only : table1D
     implicit none
     class           (table1D       ), intent(inout)                              :: imf
     type            (varying_string), intent(in   )                              :: imfName             , spectraFileName
@@ -170,7 +172,7 @@ contains
           write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
           write (outputFile,'(a)' ) "no"                 ! Do not include dust.
           write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
-          close(outputFile)       
+          close(outputFile)
           call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
           call File_Remove(char(fspsInputFileName))
        end if
@@ -233,10 +235,10 @@ contains
     call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
     call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
     call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
-    call dataset    %close         (                                                         )   
+    call dataset    %close         (                                                         )
     call spectraFile%close()
     call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate
-  
+
 end module Interfaces_FSPS

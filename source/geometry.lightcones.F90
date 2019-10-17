@@ -21,10 +21,10 @@
 
 module Geometry_Lightcones
   !% Implements geometries of lightcones.
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>geometryLightcone</name>
   !#  <descriptiveName>Lightcone Geometries</descriptiveName>

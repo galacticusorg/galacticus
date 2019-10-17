@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a pruning operator on merger trees that removes all branches that can not contain any baryons.
-  
-  use Accretion_Halos        , only : accretionHalo        , accretionHaloClass
-  use Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
+
+  use :: Accretion_Halos        , only : accretionHalo        , accretionHaloClass
+  use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorPruneBaryons">
   !#  <description>Provides a pruning operator on merger trees that removes all branches that can not contain any baryons.</description>
@@ -45,13 +45,13 @@ contains
 
   function pruneBaryonsConstructorParameters(parameters) result(self)
     !% Constructor for the prune-baryons merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeOperatorPruneBaryons)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(accretionHaloClass            ), pointer       :: accretionHalo_
     class(virialDensityContrastClass    ), pointer       :: virialDensityContrast_
-    
+
     !# <objectBuilder class="accretionHalo"         name="accretionHalo_"         source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=mergerTreeOperatorPruneBaryons(accretionHalo_,virialDensityContrast_)
@@ -68,7 +68,7 @@ contains
     class(accretionHaloClass            ), intent(in   ), target :: accretionHalo_
     class(virialDensityContrastClass    ), intent(in   ), target :: virialDensityContrast_
     !# <constructorAssign variables="*accretionHalo_, *virialDensityContrast_"/>
-    
+
     return
   end function pruneBaryonsConstructorInternal
 
@@ -76,7 +76,7 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorPruneBaryons), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%accretionHalo_"        />
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
@@ -84,10 +84,9 @@ contains
 
   subroutine pruneBaryonsOperate(self,tree)
     !% Prune branches from {\normalfont \ttfamily tree}.
-    use Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Unlink_Parent, Merger_Tree_Prune_Clean_Branch, &
-         &                                     Merger_Tree_Prune_Uniqueify_IDs
-    use Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
-    use Galacticus_Nodes              , only : treeNode                       , nodeComponentBasic
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none
     class           (mergerTreeOperatorPruneBaryons), intent(inout), target :: self
     type            (mergerTree                    ), intent(inout), target :: tree
@@ -97,7 +96,7 @@ contains
     type            (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
     logical                                                                 :: didPruning
     double precision                                                        :: densityContrast
-    
+
     !# <workaround type="unknown">
     !#  <description>
     !#    When using the percolation virial density contrast type we run into problems with initialization if we do not

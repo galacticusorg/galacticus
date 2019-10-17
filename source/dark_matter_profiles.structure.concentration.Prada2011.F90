@@ -19,11 +19,12 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{prada_halo_2011} algorithm.
 
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Cosmology_Parameters
-  use Linear_Growth
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Linear_Growth             , only : linearGrowthClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
   !#  <deepCopy>
@@ -54,22 +55,22 @@
      procedure :: densityContrastDefinition      => prada2011DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => prada2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationPrada2011
-  
+
   interface darkMatterProfileConcentrationPrada2011
      !% Constructors for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
      module procedure prada2011ConstructorParameters
      module procedure prada2011ConstructorInternal
   end interface darkMatterProfileConcentrationPrada2011
-  
+
 contains
-  
+
   function prada2011ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileConcentrationPrada2011)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
@@ -214,10 +215,11 @@ contains
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function prada2011ConstructorParameters
-  
+
   function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationPrada2011)                        :: self
     double precision                                                 , intent(in   ) :: A                        , B            , &
@@ -226,7 +228,7 @@ contains
          &                                                                              X0                       , inverseSigma0, &
          &                                                                              inverseSigma1            , alpha        , &
          &                                                                              beta                     , X1
-    class           (cosmologyFunctionsClass                ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass                ), target, intent(in   ) :: cosmologyFunctions_
     class           (cosmologyParametersClass               ), target, intent(in   ) :: cosmologyParameters_
     class           (linearGrowthClass                      ), target, intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass          ), target, intent(in   ) :: cosmologicalMassVariance_
@@ -259,7 +261,7 @@ contains
 
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout), target  :: self
     type            (treeNode                               ), intent(inout), target  :: node
@@ -276,51 +278,51 @@ contains
     prada2011Concentration=  prada2011B0(self,x)*prada2011C(self,sigmaPrime)
     return
   end function prada2011Concentration
-  
+
   double precision function prada2011B0(self,x)
     !% The function $B_0(x)$ as defined in eqn.~(18) of \cite{prada_halo_2011}.
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
-    
+
     prada2011B0=prada2011cMin(self,x)/prada2011cMin(self,1.393d0)
   end function prada2011B0
-  
+
   double precision function prada2011B1(self,x)
     !% The function $B_1(x)$ as defined in eqn.~(18) of \cite{prada_halo_2011}.
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
-    
+
     prada2011B1=prada2011inverseSigmaMin(self,x)/prada2011inverseSigmaMin(self,1.393d0)
   end function prada2011B1
-  
+
   double precision function prada2011cMin(self,x)
     !% The function $c_\mathrm{min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
-    
+
     prada2011cMin=self%C0+(self%C1-self%C0)*(atan(self%alpha*(x-self%X0))/Pi+0.5d0)
   end function prada2011cMin
-  
+
   double precision function prada2011inverseSigmaMin(self,x)
     !% The function $\sigma^{-1}_\mathrm{min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
-    
+
     prada2011inverseSigmaMin=self%inverseSigma0+(self%inverseSigma1-self%inverseSigma0)*(atan(self%beta*(x-self%X1))/Pi+0.5d0)
   end function prada2011inverseSigmaMin
-  
+
   double precision function prada2011C(self,sigmaPrime)
     !% The function $\mathcal{C}(\sigma^\prime)$ as defined in eqn.~(17) of \cite{prada_halo_2011}.
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: sigmaPrime
-    
+
     prada2011C=self%A*((sigmaPrime/self%B)**self%C+1.0d0)*exp(self%D/sigmaPrime**2)
   end function prada2011C
 
@@ -329,7 +331,7 @@ contains
     implicit none
     class(virialDensityContrastClass             ), pointer       :: prada2011DensityContrastDefinition
     class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
-    
+
     prada2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function prada2011DensityContrastDefinition
@@ -340,7 +342,7 @@ contains
     implicit none
     class(darkMatterProfileDMOClass              ), pointer       :: prada2011DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
-   
+
     prada2011DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function prada2011DarkMatterProfileDefinition

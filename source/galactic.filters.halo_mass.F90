@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a galactic high-pass filter for halo mass under a given definition.
 
-  use Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
+  use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
 
   !# <galacticFilter name="galacticFilterHaloMass">
   !#  <description>
@@ -47,7 +47,7 @@ contains
 
   function haloMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``haloMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterHaloMass    )                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
     double precision                            , intent(in   )         :: massThreshold
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
     !# <constructorAssign variables="massThreshold, *virialDensityContrast_"/>
-    
+
     return
   end function haloMassConstructorInternal
 
@@ -84,20 +84,20 @@ contains
     !% Destructor for the ``haloMass'' galactic filter class.
     implicit none
     type(galacticFilterHaloMass), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine haloMassDestructor
 
   logical function haloMassPasses(self,node)
     !% Implement a halo mass high-pass galactic filter.
-    use Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class(galacticFilterHaloMass), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
     class(nodeComponentBasic    ), pointer       :: basic
-    
+
     basic          =>                                                                                  node %basic()
     haloMassPasses =   Dark_Matter_Profile_Mass_Definition(                                                           &
          &                                                 node                                                     , &

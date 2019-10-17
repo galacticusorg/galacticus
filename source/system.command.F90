@@ -29,12 +29,12 @@ module System_Command
      module procedure System_Command_Char
      module procedure System_Command_VarStr
   end interface System_Command_Do
-  
+
 contains
 
   subroutine System_Command_VarStr(command,iStatus)
     !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     type   (varying_string), intent(in   )           :: command
     integer                , intent(  out), optional :: iStatus
@@ -45,7 +45,7 @@ contains
 
   subroutine System_Command_Char(command,iStatus)
     !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   )           :: command
     integer         , intent(  out), optional :: iStatus

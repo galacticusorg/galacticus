@@ -19,9 +19,9 @@
 
   !% Implementation of an ADAF accretion disk.
 
-  use Tables
-  !$use OMP_Lib
-  
+  !$ use :: OMP_Lib
+  use    :: Tables , only : table1DLogarithmicLinear
+
   !# <accretionDisks name="accretionDisksADAF">
   !#  <description>An ADAF accretion disk class.</description>
   !# </accretionDisks>
@@ -254,7 +254,7 @@ contains
 
   function adafConstructorParameters(parameters) result(self)
     !% Constructor for the ADAF accretion disk class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionDisksADAF)                :: self
     type            (inputParameters   ), intent(inout) :: parameters
@@ -272,7 +272,7 @@ contains
     !#     stable circular orbit.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>        
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiencyRadiation</name>
     !#   <source>parameters</source>
@@ -348,13 +348,15 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function adafConstructorParameters
-  
+
   function adafConstructorInternal(energyOption,fieldEnhancementOption,efficiencyRadiationType,viscosityOption,efficiencyJetMaximum,efficiencyRadiation,adiabaticIndex,viscosityAlpha) result(self)
     !% Internal constructor for the ADAF accretion disk class.
-    use Numerical_Constants_Physical
-    use Black_Hole_Fundamentals
-    use Table_Labels
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_ISCO_Radius , Black_Hole_ISCO_Specific_Energy, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Static_Radius, &
+          &                                     orbitPrograde
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Table_Labels                , only : extrapolationTypeFix
     implicit none
     type            (accretionDisksADAF)                          :: self
     integer                             , intent(in   )           :: energyOption                     , fieldEnhancementOption            , &
@@ -373,9 +375,9 @@ contains
     if (viscosityOption         == adafViscosityFixed               .and. .not.present(viscosityAlpha     )) &
          & call Galacticus_Error_Report('viscosity parameter must be provided'//{introspection:location})
     ! Make assignments.
-    !# <constructorAssign variables="energyOption, fieldEnhancementOption, efficiencyRadiationType, viscosityOption, efficiencyJetMaximum, efficiencyRadiation, adiabaticIndex, viscosityAlpha"/>  
+    !# <constructorAssign variables="energyOption, fieldEnhancementOption, efficiencyRadiationType, viscosityOption, efficiencyJetMaximum, efficiencyRadiation, adiabaticIndex, viscosityAlpha"/>
     ! Set the default adiabatic index if none was provided.
-    if (.not.present(adiabaticIndex)) self%adiabaticIndex=adafAdiabaticIndexDefault(fieldEnhancementOption)    
+    if (.not.present(adiabaticIndex)) self%adiabaticIndex=adafAdiabaticIndexDefault(fieldEnhancementOption)
     ! Set the thermal pressure fraction.
     self%pressureThermalFractional=(8.0d0-6.0d0*self%adiabaticIndex)/3.0d0/(1.0d0-self%adiabaticIndex)
     ! Initialize stored solutions.
@@ -491,10 +493,10 @@ contains
     !$ call OMP_Destroy_Lock(self%tabulationsLock)
     return
   end subroutine adafDestructor
-  
+
   double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass)
     !% Computes the radiative efficiency for an ADAF.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
@@ -514,13 +516,11 @@ contains
 
   double precision function adafPowerJet(self,blackHole,accretionRateMass)
     !% Computes the jet power of the given black hole in due to accretion from an ADAF disk.
-    use Black_Hole_Fundamentals
-    use Numerical_Constants_Physical
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
     double precision                        , intent(in   ) :: accretionRateMass
-    double precision                                        :: spinBlackHole    , spinInverseBlackHole 
+    double precision                                        :: spinBlackHole    , spinInverseBlackHole
 
     ! Get the black hole spin.
     spinBlackHole       =blackHole%spin()
@@ -582,7 +582,7 @@ contains
 
   double precision function adafJetPowerDisk(self,spinBlackHole,radius)
     !% Returns the power of the disk-launched jet from an ADAF.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius       , spinBlackHole
@@ -642,7 +642,7 @@ contains
 
   double precision function adafJetPowerBlackHole(self,spinBlackHole,radius)
     !% Returns the power of the black hole-launched jet from an ADAF.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius                     , spinBlackHole
@@ -704,7 +704,7 @@ contains
 
   double precision function adafFieldEnhancement(self,spinBlackHole,radius)
     !% Returns the field enhancement factor, $g$, in the ADAF.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_D_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius, spinBlackHole
@@ -735,7 +735,7 @@ contains
 
   double precision function adafFluidAngularVelocity(self,spinBlackHole,radius)
     !% Returns the angular velocity of the rotating fluid with respect to the local inertial observer (ZAMO).
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius, spinBlackHole
@@ -808,10 +808,10 @@ contains
   double precision function adafGammaAzimuthal(self,spinBlackHole,radius)
     !% Returns the $\phi$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Metric_A_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
-    double precision                    , intent(in   ) :: radius, spinBlackHole 
+    double precision                    , intent(in   ) :: radius, spinBlackHole
 
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= self%gammaAzimuthalRadiusPrevious .or. spinBlackHole /= self%gammaAzimuthalSpinPrevious) then
@@ -875,7 +875,7 @@ contains
 
   double precision function adafEnthalpyAngularMomentumProduct(self,spinBlackHole,radius)
     !% Return the product of enthalpy and angular momentum for the ADAF.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Radius, unitsGravitational
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius                       , spinBlackHole
@@ -965,7 +965,7 @@ contains
     !% Returns the relativistic enthalpy of the ADAF.
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
-    double precision                    , intent(in   ) :: spinBlackHole, radius  
+    double precision                    , intent(in   ) :: spinBlackHole, radius
 
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= self%enthalpyRadiusPrevious .or. spinBlackHole /= self%enthalpySpinPrevious) then
@@ -987,7 +987,7 @@ contains
 
   double precision function adafTemperature(self,spinBlackHole,radius)
     !% Return the dimensionless temperature of the ADAF
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Radius, unitsGravitational
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius                       , spinBlackHole
@@ -1067,7 +1067,7 @@ contains
   double precision function adafVelocity(self,spinBlackHole,radius)
     !% Return the (dimensionless) velocity in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given
     !% {\normalfont \ttfamily spinBlackHole}.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius          , spinBlackHole
@@ -1195,7 +1195,7 @@ contains
 
   double precision function adafHeight(self,spinBlackHole,radius)
     !% Return the (dimensionless) height in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily spinBlackHole}.
-    use Black_Hole_Fundamentals
+    use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
     double precision                    , intent(in   ) :: radius                           , spinBlackHole
@@ -1207,7 +1207,7 @@ contains
          &  .or.                                        &
          &   spinBlackHole /= self%heightSpinPrevious   &
          & ) then
-       verticalFrequencyEffectiveSquared=+(                                                                  & 
+       verticalFrequencyEffectiveSquared=+(                                                                  &
             &                              +                                        spinBlackHole        **2 &
             &                              +(                                                                &
             &                                +1.0d0                                                          &
@@ -1253,7 +1253,7 @@ contains
 
   double precision function adafAdiabaticIndexDefault(fieldEnhancementOption)
     !% Returns the default adiabatic index in an ADAF give the field enhancement option.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: fieldEnhancementOption
 
@@ -1268,4 +1268,4 @@ contains
     end select
     return
   end function adafAdiabaticIndexDefault
-  
+

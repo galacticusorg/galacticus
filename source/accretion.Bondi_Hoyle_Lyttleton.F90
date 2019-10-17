@@ -29,9 +29,11 @@ contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
     !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Ideal_Gases_Thermodynamics
+    use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     double precision, intent(in   )           :: density   , mass, temperature, velocity
     double precision, intent(in   ), optional :: radius
@@ -53,8 +55,8 @@ contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature)
     !% Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
-    use Numerical_Constants_Physical
-    use Ideal_Gases_Thermodynamics
+    use :: Ideal_Gases_Thermodynamics  , only : Ideal_Gas_Sound_Speed
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: mass      , temperature
     double precision                :: soundSpeed

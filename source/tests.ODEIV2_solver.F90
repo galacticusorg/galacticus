@@ -21,13 +21,14 @@
 
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
+  use            :: FODEIV2
+  use            :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use, intrinsic :: ISO_C_Binding
-  use               Unit_Tests
-  use               FODEIV2
-  use               ODEIV2_Solver
-  use               Test_ODE_Solver_Functions
-  use               Numerical_Integration2
-  use Galacticus_Display
+  use            :: Numerical_Integration2   , only : integratorMultiVectorizedCompositeGaussKronrod1D
+  use            :: ODEIV2_Solver            , only : ODEIV2_Solve                                    , ODEIV2_Solver_Free
+  use            :: Test_ODE_Solver_Functions, only : Integrands_Set_2                                , Jacobian_Set_1        , Jacobian_Set_2      , ODE_Set_1        , &
+          &                                           ODE_Set_2
+  use            :: Unit_Tests               , only : Assert                                          , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                                                  , dimension(10  ) :: xEnd
   double precision                                                  , dimension(   2) :: y            , z
@@ -50,13 +51,13 @@ program Test_ODE_Solver
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("ODE-IV2 solver")
 
   ! Specify algorithm.
   odeAlgorithm=Fodeiv2_Step_MSBDFActive
-  
+
   ! Sinusoid.
   call Unit_Tests_Begin_Group("y′=sin(x)")
   xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]

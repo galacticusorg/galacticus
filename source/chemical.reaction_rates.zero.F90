@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of calculations of chemical reaction rates which assumes zero rates.
-  
+
   !# <chemicalReactionRate name="chemicalReactionRateZero">
   !#  <description>A chemical reaction rate class in which all rates are zero.</description>
   !# </chemicalReactionRate>
@@ -33,13 +33,13 @@
      !% Constructors for the {\normalfont \ttfamily zero} chemical reaction rates class.
      module procedure zeroConstructorParameters
   end interface chemicalReactionRateZero
-  
+
 contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} chemical reaction rates class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(chemicalReactionRateZero)                :: self
     type(inputParameters         ), intent(inout) :: parameters
@@ -59,7 +59,7 @@ contains
     type            (chemicalAbundances      ), intent(inout) :: chemicalRates
     type            (treeNode                ), intent(inout) :: node
     !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation, node
-    
+
     call chemicalRates%reset()
     return
   end subroutine zeroRates

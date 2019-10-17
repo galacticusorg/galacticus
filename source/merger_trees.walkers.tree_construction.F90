@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a tree walker for trees under construction.
-  use Galacticus_Nodes, only : mergerTree, treeNode
+  use :: Galacticus_Nodes, only : mergerTree, treeNode
 
   !# <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
   !#  <description>Provides a merger tree walker for trees under construction.</description>
@@ -44,8 +44,8 @@ contains
 
   function treeConstructionParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
     type(inputParameters         ), intent(inout) :: parameters
@@ -66,7 +66,7 @@ contains
     self%nodesRemain_ = .true.
     return
   end function treeConstructionInternal
-  
+
   logical function treeConstructionNext(self,node)
     implicit none
     class(mergerTreeWalkerTreeConstruction), intent(inout)          :: self

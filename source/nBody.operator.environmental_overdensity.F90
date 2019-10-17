@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which determines the environmental overoverdensity around particles.
-  
+
   use, intrinsic :: ISO_C_Binding
 
   !# <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
@@ -45,7 +45,7 @@ contains
 
   function environmentalOverdensityConstructorParameters(parameters) result (self)
     !% Constructor for the ``environmentalOverdensity'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorEnvironmentalOverdensity)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -99,7 +99,7 @@ contains
 
   function environmentalOverdensityConstructorInternal(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic) result (self)
     !% Internal constructor for the ``environmentalOverdensity'' N-body operator class.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (nbodyOperatorEnvironmentalOverdensity)                :: self
     double precision                                       , intent(in   ) :: radiusSphere, densityParticleMean, &
@@ -119,10 +119,10 @@ contains
 
   subroutine environmentalOverdensityOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use Nearest_Neighbors
-    use Memory_Management
-    use Galacticus_Display
-    use OMP_Lib
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
+    use :: Memory_Management , only : allocateArray             , deallocateArray
+    use :: Nearest_Neighbors , only : nearestNeighbors
+    use :: OMP_Lib
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
     type            (nBodyData                            ), intent(inout)                 :: simulation
@@ -170,7 +170,7 @@ contains
        call allocateArray(position    ,[3_c_size_t,particleCount                                ])
        call allocateArray(particleMask,[           size(simulation%position,dim=2,kind=c_size_t)])
        particleCount=0_c_size_t
-       do l=-1,+1          
+       do l=-1,+1
           i(1)=l
           do m=-1,+1
              i(2)=m
@@ -226,7 +226,7 @@ contains
 
     double precision function boundLower(l)
       !% Compute lower bounds for particle inclusion in periodically replicated volumes.
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l
 
@@ -243,10 +243,10 @@ contains
       end select
       return
     end function boundLower
-    
+
     double precision function boundUpper(l)
       !% Compute upper bounds for particle inclusion in periodically replicated volumes.
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l
 
@@ -263,6 +263,6 @@ contains
       end select
       return
     end function boundUpper
-    
+
   end subroutine environmentalOverdensityOperate
 

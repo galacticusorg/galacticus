@@ -22,7 +22,7 @@
   !% An implementation of accretion from the \gls{igm} onto halos using filtering mass of the \gls{igm}
   !% calculated from an equation from \cite{naoz_formation_2007}.
 
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
 
   !# <accretionHalo name="accretionHaloNaozBarkana2007">
   !#  <description>Accretion onto halos using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.</description>
@@ -84,12 +84,12 @@
 
   ! Virial density contrast definition used by Gnedin (2000) to define halos, and therefore used in the filtering mass fitting functions.
   double precision, parameter :: naozBarkana2007VirialDensityContrast=200.0d0
-  
+
 contains
 
   function naozBarkana2007ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionHaloNaozBarkana2007)                :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -117,11 +117,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function naozBarkana2007ConstructorParameters
-       
+
   function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Atomic_Data
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
     double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
@@ -142,25 +141,25 @@ contains
 
   subroutine naozBarkana2007AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(accretionHaloNaozBarkana2007), intent(inout) :: self
 
     call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine naozBarkana2007AutoHook
-  
+
   subroutine naozBarkana2007Destructor(self)
     !% Destructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(accretionHaloNaozBarkana2007), intent(inout) :: self
-    
+
     call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
     !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     return
   end subroutine naozBarkana2007Destructor
-   
+
   subroutine naozBarkana2007CalculationReset(self,node)
     !% Reset the accretion rate calculation.
     implicit none
@@ -175,8 +174,8 @@ contains
 
   logical function naozBarkana2007BranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
-    use Galacticus_Nodes   , only : nodeComponentBasic
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes   , only : nodeComponentBasic                 , treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodesBranch
     implicit none
     class           (accretionHaloNaozBarkana2007       ), intent(inout)          :: self
     type            (treeNode                           ), intent(inout), target  :: node
@@ -203,8 +202,8 @@ contains
 
   double precision function naozBarkana2007FilteredFraction(self,node)
     !% Returns the baryonic mass fraction in a halo after the effects of the filtering mass.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -230,9 +229,9 @@ contains
 
   double precision function naozBarkana2007FilteredFractionRate(self,node)
     !% Returns the baryonic mass accretion rate fraction in a halo after the effects of the filtering mass.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
-    use Math_Exponentiation
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Math_Exponentiation                 , only : cubeRoot
     implicit none
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -294,7 +293,7 @@ contains
 
   double precision function naozBarkana2007AccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -350,7 +349,7 @@ contains
 
   double precision function naozBarkana2007AccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -375,8 +374,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes     , only : nodeComponentBasic, nodeComponentHotHalo
-    use Accretion_Halo_Totals
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -436,7 +434,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -461,4 +459,4 @@ contains
          &                               )
     return
   end function naozBarkana2007FailedAccretedMass
-  
+

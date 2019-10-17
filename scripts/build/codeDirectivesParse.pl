@@ -39,8 +39,6 @@ closedir($sourceDirectory);
 # Iterate over source files.
 foreach my $fileName ( @sourceFileNames ) {
 
-    ##	RECONSTRUCT FROM PER FILE
-    
     # Add the file to the stack of filenames to process.
     my @fileNames = ( $sourceDirectoryName."/".$fileName );    
     (my $fileIdentifier = $sourceDirectoryName."/".$fileName) =~ s/\//_/g;

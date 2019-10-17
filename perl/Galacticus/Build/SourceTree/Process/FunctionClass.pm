@@ -834,7 +834,7 @@ CODE
 				    (
 				     $declaration->{'intrinsic'} eq "class"
 				     &&
-				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
+				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
 				     &&
 				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
 				    ) 
@@ -1189,7 +1189,7 @@ CODE
 				    (
 				     $declaration->{'intrinsic'} eq "class"
 				     &&
-				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
+				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
 				     &&
 				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
 				    ) 
@@ -1412,9 +1412,9 @@ CODE
 				    if ( 
 					$declaration->{'intrinsic'} eq "class"
 					&&
-					(grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 					&&
-					(grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 					) {
 					# Pointer to a functionClass object.
 					foreach ( @{$declaration->{'variables'}} ) {
@@ -1477,7 +1477,10 @@ CODE
 						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 						}
@@ -1625,9 +1628,9 @@ CODE
 			if ( 
 			    $declaration->{'intrinsic'} eq "class"
 			    &&
-			    (grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+			    (grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 			    &&
-			    (grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+			    (grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 			    ) {
 			    # Pointer to a functionClass object.
 			    foreach ( @{$declaration->{'variables'}} ) {
@@ -1687,7 +1690,10 @@ CODE
 					$inputCode  .= "  read (stateFile) storedShape\n";
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					$inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+					(my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+					my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+					$stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+					$inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 				    } else {
 					$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 				    }
@@ -1794,9 +1800,9 @@ CODE
 				    if ( 
 					$declaration->{'intrinsic'} eq "class"
 					&&
-					(grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
 					&&
-					(grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
 					) {
 					# Pointer to a functionClass object.
 					foreach ( @{$declaration->{'variables'}} ) {
@@ -1863,7 +1869,10 @@ CODE
 						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
+						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
 						}

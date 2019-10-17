@@ -21,13 +21,13 @@
 
 double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
   !% Return the seed mass for standard black holes.
-  use Input_Parameters
+  use :: Input_Parameters, only : globalParameters, inputParameter
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   logical                                         , save          :: functionInitialized=.false.
   double precision                                , save          :: blackHoleSeedMass
   !GCC$ attributes unused :: self
-  
+
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Standard_Seed_Mass)
      if (.not.functionInitialized) then
@@ -53,11 +53,10 @@ end function Node_Component_Black_Hole_Standard_Seed_Mass
 
 double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
   !% Return the seed spin for standard black holes.
-  use Input_Parameters
   implicit none
   class(nodeComponentBlackHoleStandard), intent(inout) :: self
   !GCC$ attributes unused :: Self
-  
+
   Node_Component_Black_Hole_Standard_Seed_Spin=1.0d-3
   return
 end function Node_Component_Black_Hole_Standard_Seed_Spin
@@ -76,13 +75,14 @@ end function Node_Component_Black_Hole_Standard_Spin
 double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy&
      &,weightIndex)
   !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
-  use Galactic_Structure_Options
+  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
+          &                                 weightByMass
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   integer                                         , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                                , intent(in   ) :: radius
   !GCC$ attributes unused :: weightIndex
-  
+
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
   ! Return if mass is not to be counted, or if radius is negative.

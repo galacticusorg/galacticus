@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a boolean analysis property operator class.
-  
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
   !#  <description>A boolean analysis property operator class, specifically $x \rightarrow x/|x|$, that is, the operator maintains the sign of the input while normalizing the magnitude to unity (or zero for zero input).</description>
   !# </outputAnalysisPropertyOperator>
@@ -38,7 +38,7 @@ contains
 
   function booleanConstructorParameters(parameters) result(self)
     !% Constructor for the ``boolean'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
     type(inputParameters                      ), intent(inout) :: parameters

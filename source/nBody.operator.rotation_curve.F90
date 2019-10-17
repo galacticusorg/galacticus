@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which computes the rotation curve at a set of given radii.
-  
+
   use, intrinsic :: ISO_C_Binding
 
   !# <nbodyOperator name="nbodyOperatorRotationCurve">
@@ -28,7 +28,7 @@
      !% An N-body data operator which computes the rotation curve at a set of given radii.
      private
      logical                                               :: selfBoundParticlesOnly
-     integer         (c_size_t)                            :: bootstrapSampleCount 
+     integer         (c_size_t)                            :: bootstrapSampleCount
      double precision          , allocatable, dimension(:) :: radius
    contains
      procedure :: operate => rotationCurveOperate
@@ -44,11 +44,11 @@ contains
 
   function rotationCurveConstructorParameters(parameters) result (self)
     !% Constructor for the ``rotationCurve'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorRotationCurve)                              :: self
     type            (inputParameters           ), intent(inout)               :: parameters
-    double precision                            , allocatable  , dimension(:) :: radius 
+    double precision                            , allocatable  , dimension(:) :: radius
     logical                                                                   :: selfBoundParticlesOnly
     integer         (c_size_t                  )                              :: bootstrapSampleCount
 
@@ -86,7 +86,7 @@ contains
     type            (nbodyOperatorRotationCurve)                              :: self
     logical                                     , intent(in   )               :: selfBoundParticlesOnly
     integer         (c_size_t                  ), intent(in   )               :: bootstrapSampleCount
-    double precision                            , intent(in   ), dimension(:) :: radius 
+    double precision                            , intent(in   ), dimension(:) :: radius
     !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radius"/>
 
     return
@@ -94,11 +94,11 @@ contains
 
   subroutine rotationCurveOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Physical
-    use IO_HDF5
-  use Pseudo_Random
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: IO_HDF5                     , only : hdf5Object
+    use :: Memory_Management           , only : allocateArray                  , deallocateArray
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Pseudo_Random               , only : pseudoRandom
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout)                 :: simulation

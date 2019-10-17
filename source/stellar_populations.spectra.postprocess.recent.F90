@@ -40,7 +40,7 @@ contains
 
   function recentConstructorParameters(parameters) result(self)
     !% Default constructor for the recent spectrum postprocessor class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationSpectraPostprocessorRecent)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -75,7 +75,7 @@ contains
     double precision                                             , intent(in   ) :: age       , redshift, &
          &                                                                          wavelength
     !GCC$ attributes unused :: redshift, wavelength
-    
+
     if (age > self%timeLimit) then
        recentMultiplier=0.0d0
     else

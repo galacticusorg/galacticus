@@ -19,8 +19,8 @@
 
   !% Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
 
-  use Cosmological_Density_Field
-  use Virial_Density_Contrast
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Virial_Density_Contrast   , only : virialDensityContrastClass
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
   !#  <description>
@@ -51,7 +51,7 @@ contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasTinker2010  )                :: self
     type(inputParameters               ), intent(inout) :: parameters

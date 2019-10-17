@@ -21,11 +21,11 @@
 
 program Test_Search
   !% Tests that array search functions work.
-  use Unit_Tests
-  use Kind_Numbers
-  use Arrays_Search
-  use ISO_Varying_String
-  use Galacticus_Display
+  use :: Arrays_Search     , only : Search_Array                  , Search_Array_For_Closest
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                , dimension(10) :: myArray    =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
   double precision                , dimension(10) :: mySearch   =[3.4d0,9.0d0,4.2d0,-1.0d0,10.0d0,5.5d0,5.999999d0,6.000001d0,1.1d0,7.5d0]

@@ -19,7 +19,7 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
 
-  use Tables
+  use :: Tables, only : table1D
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterDE">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
@@ -47,14 +47,14 @@ contains
 
   function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters
-    use Spherical_Collapse_Matter_Dark_Energy
+    use :: Input_Parameters                     , only : inputParameter                                           , inputParameters
+    use :: Spherical_Collapse_Matter_Dark_Energy, only : enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode
     implicit none
     type (virialDensityContrastSphericalCollapseMatterDE)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     type (varying_string                                )                :: energyFixedAt
-    
+
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
     !#   <cardinality>1</cardinality>
@@ -100,7 +100,7 @@ contains
 
   subroutine sphericalCollapseMatterDERetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_Matter_Dark_Energy
+    use :: Spherical_Collapse_Matter_Dark_Energy, only : Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
     double precision                                                , intent(in   ) :: time
@@ -124,8 +124,8 @@ contains
   double precision function sphericalCollapseMatterDETurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Spherical_Collapse_Matter_Dark_Energy
+    use :: Galacticus_Error                     , only : Galacticus_Error_Report
+    use :: Spherical_Collapse_Matter_Dark_Energy, only : Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout)           :: self
     double precision                                                , intent(in   ), optional :: time       , expansionFactor

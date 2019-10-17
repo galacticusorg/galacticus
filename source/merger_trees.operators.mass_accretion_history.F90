@@ -20,11 +20,11 @@
   !% Contains a module which implements a merger tree operator which outputs mass accretion
   !% histories.
 
-  use IO_HDF5
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: IO_HDF5            , only : hdf5Object
+
   !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
-  !#  <description>  
+  !#  <description>
   !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
   !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
   !#   {\normalfont \ttfamily mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the
@@ -47,7 +47,7 @@
      procedure :: operate  => massAccretionHistoryOperate
      procedure :: finalize => massAccretionHistoryFinalize
   end type mergerTreeOperatorMassAccretionHistory
-  
+
   interface mergerTreeOperatorMassAccretionHistory
      !% Constructors for the mass accretion history merger tree operator class.
      module procedure massAccretionHistoryConstructorParameters
@@ -65,7 +65,7 @@ contains
     type (varying_string                        )                :: outputGroupName
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     logical                                                      :: includeSpin        , includeSpinVector
-   
+
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
@@ -102,15 +102,15 @@ contains
 
   function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_) result(self)
     !% Internal constructor for the mass accretion history merger tree operator class.
-    use Galacticus_Nodes, only : defaultSpinComponent
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type     (mergerTreeOperatorMassAccretionHistory)                        :: self
     character(len=*                                 ), intent(in   )         :: outputGroupName
     logical                                          , intent(in   )         :: includeSpin        , includeSpinVector
     class    (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_"/>
-    
+
     if (self%includeSpin      .and..not.defaultSpinComponent%spinIsGettable      ())                            &
          & call Galacticus_Error_Report                                                                         &
          &  (                                                                                                   &
@@ -120,7 +120,7 @@ contains
          &                              defaultSpinComponent%spinAttributeMatch      (requireGettable=.true.)   &
          &                            )                                                                      // &
          &   {introspection:location}                                                                           &
-         &  )             
+         &  )
     if (self%includeSpinVector.and..not.defaultSpinComponent%spinVectorIsGettable())                            &
          & call Galacticus_Error_Report                                                                         &
          &  (                                                                                                   &
@@ -138,22 +138,22 @@ contains
     !% Destructor for the mass accretion history merger tree operator function class.
     implicit none
     type(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine massAccretionHistoryDestructor
 
   subroutine massAccretionHistoryOperate(self,tree)
     !% Output the mass accretion history for a merger tree.
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Galacticus_Nodes                , only : mergerTree             , nodeComponentBasic, nodeComponentSpin, treeNode
+    use            :: IO_HDF5                         , only : hdf5Access
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes                 , only : treeNode, nodeComponentBasic, nodeComponentSpin
-    use               Input_Parameters
-    use               Memory_Management
-    use               ISO_Varying_String
-    use               String_Handling
-    use               Numerical_Constants_Astronomical
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               Galacticus_HDF5
+    use            :: ISO_Varying_String
+    use            :: Memory_Management               , only : allocateArray          , deallocateArray
+    use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOperatorMassAccretionHistory), intent(inout), target         :: self
     type            (mergerTree                            ), intent(inout), target         :: tree
@@ -237,12 +237,13 @@ contains
        if (self%includeSpinVector) call deallocateArray(nodeSpinVector     )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
-    end do    
+    end do
     return
   end subroutine massAccretionHistoryOperate
-  
+
   subroutine massAccretionHistoryFinalize(self)
     !% Close the mass accretion history group before closing the HDF5 file.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
 

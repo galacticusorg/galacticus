@@ -19,10 +19,10 @@
 
   !% Implementation of a timescale for star formation in galactic disks which scales with the circular velocity of the host halo.
 
-  use Kind_Numbers
-  use Math_Exponentiation
-  use Cosmology_Functions
-  use Dark_Matter_Profiles_DMO
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Kind_Numbers            , only : kind_int8
+  use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksVelocityMaxScaling">
   !#  <description>A velocityMaxScaling timescale for star formation in galactic disks.</description>
@@ -68,7 +68,7 @@ contains
   function velocityMaxScalingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleDisksVelocityMaxScaling)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
     class           (darkMatterProfileDMOClass                    ), pointer       :: darkMatterProfileDMO_
     double precision                                                               :: timescale            , exponentVelocity, &
          &                                                                            exponentRedshift
-    
+
     ! Get parameters of for the timescale calculation.
     !# <inputParameter>
     !#   <name>timescale</name>
@@ -141,17 +141,17 @@ contains
 
   subroutine velocityMaxScalingAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
 
     call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine velocityMaxScalingAutoHook
-  
+
   subroutine velocityMaxScalingDestructor(self)
     !% Destructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
 
@@ -174,14 +174,14 @@ contains
 
   double precision function velocityMaxScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationTimescaleDisksVelocityMaxScaling), intent(inout), target :: self
     type            (treeNode                                     ), intent(inout), target :: node
     class           (nodeComponentBasic                           ), pointer               :: basic
     double precision                                                                       :: expansionFactor, velocityMaximum
-    
-    
+
+
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Compute the timescale if necessary.

@@ -43,17 +43,17 @@ contains
 
   function isolatedNodesBranchParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerIsolatedNodesBranch)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
-    
+
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function isolatedNodesBranchParameters
-  
+
   function isolatedNodesBranchInternal(branchHead,timeEarliest) result(self)
     !% Internal constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class.
     implicit none
@@ -65,16 +65,16 @@ contains
     self%node         => null()
     self%nodesRemain_ = .true.
     self%timeLimited  = present(timeEarliest)
-    if (self%timeLimited) self%timeEarliest=timeEarliest       
+    if (self%timeLimited) self%timeEarliest=timeEarliest
     return
   end function isolatedNodesBranchInternal
-  
+
   logical function isolatedNodesBranchNext(self,node)
     !% This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree branch
     !% to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
     !% set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will
     !% be visited once and once only if the branch is walked in this way.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(mergerTreeWalkerIsolatedNodesBranch), intent(inout)          :: self
     type (treeNode                           ), intent(inout), pointer :: node

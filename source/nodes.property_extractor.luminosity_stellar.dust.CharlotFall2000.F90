@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
 
-  use ISO_Varying_String
-  use Output_Times
+  use :: ISO_Varying_String
+  use :: Output_Times      , only : outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">
   !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
@@ -55,7 +55,7 @@ contains
 
   function lmnstyStllrChrltFll2000ConstructorParameters(parameters) result(self)
     !% Constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorLmnstyStllrCF2000)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -127,9 +127,9 @@ contains
   function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand,outputMask) result(self)
     !% Internal constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
-    use               Stellar_Luminosities_Structure
-    use               Memory_Management
-    use               Instruments_Filters
+    use            :: Instruments_Filters           , only : Filter_Get_Index       , Filter_Wavelength_Effective
+    use            :: Memory_Management             , only : allocateArray
+    use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLmnstyStllrCF2000)                                        :: self
     character       (len=*                                 ), intent(in   )                         :: filterName                , filterType
@@ -165,7 +165,7 @@ contains
     self%description_=self%description_//" with Charlot & Fall (2000) dust extinction."
     return
   end function lmnstyStllrChrltFll2000ConstructorInternal
-  
+
   subroutine lmnstyStllrChrltFll2000Destructor(self)
     !% Destructor for the {\normalfont \ttfamily lmnstyStllrChrltFll2000} output analysis property extractor class.
     implicit none
@@ -174,17 +174,17 @@ contains
     !# <objectDestructor name="self%outputTimes_"/>
     return
   end subroutine lmnstyStllrChrltFll2000Destructor
- 
+
   double precision function lmnstyStllrChrltFll2000Extract(self,node,instance)
     !% Implement a stellar luminosity output analysis property extractor.
+    use            :: Abundances_Structure            , only : abundances         , metallicityTypeLinearByMass
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk          , nodeComponentSpheroid, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
-    use               Abundances_Structure
-    use               Stellar_Luminosities_Structure
-    use               Numerical_Constants_Atomic
-    use               Numerical_Constants_Astronomical
-    use               Numerical_Constants_Prefixes
-    use               Numerical_Constants_Math
+    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, massSolar                  , parsec
+    use            :: Numerical_Constants_Atomic      , only : atomicMassUnit
+    use            :: Numerical_Constants_Math        , only : Pi
+    use            :: Numerical_Constants_Prefixes    , only : hecto              , mega
+    use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
     implicit none
     class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout)           :: self
     type            (treeNode                              ), intent(inout), target   :: node
@@ -319,7 +319,7 @@ contains
 
   integer function lmnstyStllrChrltFll2000Type(self)
     !% Return the type of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -330,7 +330,7 @@ contains
 
   integer function lmnstyStllrChrltFll2000Quantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -361,7 +361,7 @@ contains
 
   double precision function lmnstyStllrCF2000UnitsInSI(self)
     !% Return the units of the lmnstyStllrCF2000 property in the SI system.
-    use Numerical_Constants_Astronomical, only : luminosityZeroPointAB
+    use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
     !GCC$ attributes unused :: self

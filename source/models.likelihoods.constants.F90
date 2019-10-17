@@ -22,7 +22,7 @@
 module Models_Likelihoods_Constants
   !% Provides constants for use when constraining \glc.
   public
-  
+
   ! A very small log likelihood which is used as an approximation to zero likelihood.
   double precision, parameter :: logImpossible=-1.0d-06*huge(1.0d0)
   double precision, parameter :: logImprobable=-1.0d-16*huge(1.0d0)

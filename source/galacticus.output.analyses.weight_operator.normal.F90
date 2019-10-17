@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a weight operator class in which the weight is multiplied by an integral over a normal distribution.
 
-  use Node_Property_Extractors
-  use Output_Analysis_Property_Operators
+  use :: Node_Property_Extractors          , only : nodePropertyExtractorClass
+  use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass
 
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
   !#  <description>A weight operator class in which the weight is multiplied by an integral over a normal distribution.</description>
@@ -28,9 +28,9 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
      !% A high-pass filter weight operator class.
      private
-     class           (nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
+     class           (nodePropertyExtractorClass          ), pointer :: nodePropertyExtractor_          => null()
      class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_ => null()
-     double precision                                                :: rangeLower                      , rangeUpper, &
+     double precision                                                :: rangeLower                               , rangeUpper, &
           &                                                             rootVariance_
    contains
      !@ <objectMethods>
@@ -57,11 +57,11 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !% Constructor for the ``normal'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisWeightOperatorNormal  )                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
-    class           (nodePropertyExtractorClass), pointer       :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass          ), pointer       :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass ), pointer       :: outputAnalysisPropertyOperator_
     double precision                                                      :: rangeLower                      , rangeUpper, &
          &                                                                   rootVariance_
@@ -100,16 +100,16 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !% Internal constructor for the ``normal'' output analysis distribution operator class.
-    use Input_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
-    type            (outputAnalysisWeightOperatorNormal  )                        :: self
-    double precision                                      , intent(in   )         :: rangeLower                      , rangeUpper, &
-         &                                                                           rootVariance_
-    class           (nodePropertyExtractorClass), intent(in   ), target :: nodePropertyExtractor_
-    class           (outputAnalysisPropertyOperatorClass ), intent(in   ), target :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisWeightOperatorNormal )                        :: self
+    double precision                                     , intent(in   )         :: rangeLower                      , rangeUpper, &
+         &                                                                          rootVariance_
+    class           (nodePropertyExtractorClass         ), intent(in   ), target :: nodePropertyExtractor_
+    class           (outputAnalysisPropertyOperatorClass), intent(in   ), target :: outputAnalysisPropertyOperator_
     !# <constructorAssign variables="rangeLower, rangeUpper, rootVariance_, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_"/>
-    
+
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        ! This is acceptable.
@@ -118,13 +118,13 @@ contains
     end select
     return
   end function normalConstructorInternal
-  
+
   subroutine normalDestructor(self)
     !% Destructor for  the ``normal'' output analysis weight operator class.
     type(outputAnalysisWeightOperatorNormal), intent(inout) :: self
-    
-    !# <objectDestructor name="self%nodePropertyExtractor_" />
-    !# <objectDestructor name="self%outputAnalysisPropertyOperator_"  />
+
+    !# <objectDestructor name="self%nodePropertyExtractor_"         />
+    !# <objectDestructor name="self%outputAnalysisPropertyOperator_"/>
     return
   end subroutine normalDestructor
 
@@ -141,11 +141,12 @@ contains
     normalRootVariance=self%rootVariance_
     return
   end function normalRootVariance
-  
+
   double precision function normalOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an normal output analysis weight operator.
+    use            :: Error_Functions         , only : Error_Function
     use, intrinsic :: ISO_C_Binding
-    use               Error_Functions
+    use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisWeightOperatorNormal), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node

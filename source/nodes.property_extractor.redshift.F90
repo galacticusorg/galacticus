@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a redshiftLastIsolated property extractor class.
 
-  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
   !#  <description>A redshiftLastIsolated property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorRedshiftLastIsolated
 
 contains
-  
+
   function redshiftLastIsolatedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRedshiftLastIsolated)                :: self
     type (inputParameters                          ), intent(inout) :: parameters
@@ -78,17 +78,17 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine redshiftLastIsolatedDestructor
-  
+
   double precision function redshiftLastIsolatedExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout)           :: self
     type (treeNode                                 ), intent(inout), target   :: node
     type (multiCounter                             ), intent(inout), optional :: instance
     class(nodeComponentBasic                       ), pointer                 :: basic
     !GCC$ attributes unused :: self, instance
-    
+
     basic                       => node              %basic()
     redshiftLastIsolatedExtract =  self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
          &                         self %cosmologyFunctions_%expansionFactor             (   &
@@ -132,7 +132,7 @@ contains
 
   integer function redshiftLastIsolatedType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
     !GCC$ attributes unused :: self

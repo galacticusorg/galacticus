@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements the standard class for evolving nodes in merger trees.
-  
-  use Kind_Numbers           , only : kind_int8
-  use FODEIV2                , only : fodeiv2_driver      , fodeiv2_system           , fodeiv2_step_type
-  use Merger_Trees_Merge_Node, only : mergerTreeNodeMerger, mergerTreeNodeMergerClass
+
+  use :: FODEIV2                , only : fodeiv2_driver      , fodeiv2_step_type        , fodeiv2_system
+  use :: Kind_Numbers           , only : kind_int8
+  use :: Merger_Trees_Merge_Node, only : mergerTreeNodeMerger, mergerTreeNodeMergerClass
 
   !# <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
   !#  <description>The standard merger tree noe evolver.</description>
@@ -73,7 +73,7 @@
      procedure :: merge      => standardMerge
      procedure :: isAccurate => standardIsAccurate
   end type mergerTreeNodeEvolverStandard
-  
+
   interface mergerTreeNodeEvolverStandard
      !% Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
      module procedure standardConstructorParameters
@@ -86,7 +86,7 @@
   ! Pointer to self.
   class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
   !$omp threadprivate(standardSelf)
-  
+
   ! Enumeration of latent variable integrator.
   !# <enumeration>
   !#  <name>latentIntegratorType</name>
@@ -95,7 +95,7 @@
   !#  <entry label="gaussKronrod"/>
   !#  <entry label="trapezoidal" />
   !# </enumeration>
-  
+
   ! Enumeration of ODE algorithms.
   !# <enumeration>
   !#  <name>standardODEAlgorithm</name>
@@ -110,12 +110,12 @@
   !#  <entry label="bulirschStoer"          />
   !#  <entry label="bdf"                    />
   !# </enumeration>
-  
+
 contains
-  
+
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} merger tree node evolver class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeNodeEvolverStandard)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -225,9 +225,9 @@ contains
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
-     use Galacticus_Error, only : Galacticus_Error_Report
-     use FODEIV2         , only : Fodeiv2_Step_RKCK      , Fodeiv2_Step_RK2    , Fodeiv2_Step_RK4  , Fodeiv2_Step_RKF45      , &
-          &                       Fodeiv2_Step_RK8PD     , Fodeiv2_Step_msAdams, Fodeiv2_step_BSimp, Fodeiv2_step_MSBDFActive
+     use :: FODEIV2         , only : Fodeiv2_Step_RK2       , Fodeiv2_Step_RK4    , Fodeiv2_Step_RK8PD, Fodeiv2_Step_RKCK       , &
+          &                          Fodeiv2_Step_RKF45     , Fodeiv2_Step_msAdams, Fodeiv2_step_BSimp, Fodeiv2_step_MSBDFActive
+     use :: Galacticus_Error, only : Galacticus_Error_Report
      implicit none
      type            (mergerTreeNodeEvolverStandard)                        :: self
      integer                                        , intent(in   )         :: odeLatentIntegratorType            , odeLatentIntegratorOrder, &
@@ -301,17 +301,18 @@ contains
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,systemClockMaximum,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
-    use            :: Galacticus_Nodes              , only : nodeComponentBasic           , mergerTree                                      , propertyTypeAll                                , propertyTypeActive, &
-         &                                                   propertyTypeInactive         , rateComputeState                                , propertyTypeNone
-    use            :: ODEIV2_Solver                 , only : ODEIV2_Solver_Free           , ODEIV2_Solve
-    use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use            :: Galacticus_Display            , only : Galacticus_Display_Indent    , Galacticus_Display_Message                      , Galacticus_Display_Unindent
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report      , errorStatusSuccess                              , errorStatusXCPU                                , errorStatusFail   , &
-         &                                                   Galacticus_Warn
-    use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report      , Galacticus_Warn                                 , errorStatusFail                                , errorStatusSuccess, &
+          &                                                  errorStatusXCPU
+    use            :: Galacticus_Nodes              , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
+          &                                                  propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
+          &                                                  treeNode
+    use, intrinsic :: ISO_C_Binding                 , only : c_funloc                     , c_funptr                                        , c_null_funptr
+    use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
-    use, intrinsic :: ISO_C_Binding                 , only : c_funptr                     , c_funloc                                        , c_null_funptr
+    use            :: ODEIV2_Solver                 , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
+    use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
     !# <include directive="preEvolveTask"      type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
     !# </include>
@@ -332,7 +333,7 @@ contains
     type            (mergerTree                   )             , intent(inout)          :: tree
     type            (treeNode                     )             , intent(inout), pointer :: node
     double precision                                            , intent(in   )          :: timeEnd
-    logical                                                     , intent(  out)          :: interrupted    
+    logical                                                     , intent(  out)          :: interrupted
     procedure       (interruptTask                )             , intent(  out), pointer :: functionInterrupt
     class           (galacticStructureSolverClass )             , intent(in   ), target  :: galacticStructureSolver__
     integer         (kind_int8                    ), optional   , intent(in   )          :: systemClockMaximum
@@ -372,11 +373,11 @@ contains
     timeStartSaved =        timeStart
     ! Set a pointer to the galactic structure solver. We do this to ensure that the solver we act on here is the same one as used
     ! by the calling function (which will therefore be called by various event hook triggers).
-    self%galacticStructureSolver_ => galacticStructureSolver__    
+    self%galacticStructureSolver_ => galacticStructureSolver__
     ! Ensure calculations are reset for this new step.
-    call Galacticus_Calculations_Reset(node)    
+    call Galacticus_Calculations_Reset(node)
     ! Attempt to find analytic solutions.
-    solvedAnalytically=.false.     
+    solvedAnalytically=.false.
     !# <include directive="analyticSolverTask" type="functionCall" functionType="void">
     !#  <functionArgs>node,timeStart,timeEnd,solvedAnalytically</functionArgs>
     include 'objects.tree_node.analytic_solver_task.inc'
@@ -385,7 +386,7 @@ contains
     if (solvedAnalytically) then
        ! An analytic solution was available. Record that no interrupt therefore occurred.
        interrupted=.false.
-    else       
+    else
        ! Compute offsets into serialization arrays for rates and scales.
        call node%serializationOffsets(propertyTypeAll)
        ! Find number of all evolvable variables (active and inactive) for this node.
@@ -458,7 +459,7 @@ contains
           end if
           rateComputeState=self%propertyTypeODE
           ! Determine active and inactive properties.
-          call node%odeStepInactivesInitialize()       
+          call node%odeStepInactivesInitialize()
           if (jacobianSolver) then
              !# <include directive="inactiveSetTask" type="functionCall" functionType="void">
              !#  <functionArgs>node</functionArgs>
@@ -489,7 +490,7 @@ contains
              message='WARNING: Zero entry in ODE system scales for node'
              call Galacticus_Warn          (message)
              call Galacticus_Display_Indent(message)
-             lengthMaximum=0    
+             lengthMaximum=0
              do i=1,self%propertyCountActive
                 lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(i,self%propertyTypeODE)))
              end do
@@ -508,7 +509,7 @@ contains
              end do
              call Galacticus_Display_Message(line)
              call node%serializeASCII()
-             call Galacticus_Display_Unindent('done')          
+             call Galacticus_Display_Unindent('done')
           end if
           ! Assign module global pointer to this node.
           standardSelf => self
@@ -527,7 +528,7 @@ contains
           errorHandler  => standardErrorHandler
           postStep=c_funloc(standardPostStepProcessing)
           solvedNumerically=.true.
-          if (timeStart /= timeEnd) then          
+          if (timeStart /= timeEnd) then
              if (self%propertyCountPrevious > 0 .and. .not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
              self%propertyCountPrevious=self%propertyCountActive
              self%trialCount           =0
@@ -654,10 +655,10 @@ contains
              if (self%timeInterruptFirst /= 0.0d0) then
                 interrupted=.true.
                 functionInterrupt => self%functionInterruptFirst
-                call basic%timeSet(self%timeInterruptFirst)          
+                call basic%timeSet(self%timeInterruptFirst)
              else
                 interrupted=.false.
-                call basic%timeSet(     timeEnd           )          
+                call basic%timeSet(     timeEnd           )
              end if
           end if
        end do
@@ -671,13 +672,13 @@ contains
        !# <eventHook name="postEvolve">
        !#  <callWith>node</callWith>
        !# </eventHook>
-    end if    
+    end if
     return
   end subroutine standardEvolve
 
   logical function standardIsAccurate(self,valueNode,valueExpected)
     !% Return true if a tree node property is within expected accuracy of a given value.
-    use Numerical_Comparison, only : Values_Agree
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (mergerTreeNodeEvolverStandard), intent(inout) :: self
     double precision                               , intent(in   ) :: valueNode, valueExpected
@@ -688,7 +689,7 @@ contains
 
   subroutine standardIntegrands(propertyCountActive,propertyCountInactive,time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
     !% A set of integrands for unit tests.
-    use Galacticus_Nodes, only : rateComputeState, propertyTypeInactive
+    use :: Galacticus_Nodes, only : interruptTask, propertyTypeInactive, rateComputeState
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive                 , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
@@ -703,9 +704,9 @@ contains
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
     ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
-    ! revisited.    
+    ! revisited.
     !GCC$ attributes unused :: evaluate
-    
+
     ! Set state to indicate that rate calculations are for inactive variables.
     rateComputeState=standardSelf%propertyTypeIntegrator
     ! Iterate over times.
@@ -722,7 +723,7 @@ contains
           call standardSelf%activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
           call standardSelf%galacticStructureSolver_%revert(standardSelf%activeNode                                                                             )
-          call standardDerivativesCompute                  (standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeIntegrator)      
+          call standardDerivativesCompute                  (standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeIntegrator)
           ! Serialize rates into integrand array.
           call standardSelf%activeNode%serializeRates(integrands(:,iTime),standardSelf%propertyTypeIntegrator)
        end if
@@ -740,7 +741,7 @@ contains
     implicit none
     integer         , intent(in   )                                 :: propertyCountActive
     double precision, intent(in   ), dimension(propertyCountActive) :: propertyValues
-    
+
     call standardSelf%activeNode%deserializeValues(propertyValues(1:propertyCountActive),standardSelf%propertyTypeODE)
     !# <include directive="finalStateTask" type="functionCall" functionType="void">
     !#  <functionArgs>standardSelf%activeNode</functionArgs>
@@ -748,14 +749,14 @@ contains
     !# </include>
     return
   end subroutine standardFinalStateProcessing
-  
+
   integer function standardODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
-    use ODE_Solver_Error_Codes, only : odeSolverInterrupt   , interruptedAtX
-    use Galacticus_Nodes      , only : nodeComponentBasic
-    use FGSL                  , only : FGSL_Success
-    use Galacticus_Error      , only : errorStatusXCPU
-    use FODEIV2               , only : FODEIV2_Driver_Errors
+    use :: FGSL                  , only : FGSL_Success
+    use :: FODEIV2               , only : FODEIV2_Driver_Errors
+    use :: Galacticus_Error      , only : errorStatusXCPU
+    use :: Galacticus_Nodes      , only : interruptTask        , nodeComponentBasic
+    use :: ODE_Solver_Error_Codes, only : interruptedAtX       , odeSolverInterrupt
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -808,7 +809,7 @@ contains
        standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=0.0d0
     else
        ! Compute derivatives.
-       call standardDerivativesCompute(standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeODE)      
+       call standardDerivativesCompute(standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
@@ -835,7 +836,7 @@ contains
 
   integer function standardODEsJacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
-    use FGSL, only : FGSL_Success
+    use :: FGSL, only : FGSL_Success
     implicit none
     double precision                                                                                             , intent(in   ) :: time
     double precision               , dimension(:                                                                ), intent(in   ) :: propertyValues0
@@ -848,7 +849,7 @@ contains
     logical                                                                                                                      :: interrupt                    , odeConverged
     integer                                                                                                                      :: i
     double precision                                                                                                             :: propertyValueDelta
-    
+
     ! Return success by default.
     standardODEsJacobian=FGSL_Success
     ! No explicit time dependence.
@@ -900,10 +901,10 @@ contains
     derivativeRatesValues=reshape(jacobian,[standardSelf%propertyCountActive**2])
     return
   end function standardODEsJacobian
-  
+
   subroutine standardDerivativesCompute(node,odeConverged,interrupt,functionInterruptReturn,propertyType)
     !% Call routines to set alls derivatives for {\normalfont \ttfamily node}.
-    use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     !# <include directive="rateComputeTask" type="moduleUse">
     include 'objects.node.component.derivatives.modules.inc'
     !# </include>
@@ -924,8 +925,8 @@ contains
     !# <eventHook name="preDerivative">
     !#  <callWith>node,propertyType</callWith>
     !# </eventHook>
-    ! Do not attempt to compute derivatives for nodes which are not solvable.    
-    if (.not.node%isSolvable) return   
+    ! Do not attempt to compute derivatives for nodes which are not solvable.
+    if (.not.node%isSolvable) return
     ! Call component routines to compute derivatives.
     !# <include directive="rateComputeTask" type="functionCall" functionType="void">
     !#  <functionArgs>node,odeConverged,interrupt,functionInterrupt,propertyType</functionArgs>
@@ -938,11 +939,15 @@ contains
 
   subroutine standardErrorHandler(status,time,y)
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
-    use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
     use            :: FODEIV2           , only : FODEIV2_Driver_Errors
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
+    use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
     use            :: String_Handling   , only : operator(//)
-    use            :: Galacticus_Display, only : Galacticus_Display_Message    , Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                       Galacticus_Verbosity_Level_Set, verbosityStandard
+    use            :: FODEIV2           , only : FODEIV2_Driver_Errors
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
+    use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
     implicit none
     integer         (kind=c_int    ), intent(in   )                                              :: status
     real            (kind=c_double ), intent(in   )                                              :: time
@@ -972,7 +977,7 @@ contains
        ! Evaluate derivatives.
        odeStatus=standardODEs(time,y,dydt)
        call Galacticus_Display_Indent('ODE system parameters')
-       lengthMaximum=0    
+       lengthMaximum=0
        do i=1,standardSelf%propertyCountActive
           lengthMaximum=max(lengthMaximum,len(standardSelf%activeNode%nameFromIndex(i,standardSelf%propertyTypeODE)))
        end do
@@ -1009,7 +1014,7 @@ contains
     double precision               , dimension(standardSelf%propertyCountActive) :: standardODEStepTolerances
     double precision, intent(in   ), dimension(standardSelf%propertyCountActive) :: propertyValues
     integer                                                                      :: i
-    
+
     forall(i=1:standardSelf%propertyCountActive)
        standardODEStepTolerances(i)=+    standardSelf%odeToleranceRelative     &
             &                       *abs(propertyValues                   (i)) &
@@ -1018,11 +1023,11 @@ contains
     end forall
     return
   end function standardODEStepTolerances
-  
+
   subroutine standardPostStepProcessing(y,status) bind(c)
     !% Perform any post-step actions on the node.
-    use, intrinsic :: ISO_C_Binding, only : c_int       , c_double
-    use               FGSL         , only : FGSL_Success
+    use            :: FGSL         , only : FGSL_Success
+    use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
@@ -1038,12 +1043,12 @@ contains
     if (status /= FGSL_Success) call standardSelf%activeNode%serializeValues(y,standardSelf%propertyTypeODE)
     return
   end subroutine standardPostStepProcessing
-  
+
   subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use, intrinsic :: ISO_C_Binding                   , only : c_int                          , c_double
-    use               FGSL                            , only : FGSL_Success
-    use               Galacticus_Meta_Evolver_Profiler, only : Galacticus_Meta_Evolver_Profile
+    use            :: FGSL                            , only : FGSL_Success
+    use            :: Galacticus_Meta_Evolver_Profiler, only : Galacticus_Meta_Evolver_Profile
+    use, intrinsic :: ISO_C_Binding                   , only : c_double                       , c_int
     implicit none
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyValue
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyError
@@ -1053,9 +1058,9 @@ contains
          &                                                                                                 scaledErrorMaximum
     integer                                                                                             :: iProperty           , limitingProperty
     type            (varying_string)                                                                    :: propertyName
-   
+
     ! If the step was not good, return immediately.
-    if (stepStatus /= FGSL_Success) return    
+    if (stepStatus /= FGSL_Success) return
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     do iProperty=1,standardSelf%propertyCountActive
@@ -1075,11 +1080,11 @@ contains
     end if
     return
   end subroutine standardStepErrorAnalyzer
-  
+
   subroutine standardPromote(self,node)
     !% Transfer the properties of {\normalfont \ttfamily node} to its parent node, then destroy it.
     use String_Handling   , only : operator(//)
-    use Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     !# <include directive="nodePromotionTask" type="moduleUse">
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
@@ -1090,7 +1095,7 @@ contains
          &                                                          mergeeNode, hostNode
     type (varying_string               )                         :: message
     !GCC$ attributes unused :: self
-    
+
     ! Get pointer to parent node.
     parentNode => node%parent
     ! Display a message.
@@ -1102,7 +1107,7 @@ contains
     ! Perform any processing necessary before this halo is promoted. (Note that the eventHook is after the old-style include
     ! directive here as we want galactic structure solvers to be calledafter any node component functions. Once node component
     ! functions move to hooking to the nodePromotionTask event we will need to introduce a mechanism to specify dependencies in
-    ! the event hook call order.)    
+    ! the event hook call order.)
     !# <include directive="nodePromotionTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'objects.tree_node.promote.inc'
@@ -1129,7 +1134,7 @@ contains
        hostNode => parentNode
        do while (hostNode%isSatellite())
           hostNode => hostNode%parent
-       end do   
+       end do
        ! Attach the satellite nodes to the parent.
        if (associated(hostNode%firstSatellite)) then
           ! Find the last satellite of the parent node.
@@ -1171,7 +1176,7 @@ contains
 
   subroutine standardMerge(self,node)
     !% Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
-    use Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use String_Handling   , only : operator(//)
     !# <include directive="nodeMergerTask" type="moduleUse">
     include 'events.node_mergers.process.modules.inc'
@@ -1180,13 +1185,13 @@ contains
     class(mergerTreeNodeEvolverStandard), intent(inout)          :: self
     type (treeNode                     ), intent(inout), pointer :: node
     type (varying_string               )                         :: message
-    
+
     ! Display a message.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Making node '
        message=message//node%index()//' a satellite in '//node%parent%index()
        call Galacticus_Display_Message(message,verbosityInfo)
-    end if    
+    end if
     ! Call subroutines to perform any necessary processing prior to this node merger event.
     !# <include directive="nodeMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>

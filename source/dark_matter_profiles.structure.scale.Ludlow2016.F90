@@ -20,11 +20,11 @@
   !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
   !% algorithm.
 
-  use Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
-  use Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass 
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
-  use Root_Finder
-  
+  use :: Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass , cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Root_Finder             , only : rootFinder
+
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
   !#  <description>
   !# Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
@@ -86,18 +86,18 @@
   integer                 , parameter                 :: ludlow2016StatesIncrement=10
   integer                                             :: ludlow2016StateCount     = 0
   !$omp threadprivate(ludlow2016States, ludlow2016StateCount)
-  
+
 contains
 
   function ludlow2016ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
-    use Input_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_     
+    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     double precision                                                        :: C                            , f, &
@@ -140,16 +140,16 @@ contains
     !# <objectDestructor name="darkMatterProfileDMO_"        />
     return
   end function ludlow2016ConstructorParameters
-  
+
   function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &
          &                                                                             timeFormationSeekDelta
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
+    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *darkMatterProfileDMO_"/>
@@ -163,7 +163,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"          />
     !# <objectDestructor name="self%cosmologyParameters_"         />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
@@ -174,14 +174,14 @@ contains
   double precision function ludlow2016Radius(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
-    use Galacticus_Nodes                    , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use Galacticus_Calculations_Resets
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use Dark_Matter_Profile_Mass_Definitions
-    use Merger_Tree_Walkers
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
+    use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
+    use :: Numerical_Comparison                , only : Values_Agree
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Root_Finder                         , only : rangeExpandMultiplicative          , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout), target       :: self
     type            (treeNode                              ), intent(inout), target       :: node
@@ -240,7 +240,7 @@ contains
              basic                                                         =>  node                      %basic                 (                               )
              ludlow2016States(ludlow2016StateCount)%self                   =>  self
              ludlow2016States(ludlow2016StateCount)%node                   =>  node
-             ludlow2016States(ludlow2016StateCount)%hubbleParameterPresent =   self%cosmologyFunctions_  %hubbleParameterEpochal(expansionFactor=1.0d0          ) 
+             ludlow2016States(ludlow2016StateCount)%hubbleParameterPresent =   self%cosmologyFunctions_  %hubbleParameterEpochal(expansionFactor=1.0d0          )
              ludlow2016States(ludlow2016StateCount)%timePrevious           =  -1.0d0
              ludlow2016States(ludlow2016StateCount)%densityContrast        =  -huge(0.0d0)
           end if
@@ -349,7 +349,7 @@ contains
 
   subroutine ludlow2016FormationTimeRootFunctionSet(self,finder)
     !% Initialize the finder object to compute the relevant formation history.
-    use Root_Finder
+    use :: Root_Finder, only : rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
     type            (rootFinder                            ), intent(inout) :: finder
@@ -362,12 +362,12 @@ contains
     end if
     return
   end subroutine ludlow2016FormationTimeRootFunctionSet
-  
+
   double precision function ludlow2016FormationTimeRoot(timeFormation)
     !% Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2016} concentration algorithm.
-    use Galacticus_Nodes                    , only : nodeComponentBasic
-    use Dark_Matter_Profile_Mass_Definitions
-    use Merger_Tree_Walkers
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
     implicit none
     double precision                                     , intent(in   ) :: timeFormation
     type            (treeNode                           ), pointer       :: nodeBranch   , nodeChild        , &
@@ -420,7 +420,7 @@ contains
                    ! No interpolation in mass for non-primary progenitors.
                    if (massProgenitor >= ludlow2016States(ludlow2016StateCount)%massLimit) &
                         & massBranch=+massBranch                                           &
-                        &            +massProgenitor 
+                        &            +massProgenitor
                 end if
              end if
              nodeChild => nodeChild%sibling
@@ -442,7 +442,7 @@ contains
     implicit none
     type            (ludlow2016State), intent(inout) :: state
     double precision                 , intent(in   ) :: time
-    
+
     if (time /= state%timePrevious) then
        state%timePrevious   =+time
        state%densityContrast=+  state%self                    %densityContrast                       &
@@ -455,4 +455,4 @@ contains
     ludlow2016DensityContrast=state%densityContrast
     return
   end function ludlow2016DensityContrast
-  
+

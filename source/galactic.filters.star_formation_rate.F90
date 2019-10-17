@@ -28,7 +28,7 @@
   !#  \end{equation}
   !#  where $M_0=${\normalfont \ttfamily [starFormationRateThresholdLogM0]}, $\alpha_0=${\normalfont
   !#  \ttfamily [starFormationRateThresholdLogSFR0]}, and $\alpha_1=${\normalfont \ttfamily
-  !#  [starFormationRateThresholdLogSFR1]}.  
+  !#  [starFormationRateThresholdLogSFR1]}.
   !#  </description>
   !# </galacticFilter>
   type, extends(galacticFilterClass) :: galacticFilterStarFormationRate
@@ -50,7 +50,7 @@ contains
 
   function starFormationRateConstructorParameters(parameters)
     !% Constructor for the ``starFormationRate'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterStarFormationRate)                :: starFormationRateConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters
@@ -102,7 +102,7 @@ contains
 
   logical function starFormationRatePasses(self,node)
     !% Implement an starFormationRate-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentDisk
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterStarFormationRate), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

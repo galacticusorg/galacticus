@@ -38,7 +38,7 @@ contains
 
   function neverConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily never} posterior sampling stopping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleStoppingCriterionNever)                :: self
     type(inputParameters                      ), intent(inout) :: parameters

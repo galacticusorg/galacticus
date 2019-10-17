@@ -21,9 +21,9 @@
 !% outflows.
 
 module Node_Component_Hot_Halo_Outflow_Tracking
-  !% Implements an extension of the standard hot halo node component which tracks the metals arriving from               
+  !% Implements an extension of the standard hot halo node component which tracks the metals arriving from
   !% outflows.
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set          , &
@@ -58,7 +58,7 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !#  </bindings>
   !#  <functions>objects.nodes.components.hot_halo.outflow_tracking.bound_functions.inc</functions>
   !# </component>
-  
+
   ! Objects used by this component.
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
   !$omp threadprivate(darkMatterHaloScale_)
@@ -70,8 +70,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk profile module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -86,7 +86,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
-    use Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
@@ -100,9 +100,10 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
-    use Abundances_Structure
-    use Node_Component_Hot_Halo_Standard_Data
-    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, propertyTypeInactive, defaultHotHaloComponent, interruptTask
+    use :: Abundances_Structure                 , only : abundances              , operator(*)
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent , interruptTask, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, &
+          &                                              propertyTypeInactive    , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnRate
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -113,7 +114,7 @@ contains
     double precision                                                       :: massReturnRate
     type            (abundances                  )                         :: abundancesReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -138,10 +139,8 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Dark_Matter_Halo_Scales
-    use Galacticus_Nodes             , only : treeNode, nodeComponentHotHalo, nodeComponentBasic, nodeComponentHotHaloOutflowTracking
+    use :: Abundances_Structure, only : unitAbundances
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, treeNode
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo

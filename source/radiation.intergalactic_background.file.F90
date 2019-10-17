@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a class for intergalactic background light.
-  
-  use, intrinsic :: ISO_C_Binding
-  use            :: Cosmology_Functions
+
+  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
   use            :: FGSL               , only : fgsl_interp_accel
+  use, intrinsic :: ISO_C_Binding
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundFile">
   !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
@@ -59,7 +59,7 @@
      module procedure intergalacticBackgroundFileConstructorParameters
      module procedure intergalacticBackgroundFileConstructorInternal
   end interface radiationFieldIntergalacticBackgroundFile
-  
+
   ! Current file format version for intergalactic background radiation files.
   integer, parameter :: intergalacticBackgroundFileFormatVersionCurrent=1
 
@@ -67,7 +67,7 @@ contains
 
   function intergalacticBackgroundFileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldIntergalacticBackgroundFile)                :: self
     type (inputParameters                          ), intent(inout) :: parameters
@@ -90,12 +90,11 @@ contains
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
-    use FoX_DOM
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Memory_Management
-    use Array_Utilities
-    use Galacticus_Paths
-    use IO_XML
+    use :: Array_Utilities  , only : Array_Is_Monotonic     , Array_Reverse , directionIncreasing
+    use :: FoX_DOM
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: IO_XML           , only : XML_Array_Length       , XML_Array_Read, XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
+    use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                        :: self
     type   (varying_string                           ), intent(in   )         :: fileName
@@ -170,10 +169,10 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine intergalacticBackgroundFileDestructor
-  
+
   double precision function intergalacticBackgroundFileFlux(self,wavelength,node)
     !% Return the flux in the intergalactic background radiation field.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout)  :: self
     double precision                                           , intent(in   )  :: wavelength
@@ -211,7 +210,7 @@ contains
 
   subroutine intergalacticBackgroundFileTimeSet(self,time)
     !% Set the time of the intergalactic backgroun radiation field.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
     double precision                                           , intent(in   ) :: time

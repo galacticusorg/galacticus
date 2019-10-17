@@ -21,12 +21,14 @@
 
 program Test_Accretion_Disks
   !% Tests of accretion disk functions.
-  use Galacticus_Nodes            , only : nodeComponentBlackHoleStandard
-  use Numerical_Constants_Prefixes
-  use Numerical_Constants_Physical
-  use Accretion_Disks
-  use Unit_Tests
-  use Galacticus_Display
+  use :: Accretion_Disks             , only : accretionDisksADAF            , adafEnergyPureADAF    , adafFieldEnhancementExponential, adafRadiativeEfficiencyTypeFixed, &
+          &                                   adafViscosityFit
+  use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Nodes            , only : nodeComponentBlackHoleStandard
+  use :: Numerical_Constants_Physical, only : speedLight
+  use :: Numerical_Constants_Prefixes, only : kilo
+  use :: Unit_Tests                  , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish               , &
+          &                                   compareEquals
   implicit none
   double precision                                , dimension(6) :: spin            =[0.000d+0,0.200d+0,0.400d+0,0.600d+0,0.800d+0,0.950d+0]
   double precision                                , dimension(6) :: jetPowerExpected=[2.993d-3,3.916d-3,6.571d-3,1.564d-2,5.246d-2,4.119d-1]
@@ -37,7 +39,7 @@ program Test_Accretion_Disks
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Accretion disks")
   ! Build an accretion disk.

@@ -53,5 +53,5 @@ module Power_Spectrum_Window_Functions
   !#   </code>
   !#  </method>
   !# </functionClass>
-  
+
 end module Power_Spectrum_Window_Functions

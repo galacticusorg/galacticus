@@ -34,13 +34,13 @@ program XRay_Absorption_ISM_Wilms2000
   !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
   !% \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
   !% Galacticus::ISMColumnDensity} module.
-  use Numerical_Ranges
-  use Numerical_Constants_Units
-  use Numerical_Constants_Prefixes
-  use Dates_and_Times
-  use HDF5
-  use IO_HDF5
-  use Atomic_Cross_Sections_Compton
+  use :: Atomic_Cross_Sections_Compton
+  use :: Dates_and_Times              , only : Formatted_Date_and_Time
+  use :: HDF5
+  use :: IO_HDF5                      , only : hdf5Object
+  use :: Numerical_Constants_Prefixes , only : kilo
+  use :: Numerical_Constants_Units    , only : electronVolt
+  use :: Numerical_Ranges             , only : Make_Range
   implicit none
   integer                                                                , parameter :: energyCount       =1000
   integer                                                                , parameter :: metallicityCount  =100
@@ -127,7 +127,7 @@ end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
   !% Error message function required by {\normalfont \ttfamily dotbvabs}.
-  use Galacticus_Error, only : Galacticus_Error_Report
+  use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=*), intent(in   ) :: a, b, c
   integer         , intent(in   ) :: i, j
@@ -141,7 +141,7 @@ end subroutine xermsg
 
 real function fgabnd(c)
   !% Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
-  use Galacticus_Error, only : Galacticus_Error_Report
+  use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=2), intent(in   ) :: c
 

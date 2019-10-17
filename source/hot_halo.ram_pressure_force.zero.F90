@@ -35,15 +35,15 @@
   end interface hotHaloRamPressureForceZero
 
 contains
-  
+
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} hot halo ram pressure force class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(hotHaloRamPressureForceZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=hotHaloRamPressureForceZero()
     return
   end function zeroConstructorParameters
@@ -54,7 +54,7 @@ contains
     class(hotHaloRamPressureForceZero), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     zeroForce=0.0d0
     return
   end function zeroForce

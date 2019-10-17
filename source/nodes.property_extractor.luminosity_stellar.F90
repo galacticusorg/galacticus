@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  use ISO_Varying_String
-  use Output_Times
+  use :: ISO_Varying_String
+  use :: Output_Times      , only : outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
@@ -54,7 +54,7 @@ contains
 
   function luminosityStellarConstructorParameters(parameters) result(self)
     !% Constructor for the ``luminosityStellar'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -116,12 +116,12 @@ contains
     !# <objectDestructor name="outputTimes_"/>
     return
   end function luminosityStellarConstructorParameters
-  
+
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !% Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
-    use               Stellar_Luminosities_Structure
-    use               Memory_Management
+    use            :: Memory_Management             , only : allocateArray
+    use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                                        :: self
     character       (len=*                                 ), intent(in   )                         :: filterName      , filterType
@@ -154,10 +154,9 @@ contains
     end if
     return
   end function luminosityStellarConstructorInternal
-  
+
   subroutine luminosityStellarDestructor(self)
     !% Destructor for the ``luminosityStellar'' output analysis property extractor class.
-    use               Memory_Management
     implicit none
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
 
@@ -167,10 +166,10 @@ contains
 
   double precision function luminosityStellarExtract(self,node,instance)
     !% Implement a stellar luminosity output analysis property extractor.
+    use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use            :: Galactic_Structure_Options        , only : massTypeStellar                 , radiusLarge, weightByLuminosity
+    use            :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Galactic_Structure_Enclosed_Masses
-    use               Galactic_Structure_Options
-    use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class  (nodePropertyExtractorLuminosityStellar), intent(inout)           :: self
     type   (treeNode                              ), intent(inout), target   :: node
@@ -184,10 +183,10 @@ contains
     luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,            radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
     return
   end function luminosityStellarExtract
-  
+
   integer function luminosityStellarType(self)
     !% Return the type of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -198,7 +197,7 @@ contains
 
   integer function luminosityStellarQuantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -226,10 +225,10 @@ contains
     luminosityStellarDescription=self%description_
     return
   end function luminosityStellarDescription
-  
+
   double precision function luminosityStellarUnitsInSI(self)
     !% Return the units of the luminosityStellar property in the SI system.
-    use Numerical_Constants_Astronomical, only : luminosityZeroPointAB
+    use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
     !GCC$ attributes unused :: self

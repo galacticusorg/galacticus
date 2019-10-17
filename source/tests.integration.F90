@@ -21,12 +21,12 @@
 
 program Test_Integration
   !% Tests that numerical integration routines work.
-  use Unit_Tests
-  use Numerical_Integration
-  use Test_Integration_Functions
-  use Numerical_Constants_Math
-  use Galacticus_Display
-  use FGSL                      , only : fgsl_function, fgsl_integration_workspace
+  use :: FGSL                      , only : fgsl_function                 , fgsl_integration_workspace
+  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Constants_Math  , only : Pi
+  use :: Numerical_Integration     , only : Integrate
+  use :: Test_Integration_Functions, only : Integrand1                    , Integrand2                , Integrand3          , Integrand4
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                             :: integral
   type            (fgsl_function             ) :: integrandFunction
@@ -44,7 +44,7 @@ program Test_Integration
   integral=Integrate(0.0d0,1.0d0,Integrand1,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
   call Assert("integrate f(x)=x          from x=0……1"          ,integral,0.5d0             ,relTol=1.0d-6)
-  
+
   integrationReset=.true.
   integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)

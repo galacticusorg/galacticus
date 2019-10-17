@@ -19,14 +19,14 @@
 
   !% Implements a class for intergalactic background light which computes the background internally.
 
-  use FGSL                                  , only : fgsl_interp_accel
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Intergalactic_Medium_State
-  use Atomic_Cross_Sections_Ionization_Photo
-  use Accretion_Disk_Spectra
-  use Stellar_Population_Selectors
-  use Output_Times
+  use :: Accretion_Disk_Spectra                , only : accretionDiskSpectraClass
+  use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
+  use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters                  , only : cosmologyParametersClass
+  use :: FGSL                                  , only : fgsl_interp_accel
+  use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass
+  use :: Output_Times                          , only : outputTimesClass
+  use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundInternal">
   !#  <description>A radiation field class for intergalactic background light with properties computed internally.</description>
@@ -78,12 +78,12 @@
   ! Module-scope pointer to self for ODE solving.
   class(radiationFieldIntergalacticBackgroundInternal), pointer :: intergalacticBackgroundInternalSelf
   !$omp threadprivate(intergalacticBackgroundInternalSelf)
-  
+
 contains
 
   function intergalacticBackgroundInternalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -97,7 +97,7 @@ contains
     integer                                                                        :: wavelengthCountPerDecade          , timeCountPerDecade
     double precision                                                               :: wavelengthMinimum                 , wavelengthMaximum , &
          &                                                                            redshiftMinimum                   , redshiftMaximum
-     
+
     !# <inputParameter>
     !#   <name>wavelengthCountPerDecade</name>
     !#   <cardinality>1</cardinality>
@@ -167,8 +167,8 @@ contains
 
   function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
-    use Numerical_Ranges
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                        :: self
     integer                                                        , intent(in   )         :: wavelengthCountPerDecade          , timeCountPerDecade
@@ -202,7 +202,7 @@ contains
          &                           /self%wavelengthMinimum       &
          &                          )                              &
          &                   )                                     &
-         &               +1             
+         &               +1
     self%timeCount      =+int(                                     &
          &                    +dble(self%timeCountPerDecade      ) &
          &                    *log10(                              &
@@ -256,12 +256,12 @@ contains
     self%interpolationResetTime=.true.
     return
   end function intergalacticBackgroundInternalConstructorInternal
-  
+
   subroutine intergalacticBackgroundInternalAutoHook(self)
-    use Events_Hooks
+    use :: Events_Hooks, only : universePreEvolveEvent
     implicit none
     class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
-    
+
     ! Hook to universe pre-evolve events.
     !$omp master
     call universePreEvolveEvent%attach(self,intergalacticBackgroundInternalUniversePreEvolve)
@@ -289,20 +289,16 @@ contains
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
-    
+
     self%timeCurrent=time
     return
   end subroutine intergalacticBackgroundInternalTimeSet
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !% Return the flux in the internally-computed intergalatic background.
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Interpolation
-    use            :: Numerical_Constants_Astronomical
-    use            :: Numerical_Constants_Physical
-    use            :: Numerical_Constants_Units
-    use            :: Numerical_Constants_Atomic
-    use            :: Galacticus_Error
+    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
     double precision                                               , intent(in   )  :: wavelength
@@ -344,23 +340,23 @@ contains
     intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     return
   end function intergalacticBackgroundInternalFlux
-  
+
   subroutine intergalacticBackgroundInternalUniversePreEvolve(self,universe_)
     !% Attach an initial event to the universe to cause the background radiation update function to be called.
-    use Galacticus_Nodes, only : universe, universeEvent
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : universe               , universeEvent
     implicit none
     class(*                                   ), intent(inout), target :: self
     type (universe                            ), intent(inout)         :: universe_
     type (universeEvent                       ), pointer               :: event
     type (intergalacticBackgroundInternalState), pointer               :: state
-    
+
     select type (self)
     class is (radiationFieldIntergalacticBackgroundInternal)
        ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new event here - we want only one event per universe.
        if (.not.universe_%attributes%exists('radiationFieldIntergalacticBackgroundInternal')) then
           ! Create the first interrupt event in the universe object.
-          event                       => universe_%createEvent( ) 
+          event                       => universe_%createEvent( )
           event%time                  =  self     %time       (1)
           event%creator               => self
           event%task                  => intergalacticBackgroundInternalUpdate
@@ -378,43 +374,41 @@ contains
     end select
     return
   end subroutine intergalacticBackgroundInternalUniversePreEvolve
-  
+
   logical function intergalacticBackgroundInternalUpdate(event,universe_) result (success)
     !% Update the radiation background for a given universe.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Kind_Numbers
-    use            :: Galacticus_Display
-    use            :: Galactic_Structure_Options
-    use            :: Galacticus_Error
-    use            :: Merger_Tree_Walkers
-    use            :: Stellar_Populations
-    use            :: Stellar_Population_Spectra
-    use            :: Arrays_Search
+    use            :: Abundances_Structure        , only : abundances                   , max
+    use            :: Arrays_Search               , only : Search_Array_For_Closest
+    use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
     use            :: FODEIV2
-    use            :: ODEIV2_Solver
-    use            :: Numerical_Constants_Prefixes
-    use            :: Numerical_Constants_Math
-    use            :: Numerical_Constants_Physical
-    use            :: Numerical_Constants_Units
-    use            :: Numerical_Integration
+    use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Galacticus_Error            , only : Galacticus_Error_Report
+    use            :: Galacticus_HDF5             , only : galacticusOutputFile
+    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent  , mergerTreeList             , nodeComponentBasic, &
+          &                                                nodeComponentDisk            , nodeComponentSpheroid     , treeNode                   , universe          , &
+          &                                                universeEvent
+    use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
+    use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
-    use            :: Galacticus_HDF5
-    use            :: IO_HDF5
-    use            :: FGSL                       , only : fgsl_function           , fgsl_integration_workspace, FGSL_Success
-    use            :: Galacticus_Nodes           , only : universeEvent           , universe                  , mergerTreeList, nodeComponentBasic  , &
-         &                                                nodeComponentDisk       , nodeComponentSpheroid     , treeNode      , defaultDiskComponent, &
-         &                                                defaultSpheroidComponent
-    use            :: Abundances_Structure       , only : abundances
+    use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
+    use            :: Numerical_Constants_Math    , only : Pi
+    use            :: Numerical_Constants_Physical, only : plancksConstant              , speedLight
+    use            :: Numerical_Constants_Prefixes, only : centi
+    use            :: Numerical_Constants_Units   , only : angstromsPerMeter            , ergs
+    use            :: Numerical_Integration       , only : Integrate                    , Integrate_Done
+    use            :: ODEIV2_Solver               , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
+    use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
+    use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
     class           (universeEvent                       ), intent(in   ) :: event
     type            (universe                            ), intent(inout) :: universe_
-    type            (mergerTreeList                      ), pointer       :: forest       
+    type            (mergerTreeList                      ), pointer       :: forest
     type            (treeNode                            ), pointer       :: node
     class           (nodeComponentBasic                  ), pointer       :: basic
     class           (nodeComponentDisk                   ), pointer       :: disk
     class           (nodeComponentSpheroid               ), pointer       :: spheroid
     type            (universeEvent                       ), pointer       :: eventNew
-    class           (stellarPopulationClass              ), pointer       :: stellarPopulationDisk_               , stellarPopulationSpheroid_ 
+    class           (stellarPopulationClass              ), pointer       :: stellarPopulationDisk_               , stellarPopulationSpheroid_
     class           (stellarPopulationSpectraClass       ), pointer       :: stellarPopulationSpectraDisk_        , stellarPopulationSpectraSpheroid_       , &
          &                                                                   stellarPopulationSpectra_
     double precision                                      , parameter     :: odeToleranceAbsolute         =1.0d-30, odeToleranceRelative             =1.0d-3
@@ -431,7 +425,7 @@ contains
     double precision                                                      :: starFormationRateDisk                , starFormationRateSpheroid               , &
          &                                                                   gasMassDisk                          , gasMassSpheroid                         , &
          &                                                                   ageEnd                               , ageStart                                , &
-         &                                                                   stellarSpectrumDisk                  , stellarSpectrumSpheroid                 , & 
+         &                                                                   stellarSpectrumDisk                  , stellarSpectrumSpheroid                 , &
          &                                                                   timeStart                            , timeEnd                                 , &
          &                                                                   treeTimeLatest                       , wavelength
     integer                                                               :: iTime                                , iWavelength
@@ -491,7 +485,7 @@ contains
                          ageStart=max(self%time(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
-                      do iWavelength=1,self%wavelengthCount                         
+                      do iWavelength=1,self%wavelengthCount
                          wavelength                =  self%wavelength(iWavelength)
                          stellarPopulationSpectra_ => stellarPopulationSpectraDisk_
                          gasAbundances             => gasAbundancesDisk
@@ -632,9 +626,10 @@ contains
     return
 
   contains
-    
+
     double precision function stellarSpectraConvolution(age)
       !% Integrand for convolution of stellar spectra.
+      use :: Galacticus_Error, only : errorStatusSuccess, errorStatusInputDomain
       implicit none
       double precision, intent(in   ) :: age
       integer                         :: status
@@ -657,18 +652,19 @@ contains
     end function stellarSpectraConvolution
 
   end function intergalacticBackgroundInternalUpdate
-    
+
   integer function intergalacticBackgroundInternalODEs(time,spectrum,spectrumRateOfChange)
     !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
-    use ODE_Solver_Error_Codes
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Numerical_Constants_Atomic
-    use FGSL                            , only : FGSL_Success
+    use :: FGSL                            , only : FGSL_Success
+    use :: Numerical_Constants_Astronomical, only : gigaYear         , heliumByMassPrimordial, hydrogenByMassPrimordial, luminositySolar, &
+          &                                         massSolar        , megaParsec
+    use :: Numerical_Constants_Atomic      , only : atomicMassHelium , atomicMassHydrogen    , atomicMassUnit
+    use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Prefixes    , only : centi
+    use :: Numerical_Constants_Units       , only : angstromsPerMeter
     implicit none
     double precision, intent(in   )               :: time
-    double precision, intent(in   ), dimension(:) :: spectrum            
+    double precision, intent(in   ), dimension(:) :: spectrum
     double precision, intent(  out), dimension(:) :: spectrumRateOfChange
     double precision                              :: spectralGradient    (intergalacticBackgroundInternalSelf%wavelengthCount)
     double precision                              :: expansionFactor

@@ -19,7 +19,7 @@
 
 !% Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.
 
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryLiWhite2009SDSS">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.</description>
@@ -46,7 +46,7 @@ contains
 
   function liWhite2009SDSSConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{li_distribution_2009} survey geometry class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLiWhite2009SDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -70,7 +70,7 @@ contains
     !#   <description>The maximum redshift for the survey.</description>
     !#   <type>integer</type>
     !#   <cardinality>1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     ! Build the object.
     self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -80,8 +80,8 @@ contains
 
   function liWhite2009SDSSConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
     !% Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions        , only : cosmologyFunctionsClass
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryLiWhite2009SDSS)                        :: self
     double precision                               , intent(in   )         :: redshiftMinimum    , redshiftMaximum
@@ -108,11 +108,11 @@ contains
     !% Destructor for the ``liWhite2009SDSS'' survey geometry class.
     implicit none
     type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine liWhite2009SDSSDestructor
-  
+
   double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
@@ -120,22 +120,22 @@ contains
     double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
   end function liWhite2009SDSSDistanceMinimum
 
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions_Options
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
     double precision                                                         :: redshift, logarithmicMass
     !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
@@ -175,13 +175,13 @@ contains
 
   double precision function liWhite2009SDSSSolidAngle(self,field)
     !% Return the solid angle of the \cite{li_distribution_2009} sample.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     integer                                        , intent(in   ), optional :: field
     double precision                               , parameter               :: solidAngleSurvey=2.1901993d0 ! From Percival et al. (2010; MNRAS; 401; 2148)
     !GCC$ attributes unused :: self
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     liWhite2009SDSSSolidAngle=solidAngleSurvey
@@ -190,15 +190,15 @@ contains
 
   subroutine liWhite2009SDSSRandomsInitialize(self)
     !% Compute the window function for the survey.
-    use ISO_Varying_String
-    use String_Handling
-    use File_Utilities
-    use Galacticus_Paths
-    use Memory_Management
-    use System_Command
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use Numerical_Constants_Math
+    use :: File_Utilities          , only : Directory_Make            , File_Exists        , Count_Lines_In_File
+    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic
+    use :: ISO_Varying_String
+    use :: Memory_Management       , only : allocateArray             , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi
+    use :: String_Handling         , only : operator(//)
+    use :: System_Command          , only : System_Command_Do
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)             :: self
     double precision                               , allocatable, dimension(:) :: angleTmp
@@ -206,7 +206,7 @@ contains
          &                                                                        i             , randomUnit
     double precision                                                           :: rightAscension, declination
     type            (varying_string               )                            :: message
-    
+
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
        call Directory_Make(galacticusPath(pathTypeDataDynamic)//"surveyGeometry")

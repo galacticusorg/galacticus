@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
-  use Virial_Density_Contrast
-  use Tables
+  use :: Tables                 , only : table1DGeneric
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !# <enumeration>
   !#  <name>tinker2008Parameter</name>
@@ -74,16 +74,16 @@ contains
 
   function tinker2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tinker2008} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionTinker2008   )                :: self
     type (inputParameters              ), intent(inout) :: parameters
-    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_    
+    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     class(linearGrowthClass            ), pointer       :: linearGrowth_
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -108,16 +108,16 @@ contains
 
   function tinker2008ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
-    use FoX_DOM
-    use IO_XML
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Paths
-    use Table_Labels
-    use ISO_Varying_String
-    use File_Utilities
+    use :: File_Utilities    , only : File_Exists
+    use :: FoX_DOM
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String
+    use :: Table_Labels      , only : extrapolationTypeExtrapolate
     implicit none
     type            (haloMassFunctionTinker2008   )                             :: self
-    class           (cosmologyParametersClass     ), target     , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass     ), target     , intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass), target     , intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass            ), target     , intent(in   ) :: linearGrowth_
     class           (cosmologyFunctionsClass      ), target     , intent(in   ) :: cosmologyFunctions_
@@ -128,7 +128,7 @@ contains
     integer                                                                     :: i                            , ioStatus
     type            (varying_string               )                             :: parameterFileName
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_, *virialDensityContrast_"/>
-    
+
     self%time          =-1.0d0
     self%mass          =-1.0d0
     self%timeParameters=-1.0d0
@@ -154,7 +154,7 @@ contains
     !$omp end critical (FoX_DOM_Access)
     return
   end function tinker2008ConstructorInternal
-  
+
   subroutine tinker2008Destructor(self)
     !% Destructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
     implicit none
@@ -176,7 +176,7 @@ contains
     double precision                            , intent(in   ) :: time           , mass
     integer                                                     :: i
     double precision                                            :: expansionFactor, densityContrast
-    
+
     if     (                             &
          &   time /= self%timeParameters &
          &  .or.                         &
@@ -212,10 +212,10 @@ contains
 
     call self%parametersEvaluate(time,mass)
     expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008Normalization=self%parameters                         (tinker2008ParameterNormalization)*expansionFactor**0.14d0 
+    tinker2008Normalization=self%parameters                         (tinker2008ParameterNormalization)*expansionFactor**0.14d0
     return
   end function tinker2008Normalization
-  
+
   double precision function tinker2008A(self,time,mass)
     !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
     implicit none
@@ -225,10 +225,10 @@ contains
 
     call self%parametersEvaluate(time,mass)
     expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008A            =self%parameters                         (tinker2008ParameterA            )*expansionFactor**0.06d0 
+    tinker2008A            =self%parameters                         (tinker2008ParameterA            )*expansionFactor**0.06d0
     return
   end function tinker2008A
-  
+
   double precision function tinker2008B(self,time,mass)
     !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
     implicit none
@@ -241,7 +241,7 @@ contains
     tinker2008B            =self%parameters                         (tinker2008ParameterB            )*expansionFactor**self%alphaDensityContrast
     return
   end function tinker2008B
-  
+
   double precision function tinker2008C(self,time,mass)
     !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
     implicit none

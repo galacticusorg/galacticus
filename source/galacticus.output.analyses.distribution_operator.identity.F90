@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a identity output analysis distribution operator class.
-  
+
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
   !#  <description>A identity output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
@@ -39,7 +39,7 @@ contains
 
   function identityConstructorParameters(parameters) result (self)
     !% Constructor for the ``identity'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionOperatorIdentity)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
@@ -51,7 +51,7 @@ contains
 
   function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
-    use Arrays_Search
+    use :: Arrays_Search, only : Search_Array
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
     double precision                                            , intent(in   )                                        :: propertyValue
@@ -80,7 +80,7 @@ contains
 
   function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
     double precision                                            , intent(in   ), dimension(:)                          :: distribution

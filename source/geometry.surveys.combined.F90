@@ -44,12 +44,12 @@
      module procedure combinedConstructorParameters
      module procedure combinedConstructorInternal
   end interface surveyGeometryCombined
-  
+
 contains
 
   function combinedConstructorParameters(parameters) result (self)
     !% Constructor for the ``combined'' survey geometry class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryCombined)                :: self
     type   (inputParameters       ), intent(inout) :: parameters
@@ -110,7 +110,7 @@ contains
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     combinedWindowFunctionAvailable=.false.
     return
   end function combinedWindowFunctionAvailable
@@ -120,14 +120,14 @@ contains
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     combinedAngularPowerAvailable=.false.
     return
   end function combinedAngularPowerAvailable
 
   double precision function combinedSolidAngle(self,field)
     !% Return the survey solid angle.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (surveyGeometryCombined), intent(inout)               :: self
     integer                        , intent(in   ), optional     :: field
@@ -140,8 +140,8 @@ contains
 
   subroutine combinedWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Provides window functions for combined survey geometries.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)                                           :: self
     double precision                        , intent(in   )                                           :: mass1,mass2
@@ -149,28 +149,28 @@ contains
     double precision                        , intent(  out)                                           :: boxLength
     complex         (c_double_complex      ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
-    
+
     call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
     return
   end subroutine combinedWindowFunctions
 
   double precision function combinedAngularPower(self,i,j,l)
     !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout):: self
     integer                                 , intent(in   ):: i          , j, &
          &                                                    l
     !GCC$ attributes unused ::self, i, j, l
-    
+
     combinedAngularPower=0.0d0
-    call Galacticus_Error_Report('angular power is not supported'//{introspection:location}) 
+    call Galacticus_Error_Report('angular power is not supported'//{introspection:location})
     return
   end function combinedAngularPower
 
   logical function combinedPointIncluded(self,point,mass)
     !% Return true if a point is included in the combined survey geometry.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)               :: self
     double precision                        , intent(in   ), dimension(3) :: point
@@ -189,7 +189,7 @@ contains
 
   subroutine combinedDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily combined} surveyGeometry class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     class(surveyGeometryClass   ), intent(inout) :: destination
@@ -206,7 +206,7 @@ contains
           allocate(surveyGeometryNew_)
           if (associated(surveyGeometryDestination_)) then
              surveyGeometryDestination_%next             => surveyGeometryNew_
-             surveyGeometryDestination_                  => surveyGeometryNew_             
+             surveyGeometryDestination_                  => surveyGeometryNew_
           else
              destination               %surveyGeometries => surveyGeometryNew_
              surveyGeometryDestination_                  => surveyGeometryNew_
@@ -214,7 +214,7 @@ contains
           allocate(surveyGeometryNew_%surveyGeometry_,mold=surveyGeometry_%surveyGeometry_)
           !# <deepCopy source="surveyGeometry_%surveyGeometry_" destination="surveyGeometryNew_%surveyGeometry_"/>
           surveyGeometry_ => surveyGeometry_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

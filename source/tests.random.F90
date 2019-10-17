@@ -21,10 +21,10 @@
 
 program Test_Random
   !% Tests that random number functions work.
-  use Unit_Tests
-  use Pseudo_Random
-  use Input_Parameters
-  use Galacticus_Display
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Input_Parameters  , only : inputParameters
+  use :: Pseudo_Random     , only : pseudoRandom
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                          , parameter             :: sampleCount=10000000, limitCount=6
   double precision                 , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
@@ -42,7 +42,7 @@ program Test_Random
   call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("random numbers")
-  
+
   upperLimitCount=0
   do i=1,sampleCount
      x=randomSequence%uniformSample()

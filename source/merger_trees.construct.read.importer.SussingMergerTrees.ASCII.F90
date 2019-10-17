@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
- 
+
   !# <mergerTreeImporter name="mergerTreeImporterSussingASCII">
   !#  <description>Importer for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.</description>
   !# </mergerTreeImporter>
@@ -48,13 +48,13 @@
   !#  <entry label="new"/>
   !#  <entry label="all"/>
   !# </enumeration>
-  
+
 contains
 
   function sussingASCIIConstructorParameters(parameters) result(self)
     !% Constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeImporterSussingASCII)                :: self
     type(inputParameters               ), intent(inout) :: parameters
@@ -115,10 +115,10 @@ contains
     !# </inputParameter>
     self%useForestFile            =self%forestFile /= "none"
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
-    !# <inputParametersValidate source="parameters"/>    
+    !# <inputParametersValidate source="parameters"/>
     return
   end function sussingASCIIConstructorParameters
-  
+
   function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
     implicit none
@@ -143,14 +143,15 @@ contains
 
   subroutine sussingASCIIOpen(self,fileName)
     !% Validate a {\normalfont \ttfamily sussing} ASCII format merger tree file.
-    use Numerical_Comparison
-    use Numerical_Constants_Astronomical
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Regular_Expressions
-    use String_Handling
-    use File_Utilities
-    use Memory_Management
+    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use :: File_Utilities                  , only : Count_Lines_in_File
+    use :: Galacticus_Display              , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Memory_Management               , only : allocateArray
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Regular_Expressions             , only : regEx
+    use :: String_Handling                 , only : String_Strip              , operator(//)
     implicit none
     class           (mergerTreeImporterSussingASCII), intent(inout) :: self
     type            (varying_string                ), intent(in   ) :: fileName
@@ -177,7 +178,7 @@ contains
        baseDirectory=""
     else
        baseDirectory=extract(fileName,1,index(fileName,'/',back=.true.))
-    end if        
+    end if
     ! Read the file definition file.
     snapshotFileCount=Count_Lines_in_File(fileName)-3
     allocate(self%snapshotFileName(snapshotFileCount))
@@ -274,18 +275,19 @@ contains
 
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Kind_Numbers
-    use String_Handling
-    use Sort
-    use File_Utilities
-    use Memory_Management
-    use Arrays_Search
-    use Array_Utilities
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use            :: Array_Utilities                 , only : Array_Reverse
+    use            :: Arrays_Search                   , only : Search_Array               , Search_Indexed
+    use            :: File_Utilities                  , only : Count_Lines_in_File        , File_Exists
+    use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                                    Galacticus_Display_Unindent, verbosityWorking
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
+    use            :: Kind_Numbers                    , only : kind_int8
+    use            :: Memory_Management               , only : allocateArray              , deallocateArray
+    use            :: Numerical_Constants_Astronomical, only : kiloParsec                 , massSolar
+    use            :: Numerical_Constants_Prefixes    , only : kilo
+    use            :: Sort                            , only : Sort_Do                    , Sort_Index_Do
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussingASCII), intent(inout)                              :: self
     integer  (kind_int8                     ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices              , nodeTreeIndices
@@ -320,7 +322,7 @@ contains
     integer  (kind=kind_int8                )                                             :: nodeIndex
     type     (varying_string                )                                             :: message
     integer  (kind=kind_int8                )                                             :: ID                           , hostHalo                    , &
-         &                                                                                   progenitorIndex 
+         &                                                                                   progenitorIndex
     integer  (c_size_t                      )                                             :: forestCount                  , forestHaloCount             , &
          &                                                                                   forestFirst                  , forestLast                  , &
          &                                                                                   forestHaloCountLast          , forestHaloCountFirst
@@ -470,7 +472,7 @@ contains
           else
              ! Unrecognized format.
              call Galacticus_Error_Report('unrecognized format for halo files'//{introspection:location})
-          end if         
+          end if
        end if
        iCount=0
        do while (ioStat == 0)
@@ -820,7 +822,7 @@ contains
        message='Found '
        message=message//nodeCountTrees//' nodes in subvolume trees [from '//nodeCountSubvolume//' total nodes in subvolume]'
        call Galacticus_Display_Message(message,verbosityWorking)
-       call Move_Alloc(nodeSelfIndices,nodesTmp)       
+       call Move_Alloc(nodeSelfIndices,nodesTmp)
        call allocateArray(nodeSelfIndices,[nodeCountTrees])
        nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
        call deallocateArray(nodesTmp)
@@ -831,7 +833,7 @@ contains
     ! Get a sorted index into the list of nodes.
     call Galacticus_Display_Message('Building node index',verbosityWorking)
     nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
-    ! Re-open the merger tree file. 
+    ! Re-open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
     if (mergerTreeFileIsBinary) then
        open(newUnit=fileUnit,file=char(self%mergerTreeFile//".bin"),status='old',form='unformatted',ioStat=ioStat)
@@ -881,7 +883,7 @@ contains
              read (fileUnit  ,ioStat=ioStat) nodeIndex
           else
              read (fileUnit,*,ioStat=ioStat) nodeIndex
-          end if   
+          end if
           if (nodeIsActive) then
              ! This line represents a progenitor. Locate the progenitor in the list of halos.
              iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
@@ -1180,7 +1182,7 @@ contains
           end if
           if (ioStat /= 0) exit
           ! Check if halo is to be processed.
-          if (processHalo) then 
+          if (processHalo) then
               ! Update forest ID.
              if (self%useForestFile) then
                 jCount=jCount+1
@@ -1213,7 +1215,7 @@ contains
                 if (hostHalo <= 0) then
                    self%nodes(l)%hostIndex         =ID
                 else
-                   self%nodes(l)%hostIndex         =hostHalo                
+                   self%nodes(l)%hostIndex         =hostHalo
                    ! Check that the host halo is in the subvolume.
                    iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
                    if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
@@ -1331,7 +1333,7 @@ contains
        &   Epot          ,                        &
        &   SurfP         ,                        &
        &   Phi0          ,                        &
-       &   cNFW          ,                        & 
+       &   cNFW          ,                        &
        &   FoFMass       ,                        &
        &   M_200Mean     ,                        &
        &   M_200Crit     ,                        &
@@ -1352,7 +1354,7 @@ contains
        &   quickRead                              &
        & )
     !% Read an ASCII halo definition.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer                         , intent(in   )           :: haloFormat    , snapshotUnit
     double precision                                          :: Mvir          , Xc          , &
@@ -1387,7 +1389,7 @@ contains
     integer                         , intent(  out)           :: numSubStruct  , npart       , &
          &                                                       ioStat
     logical                         , intent(in   ), optional :: quickRead
-    
+
     if (present(quickRead).and.quickRead) then
        read (snapshotUnit,*,ioStat=ioStat)
     else

@@ -38,7 +38,7 @@ contains
 
   function priorRandomConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily priorRandom} posterior sampling state initialization class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleStateInitializePriorRandom)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
@@ -50,7 +50,7 @@ contains
 
   subroutine priorRandomInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use Models_Likelihoods_Constants
+    use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (posteriorSampleStateInitializePriorRandom), intent(inout)                                    :: self
     class           (posteriorSampleStateClass                ), intent(inout)                                    :: simulationState

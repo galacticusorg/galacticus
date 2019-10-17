@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a simple posterior sampling state class.
-  
+
   !# <posteriorSampleState name="posteriorSampleStateSimple">
   !#  <description>A simple posterior sampling state class.</description>
   !# </posteriorSampleState>
@@ -50,14 +50,14 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateSimple)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
     integer                                            :: acceptedStateCount
 
     !# <inputParameter>
-    !#   <name>acceptedStateCount</name>    
+    !#   <name>acceptedStateCount</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The number of states to use in acceptance rate statistics.</description>
     !#   <defaultValue>100</defaultValue>
@@ -72,19 +72,19 @@ contains
   function simpleConstructorInternal(acceptedStateCount) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
     !% parameter set.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateSimple)                :: self
     integer                            , intent(in   ) :: acceptedStateCount
     !# <constructorAssign variables="acceptedStateCount"/>
-    
+
     allocate(self%accepted(acceptedStateCount))
     self%stepCount      =0
     self%accepted       =0
     self%chainIndexValue=mpiSelf%rank()
     return
   end function simpleConstructorInternal
-  
+
   subroutine simpleParameterCountSet(self,parameterCount)
     !% Set the number of parameters in this state.
     implicit none
@@ -132,7 +132,7 @@ contains
 
   function simpleMean(self)
     !% Return the mean over state history.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleMean
@@ -144,7 +144,7 @@ contains
 
   function simpleVariance(self)
     !% Return the mean over state history.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleVariance
@@ -181,9 +181,8 @@ contains
 
   subroutine simpleRestore(self,stateVector,first)
     !% Restore the state object.
-    use MPI_Utilities
-    use ISO_Varying_String
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(:) :: stateVector

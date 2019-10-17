@@ -19,8 +19,8 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
-  use Tables
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Tables             , only : table1D
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterLambda">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
@@ -60,7 +60,7 @@ contains
 
   function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (virialDensityContrastSphericalCollapseMatterLambda)                :: self
     type   (inputParameters                                   ), intent(inout) :: parameters
@@ -98,7 +98,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
     implicit none
     type (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
-    
+
     if (self%tableInitialized) then
        call self%deltaVirial%destroy()
        deallocate(self%deltaVirial)
@@ -109,7 +109,7 @@ contains
 
   subroutine sphericalCollapseMatterLambdaRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
-    use Spherical_Collapse_Matter_Lambda
+    use :: Spherical_Collapse_Matter_Lambda, only : Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
     double precision                                                    , intent(in   ) :: time
@@ -132,7 +132,7 @@ contains
 
   double precision function sphericalCollapseMatterLambdaDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
@@ -141,7 +141,7 @@ contains
     logical                                                                                       :: collapsingActual
     double precision                                                                              :: timeActual
     !GCC$ attributes unused :: mass
-    
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
@@ -170,7 +170,7 @@ contains
 
   double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
@@ -214,7 +214,7 @@ contains
     double precision                                                    , intent(in   ), optional :: time      , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
     !GCC$ attributes unused :: self, time, expansionFactor, collapsing
-    
+
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)
     sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=2.0d0

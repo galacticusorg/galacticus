@@ -19,7 +19,7 @@
 
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
 
-  
+
   !# <coolingRate name="coolingRateNoCoolingSatellites">
   !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling in satellites</description>
   !# </coolingRate>
@@ -42,7 +42,7 @@ contains
 
   function noCoolingSatellitesConstructorParameters(parameters) result(self)
     !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRateNoCoolingSatellites)                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -57,7 +57,6 @@ contains
 
   function noCoolingSatellitesConstructorInternal(coolingRate_) result(self)
     !% Internal constructor for the cut off cooling rate class.
-    use Array_Utilities
     type (coolingRateNoCoolingSatellites)                        :: self
     class(coolingRateClass              ), intent(in   ), target :: coolingRate_
 

@@ -50,6 +50,7 @@ sub Component_Assign {
 	     }
 	    ]
     };
+    my %modules;
     # Create the code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 to%hostNode => from%hostNode
@@ -75,6 +76,7 @@ CODE
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
       if (allocated(to%{$property->{'name'}}Data)) call deallocateArray(to%{$property->{'name'}}Data)
 CODE
+			$modules{'Memory_Management,only:deallocateArray'} = 1;
 		    }
 		} else {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -93,6 +95,8 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end select
 CODE
+    @{$function->{'modules'}} = keys(%modules)
+	if ( %modules );
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},

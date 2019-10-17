@@ -19,11 +19,11 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  !$ use OMP_Lib
-  use    ISO_Varying_String
-  use    FGSL                             , only : fgsl_interp_accel
-  use    Stellar_Spectra_Dust_Attenuations
-  use    Output_Times
+  use    :: FGSL                             , only : fgsl_interp_accel
+  use    :: ISO_Varying_String
+  !$ use :: OMP_Lib
+  use    :: Output_Times                     , only : outputTimesClass
+  use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
@@ -89,10 +89,10 @@
   !# </enumeration>
 
 contains
-  
+
   function lmnstyEmssnLineConstructorParameters(parameters) result(self)
     !% Constructor for the ``lmnstyEmssnLine'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLine)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
@@ -100,7 +100,7 @@ contains
     class           (stellarSpectraDustAttenuationClass  ), pointer                     :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
     double precision                                                                    :: depthOpticalISMCoefficient
-    
+
     allocate(lineNames(parameters%count('lineNames')))
     !# <inputParameter>
     !#   <name>lineNames</name>
@@ -128,15 +128,15 @@ contains
 
   function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report
+    use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
+    use            :: IO_HDF5                       , only : hdf5Access             , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use               Instruments_Filters
-    use               Output_Times
-    use               Galacticus_Paths
-    use               Memory_Management
-    use               Stellar_Luminosities_Structure
-    use               IO_HDF5
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               String_Handling               , only : String_Join
+    use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
+    use            :: Memory_Management             , only : allocateArray
+    use            :: Output_Times                  , only : outputTimesClass
+    use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
+    use            :: String_Handling               , only : String_Join            , char
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLine)                                        :: self
     double precision                                      , intent(in   )                         :: depthOpticalISMCoefficient
@@ -222,7 +222,7 @@ contains
 
   subroutine lmnstyEmssnLineDestructor(self)
     !% Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type   (nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
     integer                                                                :: i
@@ -241,15 +241,17 @@ contains
 
   double precision function lmnstyEmssnLineExtract(self,node,instance)
     !% Implement an emission line output analysis property extractor.
+    use            :: Abundances_Structure            , only : abundances                         , max                  , metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic                 , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
-    use               Stellar_Luminosities_Structure
-    use               Numerical_Constants_Physical
-    use               Numerical_Constants_Astronomical
-    use               Numerical_Constants_Atomic
-    use               Numerical_Constants_Prefixes
-    use               Numerical_Interpolation
-    use               Abundances_Structure
+    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar                , luminosityZeroPointAB, massSolar                            , megaParsec, &
+          &                                                    metallicitySolar                   , parsec
+    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen                 , atomicMassUnit
+    use            :: Numerical_Constants_Math        , only : Pi
+    use            :: Numerical_Constants_Physical    , only : plancksConstant
+    use            :: Numerical_Constants_Prefixes    , only : centi                              , hecto                , mega
+    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Stellar_Luminosities_Structure  , only : max                                , stellarLuminosities
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)              :: self
     type            (treeNode                            ), intent(inout), target   :: node
@@ -448,7 +450,7 @@ contains
     where     (ratioLuminosityHeliumToHydrogen > self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen)))
        ratioLuminosityHeliumToHydrogen=self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen))
     end where
-    where     (ratioLuminosityOxygenToHydrogen > self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen))) 
+    where     (ratioLuminosityOxygenToHydrogen > self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen)))
        ratioLuminosityOxygenToHydrogen=self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen))
     end where
     ! Perform dust calculation if necessary.
@@ -531,10 +533,10 @@ contains
     end do
     return
   end function lmnstyEmssnLineExtract
-  
+
   integer function lmnstyEmssnLineType(self)
     !% Return the type of the emission line luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -545,7 +547,7 @@ contains
 
   integer function lmnstyEmssnLineQuantity(self)
     !% Return the class of the emission line luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -576,7 +578,7 @@ contains
 
   double precision function lmnstyEmssnLineUnitsInSI(self)
     !% Return the units of the lmnstyEmssnLine property in the SI system.
-    use Numerical_Constants_Units, only : ergs
+    use :: Numerical_Constants_Units, only : ergs
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
     !GCC$ attributes unused :: self

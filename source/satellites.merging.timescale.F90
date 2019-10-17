@@ -21,14 +21,14 @@
 
 module Satellite_Merging_Timescales
   !% Provides and object that implements satellite merging timescales.
-  use Galacticus_Nodes, only : treeNode
-  use Kepler_Orbits
+  use :: Galacticus_Nodes, only : treeNode
+  use :: Kepler_Orbits   , only : keplerOrbit
   private
 
   ! Effective infinite time for merging. This is set to a fraction of the largest representable number. The fraction is included
   ! such that if perturbations are made around this value it does not cause floating point exceptions.
   double precision, public, parameter :: satelliteMergeTimeInfinite=1.0d-6*huge(1.0d0)
-  
+
   !# <functionClass>
   !#  <name>satelliteMergingTimescales</name>
   !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>

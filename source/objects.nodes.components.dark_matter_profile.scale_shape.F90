@@ -21,8 +21,8 @@
 
 module Node_Component_Dark_Matter_Profile_Scale_Shape
   !% Implements a dark matter profile method that provides a scale radius and a shape parameter.
-  use Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScaleShape, treeNode
-  use Dark_Matter_Profiles_Shape
+  use :: Dark_Matter_Profiles_Shape, only : darkMatterProfileShapeClass
+  use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScaleShape, treeNode
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize, &
@@ -59,7 +59,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   ! Objects used by this component.
   class(darkMatterProfileShapeClass), pointer :: darkMatterProfileShape_
   !$omp threadprivate(darkMatterProfileShape_)
-  
+
   ! Flag indicating whether scale radius and shape data should be output when full merger trees are output.
   logical :: mergerTreeStructureOutputDarkMatterProfileShape
 
@@ -73,7 +73,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize(globalParameters_)
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -96,8 +96,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init(globalParameters_)
     !% Initializes the tree node random spin module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -112,7 +112,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit()
     !% Uninitializes the tree node random spin module.
-    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
     if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
@@ -126,7 +126,7 @@ contains
     implicit none
     class(nodeComponentDarkMatterProfileScaleShape), intent(inout) :: self
     type (treeNode                                ), pointer       :: selfNode
-    
+
     ! Return the shape parameter, setting it if it has not yet been set.
     if (self%shapeValue() < 0.0d0) then
        ! Get the host halo.
@@ -143,7 +143,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode, propertyTypeInactive, defaultDarkMatterProfileComponent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type     (treeNode                      ), intent(inout), pointer :: node
     logical                                  , intent(in   )          :: odeConverged
@@ -152,7 +153,7 @@ contains
     integer                                  , intent(in   )          :: propertyType
     class    (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -173,7 +174,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic, defaultDarkMatterProfileComponent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
@@ -218,8 +219,8 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
@@ -247,7 +248,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -268,9 +269,9 @@ contains
   !# </mergerTreeStructureOutputTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output(baseNode,nodeProperty,treeGroup)
     !% Write the scale radius property to a full merger tree output.
-    use IO_HDF5
-    use Merger_Tree_Walkers
-    use Galacticus_Nodes   , only : treeNode, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
+    use :: IO_HDF5            , only : hdf5Object
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty
@@ -279,7 +280,7 @@ contains
     integer                                                                                :: nodeCount
     class           (nodeComponentDarkMatterProfile)                             , pointer :: darkMatterProfileBase, darkMatterProfile
     type            (mergerTreeWalkerIsolatedNodes )                                       :: treeWalker
-    
+
     ! Check if scale radius is to be included in merger tree outputs.
     if (mergerTreeStructureOutputDarkMatterProfileShape) then
        ! Get the dark matter profile component.
@@ -289,7 +290,7 @@ contains
        class is (nodeComponentDarkMatterProfileScaleShape)
           ! Extract node shape parameter and output to file.
           nodeCount =0
-          treeWalker=mergerTreeWalkerIsolatedNodes(baseNode%hostTree)         
+          treeWalker=mergerTreeWalkerIsolatedNodes(baseNode%hostTree)
           do while (treeWalker%next(node))
              darkMatterProfile => node%darkMatterProfile()
              nodeCount=nodeCount+1

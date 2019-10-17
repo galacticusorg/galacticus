@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a $\beta$-profile mass distribution class.
-  
+
   !# <massDistribution name="massDistributionBetaProfile">
   !#  <description>An mass distribution class for $\beta$-profile distributions.</description>
   !# </massDistribution>
@@ -47,7 +47,7 @@ contains
   function betaProfileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily betaProfile} mass distribution class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionBetaProfile)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
@@ -113,11 +113,12 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless) result(self)
     !% Constructor for ``betaProfile'' convergence class.
-    use Numerical_Constants_Math
-    use Hypergeometric_Functions
-    use Numerical_Comparison
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
+    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+         &                                  verbosityDebug
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Comparison    , only : Values_Agree             , Values_Differ
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionBetaProfile)                          :: self
     double precision                             , intent(in   )           :: beta
@@ -209,6 +210,7 @@ contains
 
   double precision function betaProfileDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionBetaProfile), intent(inout) :: self
     class           (coordinate                 ), intent(in   ) :: coordinates
@@ -225,6 +227,7 @@ contains
 
   double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionBetaProfile), intent(inout)           :: self
     class           (coordinate                 ), intent(in   )           :: coordinates
@@ -261,8 +264,8 @@ contains
   double precision function betaProfileMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for $\beta$-profile mass distributions. Result computed
     !% using \href{http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29}{Wolfram Alpha}.
-    use Numerical_Constants_Math
-    use Hypergeometric_Functions
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (massDistributionBetaProfile), intent(inout), target :: self
     double precision                             , intent(in   )         :: radius
@@ -318,11 +321,11 @@ contains
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     !% \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     !% Alpha}.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
-    use Hypergeometric_Functions
-    use Coordinates
-    use Numerical_Comparison
+    use :: Coordinates                 , only : coordinateSpherical            , assignment(=)
+    use :: Hypergeometric_Functions    , only : Hypergeometric_2F1
+    use :: Numerical_Comparison        , only : Values_Agree
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionBetaProfile), intent(inout) :: self
     class           (coordinate                 ), intent(in   ) :: coordinates
@@ -410,8 +413,8 @@ contains
 
   double precision function betaProfileDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Computes radial moments of the density in a $\beta$-profile mass distribution.
-    use Hypergeometric_Functions
-    use Numerical_Comparison
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Comparison    , only : Values_Agree
     implicit none
     class           (massDistributionBetaProfile), intent(inout)           :: self
     double precision                             , intent(in   )           :: moment
@@ -482,7 +485,7 @@ contains
 
     double precision function radialMomentTwoThirds(moment,x)
       !% Special case of radial moment for $\beta=2/3$ $\beta$-profile.
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer         , intent(in   ) :: moment
       double precision, intent(in   ) :: x

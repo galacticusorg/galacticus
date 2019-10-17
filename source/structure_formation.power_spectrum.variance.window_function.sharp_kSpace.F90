@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a sharp $k$-space power spectrum window function class.
-  use Cosmology_Parameters
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace">
   !#  <description>A sharp $k$-space window function for filtering of power spectra.</description>
@@ -46,7 +46,7 @@ contains
 
   function sharpKSpaceConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -54,7 +54,7 @@ contains
     type            (varying_string                        )                :: normalization
     character       (len=32                                )                :: normalizationChar
     double precision                                                        :: normalizationValue
-    
+
     ! Check parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -85,10 +85,10 @@ contains
 
   function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                        :: self
-    class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_
     double precision                                                                :: normalization
     character       (len=18                                )                        :: normalizationText
     !# <constructorAssign variables="*cosmologyParameters_"/>
@@ -167,4 +167,4 @@ contains
     sharpKSpaceAmplitudeIsMassIndependent=.true.
     return
   end function sharpKSpaceAmplitudeIsMassIndependent
-  
+

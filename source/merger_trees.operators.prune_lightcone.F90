@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a prune-by-lightcone operator on merger trees.
 
-  use Geometry_Lightcones
-  use Satellite_Oprhan_Distributions
-  
+  use :: Geometry_Lightcones           , only : geometryLightconeClass
+  use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
+
   !# <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
   !#  <description>Provides a pruning-by-lightcone operator on merger trees. Trees which have no nodes which lie within the lightcone are completely pruned away.</description>
   !# </mergerTreeOperator>
@@ -31,7 +31,7 @@
      class  (geometryLightconeClass          ), pointer :: geometryLightcone_ => null()
      class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
      logical                                            :: bufferIsolatedHalos         , positionHistoryAvailable
-   contains     
+   contains
      final     ::            pruneLightconeDestructor
      procedure :: operate => pruneLightconeOperate
   end type mergerTreeOperatorPruneLightcone
@@ -46,7 +46,7 @@ contains
 
   function pruneLightconeConstructorParameters(parameters) result(self)
     !% Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOperatorPruneLightcone)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
@@ -89,7 +89,7 @@ contains
     !% Destructor for the lightcone merger tree operator function class.
     implicit none
     type(mergerTreeOperatorPruneLightcone), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%geometryLightcone_"          />
     !# <objectDestructor name="self%satelliteOrphanDistribution_"/>
     return
@@ -97,9 +97,9 @@ contains
 
   subroutine pruneLightconeValidate(self)
     !% Validate the lightcone pruning operator.
-    use Galacticus_Nodes, only : defaultSatelliteComponent, defaultPositionComponent
-    use Galacticus_Error, only : Galacticus_Error_Report  , Galacticus_Component_List
-    use Array_Utilities
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
     implicit none
     class(mergerTreeOperatorPruneLightcone), intent(inout) :: self
 
@@ -129,13 +129,14 @@ contains
     end if
     return
   end subroutine pruneLightconeValidate
-  
+
   subroutine pruneLightconeOperate(self,tree)
     !% Perform a prune-by-lightcone operation on a merger tree.
-    use Galacticus_Nodes              , only : treeNode,nodeComponentBasic,nodeComponentPosition, nodeComponentSatellite
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
-    use Histories
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, &
+          &                                       treeNode
+    use :: Histories                     , only : history
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
     implicit none
     class           (mergerTreeOperatorPruneLightcone), intent(inout), target :: self
     type            (mergerTree                      ), intent(inout), target :: tree

@@ -41,17 +41,17 @@
 
   ! Reference mass used in the error model.
   double precision :: powerLawMassReference=1.0d12
-  
+
 contains
 
   function nbodyHaloMassErrorPowerLawParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorPowerLaw)                :: nbodyHaloMassErrorPowerLawParameters
     type            (inputParameters           ), intent(inout) :: parameters
     double precision                                            :: normalization                       , fractionalErrorHighMass
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -106,7 +106,7 @@ contains
 
   double precision function powerLawErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -123,10 +123,10 @@ contains
          &                          )
     return
   end function powerLawErrorFractional
-  
+
   double precision function powerLawCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node1 , node2
@@ -146,4 +146,4 @@ contains
     end if
     return
   end function powerLawCorrelation
-  
+

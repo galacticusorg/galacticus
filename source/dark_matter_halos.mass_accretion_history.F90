@@ -21,7 +21,7 @@
 
 module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Provides a class for calculations of dark matter halo mass accretion histories.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -37,5 +37,5 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !#   <argument>double precision          , intent(in   ) :: mass</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Dark_Matter_Halo_Mass_Accretion_Histories

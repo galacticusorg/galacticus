@@ -21,7 +21,7 @@
 
 module Hot_Halo_Mass_Distributions
   !% Provides an object which provides a hot halo mass distribution class.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
   public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve        , &
        &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient
@@ -68,14 +68,15 @@ module Hot_Halo_Mass_Distributions
   !# </functionClass>
 
 contains
-  
+
   !# <enclosedMassTask>
   !#  <unitName>hotHaloMassDistributionEnclosedMass</unitName>
   !# </enclosedMassTask>
   double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex)
     !% Computes the mass within a given radius for a dark matter profile.
-    use Galactic_Structure_Options
-    use Galacticus_Nodes          , only : nodeComponentHotHalo
+    use :: Galactic_Structure_Options, only : componentTypeAll    , componentTypeHotHalo, massTypeAll , massTypeBaryonic, &
+          &                                   massTypeGaseous     , radiusLarge         , weightByMass
+    use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode
     implicit none
     type            (treeNode                    ), intent(inout) :: node
     integer                                       , intent(in   ) :: componentType           , massType   , &
@@ -106,8 +107,8 @@ contains
   !# </rotationCurveTask>
   double precision function hotHaloMassDistributionRotationCurve(node,radius,componentType,massType)
     !% Computes the rotation curve at a given radius for the hot halo density profile.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode), intent(inout) :: node
     integer                   , intent(in   ) :: componentType, massType
@@ -133,9 +134,9 @@ contains
   !# </rotationCurveGradientTask>
   double precision function hotHaloMassDistributionRotationCurveGradient(node,radius,componentType,massType)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode                    ), intent(inout) :: node
     integer                                       , intent(in   ) :: componentType   , massType
@@ -170,7 +171,8 @@ contains
   !# </densityTask>
   double precision function hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeHotHalo, massTypeAll, massTypeBaryonic, &
+          &                                   massTypeGaseous , weightByMass
     implicit none
     type            (treeNode                    ), intent(inout)           :: node
     integer                                       , intent(in   )           :: componentType       , massType, weightBy, &
@@ -178,12 +180,12 @@ contains
     double precision                              , intent(in   )           :: positionSpherical(3)
     class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
     !GCC$ attributes unused :: weightIndex
-    
+
     hotHaloMassDistributionDensity=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
     if (.not.(weightBy      == weightByMass                                                                                )) return
-    
+
     hotHalo                        =>     hotHaloMassDistribution        (                         )
     hotHaloMassDistributionDensity =  max(hotHalo                %density(node,positionSpherical(1)),0.0d0)
     return

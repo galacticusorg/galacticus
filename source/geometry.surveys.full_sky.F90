@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements survey geometries over the full sky.
-  
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryFullSky">
   !#  <description>Implements survey geometries over the full sky.</description>
@@ -49,7 +49,7 @@ contains
 
   function fullSkyConstructorParameters(parameters) result(self)
     !% Default constructor for the full sky survey geometry.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryFullSky  )                :: self
     type            (inputParameters        ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
     !#   <description>The maximum redshift for the survey.</description>
     !#   <type>integer</type>
     !#   <cardinality>1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     ! Build the object.
     self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -83,7 +83,7 @@ contains
 
   function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
     !% Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryFullSky  )                        :: self
     double precision                         , intent(in   )         :: redshiftMinimum    , redshiftMaximum
@@ -109,11 +109,11 @@ contains
     !% Destructor for the ``fullSky'' survey geometry class.
     implicit none
     type(surveyGeometryFullSky), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine fullSkyDestructor
-  
+
   double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
@@ -121,7 +121,7 @@ contains
     double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     fullSkyDistanceMinimum=self%limitDistanceMinimum
     return
   end function fullSkyDistanceMinimum
@@ -140,7 +140,7 @@ contains
 
   double precision function fullSkySolidAngle(self,field)
     !% Return the solid angle of the \cite{li_distribution_2009} sample.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
     integer                                , intent(in   ), optional :: field
@@ -172,17 +172,12 @@ contains
 
   subroutine fullSkyWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Compute the window function for the survey.
-    use FFTW3
-    use Vectors
-    use Pseudo_Random
-    use Meshes
+    use            :: FFTW3
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Memory_Management
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use            :: ISO_Varying_String
+    use            :: Meshes            , only : Meshes_Apply_Point     , cloudTypeTriangular
+    use            :: Vectors           , only : Vector_Magnitude
     implicit none
     class           (surveyGeometryFullSky), intent(inout)                                           :: self
     double precision                       , intent(in   )                                           :: mass1                   , mass2
@@ -248,7 +243,7 @@ contains
 
   double precision function fullSkyAngularPower(self,i,j,l)
     !% Return the angular power for the full sky.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class  (surveyGeometryFullSky), intent(inout) :: self
     integer                       , intent(in   ) :: i   , j, l
@@ -264,7 +259,7 @@ contains
 
   logical function fullSkyPointIncluded(self,point,mass)
     !% Return true if a point is included in the survey geometry.
-    use Vectors
+    use :: Vectors, only : Vector_Magnitude
     implicit none
     class           (surveyGeometryFullSky), intent(inout)               :: self
     double precision                       , intent(in   ), dimension(3) :: point

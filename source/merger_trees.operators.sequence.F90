@@ -49,7 +49,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result(self)
     !% Constructor for the sequence merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOperatorSequence)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
@@ -136,7 +136,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} merger tree operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOperatorSequence), intent(inout) :: self
     class(mergerTreeOperatorClass   ), intent(inout) :: destination
@@ -153,7 +153,7 @@ contains
           allocate(operatorNew_)
           if (associated(operatorDestination_)) then
              operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_             
+             operatorDestination_            => operatorNew_
           else
              destination          %operators => operatorNew_
              operatorDestination_            => operatorNew_
@@ -161,7 +161,7 @@ contains
           allocate(operatorNew_%operator_,mold=operator_%operator_)
           !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

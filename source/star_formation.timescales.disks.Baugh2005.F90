@@ -19,7 +19,7 @@
 
   !% Implementation of the \cite{baugh_can_2005} timescale for star formation in galactic disks
 
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005">
   !#  <description>The \cite{baugh_can_2005} timescale for star formation in galactic disks.</description>
@@ -48,7 +48,7 @@ contains
   function baugh2005ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleDisksBaugh2005)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -114,10 +114,10 @@ contains
 
   double precision function baugh2005Timescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, treeNode
     implicit none
     class           (starFormationTimescaleDisksBaugh2005), intent(inout), target :: self
-    type            (treeNode                            ), intent(inout), target :: node 
+    type            (treeNode                            ), intent(inout), target :: node
     class           (nodeComponentBasic                  ), pointer               :: basic
     class           (nodeComponentDisk                   ), pointer               :: disk
     double precision                                                              :: expansionFactor, velocityDisk, &

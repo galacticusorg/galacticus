@@ -50,7 +50,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily summation} dark matter profile heating class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterProfileHeatingSummation), target        :: self
     type   (inputParameters                  ), intent(inout) :: parameters
@@ -86,7 +86,7 @@ contains
     end do
     return
   end function summationConstructorInternal
-  
+
   subroutine summationDestructor(self)
     !% Destructor for the ``summation'' dark matter profile heating class.
     implicit none
@@ -171,7 +171,7 @@ contains
 
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} dark matter halo profile heating class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     class(darkMatterProfileHeatingClass    ), intent(inout) :: destination
@@ -188,7 +188,7 @@ contains
           allocate(heatSourceNew_)
           if (associated(heatSourceDestination_)) then
              heatSourceDestination_%next       => heatSourceNew_
-             heatSourceDestination_            => heatSourceNew_             
+             heatSourceDestination_            => heatSourceNew_
           else
              destination          %heatSources => heatSourceNew_
              heatSourceDestination_            => heatSourceNew_
@@ -196,7 +196,7 @@ contains
           allocate(heatSourceNew_%heatSource,mold=heatSource_%heatSource)
           !# <deepCopy source="heatSource_%heatSource" destination="heatSourceNew_%heatSource"/>
           heatSource_ => heatSource_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

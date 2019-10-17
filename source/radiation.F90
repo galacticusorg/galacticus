@@ -21,7 +21,7 @@
 
 module Radiation_Fields
   !% Implements a class to describe radiation fields.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -49,7 +49,7 @@ module Radiation_Fields
   !#   </code>
   !#  </method>
   !# </functionClass>
-  
+
   ! Module global variables for use in integrand routines.
   class    (radiationFieldClass), pointer :: selfGlobal
   type     (treeNode           ), pointer :: nodeGlobal
@@ -65,10 +65,11 @@ contains
     !% {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
-    use Numerical_Integration
-    use Numerical_Constants_Units
-    use Numerical_Constants_Physical
-    use FGSL                        , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use :: FGSL                        , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Constants_Physical, only : plancksConstant
+    use :: Numerical_Constants_Units   , only : ergs
+    use :: Numerical_Integration       , only : Integrate         , Integrate_Done
+    use :: Numerical_Constants_Math    , only : Pi
     implicit none
     class           (radiationFieldClass       ), target      , intent(inout) :: self
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange

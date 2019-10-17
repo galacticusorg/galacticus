@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements the standard class for outputting merger trees.
-  
-  use IO_HDF5                             , only : hdf5Object
-  use Cosmology_Functions                 , only : cosmologyFunctions             , cosmologyFunctionsClass
-  use Galactic_Filters                    , only : galacticFilter                 , galacticFilterClass
-  use Kind_Numbers                        , only : kind_int8
-  use Node_Property_Extractors, only : nodePropertyExtractor, nodePropertyExtractorClass
-  
+
+  use :: Cosmology_Functions     , only : cosmologyFunctions   , cosmologyFunctionsClass
+  use :: Galactic_Filters        , only : galacticFilter       , galacticFilterClass
+  use :: IO_HDF5                 , only : hdf5Object
+  use :: Kind_Numbers            , only : kind_int8
+  use :: Node_Property_Extractors, only : nodePropertyExtractor, nodePropertyExtractorClass
+
   type outputGroup
      !% Type used for output group information.
      logical                                        :: doubleAttributesWritten, integerAttributesWritten, &
@@ -53,8 +53,8 @@
      logical                                                                     :: outputReferences
      type            (varying_string              )                              :: outputsGroupName
      type            (hdf5Object                  )                              :: outputsGroup
-     logical                                                                     :: outputsGroupOpened     
-     integer         (c_size_t                    )                              :: outputGroupsCount      
+     logical                                                                     :: outputsGroupOpened
+     integer         (c_size_t                    )                              :: outputGroupsCount
      integer                                                                     :: doublePropertyCount              , integerPropertyCount
      integer                                                                     :: doublePropertiesWritten          , integerPropertiesWritten
      integer                                                                     :: doubleBufferCount                , integerBufferCount
@@ -125,7 +125,7 @@
      !@   <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin, \doublezero\ time\argin</arguments>
      !@   <description>Create a group in which to store this output.</description>
      !@  </objectMethod>
-     !@ </objectMethods> 
+     !@ </objectMethods>
      final     ::                           standardDestructor
      procedure :: output                 => standardOutput
      procedure :: finalize               => standardFinalize
@@ -150,7 +150,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} merger tree outputter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOutputterStandard)                :: self
     type   (inputParameters            ), intent(inout) :: parameters
@@ -159,7 +159,7 @@ contains
     class  (nodePropertyExtractorClass ), pointer       :: nodePropertyExtractor_
     logical                                             :: outputReferences
     type   (varying_string             )                :: outputsGroupName
-    
+
     !# <inputParameter>
     !#   <name>outputsGroupName</name>
     !#   <source>parameters</source>
@@ -176,9 +176,9 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>          
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>          
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>          
+    !# <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
     !# <inputParametersValidate source="parameters"   />
     !# <objectDestructor name="galacticFilter_"       />
@@ -210,7 +210,7 @@ contains
     self%doubleBufferSize        =standardBufferSizeIncrement
     return
   end function standardConstructorInternal
-  
+
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard} merger tree outputter class.
     implicit none
@@ -225,17 +225,15 @@ contains
 
   subroutine standardOutput(self,tree,indexOutput,time,isLastOutput)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic       , treeNode
+    use            :: IO_HDF5                       , only : hdf5Access                   , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes              , only : mergerTree                       , treeNode                  , nodeComponentBasic
-    use               Input_Parameters
-    use               Multi_Counters
-    use               Merger_Tree_Walkers
-    use               Events_Hooks
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               IO_HDF5                       , only : hdf5Access
-    use               Node_Property_Extractors      , only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                                                   nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
+    use            :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
+    use            :: Multi_Counters                , only : multiCounter
+    use            :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+          &                                                  nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -263,14 +261,14 @@ contains
     call self%outputGroupCreate(indexOutput,time)
     ! Iterate over trees.
     currentTree => tree
-    do while (associated(currentTree))          
+    do while (associated(currentTree))
        ! Get the base node of the tree.
        node => currentTree%baseNode
        ! Skip empty trees.
-       if (associated(node)) then          
+       if (associated(node)) then
           ! Initialize output buffers.
           ! Count up the number of properties to be output.
-          call self%propertiesCount        (time,node)          
+          call self%propertiesCount        (time,node)
           ! Ensure buffers are allocated for temporary property storage.
           call self%buffersAllocate        (indexOutput      )
           ! Get names for all properties to be output.
@@ -303,7 +301,7 @@ contains
                       end if
                       ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
                       ! being computed, and then call the standard treeNode output method to populate with all "standard"
-                      ! properties.                     
+                      ! properties.
                       !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
                       !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
                       include 'galacticus.output.merger_tree.tasks.inc'
@@ -343,7 +341,7 @@ contains
                               &                                                                                                                         +extractor_     %elementCount  (elementTypeInteger,    time         )
                       class default
                          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
-                      end select                    
+                      end select
                       ! If buffer is full, dump it to file.
                       if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
                       if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
@@ -372,7 +370,7 @@ contains
           ! Create references to the datasets if requested.
           if (self%outputReferences) then
              ! Ensure that a group has been made for this merger tree.
-             call self%makeGroup(currentTree,indexOutput)             
+             call self%makeGroup(currentTree,indexOutput)
              ! Create references for this tree.
              if (self%integerPropertyCount > 0 .and. self%integerPropertiesWritten > 0) then
                 do iProperty=1,self%integerPropertyCount
@@ -422,7 +420,7 @@ contains
 
   subroutine standardFinalize(self)
     !% Finalize merger tree output by closing any open groups.
-    use IO_HDF5, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   )                :: iGroup, iDataset
@@ -452,10 +450,10 @@ contains
 
   subroutine standardMakeGroup(self,tree,indexOutput)
     !% Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Constants_Astronomical
-    use            :: String_Handling
     use            :: Galacticus_Nodes                , only : mergerTree
+    use, intrinsic :: ISO_C_Binding
+    use            :: Numerical_Constants_Astronomical, only : megaParsec
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
@@ -478,7 +476,7 @@ contains
 
   subroutine standardDumpIntegerBuffer(self,indexOutput)
     !% Dump the contents of the integer properties buffer to the \glc\ output file.
-    use IO_HDF5, only : hdf5Access, hdf5DataTypeInteger8
+    use :: IO_HDF5, only : hdf5Access, hdf5DataTypeInteger8
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -511,8 +509,8 @@ contains
 
   subroutine standardDumpDoubleBuffer(self,indexOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
-    use, intrinsic :: ISO_C_Binding
     use            :: IO_HDF5      , only : hdf5Access, hdf5DataTypeDouble
+    use, intrinsic :: ISO_C_Binding
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -545,7 +543,7 @@ contains
 
   subroutine standardExtendIntegerBuffer(self)
     !% Extend the size of the integer buffer.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout)                 :: self
     integer(kind_int8                  ), allocatable  , dimension(:,:) :: integerBufferTemporary
@@ -562,7 +560,7 @@ contains
 
   subroutine standardExtendDoubleBuffer(self)
     !% Extend the size of the double buffer.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                 :: self
     double precision                             , allocatable  , dimension(:,:) :: doubleBufferTemporary
@@ -579,10 +577,10 @@ contains
 
   subroutine standardPropertiesCount(self,time,node)
     !% Count up the number of properties that will be output.
-    use Galacticus_Nodes        , only : treeNode
-    use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                               nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes        , only : treeNode
+    use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+          &                                 nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
     !# <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
@@ -627,7 +625,7 @@ contains
   subroutine standardBuffersAllocate(self,indexOutput)
     !% Allocate buffers for storage of properties.
     use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management
+    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -664,10 +662,10 @@ contains
 
   subroutine standardPropertyNamesEstablish(self,time,node)
     !% Set names for the properties.
-    use Galacticus_Nodes        , only : treeNode
-    use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                               nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes        , only : treeNode
+    use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+          &                                 nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
     !# <include directive="mergerTreeOutputNames" type="moduleUse">
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
@@ -730,12 +728,12 @@ contains
 
   subroutine standardOutputGroupCreate(self,indexOutput,time)
     !% Create a group in which to store this output.
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: IO_HDF5                         , only : hdf5Access
-    use            :: String_Handling
-    use            :: Memory_Management
-    use            :: Numerical_Constants_Astronomical
-    use            :: Galacticus_HDF5
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Memory_Management               , only : Memory_Usage_Record
+    use            :: Numerical_Constants_Astronomical, only : gigaYear
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)               :: self
     integer         (c_size_t                   ), intent(in   )               :: indexOutput

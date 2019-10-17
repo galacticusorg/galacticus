@@ -41,7 +41,7 @@ contains
 
   function notConstructorParameters(parameters) result(self)
     !% Constructor for the ``not'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (galacticFilterNot  )                :: self
     type (inputParameters    ), intent(inout) :: parameters
@@ -60,7 +60,7 @@ contains
     type (galacticFilterNot  )                        :: self
     class(galacticFilterClass), intent(in   ), target :: galacticFilter_
     !# <constructorAssign variables="*galacticFilter_"/>
-    
+
     return
   end function notConstructorInternal
 
@@ -68,7 +68,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily not} galactic filter class.
     implicit none
     type(galacticFilterNot), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%galacticFilter_"/>
     return
   end subroutine notDestructor

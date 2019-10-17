@@ -19,17 +19,9 @@
 
   !% Contains a module which implements a generic 1D mean function (i.e. mean value of some property weighted by number density of
   !% objects binned by some property) output analysis class.
-  
+
   use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Node_Property_Extractors
-  use               Output_Analysis_Property_Operators
-  use               Output_Analysis_Weight_Operators
-  use               Output_Analysis_Distribution_Operators
-  use               Output_Analysis_Distribution_Normalizers
-  use               Output_Analyses_Options
-  use               Output_Times
-  use               Galactic_Filters
+  use            :: ISO_Varying_String
 
   !# <outputAnalysis name="outputAnalysisMeanFunction1D">
   !#  <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
@@ -50,7 +42,7 @@
           &                                                                           targetLabel
      double precision                                                              :: propertyUnitsInSI                 , meanUnitsInSI
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionUnweighted => null(), volumeFunctionWeighted => null(), &
-          &                                                                           volumeFunctionCross      => null()   
+          &                                                                           volumeFunctionCross      => null()
      double precision                                , allocatable, dimension(:  ) :: binCenter                         , meanValue                       , &
           &                                                                           meanValueTarget
      double precision                                , allocatable, dimension(:,:) :: meanCovariance                    , meanCovarianceTarget
@@ -91,9 +83,10 @@ contains
 
   function meanFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``meanFunction1D'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Input_Parameters       , only : inputParameter                                , inputParameters
+    use :: Memory_Management      , only : allocateArray
+    use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisMeanFunction1D           )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -103,7 +96,7 @@ contains
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
-    class           (outputTimesClass                       ), pointer                     :: outputTimes_ 
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
     double precision                                         , dimension(:  ), allocatable :: binCenter                            , outputWeight                          , &
          &                                                                                    meanValueTarget                      , meanCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
@@ -244,7 +237,7 @@ contains
     !#   <description>A units for the mean in the SI system.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCenter</name>
     !#   <source>parameters</source>
@@ -317,7 +310,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>meanCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -375,7 +368,7 @@ contains
     !#        &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
     !#        &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
     !#        &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;                      
+    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
     !#        &amp;                        likelihoodNormalize                                                                          , &amp;
     !#        &amp;                        xAxisLabel                                                                                   , &amp;
     !#        &amp;                        yAxisLabel                                                                                   , &amp;
@@ -403,7 +396,10 @@ contains
 
   function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
     !% Constructor for the ``meanFunction1D'' output analysis class for internal use.
-    use Memory_Management
+    use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquareRoot, &
+          &                                                 propertyOperatorList
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass           , outputAnalysisWeightOperatorProperty, outputAnalysisWeightOperatorSequence  , weightOperatorList
     implicit none
     type            (outputAnalysisMeanFunction1D                )                                          :: self
     type            (varying_string                              ), intent(in   )                           :: label                                           , comment                                        , &
@@ -418,7 +414,7 @@ contains
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
          &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass        ), intent(inout), target                   :: nodePropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
@@ -441,7 +437,7 @@ contains
     type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_               , weightOperatorWeightProperty_                  , &
          &                                                                                                     weightOperatorCrossProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
-    type            (outputAnalysisPropertyOperatorSquareRoot    ), pointer                                 :: propertyOperatorCrossSquareRoot_ 
+    type            (outputAnalysisPropertyOperatorSquareRoot    ), pointer                                 :: propertyOperatorCrossSquareRoot_
     !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
 
     ! Mark as unfinalized.
@@ -638,7 +634,7 @@ contains
     nullify(propertyOperatorUnweighted_)
     return
   end function meanFunction1DConstructorInternal
-  
+
   subroutine meanFunction1DDestructor(self)
     !% Destructor for the {\normalfont \ttfamily meanFunction1D} output analysis class.
     implicit none
@@ -649,7 +645,7 @@ contains
     !# <objectDestructor name="self%volumeFunctionCross"     />
     return
   end subroutine meanFunction1DDestructor
-  
+
   subroutine meanFunction1DAnalyze(self,node,iOutput)
     !% Implement a meanFunction1D output analysis.
     implicit none
@@ -666,7 +662,7 @@ contains
 
   subroutine meanFunction1DReduce(self,reduced)
     !% Implement a volumeFunction1D output analysis reduction.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self
     class(outputAnalysisClass         ), intent(inout) :: reduced
@@ -727,8 +723,8 @@ contains
 
   subroutine meanFunction1DFinalize(self)
     !% Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self
     type (hdf5Object                  )                :: analysesGroup, analysisGroup, &
@@ -780,13 +776,13 @@ contains
     end if
     call    analysisGroup%close         (                                                                                                                                                                  )
     call    analysesGroup%close         (                                                                                                                                                                  )
-    !$ call hdf5Access%unset()    
+    !$ call hdf5Access%unset()
     return
   end subroutine meanFunction1DFinalize
 
   subroutine meanFunction1DResults(self,binCenter,meanValue,meanCovariance)
     !% Implement a meanFunction1D output analysis finalization.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisMeanFunction1D)                             , intent(inout)           :: self
     double precision                              , allocatable, dimension(:  ), intent(inout), optional :: binCenter     , meanValue
@@ -816,15 +812,15 @@ contains
   double precision function meanFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a meanFunction1D output analysis.
     use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:,:) :: meanCovarianceCombined
     double precision                              , allocatable  , dimension(:  ) :: meanValueDifference
     type            (vector                      )                                :: residual
     type            (matrix                      )                                :: covariance
-    
+
     ! Check for existance of a target distribution.
     if (allocated(self%meanValueTarget)) then
        ! Finalize analysis.
@@ -838,7 +834,7 @@ contains
        meanCovarianceCombined=+self%meanCovariance       &
             &                 +self%meanCovarianceTarget
        residual              = meanValueDifference
-       covariance            = meanCovarianceCombined       
+       covariance            = meanCovarianceCombined
        ! Compute the log-likelihood.
        meanFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
        if (self%likelihoodNormalize)                                                      &

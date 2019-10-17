@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -58,7 +58,7 @@ contains
   function cardelli1989ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cardelli1989} stellar spectra dust attenuation class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -89,14 +89,14 @@ contains
 
   double precision function cardelli1989Attenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Units, only : angstromsPerMicron
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: wavelength      , age, &
          &                                                                        vBandAttenuation
     double precision                                                           :: x
     !GCC$ attributes unused :: age
-    
+
     x                      =1.0d0/(wavelength/angstromsPerMicron)
     cardelli1989Attenuation=vBandAttenuation*(self%a(x)+self%b(x)/self%Rv) ! Eqn. (1) of Cardelli et al.
     return
@@ -145,7 +145,7 @@ contains
     double precision                                           , intent(in   ) :: x
     double precision                                                           :: y   , Fb
     !GCC$ attributes unused :: self
-    
+
     cardelli1989B=0.0d0
     if      (x >= 0.3d0 .and. x < 1.1d0) then
        cardelli1989B=-0.52700d0*x**1.61d0

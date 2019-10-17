@@ -29,11 +29,11 @@ contains
 
   logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
-    use Galacticus_Nodes                   , only : treeNode, nodeEvent
-    use Galacticus_Display
-    use Merger_Trees_Evolve_Deadlock_Status
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
+    use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
+    use :: ISO_Varying_String
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: String_Handling                    , only : operator(//)
     !# <include directive="branchJumpPostProcess" type="moduleUse">
     include 'events.branch_jump.post_process.modules.inc'
     !# </include>
@@ -44,7 +44,7 @@ contains
     type     (treeNode      )               , pointer :: lastSatellite , newHost
     type     (varying_string)                         :: message
     character(len=12        )                         :: label
-    
+
     ! If the node is not yet a satellite, wait until it is before peforming this task.
     if (.not.thisNode%isSatellite()) then
        Node_Branch_Jump=.false.

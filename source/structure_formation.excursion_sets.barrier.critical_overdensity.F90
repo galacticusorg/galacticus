@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a critical overdensity excursion set barrier class.
 
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
   !#  <description>A critical overdensity excursion set barrier class.</description>
@@ -45,7 +45,7 @@ contains
 
   function criticalOverdensityConstructorParameters(parameters) result(self)
     !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetBarrierCriticalOverdensity)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -69,7 +69,7 @@ contains
     class(criticalOverdensityClass              ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass         ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
-    
+
     return
   end function criticalOverdensityConstructorInternal
 
@@ -82,7 +82,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine criticalOverdensityDestructor
-  
+
   double precision function criticalOverdensityBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none

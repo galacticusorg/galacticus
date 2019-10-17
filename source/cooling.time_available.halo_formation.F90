@@ -39,14 +39,14 @@ contains
 
   function formationTimeConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
-    use Galacticus_Nodes, only : defaultFormationTimeComponent
-    use Galacticus_Error, only : Galacticus_Error_Report      , Galacticus_Component_List
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
          & call Galacticus_Error_Report                                                                                        &
@@ -65,7 +65,7 @@ contains
 
   double precision function formationTimeTimeAvailable(self,node)
     !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
@@ -79,7 +79,7 @@ contains
          &                        -formationTime%formationTime()
     return
   end function formationTimeTimeAvailable
-  
+
   double precision function formationTimeTimeAvailableIncreaseRate(self,node)
     !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1, even though technically it can depend on halo properties.

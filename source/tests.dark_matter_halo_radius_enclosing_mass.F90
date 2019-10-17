@@ -23,18 +23,18 @@
 
 program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   !% Tests the calculation of dark matter halo radius enclosing a given mass.
-  use ISO_Varying_String
-  use Input_Parameters
-  use Galacticus_Nodes                , only : treeNode                           , nodeComponentBasic               , nodeComponentSatellite        , &
-       &                                       nodeComponentDarkMatterProfile     , nodeClassHierarchyInitialize     , nodeClassHierarchyFinalize
-  use Node_Components                 , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize  , &
-       &                                       Node_Components_Thread_Uninitialize
-  use Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThrough
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  use Unit_Tests
-  use Galacticus_Display
-  use Events_Hooks                    , only : eventsHooksInitialize
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale           , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated         , darkMatterProfileDMONFW       , &
+          &                                   darkMatterProfileDMOTruncated , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
+  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversFallThrough
+  use :: Events_Hooks                , only : eventsHooksInitialize
+  use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                   nodeComponentSatellite        , treeNode
+  use :: ISO_Varying_String
+  use :: Input_Parameters            , only : inputParameters
+  use :: Node_Components             , only : Node_Components_Initialize    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                                )               :: node
   class           (nodeComponentBasic                      ), pointer      :: basic
@@ -48,7 +48,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   type            (darkMatterProfileDMOTruncatedExponential), target       :: darkMatterProfileDMOTruncatedExponential_
   type            (darkMatterProfileDMOHeated              ), target       :: darkMatterProfileDMOHeated_
   type            (darkMatterProfileHeatingTidal           )               :: darkMatterProfileHeatingTidal_
-  double precision                                          , dimension(7) :: radiusOverVirialRadius                   =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0] 
+  double precision                                          , dimension(7) :: radiusOverVirialRadius                   =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
   double precision                                          , dimension(7) :: radius                                           , radiusRoot
   double precision                                          , dimension(7) :: mass
   double precision                                          , parameter    :: radiusFractionalTruncateMinimum          = 2.00d00, radiusFractionalTruncateMaximum=8.0d0

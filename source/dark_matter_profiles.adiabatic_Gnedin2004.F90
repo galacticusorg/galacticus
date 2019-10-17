@@ -19,13 +19,13 @@
 
   !% An implementation of adiabaticGnedin2004 dark matter halo profiles.
 
-  use Galactic_Structure_Options  , only : componentTypeAll                   , massTypeBaryonic                    , weightByMass                 , weightIndexNull, &
-       &                                   radiusLarge
-  use Math_Exponentiation         , only : fastExponentiator
-  use Cosmology_Parameters        , only : cosmologyParameters                , cosmologyParametersClass
-  use Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO               , darkMatterProfileDMOClass
-  use Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                , darkMatterHaloScaleClass
-  use Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Cosmology_Parameters        , only : cosmologyParameters                , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO               , darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Galactic_Structure_Options  , only : componentTypeAll                   , massTypeBaryonic                    , radiusLarge                  , weightByMass, &
+          &                                   weightIndexNull
+  use :: Math_Exponentiation         , only : fastExponentiator
 
   ! Number of previous radius solutions to store.
   integer, parameter :: adiabaticGnedin2004StoreCount=10
@@ -138,9 +138,9 @@ contains
 
   function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                :: self    
+    type            (darkMatterProfileAdiabaticGnedin2004)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (cosmologyParametersClass            ), pointer       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
@@ -187,7 +187,7 @@ contains
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                        :: self
     double precision                                      , intent(in   )         :: A                   , omega
@@ -212,17 +212,17 @@ contains
 
   subroutine adiabaticGnedin2004AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
     call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine adiabaticGnedin2004AutoHook
-  
+
   subroutine adiabaticGnedin2004Destructor(self)
     !% Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
@@ -232,7 +232,7 @@ contains
     call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
     return
   end subroutine adiabaticGnedin2004Destructor
-  
+
   subroutine adiabaticGnedin2004CalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
@@ -353,7 +353,7 @@ contains
     else
        adiabaticGnedin2004RadialMoment=self                      %radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
     end if
-    return 
+    return
   end function adiabaticGnedin2004RadialMoment
 
   double precision function adiabaticGnedin2004Potential(self,node,radius,status)
@@ -489,7 +489,7 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: waveNumber
-    
+
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004KSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
@@ -533,7 +533,7 @@ contains
   double precision function adiabaticGnedin2004RadiusInitial(self,node,radius)
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -544,7 +544,7 @@ contains
     integer                                                               :: i                      , j                       , &
          &                                                                   iMod
     double precision                                                      :: radiusUpperBound
-    
+
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check for a previously computed solution.
@@ -634,7 +634,7 @@ contains
             &                                                 ]                                                             &
             &                                      )
     end if
-    ! Store this solution.       
+    ! Store this solution.
     self%radiusPreviousIndex                                 =modulo(self%radiusPreviousIndex         ,adiabaticGnedin2004StoreCount)+1
     self%radiusPreviousIndexMaximum                          =min   (self%radiusPreviousIndexMaximum+1,adiabaticGnedin2004StoreCount)
     self%radiusPrevious            (self%radiusPreviousIndex)=radius
@@ -645,7 +645,7 @@ contains
   double precision function adiabaticGnedin2004RadiusInitialDerivative(self,node,radius)
     !% Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
-    use Root_Finder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -653,7 +653,7 @@ contains
     double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder                          ), save          :: finder
     !$omp threadprivate(finder)
-    
+
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                                             &
@@ -689,9 +689,9 @@ contains
   subroutine adiabaticGnedin2004ComputeFactors(self,node,radius,computeGradientFactors)
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
-    use Numerical_Constants_Physical
-    use Galacticus_Nodes            , only : treeNode          , nodeComponentBasic               , optimizeForRotationCurveGradientSummation, optimizeForEnclosedMassSummation, &
-         &                                   reductionSummation, optimizeForRotationCurveSummation
+    use :: Galacticus_Nodes            , only : nodeComponentBasic             , optimizeForEnclosedMassSummation, optimizeForRotationCurveGradientSummation, optimizeForRotationCurveSummation, &
+          &                                     reductionSummation             , treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
     include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve.tasks.modules.inc'
@@ -717,7 +717,7 @@ contains
          &                                                                            massComponent                         , velocityComponent          , &
          &                                                                            velocityComponentSquaredGradient      , velocityCircularSquared    , &
          &                                                                            velocityCircularSquaredGradient
-    
+
     ! Set module-scope pointers to node and self.
     adiabaticGnedin2004Node => node
     adiabaticGnedin2004Self => self
@@ -825,7 +825,7 @@ contains
   double precision function adiabaticGnedin2004MassEnclosed(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
     !% profile.
-    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -840,7 +840,7 @@ contains
 
   double precision function adiabaticGnedin2004VelocityCircularSquared(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -855,7 +855,7 @@ contains
 
   double precision function adiabaticGnedin2004VelocityCircularSquaredGradient(component)
     !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -891,7 +891,7 @@ contains
   double precision function adiabaticGnedin2004DerivativeSolver(radiusInitialDerivative)
     !% Root function used in finding the derivative of the initial radius in the dark matter halo when solving for adiabatic
     !% contraction.
-    use Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radiusInitialDerivative
     double precision                :: densityDarkMatterInitial, massDarkMatterInitial, &

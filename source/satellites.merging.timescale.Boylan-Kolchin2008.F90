@@ -19,9 +19,9 @@
 
   !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
   !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
   !# </satelliteMergingTimescales>
@@ -47,14 +47,14 @@ contains
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
     double precision                                                             :: timescaleMultiplier
-    
+
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
     !#   <cardinality>1</cardinality>
@@ -96,10 +96,10 @@ contains
 
   double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Kepler_Orbits
-    use Satellite_Orbits
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
@@ -115,7 +115,7 @@ contains
          &                                                                          velocityScale                        , expArgument
     integer                                                                      :: errorCode
     !GCC$ attributes unused :: self
-    
+
     ! Find the host node.
     nodeHost => node%parent
     ! Get velocity scale.

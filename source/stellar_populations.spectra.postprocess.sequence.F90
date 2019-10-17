@@ -48,7 +48,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !% Constructor for the ``sequence'' stellar population spectra postprocessor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarPopulationSpectraPostprocessorSequence)                :: self
     type   (inputParameters                              ), intent(inout) :: parameters
@@ -121,10 +121,10 @@ contains
     end do
     return
   end function sequenceMultiplier
-  
+
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} stellar population spectra postprocessor class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
     class(stellarPopulationSpectraPostprocessorClass   ), intent(inout) :: destination
@@ -141,7 +141,7 @@ contains
           allocate(postprocessorNew_)
           if (associated(postprocessorDestination_)) then
              postprocessorDestination_%next       => postprocessorNew_
-             postprocessorDestination_            => postprocessorNew_             
+             postprocessorDestination_            => postprocessorNew_
           else
              destination          %postprocessors => postprocessorNew_
              postprocessorDestination_            => postprocessorNew_
@@ -149,7 +149,7 @@ contains
           allocate(postprocessorNew_%postprocessor_,mold=postprocessor_%postprocessor_)
           !# <deepCopy source="postprocessor_%postprocessor_" destination="postprocessorNew_%postprocessor_"/>
           postprocessor_ => postprocessor_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select
@@ -158,7 +158,7 @@ contains
 
   subroutine sequenceDescriptor(self,descriptor,includeMethod)
     !% Return an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     class  (stellarPopulationSpectraPostprocessorSequence), intent(inout)           :: self
     type   (inputParameters                              ), intent(inout)           :: descriptor

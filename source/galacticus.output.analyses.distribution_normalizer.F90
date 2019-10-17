@@ -21,9 +21,9 @@
 
 module Output_Analysis_Distribution_Normalizers
   !% Provides a class that normalizors on distributions used in on-the-fly output analyses.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>outputAnalysisDistributionNormalizer</name>
   !#  <descriptiveName>Output Analysis Distribution Normalizer</descriptiveName>

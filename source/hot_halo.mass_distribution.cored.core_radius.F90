@@ -21,7 +21,7 @@
 
 module Hot_Halo_Mass_Distributions_Core_Radii
   !% Provides an object that implements core radii for hot halo mass distributions.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

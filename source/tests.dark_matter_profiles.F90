@@ -21,16 +21,17 @@
 
 program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
-  use ISO_Varying_String
-  use Input_Parameters
-  use Galacticus_Nodes        , only : treeNode            , nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
-  use Node_Components
-  use Unit_Tests
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  use Galacticus_Display
-  use Events_Hooks            , only : eventsHooksInitialize
+  use :: Cosmology_Functions     , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale           , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOBurkert
+  use :: Events_Hooks            , only : eventsHooksInitialize
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Nodes        , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                               treeNode
+  use :: ISO_Varying_String
+  use :: Input_Parameters        , only : inputParameters
+  use :: Node_Components         , only : Node_Components_Initialize    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                      ), pointer      :: node
   class           (nodeComponentBasic            ), pointer      :: basic
@@ -77,7 +78,7 @@ program Test_Dark_Matter_Profiles
   call basic%massSet     (massVirial                           )
   ! Compute scale radius.
   radiusScale                  = +darkMatterHaloScale_       %virialRadius     (            node                ) &
-       &                         /concentration             
+       &                         /concentration
   call dmProfile%scaleSet(radiusScale                          )
   ! Test Burkert profile.
   call Unit_Tests_Begin_Group('Burkert profile')
@@ -99,7 +100,7 @@ program Test_Dark_Matter_Profiles
        &       1.0000000000000000d+0  &
        &      ]                     , &
        &      relTol=1.0d-6           &
-       &     )  
+       &     )
   call Assert(                        &
        &      'density'             , &
        &      density               , &
@@ -127,7 +128,7 @@ program Test_Dark_Matter_Profiles
        &       0.9557322027757890d+0  &
        &      ]                     , &
        &      relTol=1.0d-6           &
-       &     )  
+       &     )
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()

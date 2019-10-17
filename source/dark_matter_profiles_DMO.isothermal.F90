@@ -50,12 +50,12 @@
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
   end interface darkMatterProfileDMOIsothermal
-  
+
 contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileDMOIsothermal)                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -70,15 +70,14 @@ contains
 
   function isothermalConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
-    use Input_Parameters
     implicit none
     type (darkMatterProfileDMOIsothermal)                        :: self
     class(darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
- 
+
     return
   end function isothermalConstructorInternal
-  
+
   subroutine isothermalDestructor(self)
     !% Destructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     implicit none
@@ -87,12 +86,12 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine isothermalDestructor
-  
+
   double precision function isothermalDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Numerical_Constants_Math
-    use Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -112,7 +111,7 @@ contains
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
-    
+
     isothermalDensityLogSlope=-2.0d0
     return
   end function isothermalDensityLogSlope
@@ -120,9 +119,9 @@ contains
   double precision function isothermalRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes        , only : nodeComponentBasic
-    use Numerical_Constants_Math
-    use Numerical_Comparison
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Numerical_Comparison    , only : Values_Agree
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
     type            (treeNode                      ), intent(inout)           :: node
@@ -130,7 +129,7 @@ contains
     double precision                                , intent(in   ), optional :: radiusMinimum      , radiusMaximum
     class           (nodeComponentBasic            )               , pointer  :: basic
     double precision                                                          :: radiusMinimumActual, radiusMaximumActual
-    
+
     radiusMinimumActual=0.0d0
     radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
@@ -162,7 +161,7 @@ contains
   double precision function isothermalEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -177,8 +176,8 @@ contains
   double precision function isothermalPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Options, only : structureErrorCodeInfinite, structureErrorCodeSuccess
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -206,7 +205,7 @@ contains
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     !GCC$ attributes unused :: radius
-    
+
     isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function isothermalCircularVelocity
@@ -261,7 +260,7 @@ contains
 
   double precision function isothermalEnergy(self,node)
     !% Return the energy of an isothermal halo density profile.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(darkMatterProfileDMOIsothermal), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
@@ -274,7 +273,7 @@ contains
 
   double precision function isothermalEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of an isothermal halo density profile.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(darkMatterProfileDMOIsothermal), intent(inout)          :: self
     type (treeNode                      ), intent(inout), target  :: node
@@ -292,7 +291,7 @@ contains
   double precision function isothermalKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the isothermal density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
-    use Exponential_Integrals
+    use :: Exponential_Integrals, only : Sine_Integral
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), target  :: node
@@ -317,7 +316,7 @@ contains
     !% \begin{equation}
     !% r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
     !% \end{equation}
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -334,13 +333,13 @@ contains
     !% \begin{equation}
     !% \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
     !% \end{equation}
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &
          & /Mpc_per_km_per_s_To_Gyr
     return
@@ -348,8 +347,8 @@ contains
 
   double precision function isothermalRadiusEnclosingDensity(self,node,density)
     !% Null implementation of function to compute the radius enclosing a given density for isothermal dark matter halo profiles.
-    use Numerical_Constants_Math
-    use Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
     type            (treeNode                      ), intent(inout), target :: node

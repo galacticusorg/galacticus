@@ -19,8 +19,8 @@
 
   !% Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
   !% proportion to specific angular momentum).
-  
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <galacticStructureSolver name="galacticStructureSolverLinear">
   !#  <description>A ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
@@ -48,7 +48,7 @@ contains
   function linearConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily linear} galactic structure solver class which takes a
     !% parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticStructureSolverLinear)                :: self
     type   (inputParameters              ), intent(inout) :: parameters
@@ -67,13 +67,14 @@ contains
     type   (galacticStructureSolverLinear)                        :: self
     class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
-   
+
     return
   end function linearConstructorInternal
 
   subroutine linearAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
+          &                     satelliteMergerEvent
     implicit none
     class(galacticStructureSolverLinear), intent(inout) :: self
 
@@ -86,7 +87,7 @@ contains
 
   subroutine linearDestructor(self)
     !% Destructor for the {\normalfont \ttfamily linear} galactic structure solver class.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverLinear), intent(inout) :: self
 
@@ -100,7 +101,7 @@ contains
 
   subroutine linearSolveHook(self,node)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -113,16 +114,16 @@ contains
     end select
     return
   end subroutine linearSolveHook
-  
+
   subroutine linearSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
     integer          , intent(in   )         :: propertyType
     !GCC$ attributes unused :: propertyType
-    
+
     select type (self)
     type is (galacticStructureSolverLinear)
        call self%solve(node)
@@ -131,7 +132,7 @@ contains
     end select
     return
   end subroutine linearSolvePreDeriativeHook
-  
+
   subroutine linearSolve(self,node)
     !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     !% proportion to specific angular momentum.
@@ -154,7 +155,7 @@ contains
     return
 
   contains
-    
+
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !% Solve for the equilibrium radius of the given component.
       implicit none
@@ -184,6 +185,6 @@ contains
     class(galacticStructureSolverLinear), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     return
   end subroutine linearRevert

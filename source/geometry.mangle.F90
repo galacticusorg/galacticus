@@ -42,7 +42,7 @@ module Geometry_Mangle
      !@ </objectMethods>
     procedure :: pointIncluded => capPointIncluded
   end type cap
-  
+
   type :: polygon
      !% A class to hold \gls{mangle} polygons.
      integer                                          :: capCount
@@ -85,16 +85,17 @@ module Geometry_Mangle
      procedure :: read          => windowRead
      procedure :: pointIncluded => windowPointIncluded
   end type window
-  
+
 contains
-  
+
   subroutine windowRead(self,fileName)
     !% Read a \gls{mangle} window definition from file.
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use ISO_Varying_String
-    use String_Handling
-    use Sort
+    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                           Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Sort              , only : Sort_Index_Do
+    use :: String_Handling   , only : String_Split_Words         , operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
     character       (len=*         ), intent(in   )              :: fileName
@@ -131,11 +132,11 @@ contains
           call String_Split_Words(words,line)
           if (words(1) == "polygon") exit
        end do
-       line=words(4)       
+       line=words(4)
        read (line,*) self%polygons(i)%capCount
-       line=words(6)       
+       line=words(6)
        read (line,*) self%polygons(i)%weight
-       line=words(8)       
+       line=words(8)
        read (line,*) self%polygons(i)%solidAngle
        solidAngle(i)=self%polygons(i)%solidAngle
        allocate(self%polygons(i)%caps(self%polygons(i)%capCount))
@@ -148,11 +149,11 @@ contains
     close(fileUnit)
     ! Get a sorted index of polygon solid angles.
     self%solidAngleIndex=Sort_Index_Do(solidAngle)
-    deallocate(solidAngle)    
+    deallocate(solidAngle)
     call Galacticus_Display_Unindent('done')
     return
   end subroutine windowRead
-  
+
   logical function windowPointIncluded(self,point)
     !% Return true if the given Cartesian point lies inside a \gls{mangle} window, i.e. if it lies within any polygon of the window.
     implicit none
@@ -170,10 +171,9 @@ contains
     end do
     return
   end function windowPointIncluded
-  
+
   logical function polygonPointIncluded(self,point)
     !% Return true if a given Cartesian point lies within a \gls{mangle} polygon, i.e. lies within \emph{all} of the polygons caps.
-    use Vectors
     implicit none
     class           (polygon), intent(inout)               :: self
     double precision         , intent(in   ), dimension(3) :: point
@@ -189,7 +189,7 @@ contains
 
   logical function capPointIncluded(self,point)
     !% Return true if a given Cartesian point lies within a \gls{mangle} cap.
-    use Vectors
+    use :: Vectors, only : Vector_Magnitude
     implicit none
     class           (cap), intent(inout)               :: self
     double precision     , intent(in   ), dimension(3) :: point
@@ -208,11 +208,11 @@ contains
 
   subroutine geometryMangleBuild()
     !% Download and build the \textsc{mangle} code.
-    use File_Utilities
-    use System_Command
-    use Galacticus_Paths
-    use ISO_Varying_String
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: File_Utilities    , only : File_Exists            , Directory_Make
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String
+    use :: System_Command    , only : System_Command_Do
     implicit none
     integer :: iStatus
 
@@ -235,14 +235,14 @@ contains
 
  function geometryMangleSolidAngle(fileNames,solidAngleFileName)
     !% Compute the solid angle of a \textsc{mangle} geometry.
-    use ISO_Varying_String    
-    use String_Handling
-    use System_Command
-    use File_Utilities
-    use Galacticus_Paths
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Math
-    use IO_HDF5
+    use :: File_Utilities          , only : File_Exists            , File_Name_Temporary
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Math, only : Pi
+    use :: String_Handling         , only : String_Count_Words     , String_Join        , String_Split_Words, char
+    use :: System_Command          , only : System_Command_Do
     implicit none
     type            (varying_string), intent(in   ), dimension(             : ) :: fileNames
     character       (len=*         ), intent(in   ), optional                   :: solidAngleFileName
@@ -305,17 +305,16 @@ contains
     end if
     return
   end function geometryMangleSolidAngle
-  
+
   function geometryMangleAngularPower(fileNames,degreeMaximum,angularPowerFileName)
     !% Compute the angular power spectra of a \textsc{mangle} geometry.
-    use ISO_Varying_String    
-    use String_Handling
-    use System_Command
-    use File_Utilities
-    use Galacticus_Paths
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Math
-    use IO_HDF5
+    use :: File_Utilities    , only : File_Exists            , File_Name_Temporary
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : String_Count_Words     , String_Join        , String_Split_Words, operator(//)
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type            (varying_string), intent(in   ), dimension(             :                                                               ) :: fileNames
     integer                         , intent(in   )                                                                                           :: degreeMaximum
@@ -424,5 +423,5 @@ contains
     end if
     return
   end function geometryMangleAngularPower
-  
+
 end module Geometry_Mangle

@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a halo mass output analysis property extractor class.
 
-  use Virial_Density_Contrast
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
   !#  <description>A halo mass output analysis property extractor class.</description>
@@ -45,12 +45,12 @@
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
   end interface nodePropertyExtractorMassHalo
-  
+
 contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !% Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorMassHalo)                :: self
     type (inputParameters              ), intent(inout) :: parameters
@@ -65,12 +65,11 @@ contains
 
   function massHaloConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``massHalo'' output analysis property extractor class.
-    use Input_Parameters
     implicit none
     type (nodePropertyExtractorMassHalo)         :: self
     class(virialDensityContrastClass   ), target :: virialDensityContrast_
     !# <constructorAssign variables="*virialDensityContrast_"/>
-    
+
     return
   end function massHaloConstructorInternal
 
@@ -82,11 +81,11 @@ contains
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine massHaloDestructor
-  
+
   double precision function massHaloExtract(self,node,instance)
     !% Implement a massHalo output analysis.
-    use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout)           :: self
     type (treeNode                     ), intent(inout), target   :: node
@@ -95,13 +94,13 @@ contains
     !GCC$ attributes unused :: instance
 
     basic           => node%basic()
-    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))    
+    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))
     return
   end function massHaloExtract
 
   integer function massHaloType(self)
     !% Return the type of the halo mass property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -134,7 +133,7 @@ contains
 
   double precision function massHaloUnitsInSI(self)
     !% Return the units of the massHalo property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
     !GCC$ attributes unused :: self

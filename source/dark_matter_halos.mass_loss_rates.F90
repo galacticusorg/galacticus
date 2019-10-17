@@ -21,7 +21,7 @@
 
 module Dark_Matter_Halos_Mass_Loss_Rates
   !% Implements calculations of mass loss rates from dark matter halos.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 

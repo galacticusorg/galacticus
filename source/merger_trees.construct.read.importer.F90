@@ -20,20 +20,19 @@
 !% Contains a module which provides an object that implements importing of merger trees from file.
 
 module Merger_Tree_Read_Importers
-  !% Provides an object that implements importing of merger trees from file. 
+  !% Provides an object that implements importing of merger trees from file.
+  use            :: Galacticus_Nodes  , only : treeNode
   use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Kind_Numbers
-  use               Galacticus_Nodes  , only : treeNode
-  use               Pseudo_Random
+  use            :: ISO_Varying_String
+  use            :: Kind_Numbers      , only : kind_int8
   private
   public :: nodeData, nodeDataMinimal
 
   ! Type used to specify units.
   type :: importerUnits
-     logical          :: status                              
-     double precision :: unitsInSI                           
-     integer          :: hubbleExponent, scaleFactorExponent 
+     logical          :: status
+     double precision :: unitsInSI
+     integer          :: hubbleExponent, scaleFactorExponent
    contains
      !@ <objectMethods>
      !@   <object>importerUnits</object>
@@ -62,8 +61,8 @@ module Merger_Tree_Read_Importers
      !@     <description>Return true if the provided units are not equal.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: multiply     => importerUnitsMultiply     
-     procedure :: exponentiate => importerUnitsExponentiate 
+     procedure :: multiply     => importerUnitsMultiply
+     procedure :: exponentiate => importerUnitsExponentiate
      procedure :: areEqual     => importerUnitsAreEqual
      procedure :: areNotEqual  => importerUnitsAreNotEqual
      generic   :: operator(* ) => multiply
@@ -75,7 +74,7 @@ module Merger_Tree_Read_Importers
   ! Types used to store raw data.
   type :: nodeDataMinimal
      !% Structure used to store minimal raw data read from merger tree files.
-     integer         (kind=kind_int8)               :: descendentIndex, hostIndex, & 
+     integer         (kind=kind_int8)               :: descendentIndex, hostIndex, &
           &                                            nodeIndex
      double precision                               :: nodeTime       , nodeMass
   end type nodeDataMinimal
@@ -83,18 +82,18 @@ module Merger_Tree_Read_Importers
   ! Type used to store raw data.
   type, extends(nodeDataMinimal) :: nodeData
      !% Structure used to store default raw data read from merger tree files.
-     integer         (kind_int8)                            :: isolatedNodeIndex , mergesWithIndex         , & 
+     integer         (kind_int8)                            :: isolatedNodeIndex , mergesWithIndex         , &
           &                                                    particleCount     , primaryIsolatedNodeIndex
-     double precision                                       :: angularMomentum   , halfMassRadius          , & 
-          &                                                    velocityDispersion, spin                    , & 
+     double precision                                       :: angularMomentum   , halfMassRadius          , &
+          &                                                    velocityDispersion, spin                    , &
           &                                                    scaleRadius       , velocityMaximum
      double precision           , dimension(3)              :: position          , velocity                , &
           &                                                    angularMomentum3D , spin3D
      double precision           , dimension(:), allocatable :: reals
      integer         (kind_int8), dimension(:), allocatable :: integers
      logical                                                :: childIsSubhalo    , isSubhalo
-     class           (nodeData ), pointer                   :: descendent        , host                    , & 
-          &                                                    parent                                         
+     class           (nodeData ), pointer                   :: descendent        , host                    , &
+          &                                                    parent
      type            (treeNode ), pointer                   :: node => null()
   end type nodeData
 
@@ -259,14 +258,14 @@ module Merger_Tree_Read_Importers
   !# </functionClass>
 
 contains
-  
+
   function importerUnitsMultiply(units1,units2)
     !% Multiply to {\normalfont \ttfamily importerUnits} objects.
     implicit none
-    type (importerUnits)                :: importerUnitsMultiply 
-    class(importerUnits), intent(in   ) :: units1                
-    type (importerUnits), intent(in   ) :: units2                
-    
+    type (importerUnits)                :: importerUnitsMultiply
+    class(importerUnits), intent(in   ) :: units1
+    type (importerUnits), intent(in   ) :: units2
+
     importerUnitsMultiply%status             =units1%status             .and.units2%status
     importerUnitsMultiply%unitsInSI          =units1%unitsInSI            *  units2%unitsInSI
     importerUnitsMultiply%scaleFactorExponent=units1%scaleFactorExponent  +  units2%scaleFactorExponent
@@ -277,10 +276,10 @@ contains
   function importerUnitsExponentiate(units1,exponent)
     !% Exponentiate {\normalfont \ttfamily importerUnits} objects.
     implicit none
-    type   (importerUnits)                :: importerUnitsExponentiate 
-    class  (importerUnits), intent(in   ) :: units1                    
-    integer               , intent(in   ) :: exponent                  
-    
+    type   (importerUnits)                :: importerUnitsExponentiate
+    class  (importerUnits), intent(in   ) :: units1
+    integer               , intent(in   ) :: exponent
+
     importerUnitsExponentiate%status             =units1%status
     importerUnitsExponentiate%unitsInSI          =units1%unitsInSI          **exponent
     importerUnitsExponentiate%scaleFactorExponent=units1%scaleFactorExponent* exponent
@@ -290,10 +289,10 @@ contains
 
   logical function importerUnitsAreEqual(units1,units2)
     !% Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(importerUnits), intent(in   ) :: units1                
-    type (importerUnits), intent(in   ) :: units2                
+    class(importerUnits), intent(in   ) :: units1
+    type (importerUnits), intent(in   ) :: units2
 
     if (.not.(units1%status.and.units2%status)) call Galacticus_Error_Report('units not defined'//{introspection:location})
     importerUnitsAreEqual= units1%unitsInSI           ==  units2%unitsInSI           &
@@ -307,8 +306,8 @@ contains
   logical function importerUnitsAreNotEqual(units1,units2)
     !% Test whether two {\normalfont \ttfamily importerUnits} objects are not equal.
     implicit none
-    class(importerUnits), intent(in   ) :: units1                
-    type (importerUnits), intent(in   ) :: units2                
+    class(importerUnits), intent(in   ) :: units1
+    type (importerUnits), intent(in   ) :: units2
 
     importerUnitsAreNotEqual=.not.(units1 == units2)
     return
@@ -316,9 +315,9 @@ contains
 
   function importerUnitConvertScalar(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ) :: values                    , times
     type            (importerUnits           ), intent(in   ) :: units
@@ -334,12 +333,12 @@ contains
     end if
     return
   end function importerUnitConvertScalar
-  
+
   function importerUnitConvert1D(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(           :) :: values               , times
     type            (importerUnits           ), intent(in   )                          :: units
@@ -358,12 +357,12 @@ contains
     end if
     return
   end function importerUnitConvert1D
-  
+
   function importerUnitConvert2D(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(                 :,                 :) :: values
     double precision                          , intent(in   ), dimension(                                    :) :: times
@@ -383,5 +382,5 @@ contains
     end if
     return
   end function importerUnitConvert2D
-  
+
 end module Merger_Tree_Read_Importers

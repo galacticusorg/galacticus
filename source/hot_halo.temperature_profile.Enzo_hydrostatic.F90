@@ -19,7 +19,7 @@
 
 !% An implementation of the hot halo temperature class which uses the ``hydrostatic'' solution from the Enzo code.
 
-  use Dark_Matter_Profiles_DMO
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
   !#  <description>Provides an implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.</description>
@@ -41,12 +41,12 @@
   end interface hotHaloTemperatureProfileEnzoHydrostatic
 
   double precision, parameter :: enzoHydrostaticTemperatureMinimum=1.0d2
-  
+
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
     !% Constructor for the enzoHydrostatic cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -80,16 +80,16 @@ contains
 
   double precision function enzoHydrostaticTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Prefixes
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
+    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant      , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
     double precision                                                          :: enclosedMass
-    
+
     if (radius == 0.0d0) then
        enzoHydrostaticTemperature=enzoHydrostaticTemperatureMinimum
     else
@@ -111,11 +111,11 @@ contains
     end if
     return
   end function enzoHydrostaticTemperature
-  
+
   double precision function enzoHydrostaticTemperatureLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
     !% distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

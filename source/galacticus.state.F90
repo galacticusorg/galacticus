@@ -25,7 +25,6 @@ module Galacticus_State
   !% generator sequences for example.
   use, intrinsic :: ISO_C_Binding
   use            :: ISO_Varying_String
-  use            :: Tables
   implicit none
   private
   public :: Galacticus_State_Store, Galacticus_State_Retrieve
@@ -38,13 +37,13 @@ module Galacticus_State
 
   ! Active status of store and retrieve.
   logical                 :: stateStoreActive               , stateRetrieveActive
-  
+
   ! Flag indicating if module has been initialized.
   logical                 :: stateInitialized     =.false.
 
   ! Counter which tracks state operators, used to ensure objects are stored to file only once per operation.
   integer(c_size_t      ) :: stateOperatorID      =0_c_size_t
-  
+
 contains
 
   !# <functionGlobal>
@@ -55,10 +54,12 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
-    !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
-    use    String_Handling
-    use    FGSL           , only : fgsl_file, FGSL_Open, FGSL_Close
-    use    MPI_Utilities
+    use    :: FGSL           , only : FGSL_Close        , FGSL_Open      , fgsl_file
+#ifdef USEMPI
+    use    :: MPI_Utilities  , only : mpiSelf
+#endif
+    !$ use :: OMP_Lib        , only : omp_get_thread_num, omp_in_parallel
+    use    :: String_Handling, only : operator(//)
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
@@ -128,10 +129,12 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Retrieve
     !% Retrieve the internal state.
-    !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
-    use    String_Handling
-    use    FGSL           , only : fgsl_file, FGSL_Open, FGSL_Close
-    use    MPI_Utilities
+    use    :: FGSL           , only : FGSL_Close        , FGSL_Open      , fgsl_file
+#ifdef USEMPI
+    use    :: MPI_Utilities  , only : mpiSelf
+#endif
+    !$ use :: OMP_Lib        , only : omp_get_thread_num, omp_in_parallel
+    use    :: String_Handling, only : operator(//)
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
@@ -192,7 +195,7 @@ contains
   subroutine State_Initialize
     !% Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to
     !% retrieve a state.
-    use Input_Parameters
+    use :: Input_Parameters, only : globalParameters, inputParameter
     implicit none
 
     if (.not.stateInitialized) then

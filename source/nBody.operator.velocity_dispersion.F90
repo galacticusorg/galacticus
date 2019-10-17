@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an N-body data operator which computes the velocity dispersion in a set of given spherical shells.
-  
+
   use, intrinsic :: ISO_C_Binding
 
   !# <nbodyOperator name="nbodyOperatorVelocityDispersion">
@@ -28,7 +28,7 @@
      !% An N-body data operator which computes the rotation curve at a set of given radii.
      private
      logical                                               :: selfBoundParticlesOnly
-     integer         (c_size_t)                            :: bootstrapSampleCount 
+     integer         (c_size_t)                            :: bootstrapSampleCount
      double precision          , allocatable, dimension(:) :: radiusInner            , radiusOuter
    contains
      procedure :: operate => velocityDispersionOperate
@@ -44,11 +44,11 @@ contains
 
   function velocityDispersionConstructorParameters(parameters) result (self)
     !% Constructor for the ``velocityDispersion'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
     type            (inputParameters                ), intent(inout)               :: parameters
-    double precision                                 , allocatable  , dimension(:) :: radiusInner           , radiusOuter 
+    double precision                                 , allocatable  , dimension(:) :: radiusInner           , radiusOuter
     logical                                                                        :: selfBoundParticlesOnly
     integer         (c_size_t                       )                              :: bootstrapSampleCount
 
@@ -90,7 +90,7 @@ contains
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter) result (self)
     !% Internal constructor for the ``velocityDispersion'' N-body operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
     logical                                          , intent(in   )               :: selfBoundParticlesOnly
@@ -104,11 +104,9 @@ contains
 
   subroutine velocityDispersionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Physical
-    use IO_HDF5
-    use Pseudo_Random
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Pseudo_Random    , only : pseudoRandom
     implicit none
     class           (nbodyOperatorVelocityDispersion), intent(inout)                 :: self
     type            (nBodyData                      ), intent(inout)                 :: simulation

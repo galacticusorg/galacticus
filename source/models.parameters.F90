@@ -79,7 +79,7 @@ module Model_Parameters
   !#    <description>Unmap the parameter value.</description>
   !#  </method>
   !# </functionClass>
-  
+
   type :: modelParameterList
      !% Class used to construct lists of model parameters.
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
@@ -89,8 +89,8 @@ contains
 
   double precision function modelParameterListLogPrior(modelParameterList_,posteriorSampleState_)
     !% Compute the log-prior of a list of parameters.
-    use Posterior_Sampling_State
-    use Models_Likelihoods_Constants
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
     implicit none
     class           (modelParameterList       ), intent(in   ), dimension(:                        ) :: modelParameterList_
     class           (posteriorSampleStateClass), intent(inout)                                       :: posteriorSampleState_
@@ -115,5 +115,5 @@ contains
     end do
     return
   end function modelParameterListLogPrior
-  
+
 end module Model_Parameters

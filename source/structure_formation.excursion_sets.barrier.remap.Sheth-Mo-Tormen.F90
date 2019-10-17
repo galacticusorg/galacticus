@@ -46,14 +46,14 @@ contains
 
   function remapShethMoTormenConstructorParameters(parameters) result(self)
     !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetBarrierRemapShethMoTormen)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>a</name>
@@ -100,7 +100,7 @@ contains
 
   function remapShethMoTormenConstructorInternal(a,b,c,applyTo,excursionSetBarrier_) result(self)
     !% Internal constructor for the critical overdensity excursion set class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (excursionSetBarrierRemapShethMoTormen)                :: self
     class           (excursionSetBarrierClass             ), target        :: excursionSetBarrier_
@@ -118,7 +118,7 @@ contains
     !% Destructor for the critical overdensity excursion set barrier class.
     implicit none
     type(excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%excursionSetBarrier_"/>
     call self%applyToText%destroy()
     return

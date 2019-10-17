@@ -24,7 +24,7 @@ module Struve_Functions
   implicit none
   private
   public :: Struve_Function_L1
-  
+
 contains
 
   double precision function Struve_Function_L1(x)
@@ -35,7 +35,7 @@ contains
     call stvl1(x,Struve_Function_L1)
     return
   end function Struve_Function_L1
-  
+
   ! Following are the original functions taken with permission from copyrighted work of:
   !
   !    Shanjie Zhang, Jianming Jin,
@@ -47,7 +47,7 @@ contains
   ! The source code was extracted from:
   !
   !    https://people.sc.fsu.edu/~jburkardt/f_src/special_functions/special_functions.f90
-  
+
   subroutine stvl1 ( x, sl1 )
 
     !*****************************************************************************80
@@ -56,8 +56,8 @@ contains
     !
     !  Licensing:
     !
-    !    This routine is copyrighted by Shanjie Zhang and Jianming Jin.  However, 
-    !    they give permission to incorporate this routine into a user program 
+    !    This routine is copyrighted by Shanjie Zhang and Jianming Jin.  However,
+    !    they give permission to incorporate this routine into a user program
     !    provided that the copyright is acknowledged.
     !
     !  Modified:

@@ -21,8 +21,8 @@
 
 module IO_XML
   !% Implements various utility functions for extracting data from XML files.
-  use FoX_dom
-  use ISO_Varying_String
+  use :: FoX_dom
+  use :: ISO_Varying_String
   implicit none
   private
   public :: XML_Extrapolation_Element_Decode , XML_Array_Read  , XML_Array_Read_Static, &
@@ -47,12 +47,12 @@ module IO_XML
      type(node          ), pointer :: nodeParent, nodeXInclude
      type(varying_string)          :: fileName  , xPath
   end type xincludeNode
-  
+
   type :: xincludeNodeList
      !% Type used while resolving XInclude references during XML parsing.
      type(nodeList), pointer :: nodes
   end type xincludeNodeList
-  
+
 contains
 
   function XML_Extract_Text(xmlElement)
@@ -99,7 +99,7 @@ contains
 
   subroutine XML_Array_Read_One_Column(xmlElement,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node    )                           , intent(in   ), pointer :: xmlElement
     character       (len=*   )                           , intent(in   )          :: arrayElementName
@@ -121,7 +121,7 @@ contains
 
   subroutine XML_Array_Read_Two_Column(xmlElement,arrayElementName,column1,column2)
     !% Read two columns of data from an array of XML elements.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node    )                           , intent(in   ), pointer :: xmlElement
     character       (len=*   )                           , intent(in   )          :: arrayElementName
@@ -145,7 +145,7 @@ contains
 
   subroutine XML_List_Array_Read_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (nodeList)                           , intent(in   ), pointer :: xmlElements
     character       (len=*   )                           , intent(in   )          :: arrayElementName
@@ -223,7 +223,7 @@ contains
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
     type     (node            ), intent(in   ), pointer  :: xmlElement
@@ -234,7 +234,7 @@ contains
     character(len=len(tagName))                          :: currentTagName                   , path
     integer                                              :: pathPosition                     , i
     logical                                              :: directChildrenOnlyActual
-    
+
     ! Set default options.
     directChildrenOnlyActual=.false.
     if (present(directChildrenOnly)) directChildrenOnlyActual=directChildrenOnly
@@ -317,8 +317,8 @@ contains
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
     !% specified---if the extracted method does not match one of these an error is issued.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Table_Labels
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Table_Labels    , only : enumerationExtrapolationTypeEncode
     implicit none
     type     (Node    )              , intent(in   ), pointer  :: extrapolationElement
     character(len=*   )              , intent(  out)           :: limitType
@@ -350,8 +350,8 @@ contains
 
   function XML_Parse(fileName,iostat) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use File_Utilities
+    use :: File_Utilities  , only : File_Exists            , File_Name, File_Path
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
          &                                                      nodeCurrent        , nodeParent    , &

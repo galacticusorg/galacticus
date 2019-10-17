@@ -38,7 +38,7 @@ contains
 
   function antiLog10ConstructorParameters(parameters)
     !% Constructor for the ``antiLog10'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorAntiLog10)                :: antiLog10ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
@@ -51,7 +51,7 @@ contains
   double precision function antiLog10Operate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an antiLog10 output analysis property operator.
     use, intrinsic :: ISO_C_Binding
-    use            :: Output_Analyses_Options
+    use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none
     class           (outputAnalysisPropertyOperatorAntiLog10), intent(inout)           :: self
     double precision                                         , intent(in   )           :: propertyValue

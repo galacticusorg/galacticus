@@ -19,7 +19,7 @@
 
   !% An implementation of dark matter halo profile scale radii which returns zero radii---useful when scale radii are not
   !% relevant.
-  
+
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusZero">
   !#  <description>Dark matter halo scale radii class in which are assumed to be zero.</description>
   !# </darkMatterProfileScaleRadius>
@@ -29,7 +29,7 @@
    contains
      procedure :: radius => zeroRadius
   end type darkMatterProfileScaleRadiusZero
-  
+
   interface darkMatterProfileScaleRadiusZero
      !% Constructors for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class.
      module procedure zeroConstructorParameters
@@ -40,7 +40,7 @@ contains
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class which takes a
     !% parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileScaleRadiusZero)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
@@ -49,14 +49,14 @@ contains
     self=darkMatterProfileScaleRadiusZero()
     return
   end function zeroConstructorParameters
-  
+
   double precision function zeroRadius(self,node)
     !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
     implicit none
     class(darkMatterProfileScaleRadiusZero), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
-    
+
     zeroRadius=0.0d0
     return
   end function zeroRadius

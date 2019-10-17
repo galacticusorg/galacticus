@@ -42,13 +42,13 @@ contains
 
   function quadraticConstructorParameters(parameters) result(self)
     !% Constructor for the quadratic excursion set class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetBarrierQuadratic)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: coefficientConstant , coefficientLinear, &
          &                                                           coefficientQuadratic
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>coefficientConstant</name>
@@ -89,7 +89,7 @@ contains
     double precision                              , intent(in   ) :: coefficientConstant , coefficientLinear, &
          &                                                           coefficientQuadratic
     !# <constructorAssign variables="coefficientConstant, coefficientLinear, coefficientQuadratic"/>
-    
+
     return
   end function quadraticConstructorInternal
 

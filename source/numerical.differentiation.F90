@@ -21,8 +21,8 @@
 
 module Numerical_Differentiation
   !% Implements numerical differentiation.
-  use, intrinsic :: ISO_C_Binding, only : c_int              , c_ptr      , c_double
-  use            :: Interface_GSL, only : gslFunctionTemplate, gslFunction, gslFunctionDestroy
+  use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr
+  use            :: Interface_GSL, only : gslFunction, gslFunctionDestroy, gslFunctionTemplate
   implicit none
   private
   public :: differentiator
@@ -59,7 +59,7 @@ module Numerical_Differentiation
        real   (c_double), intent(  out)        :: result_          , abserr_
      end function gsl_deriv_central
   end interface
-  
+
 contains
 
   function differentiatorConstructorInternal(f) result(self)
@@ -81,11 +81,11 @@ contains
     call gslFunctionDestroy(self%f)
     return
   end subroutine differentiatorDestructor
-  
+
   double precision function differentiatorDerivative(self,x,h,errorAbsolute)
     !% Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
     !% h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
-    use Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
     implicit none
     class           (differentiator), intent(in   )           :: self
     double precision                , intent(in   )           :: x             , h
@@ -98,5 +98,5 @@ contains
     if (present(errorAbsolute)) errorAbsolute=errorAbsolute_
     return
   end function differentiatorDerivative
-  
+
 end module Numerical_Differentiation

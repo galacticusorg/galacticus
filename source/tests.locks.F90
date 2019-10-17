@@ -21,15 +21,14 @@
 
 program Test_Locks
   !% Tests of OpenMP locking functions.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Unit_Tests
-  use            :: Galacticus_Display
-  use            :: Locks
-  use            :: Array_Utilities
-  use            :: String_Handling
-  use            :: ISO_Varying_String
-  !$ use         :: OMP_Lib
-  use Galacticus_Display
+  use               :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
+  use               :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
+  use   , intrinsic :: ISO_C_Binding
+  use               :: ISO_Varying_String
+  use               :: Locks             , only : ompIncrementalLock
+  !$ use            :: OMP_Lib
+  use               :: String_Handling   , only : operator(//)
+  use               :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer         (c_size_t          ), parameter               :: elementCount   =100_c_size_t
   integer         (c_size_t          ), dimension(elementCount) :: orderedCount
@@ -67,7 +66,7 @@ program Test_Locks
      message=var_str("ordered counter retrieved with value ")//orderedCounter
      call Galacticus_Display_Message(message)
      orderedCount  (orderedCounter)=unorderedCounterPrivate
-     call incrementalLock%unset( )     
+     call incrementalLock%unset( )
   end do
   !$omp end parallel do
   call Assert('OpenMP incremental lock',Array_Is_Monotonic(orderedCount,direction=directionIncreasing,allowEqual=.false.),.true.)

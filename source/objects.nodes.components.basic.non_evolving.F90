@@ -63,7 +63,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, defaultBasicComponent, propertyTypeInactive, nodeComponentBasicNonEvolving
+    use :: Galacticus_Nodes, only : defaultBasicComponent, nodeComponentBasic, nodeComponentBasicNonEvolving, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
@@ -73,7 +74,7 @@ contains
     class    (nodeComponentBasic)               , pointer :: basicComponent
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
 
-  
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -94,7 +95,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Basic_Non_Evolving_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicNonEvolving
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicNonEvolving, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale     =1.0d-3
@@ -117,8 +118,8 @@ contains
   subroutine Node_Component_Basic_Non_Evolving_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
     !% to be that of its parent.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicNonEvolving
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicNonEvolving, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

@@ -54,7 +54,7 @@ contains
   function efstathiou1982ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -100,14 +100,14 @@ contains
 
     return
   end function efstathiou1982ConstructorInternal
-  
+
   subroutine efstathiou1982Timescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use Galacticus_Nodes                , only : nodeComponentDisk
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear         , megaParsec
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -159,18 +159,18 @@ contains
 
   double precision function efstathiou1982Estimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : nodeComponentDisk
+    use :: Galacticus_Nodes            , only : nodeComponentDisk              , treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                                              , parameter     :: velocityBoostFactor  =1.1800237580d0
+    double precision                                              , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                           ), pointer       :: disk
     double precision                                                              :: massDisk
     !GCC$ attributes unused :: self
-    
+
     ! Get the disk.
     disk => node%disk()
     ! Compute the disk mass.
@@ -189,7 +189,7 @@ contains
             &                            *massDisk                        &
             &                            /disk%radius  ()                 &
             &                           )                                 &
-            &                     )    
+            &                     )
     end if
     return
   end function efstathiou1982Estimator

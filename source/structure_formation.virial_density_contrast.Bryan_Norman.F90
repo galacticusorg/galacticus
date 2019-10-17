@@ -19,8 +19,8 @@
 
   !% An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
   !#  <description>\cite{bryan_statistical_1998} dark matter halo virial density contrasts.</description>
@@ -56,13 +56,13 @@ contains
 
   function bryanNorman1998ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialDensityContrastBryanNorman1998)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(cosmologyParametersClass            ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
-    
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=virialDensityContrastBryanNorman1998(cosmologyParameters_,cosmologyFunctions_)
@@ -71,11 +71,11 @@ contains
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function bryanNorman1998ConstructorParameters
-  
+
   function bryanNorman1998ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Comparison
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type (virialDensityContrastBryanNorman1998)                        :: self
     class(cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
@@ -97,17 +97,16 @@ contains
     !% Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
     implicit none
     type(virialDensityContrastBryanNorman1998), intent(inout) :: self
- 
+
     !# <objectDestructor name="self%cosmologyParameters_" />
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     return
   end subroutine bryanNorman1998Destructor
-  
+
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Cosmology_Functions
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
     double precision                                      , intent(in   )           :: mass
@@ -115,7 +114,7 @@ contains
     logical                                               , intent(in   ), optional :: collapsing
     double precision                                                                :: x
     !GCC$ attributes unused :: mass
-    
+
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
     case (bryanNorman1998FitZeroLambda)
@@ -131,9 +130,8 @@ contains
 
   double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Cosmology_Functions
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
     double precision                                      , intent(in   )           :: mass

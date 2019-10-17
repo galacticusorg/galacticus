@@ -21,10 +21,10 @@
 
 program Test_Math_Fast
   !% Tests of mathematical fast functions.
-  use Unit_Tests
-  use Math_Exponentiation
-  use Kind_Numbers
-  use Galacticus_Display
+  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Kind_Numbers       , only : kind_int8
+  use :: Math_Exponentiation, only : cubeRoot                      , fastExponentiator
+  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                            , parameter             :: pointCount  =10000
   double precision                   , dimension(pointCount) :: exact                  , fast                , &
@@ -39,7 +39,7 @@ program Test_Math_Fast
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: fast functions")
 

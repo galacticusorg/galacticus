@@ -19,12 +19,12 @@
 
   !% An implementation of the merger tree importer class for \glc\ format merger tree files.
 
-  use IO_HDF5
-  use Stateful_Types
-  use Halo_Mass_Functions
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Cosmology_Parameters
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Halo_Mass_Functions       , only : haloMassFunctionClass
+  use :: IO_HDF5                   , only : hdf5Object
+  use :: Stateful_Types
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
@@ -107,12 +107,12 @@
   !#  <entry label="expansionFactor"/>
   !#  <entry label="redshift"       />
   !# </enumeration>
-  
+
 contains
 
   function galacticusConstructorParameters(parameters) result(self)
     !% Constructor for the \glc\ format merger tree importer which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeImporterGalacticus )                :: self
     type   (inputParameters              ), intent(inout) :: parameters
@@ -152,7 +152,7 @@ contains
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>  
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="haloMassFunction_"        />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -184,6 +184,7 @@ contains
 
   subroutine galacticusDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -200,9 +201,11 @@ contains
 
   subroutine galacticusOpen(self,fileName)
     !% Validate a \glc\ format merger tree file.
-    use Numerical_Comparison
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Warn
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Display  , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error    , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: IO_HDF5             , only : hdf5Access
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
     type            (varying_string               ), intent(in   ) :: fileName
@@ -378,7 +381,7 @@ contains
     ! Check for type of angular momenta data available.
     self%angularMomentaIsScalar=.false.
     self%angularMomentaIsVector=.false.
-    if (self%forestHalos%hasDataset("angularMomentum")) then     
+    if (self%forestHalos%hasDataset("angularMomentum")) then
        angularMomentumDataset=self%forestHalos%openDataset("angularMomentum")
        select case (angularMomentumDataset%rank())
        case (1)
@@ -394,7 +397,7 @@ contains
     ! Check for type of spin data available.
     self%spinIsScalar=.false.
     self%spinIsVector=.false.
-    if (self%forestHalos%hasDataset("spin")) then     
+    if (self%forestHalos%hasDataset("spin")) then
        spinDataset=self%forestHalos%openDataset("spin")
        select case (spinDataset%rank())
        case (1)
@@ -413,9 +416,10 @@ contains
 
   subroutine galacticusClose(self)
     !% Validate a \glc\ format merger tree file.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     !$ call hdf5Access%set()
     if (self%particles  %isOpen()) call self%particles  %close()
     if (self%forestHalos%isOpen()) call self%forestHalos%close()
@@ -436,7 +440,8 @@ contains
 
   integer function galacticusTreesHaveSubhalos(self)
     !% Return a Boolean integer specifying whether or not the trees have subhalos.
-    use Numerical_Constants_Boolean
+    use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -456,7 +461,8 @@ contains
 
   logical function galacticusMassesIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloMassesIncludeSubhalosInteger
@@ -478,7 +484,8 @@ contains
 
   logical function galacticusAngularMomentaIncludeSubhalos(self)
     !% Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloAngularMomentaIncludeSubhalosInteger
@@ -504,7 +511,8 @@ contains
 
   integer function galacticusTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
-    use Numerical_Constants_Boolean
+    use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -524,7 +532,8 @@ contains
 
   integer function galacticusVelocitiesIncludeHubbleFlow(self)
     !% Return a Boolean integer specifying whether or not velocities include the Hubble flow.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
+    use :: IO_HDF5                    , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -544,7 +553,8 @@ contains
 
   integer function galacticusPositionsArePeriodic(self)
     !% Return a Boolean integer specifying whether or not positions are periodic.
-    use Numerical_Constants_Boolean
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
+    use :: IO_HDF5                    , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -564,9 +574,10 @@ contains
 
   double precision function galacticusCubeLength(self,time,status)
     !% Return the length of the simulation cube.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Boolean     , only : booleanFalse           , booleanTrue, booleanUnknown
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)           :: self
     double precision                              , intent(in   )           :: time
@@ -588,7 +599,7 @@ contains
        else
           self%lengthStatus%value=booleanUnknown
        end if
-       !$ call hdf5Access%unset()   
+       !$ call hdf5Access%unset()
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
@@ -641,10 +652,11 @@ contains
 
   subroutine galacticusForestIndicesRead(self)
     !% Read the tree indices.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use HDF5
-    use Sort
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: HDF5
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Sort                            , only : Sort_Index_Do
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -657,7 +669,7 @@ contains
     integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum        , massMaximum
     logical                                                                   :: hasForestWeights
-    
+
     if (self%forestIndicesRead) return
     !$ call hdf5Access%set()
     if (.not.self%file%hasGroup(trim(self%forestIndexGroupName))) &
@@ -754,9 +766,9 @@ contains
 
   double precision function galacticusTreeWeight(self,i)
     !% Return the weight to assign to trees.
-    use Numerical_Constants_Boolean
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Boolean     , only : booleanTrue
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
@@ -786,6 +798,7 @@ contains
 
   logical function galacticusPositionsAvailable(self,positions,velocities)
     !% Return true if positions and/or velocities are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     logical                              , intent(in   ) :: positions, velocities
@@ -800,6 +813,7 @@ contains
 
   logical function galacticusScaleRadiiAvailable(self)
     !% Return true if scale radii are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -814,9 +828,10 @@ contains
 
   logical function galacticusParticleCountAvailable(self)
     !% Return true if particle counts are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     !$ call hdf5Access%set()
     galacticusParticleCountAvailable=self%forestHalos%hasDataset("particleCount")
     !$ call hdf5Access%unset()
@@ -825,6 +840,7 @@ contains
 
   logical function galacticusVelocityMaximumAvailable(self)
     !% Return true if halo rotation curve velocity maxima are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -836,6 +852,7 @@ contains
 
   logical function galacticusVelocityDispersionAvailable(self)
     !% Return true if halo velocity dispersions are available.
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -849,7 +866,7 @@ contains
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     galacticusAngularMomentaAvailable=self%angularMomentaIsScalar.or.self%angularMomentaIsVector
     return
   end function galacticusAngularMomentaAvailable
@@ -858,7 +875,7 @@ contains
     !% Return true if angular momenta vectors are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     galacticusAngularMomenta3DAvailable=self%angularMomentaIsVector
     return
   end function galacticusAngularMomenta3DAvailable
@@ -883,15 +900,17 @@ contains
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Astronomical
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                 :: self
     class           (nodeData                    ), intent(in   )                 :: node
     double precision                              , intent(  out), dimension(:  ) :: time
     double precision                              , intent(  out), dimension(:,:) :: position, velocity
     integer                                                                       :: i
-    
+
     select type (node)
     type is (nodeDataGalacticus)
        ! Read epoch, position, and velocity data.
@@ -924,13 +943,13 @@ contains
 
   function galacticusSubhaloTraceCount(self,node)
     !% Returns the length of a subhalo trace.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     class  (nodeData                    ), intent(in   ) :: node
     !GCC$ attributes unused :: self
-    
+
     select type (node)
     type is (nodeDataGalacticus)
        galacticusSubhaloTraceCount=node%particleIndexCount
@@ -943,13 +962,13 @@ contains
 
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
-    use Memory_Management
-    use HDF5
-    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Warn
-    use Galacticus_Display
-    use Vectors
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
+    use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
+    use :: HDF5
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Memory_Management               , only : Memory_Usage_Record    , deallocateArray
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar      , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                              :: self
     integer                                       , intent(in   )                              :: i
@@ -1010,7 +1029,7 @@ contains
        call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount                               )
     end if
     ! nodeTime
-    timesAreInternal=.true. 
+    timesAreInternal=.true.
     if      (self%forestHalos%hasDataset("time"           )) then
        ! Time is present, so read it.
        timesAreInternal=.false.
@@ -1302,7 +1321,7 @@ contains
        if (present(requirePositions).and.requirePositions) then
           position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
           velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
-          ! Transfer to the nodes.  
+          ! Transfer to the nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%position=position(:,iNode)
              nodes(iNode)%velocity=velocity(:,iNode)

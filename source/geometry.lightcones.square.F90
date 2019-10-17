@@ -19,15 +19,15 @@
 
   !% An implementation of the lightcone geometry class which assumes a square field of view.
 
-  use Cosmology_Functions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !# <geometryLightcone name="geometryLightconeSquare">
   !#  <description>
   !#   A lightcone geometry class which assumes a square field of view., i.e. defined such that a point $(x,y,z)$ is in the survey
   !#   angular mask if $|\hbox{atan2}(y,x)| &lt; \psi/2$ and $|\hbox{atan2}(z,x)| &lt; \psi/2$ where $\hbox{atan2}()$ is the
   !#   quadrant-aware inverse tangent function, and $\psi$ is the angular size of the field, we compute the solid angle of the
   !#   lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
-  !#   $x$-axis. The solid angle of the field is then  
+  !#   $x$-axis. The solid angle of the field is then
   !#   \begin{equation}
   !#    \Omega = 2 \pi \int_0^{\psi/2} \sin\theta \mathrm{d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} \mathrm{d}\phi,
   !#   \end{equation}
@@ -46,7 +46,7 @@
   !#   &amp; &amp; \left. \cos^{-1}(a \cot(x)) \right) / [(a^2+1)\cos(2x)+a^2-1],
   !#   \end{eqnarray}
   !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
-  !#  
+  !#
   !#   Various sub-parameters specify the details of the light geometry. The {\normalfont \ttfamily lengthReplication} parameter
   !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
   !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
@@ -119,17 +119,17 @@
   !#  <entry label="any"     />
   !#  <entry label="instance"/>
   !# </enumeration>
-  
+
 contains
 
   function squareConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
     !% input.
-    use Input_Parameters
-    use Cosmology_Parameters
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error, only : Galacticus_Error_Report
-    implicit none            
+    use :: Cosmology_Parameters            , only : cosmologyParameters    , cosmologyParametersClass, hubbleUnitsLittleH
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Input_Parameters                , only : inputParameter         , inputParameters
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians       , megaParsec
+    implicit none
     type            (geometryLightconeSquare )                            :: squareConstructorParameters
     type            (inputParameters         ), intent(inout)             :: parameters
     double precision                          , dimension(3,3)            :: unitVector
@@ -258,14 +258,13 @@ contains
 
   function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
-    use Sort
-    use Memory_Management
-    use Numerical_Constants_Math
-    use Trigonometric_Functions
-    use Vectors
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Memory_Management       , only : allocateArray          , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi                     , e
+    use :: Sort                    , only : Sort_Do
+    use :: String_Handling         , only : operator(//)
+    use :: Vectors                 , only : Vector_Magnitude
     implicit none
     type            (geometryLightconeSquare)                                 :: squareConstructorInternal
     double precision                          , dimension(3,3), intent(in   ) :: unitVector
@@ -298,13 +297,13 @@ contains
           timeMinimum=sqrt(squareConstructorInternal%outputTimes(iOutput-1)*squareConstructorInternal%outputTimes(iOutput))
        end if
        if (iOutput == size(squareConstructorInternal%outputTimes)) then
-          timeMaximum=                                                      squareConstructorInternal%outputTimes(iOutput)          
+          timeMaximum=                                                      squareConstructorInternal%outputTimes(iOutput)
        else
           timeMaximum=sqrt(squareConstructorInternal%outputTimes(iOutput+1)*squareConstructorInternal%outputTimes(iOutput))
        end if
        squareConstructorInternal%distanceMinimum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMaximum)
        squareConstructorInternal%distanceMaximum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMinimum)
-    end do    
+    end do
     ! Normalize unit vectors.
     do i=1,3
        squareConstructorInternal%unitVector(:,i)=+                 squareConstructorInternal%unitVector(:,i)  &
@@ -371,6 +370,7 @@ contains
 
     double precision function inverseCosineIntegral(a,x)
       !% Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+      use :: Trigonometric_Functions, only : cot, cosec
       implicit none
       double precision, intent(in) :: a , x
       double complex               :: aa, xx
@@ -399,16 +399,16 @@ contains
     !% Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     implicit none
     type(geometryLightconeSquare), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine squareDestructor
 
   function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    use            :: Arrays_Search   , only : Search_Array_For_Closest
+    use            :: Galacticus_Nodes, only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
-    use               Arrays_Search
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
     class  (geometryLightconeSquare), intent(inout) :: self
@@ -423,19 +423,18 @@ contains
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
-  
+
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
+    use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
+          &                                        nodeComponentSatellite   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Arrays_Search
-    use               Galacticus_Error    , only : Galacticus_Error_Report , Galacticus_Component_List
-    use               ISO_Varying_String
-    use               String_Handling
-    use               Vectors
-    use               Numerical_Comparison
-    use               Memory_Management
-    use               Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition    , nodeComponentSatellite, defaultSatelliteComponent, &
-         &                                         defaultPositionComponent
+    use            :: ISO_Varying_String
+    use            :: Memory_Management   , only : allocateArray
+    use            :: Numerical_Comparison, only : Values_Agree
+    use            :: String_Handling     , only : operator(//)
     implicit none
     class           (geometryLightconeSquare), intent(inout)               :: self
     type            (treeNode               ), intent(inout)               :: node
@@ -612,13 +611,13 @@ contains
 
   function squarePosition(self,node,instance)
     !% Return the position of the node in lightcone coordinates.
+    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               ISO_Varying_String
-    use               Arrays_Search
-    use               String_Handling
-    use               Numerical_Comparison
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentPosition
+    use            :: ISO_Varying_String
+    use            :: Numerical_Comparison, only : Values_Agree
+    use            :: String_Handling     , only : operator(//)
     implicit none
     double precision                         , dimension(3)  :: squarePosition
     class           (geometryLightconeSquare), intent(inout) :: self
@@ -650,7 +649,7 @@ contains
 
   function squareVelocity(self,node,instance)
     !% Return the velocity of the node in lightcone coordinates.
-    use Galacticus_Nodes, only : nodeComponentPosition
+    use :: Galacticus_Nodes, only : nodeComponentPosition, treeNode
     implicit none
     double precision                         , dimension(3)  :: squarevelocity
     class           (geometryLightconeSquare), intent(inout) :: self
@@ -659,7 +658,7 @@ contains
     class           (nodeComponentPosition  ), pointer       :: position
     integer                                                  :: i
     !GCC$ attributes unused :: instance
-    
+
     ! Get the position component.
     position => node%position()
     ! Compute velocity of galaxy in lightcone coordinate system.
@@ -671,9 +670,9 @@ contains
 
   subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
     !% Compute quantities related to the number of replicants in which a node appears.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Vectors
-    use               Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Vectors         , only : Vector_Magnitude
     implicit none
     class           (geometryLightconeSquare), intent(inout)                           :: self
     integer         (c_size_t               ), intent(in   )                           :: output
@@ -693,7 +692,7 @@ contains
     logical                                                                            :: isInFieldOfView     , found
     double precision                                                                   :: distanceRadial      , lengthOffsetOrigin   , &
          &                                                                                distanceMinimum     , distanceMaximum
-    
+
     ! Validate input.
     select case (action)
     case (replicantActionCount   )
@@ -816,7 +815,7 @@ contains
     end select
     return
   end subroutine squareReplicants
-  
+
   function squarePositionAtOutput(self,output,nodePosition,instance)
     !% Return the position of the node in lightcone coordinates.
     use, intrinsic :: ISO_C_Binding

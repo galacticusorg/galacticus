@@ -19,11 +19,11 @@
 
 !% Contains a module which implements a property extractor class for the mass and radii of spheres are specified density contrast.
 
-  use Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
-  use Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use Galacticus_Nodes       , only : nodeComponentBasic
-  
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
+
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
   !#  <description>A property extractor class for the mass and radii of spheres are specified density contrast.</description>
   !# </nodePropertyExtractor>
@@ -60,12 +60,12 @@
   class           (nodePropertyExtractorDensityContrasts), pointer :: densityContrastsSelf
   double precision                                                 :: densityContrastsMeanTarget
   !$omp threadprivate(densityContrastsNode,densityContrastsBasic,densityContrastsMeanTarget)
-  
+
 contains
-  
+
   function densityContrastsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily densityContrasts} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorDensityContrasts)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
@@ -101,10 +101,10 @@ contains
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function densityContrastsConstructorParameters
-  
+
   function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
-    use Galactic_Structure_Options, only : massTypeDark, massTypeAll
+    use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
     implicit none
     type            (nodePropertyExtractorDensityContrasts)                              :: self
     class           (cosmologyFunctionsClass              ), intent(in   ), target       :: cosmologyFunctions_
@@ -113,7 +113,7 @@ contains
     double precision                                       , intent(in   ), dimension(:) :: densityContrasts
     logical                                                , intent(in   )               :: darkMatterOnly
     !# <constructorAssign variables="densityContrasts, darkMatterOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
-    
+
     self%countDensityContrasts=  size(densityContrasts)
     self%elementCount_        =2*size(densityContrasts)
      select case (darkMatterOnly)
@@ -126,7 +126,7 @@ contains
     end select
     return
   end function densityContrastsConstructorInternal
-  
+
   subroutine densityContrastsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
     implicit none
@@ -144,16 +144,16 @@ contains
     class           (nodePropertyExtractorDensityContrasts), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     densityContrastsElementCount=self%elementCount_
     return
   end function densityContrastsElementCount
-  
+
   function densityContrastsExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use Galactic_Structure_Options        , only : componentTypeAll
-    use Root_Finder                       , only : rootFinder                      , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     double precision                                        , dimension(:) , allocatable :: densityContrastsExtract
     class           (nodePropertyExtractorDensityContrasts ), intent(inout), target      :: self
@@ -227,7 +227,7 @@ contains
     integer                                                                             :: i
     character       (len=64                               )                             :: description
     !GCC$ attributes unused :: time
-    
+
     allocate(densityContrastsDescriptions(self%elementCount_))
     do i=1,self%countDensityContrasts
        write (description,'(a,f5.1,a)') 'Radius enclosing a density contrast of ',self%densityContrasts(i),' [Mpc].'
@@ -240,7 +240,7 @@ contains
 
   function densityContrastsUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily densityContrasts} properties in the SI system.
-    use Numerical_Constants_Astronomical, only : megaParsec, massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                       , allocatable  , dimension(:) :: densityContrastsUnitsInSI
     class           (nodePropertyExtractorDensityContrasts), intent(inout)               :: self
@@ -257,7 +257,7 @@ contains
 
   integer function densityContrastsType(self)
     !% Return the type of the {\normalfont \ttfamily densityContrasts} properties.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDensityContrasts), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -265,12 +265,12 @@ contains
     densityContrastsType=outputAnalysisPropertyTypeLinear
     return
   end function densityContrastsType
- 
+
   double precision function densityContrastsRoot(radius)
     !% Root function used in finding the radius that encloses a given density contrast.
-    use Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use Galactic_Structure_Options        , only : componentTypeAll
-    use Numerical_Constants_Math          , only : Pi
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll
+    use :: Numerical_Constants_Math          , only : Pi
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: enclosedMass

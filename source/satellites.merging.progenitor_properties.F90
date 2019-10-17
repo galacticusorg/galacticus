@@ -21,7 +21,7 @@
 
 module Satellite_Merging_Progenitor_Properties
   !% Implements a class for calculations for progenitor properties for mergers.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -42,5 +42,5 @@ module Satellite_Merging_Progenitor_Properties
   !#   <argument>double precision          , intent(  out)         :: massSpheroidRemnant      , massGasSpheroidRemnant</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Satellite_Merging_Progenitor_Properties

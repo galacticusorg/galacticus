@@ -20,8 +20,8 @@
   !% Contains a module which implements a merger tree operator which prunes all branches which do not contain an ``essential''
   !% node.
 
-  use Kind_Numbers
-  
+  use :: Kind_Numbers, only : kind_int8
+
   !# <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
   !#  <description>
   !#   Implements a merger tree operator which prunes branches that do not directly influence an
@@ -38,7 +38,7 @@
      final     ::            pruneNonEssentialDestructor
      procedure :: operate => pruneNonEssentialOperate
   end type mergerTreeOperatorPruneNonEssential
-  
+
   interface mergerTreeOperatorPruneNonEssential
      !% Constructors for the prune-non-essential merger tree operator class.
      module procedure pruneNonEssentialConstructorParameters
@@ -75,7 +75,7 @@ contains
 
   function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime)
     !% Internal constructor for the prune-non-essential merger tree operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorInternal
     integer                                              , intent(in   ) :: essentialNodeID
@@ -91,16 +91,16 @@ contains
     implicit none
     type(mergerTreeOperatorPruneNonEssential), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine pruneNonEssentialDestructor
 
   subroutine pruneNonEssentialOperate(self,tree)
     !% Perform a prune-non-essential operation on a merger tree.
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none
     class  (mergerTreeOperatorPruneNonEssential), intent(inout), target  :: self
     type   (mergerTree                         ), intent(inout), target  :: tree
@@ -109,7 +109,7 @@ contains
          &                                                                  nodePrevious
     class  (nodeComponentBasic                 )               , pointer :: basic
     type   (mergerTreeWalkerIsolatedNodes      )                         :: treeWalker
-    
+
     ! Iterate over trees.
     treeCurrent => tree
     do while (associated(treeCurrent))
@@ -138,7 +138,7 @@ contains
                   & ) then
                 ! Return to the previous node.
                 call treeWalker%previous(nodePrevious)
-                ! Decouple from other nodes.                
+                ! Decouple from other nodes.
                 call Merger_Tree_Prune_Unlink_Parent(                                                    &
                      &                               node                                              , &
                      &                               nodePrevious                                      , &

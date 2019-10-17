@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an intracluster medium Sunyaev-Zeldovich property extractor class.
-  
-  use Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
-  use Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
-  use Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
-  use Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
-  use Chemical_States              , only : chemicalState            , chemicalStateClass
+
+  use :: Chemical_States              , only : chemicalState            , chemicalStateClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorICMSZ">
   !#  <description>An intracluster medium Sunyaev-Zeldovich property extractor class.</description>
@@ -52,10 +52,10 @@
   end interface nodePropertyExtractorICMSZ
 
 contains
-  
+
   function icmSZConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily icmSZ} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorICMSZ    )                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -106,14 +106,14 @@ contains
     !# <objectDestructor name="self%chemicalState_"            />
     return
   end subroutine icmSZDestructor
-  
+
   double precision function icmSZExtract(self,node,instance)
     !% Implement a Sunyaev-Zeldovich effect property extractor.
-    use FGSL                    , only : fgsl_function                          , fgsl_integration_workspace
-    use Numerical_Integration   , only : Integrate                              , Integrate_Done
-    use Galacticus_Nodes        , only : nodeComponentHotHalo
-    use Numerical_Constants_Math, only : Pi
-    use Radiation_Fields        , only : radiationFieldCosmicMicrowaveBackground
+    use :: FGSL                    , only : fgsl_function                          , fgsl_integration_workspace
+    use :: Galacticus_Nodes        , only : nodeComponentHotHalo                   , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate                              , Integrate_Done
+    use :: Radiation_Fields        , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     class  (nodePropertyExtractorICMSZ             ), intent(inout)           :: self
     type   (treeNode                               ), intent(inout), target   :: node
@@ -123,7 +123,7 @@ contains
     type   (fgsl_integration_workspace             )                          :: integrationWorkspace
     logical                                                                   :: integrationReset
     !GCC$ attributes unused :: instance
-    
+
     ! Initialize radiation field.
     allocate(radiation_)
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
@@ -143,16 +143,16 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
     !# <objectDestructor name="radiation_"/>
     return
-    
+
   contains
 
     double precision function integrandComptionY(radius)
       !% Integrand function used for computing ICM SZ properties.
-      use Numerical_Constants_Astronomical, only : megaParsec        , massSolar
-      use Numerical_Constants_Physical    , only : boltzmannsConstant, thomsonCrossSection, speedLight, electronMass
-      use Numerical_Constants_Prefixes    , only : centi             , hecto
-      use Numerical_Constants_Atomic      , only : massHydrogenAtom
-      use Abundances_Structure            , only : abundances
+      use :: Abundances_Structure            , only : abundances
+      use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
+      use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+      use :: Numerical_Constants_Physical    , only : boltzmannsConstant, electronMass, speedLight, thomsonCrossSection
+      use :: Numerical_Constants_Prefixes    , only : centi             , hecto
       implicit none
       double precision                      , intent(in   ) :: radius
       class           (nodeComponentHotHalo), pointer       :: hotHalo
@@ -176,7 +176,7 @@ contains
            &                  /massHydrogenAtom                           &
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
-      ! Evaluate the integrand.    
+      ! Evaluate the integrand.
       integrandComptionY=+4.0d0                                                                                              &
            &             *Pi                                                                                                 &
            &             *radius                                                                                         **2 &
@@ -227,7 +227,7 @@ contains
 
   integer function icmSZType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -235,4 +235,4 @@ contains
     icmSZType=outputAnalysisPropertyTypeLinear
     return
   end function icmSZType
-  
+

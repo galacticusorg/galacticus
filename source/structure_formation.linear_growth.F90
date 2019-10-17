@@ -22,7 +22,7 @@
 module Linear_Growth
   !% Provides an object that implements linear growth of cosmological structure.
   private
-  
+
   ! Enumeration for normalization options.
   !# <enumeration>
   !#  <name>normalize</name>

@@ -518,12 +518,12 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily verner} atomic ionization potentail class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicIonizationPotentialVerner)                :: self
     type(inputParameters                ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=atomicIonizationPotentialVerner()
     return
   end function vernerConstructorParameters

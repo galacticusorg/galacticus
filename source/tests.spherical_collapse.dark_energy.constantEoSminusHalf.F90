@@ -24,14 +24,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-1/2$
   !% cosmology. Compares results to the fitting function of
   !% \citeauthor{weinberg_constraining_2003}~(\citeyear{weinberg_constraining_2003}; eqn.~18).
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Cosmology_Functions
-  use Numerical_Constants_Math
-  use Cosmological_Density_Field
-  use Linear_Growth
-  use Galacticus_Display
+  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: ISO_Varying_String
+  use :: Input_Parameters          , only : inputParameters
+  use :: Linear_Growth             , only : linearGrowth                  , linearGrowthClass
+  use :: Numerical_Constants_Math  , only : Pi
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                          , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctions_

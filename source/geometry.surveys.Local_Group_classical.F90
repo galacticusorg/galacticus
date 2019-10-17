@@ -19,8 +19,7 @@
 
 !% Implements a geometry corresponding to the detectability of classical Local Group galaxies.
 
-  use Galacticus_Paths
-  
+
   !# <surveyGeometry name="surveyGeometryLocalGroupClassical">
   !#  <description>Implements a geometry corresponding to the detectability of classical Local Group galaxies.</description>
   !# </surveyGeometry>
@@ -42,7 +41,7 @@
 
   ! Number of fields.
   integer, parameter :: localGroupClassicalFields              =  1
- 
+
   ! Maximum degree for angular power spectrum
   integer, parameter :: localGroupClassicalAngularPowerMaximumL=360
 
@@ -50,12 +49,12 @@ contains
 
   function localGroupClassicalConstructorParameters(parameters) result (self)
     !% Constructor for the {\normalfont \ttfamily localGroupClassical} survey geometry class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLocalGroupClassical)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: distanceMaximumSurvey, massThreshold
-    
+
     !# <inputParameter>
     !#   <name>distanceMaximumSurvey</name>
     !#   <source>parameters</source>
@@ -76,7 +75,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function localGroupClassicalConstructorParameters
-  
+
   function localGroupClassicalConstructorInternal(distanceMaximumSurvey,massThreshold) result (self)
     !% Internal constructor for the \cite{baldry_galaxy_2012} conditional mass function class.
     implicit none
@@ -93,7 +92,7 @@ contains
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     localGroupClassicalFieldCount=localGroupClassicalFields
     return
   end function localGroupClassicalFieldCount
@@ -118,15 +117,16 @@ contains
 
   function localGroupClassicalMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     type (varying_string                   )                :: localGroupClassicalMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     localGroupClassicalMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/localGroupClassical/"
     return
   end function localGroupClassicalMangleDirectory
-  
+
   subroutine localGroupClassicalMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
@@ -146,8 +146,8 @@ contains
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     localGroupClassicalAngularPowerMaximumDegree=localGroupClassicalAngularPowerMaximumL
     return
   end function localGroupClassicalAngularPowerMaximumDegree
-  
+

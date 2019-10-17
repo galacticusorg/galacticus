@@ -61,13 +61,13 @@ contains
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     integer                                                                        :: temperatureLevelCount
     double precision                                                               :: temperatureMaximum
-    
+
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureLevelCount</name>
@@ -88,7 +88,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function annealedDifferentialEvolutionConstructorParameters
-  
+
   function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
     !% Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
     implicit none
@@ -143,10 +143,10 @@ contains
 
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use MPI_Utilities
-    use Galacticus_Display
-    use ISO_Varying_String
-    use String_Handling
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -193,8 +193,7 @@ contains
 
   logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
     !% Return whether or not to accept a proposal.
-    use Pseudo_Random
-    use MPI_Utilities
+    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &

@@ -21,14 +21,14 @@
 
 module Function_Classes
   !% Defines the base class for all {\normalfont \ttfamily functionClass} classes.
-  use :: ISO_Varying_String, only : varying_string, assignment(=)
+  use :: ISO_Varying_String, only : assignment(=), varying_string
   implicit none
   private
   public :: functionClass
 #ifdef OBJECTDEBUG
   public :: debugStackPush, debugStackPop, debugStackGet
 #endif
-  
+
   type, abstract :: functionClass
      !% The base class for all {\normalfont \ttfamily functionClass} classes.
      logical :: isDefaultOfClass=.false.
@@ -88,7 +88,7 @@ contains
     functionClassIsDefault=self%isDefaultOfClass
     return
   end function functionClassIsDefault
-  
+
   subroutine functionClassReferenceCountReset(self)
     !% Reset the reference count to this object to 0.
     implicit none
@@ -97,7 +97,7 @@ contains
     self%referenceCount=1
     return
   end subroutine functionClassReferenceCountReset
-  
+
   subroutine functionClassReferenceCountIncrement(self)
     !% Increment the reference count to this object.
     implicit none
@@ -106,7 +106,7 @@ contains
     self%referenceCount=self%referenceCount+1
    return
   end subroutine functionClassReferenceCountIncrement
-  
+
   integer function functionClassReferenceCountDecrement(self)
     !% Decrement the reference count to this object and return the new count.
     implicit none
@@ -132,12 +132,12 @@ contains
 
   subroutine debugStackPushLoc(location)
     !% Push a numeric-location onto the debug location stack.
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     integer  (c_size_t), intent(in   ) :: location
     character(len=24  )                :: locationStr
-    
+
     debugLocStackSize=debugLocStackSize+1
     if (debugLocStackSize > debugStackSizeMaximum) call Galacticus_Error_Report('debug stack is not large enough'//{introspection:location})
     write (locationStr,'(i24)') location
@@ -149,7 +149,7 @@ contains
     !% Pop a location off the debug stack.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    
+
     debugLocStackSize=debugLocStackSize-1
     if (debugLocStackSize < 0) call Galacticus_Error_Report('pop from empty debug stack'//{introspection:location})
     return
@@ -159,14 +159,14 @@ contains
     !% Get the current location from the debug stack.
     implicit none
     type(varying_string) :: debugStackGet
-    
-    if (debugLocStackSize <= 0) then 
+
+    if (debugLocStackSize <= 0) then
        debugStackGet='[unknown]'
-    else 
+    else
        debugStackGet=debugLocStack(debugLocStackSize)
     end if
     return
   end function debugStackGet
 #endif
-   
+
 end module Function_Classes

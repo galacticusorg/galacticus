@@ -55,7 +55,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Formation_Times_Cole2000_Initialize(globalParameters_)
     !% Initializes the tree node formation time tracking module.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -84,7 +84,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
-    use Galacticus_Nodes, only : treeNode, interruptTask, nodeComponentFormationTime, nodeComponentBasic, propertyTypeInactive, defaultFormationTimeComponent
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent, interruptTask, nodeComponentBasic, nodeComponentFormationTime, &
+          &                         propertyTypeInactive         , treeNode
     implicit none
     type     (treeNode                   ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -94,7 +95,7 @@ contains
     class    (nodeComponentFormationTime )               , pointer :: formationTime
     class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
     !GCC$ attributes unused :: odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -121,7 +122,7 @@ contains
   !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(node)
-    use Galacticus_Nodes, only : treeNode, nodeComponentFormationTime, nodeComponentFormationTimeCole2000, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, nodeComponentFormationTimeCole2000, treeNode
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime
@@ -145,8 +146,8 @@ contains
   subroutine Node_Component_Formation_Time_Cole2000_Create(node)
     !% Creates a halo formation time component for {\normalfont \ttfamily node}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
-    use Events_Halo_Formation
-    use Galacticus_Nodes     , only : treeNode, nodeComponentFormationTime
+    use :: Events_Halo_Formation, only : Event_Halo_Formation
+    use :: Galacticus_Nodes     , only : nodeComponentFormationTime, treeNode
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime
@@ -177,7 +178,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
-    use Galacticus_Nodes, only : treeNode, defaultFormationTimeComponent
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent, treeNode
     implicit none
     type(treeNode), intent(inout), pointer :: node
 

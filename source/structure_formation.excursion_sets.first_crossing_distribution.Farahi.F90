@@ -21,11 +21,11 @@
 
 !% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 
-  use, intrinsic :: ISO_C_Binding
+  use            :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use            :: Excursion_Sets_Barriers, only : excursionSetBarrierClass
   use            :: FGSL                   , only : fgsl_interp_accel
-  use            :: Excursion_Sets_Barriers
-  use            :: File_Utilities
-  use            :: Cosmology_Functions
+  use            :: File_Utilities         , only : lockDescriptor
+  use, intrinsic :: ISO_C_Binding
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
   !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.</description>
@@ -37,28 +37,28 @@
      class           (excursionSetBarrierClass), pointer                       :: excursionSetBarrier_                    => null()
      ! Variables used in tabulation the first crossing function.
      double precision                                                          :: timeMaximum                                      , timeMinimum                         , &
-          &                                                                       varianceMaximum                         
+          &                                                                       varianceMaximum
      integer                                                                   :: timeTableCount                                   , varianceTableCount
      double precision                          , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
      double precision                          , allocatable, dimension(:  )   :: timeTable                                        , varianceTable
      double precision                                                          :: varianceTableStep
-     logical                                                                   :: tableInitialized                        
+     logical                                                                   :: tableInitialized
      type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTime                     , interpolationAcceleratorVariance
-     logical                                                                   :: interpolationResetTime                           , interpolationResetVariance          
+     logical                                                                   :: interpolationResetTime                           , interpolationResetVariance
      ! Variables used in tabulation the first crossing rate function.
      double precision                                                          :: timeMaximumRate                                  , timeMinimumRate                     , &
-          &                                                                       varianceMaximumRate                     
+          &                                                                       varianceMaximumRate
      integer                                                                   :: timeTableCountRate                               , varianceTableCountRate              , &
           &                                                                       varianceTableCountRateBase
      double precision                          , allocatable, dimension(:,:,:) :: firstCrossingTableRate
      double precision                          , allocatable, dimension(:,:  ) :: nonCrossingTableRate
      double precision                          , allocatable, dimension(:    ) :: timeTableRate                                    , varianceTableRate                   , &
           &                                                                       varianceTableRateBase
-     logical                                                                   :: tableInitializedRate                    
+     logical                                                                   :: tableInitializedRate
      type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTimeRate                 , interpolationAcceleratorVarianceRate, &
           &                                                                       interpolationAcceleratorVarianceRateBase
      logical                                                                   :: interpolationResetTimeRate                       , interpolationResetVarianceRate      , &
-          &                                                                       interpolationResetVarianceRateBase      
+          &                                                                       interpolationResetVarianceRateBase
      ! File name used to store tabulations.
      type            (varying_string          )                                :: fileName
      logical                                                                   :: useFile
@@ -126,7 +126,7 @@ contains
 
   function farahiConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetFirstCrossingFarahi)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -162,11 +162,10 @@ contains
 
   function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Galacticus_Display
-    use System_Command
-    use File_Utilities
+    use :: File_Utilities    , only : File_Lock_Initialize      , File_Name_Expand
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -200,7 +199,7 @@ contains
     self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.
     call System_Command_Do("mkdir -p `dirname "//char(self%fileName)//"`")
-    ! Initialize file lock.    
+    ! Initialize file lock.
     if (.not.farahiFileLockInitialized) then
        !$omp critical(farahiFileLockInitialize)
        if (.not.farahiFileLockInitialized) then
@@ -213,11 +212,11 @@ contains
   end function farahiConstructorInternal
 
   subroutine farahiDestructor(self)
-    !% Destructor for the Farahi excursion set first crossing class.    
-    use Numerical_Interpolation, only : Interpolate_Done
+    !% Destructor for the Farahi excursion set first crossing class.
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(excursionSetFirstCrossingFarahi), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%excursionSetBarrier_" />
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance        ,reset=self%interpolationResetVariance        )
@@ -230,13 +229,15 @@ contains
 
   double precision function farahiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
     double precision                                 , intent(in   )                 :: variance                     , time
@@ -469,7 +470,7 @@ contains
 
   double precision function farahiRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
     double precision                                 , intent(in   )  :: variance           , varianceProgenitor, &
@@ -538,7 +539,7 @@ contains
 
   double precision function farahiRateNonCrossing(self,variance,time,node)
    !% Return the rate for excursion set non-crossing.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
     double precision                                 , intent(in   ) :: time , variance
@@ -574,13 +575,15 @@ contains
 
   subroutine farahiRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
@@ -605,7 +608,7 @@ contains
          &                                                                            sigma1f                          , varianceTableStepRate    , &
          &                                                                            barrier
     logical                                                                        :: locked
-    
+
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
     locked=.false.
@@ -894,12 +897,12 @@ contains
 
   subroutine farahiFileRead(self)
     !% Read tabulated data on excursion set first crossing probabilities from file.
-    use IO_HDF5
-    use File_Utilities
-    use Memory_Management
-    use Numerical_Interpolation
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: File_Utilities         , only : File_Exists              , File_Name_Expand
+    use :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
+    use :: IO_HDF5                , only : hdf5Access               , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management      , only : allocateArray            , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
@@ -908,7 +911,7 @@ contains
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
     type            (varying_string                 )                                  :: message
     character       (len=32                         )                                  :: label
-    
+
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(File_Name_Expand(char(self%fileName)))) return
     ! Open the data file.
@@ -1025,8 +1028,8 @@ contains
 
   subroutine farahiFileWrite(self)
     !% Write tabulated data on excursion set first crossing probabilities to file.
-    use HDF5
-    use IO_HDF5
+    use :: HDF5
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
     type (hdf5Object                     )                :: dataFile, dataGroup
@@ -1091,7 +1094,7 @@ contains
           rangeValues(iRange)=exp(log(rangeMinimum)                          +log(rangeMaximum                           /rangeMinimum                           )*fractionRange)
        else
           rangeValues(iRange)=   (    rangeMinimum**(1.0d0+integrandExponent)+   (rangeMaximum**(1.0d0+integrandExponent)-rangeMinimum**(1.0d0+integrandExponent))*fractionRange)**(1.00/(1.0d0+integrandExponent))
-       end if       
+       end if
     end do
     return
   end function farahiVarianceRange

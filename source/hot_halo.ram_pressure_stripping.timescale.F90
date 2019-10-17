@@ -21,7 +21,7 @@
 
 module Hot_Halo_Ram_Pressure_Stripping_Timescales
   !% Implements a class for calculations of ram pressure stripping timescales for hot halos.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

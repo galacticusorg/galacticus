@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger mass movements class using the \cite{baugh_can_2005} model.
-  
+
   !# <mergerMassMovements name="mergerMassMovementsBaugh2005">
   !#  <description>A merger mass movements class which uses a simple calculation.</description>
   !# </mergerMassMovements>
@@ -42,7 +42,7 @@ contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily baugh2005} merger mass movements class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsBaugh2005)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -95,15 +95,15 @@ contains
          &                                                           fractionGasCriticalBurst
     integer                                       , intent(in   ) :: destinationGasMinorMerger
     !# <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
-    
+
     return
   end function baugh2005ConstructorInternal
 
   subroutine baugh2005Get(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !% Determine how different mass components should be redistributed as the result of a merger according to the model of
     !% \cite{baugh_can_2005}.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeGalactic, massTypeGaseous
     implicit none
     class           (mergerMassMovementsBaugh2005), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -114,7 +114,7 @@ contains
     double precision                                              :: massHost               , massSatellite            , &
          &                                                           massSpheroidHost       , massGasHost
     logical                                                       :: triggersBurst
-    
+
     nodeHost         => node%mergesWith()
     massSatellite    =  Galactic_Structure_Enclosed_Mass(node                                        ,massType=massTypeGalactic)
     massHost         =  Galactic_Structure_Enclosed_Mass(nodeHost                                    ,massType=massTypeGalactic)

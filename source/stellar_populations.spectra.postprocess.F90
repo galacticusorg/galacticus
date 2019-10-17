@@ -36,14 +36,14 @@ module Stellar_Population_Spectra_Postprocess
   !#   <argument>double precision, intent(in   ) :: wavelength, age, redshift</argument>
   !#  </method>
   !# </functionClass>
-  
+
   type :: stellarPopulationSpectraPostprocessorList
      !% Type used to build linked list of stellar population spectra postprocessors.
      class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_
    contains
      final :: stellarPopulationSpectraPostprocessorListDestructor
   end type stellarPopulationSpectraPostprocessorList
-  
+
   !# <functionClass>
   !#  <name>stellarPopulationSpectraPostprocessorBuilder</name>
   !#  <descriptiveName>Builder for postprocessors for stellar population spectra</descriptiveName>
@@ -63,9 +63,9 @@ contains
     !% Destructor for elements of stellar population spectra postprocessor lists.
     implicit none
     type(stellarPopulationSpectraPostprocessorList), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%stellarPopulationSpectraPostprocessor_"/>
     return
   end subroutine stellarPopulationSpectraPostprocessorListDestructor
-  
+
 end module Stellar_Population_Spectra_Postprocess

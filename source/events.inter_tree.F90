@@ -21,9 +21,9 @@
 
 module Node_Events_Inter_Tree
   !% Handles inter-tree node events.
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
-  use               Kind_Numbers
-  use               Galacticus_Nodes, only : treeNode
+  use            :: Kind_Numbers    , only : kind_int8
   implicit none
   private
   public :: Node_Push_From_Tree, Node_Pull_From_Tree, Inter_Tree_Event_Post_Evolve
@@ -42,18 +42,18 @@ module Node_Events_Inter_Tree
 
   ! Record of warnings issued.
   logical                            :: warningNestedHierarchyIssued=.false.
-  
+
 contains
 
   logical function Node_Push_From_Tree(event,node,deadlockStatus)
     !% Push a node from the tree.
-    use ISO_Varying_String
-    use Galacticus_Display
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling
-    use Merger_Trees_Evolve_Deadlock_Status
-    use Galacticus_Nodes                   , only : nodeEvent                   , nodeComponentBasic, treeNodeLinkedList, nodeEventSubhaloPromotionInterTree, &
-         &                                          nodeEventBranchJumpInterTree
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
+    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
+          &                                            treeNode                     , treeNodeLinkedList
+    use :: ISO_Varying_String
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: String_Handling                    , only : operator(//)
     implicit none
     class    (nodeEvent         ), intent(in   )          :: event
     type     (treeNode          ), intent(inout), pointer :: node
@@ -170,12 +170,13 @@ contains
 
   logical function Node_Pull_From_Tree(event,node,deadlockStatus)
     !% Pull a node from the tree.
-    use ISO_Varying_String
-    use Galacticus_Display
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Merger_Trees_Evolve_Deadlock_Status
-    use Galacticus_Nodes                   , only : nodeEvent, nodeComponentBasic, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message, verbosityWarn                , verbosityInfo
+    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
+          &                                            treeNode
+    use :: ISO_Varying_String
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable
+    use :: String_Handling                    , only : operator(//)
     !# <include directive="interTreeSatelliteAttach" type="moduleUse">
     include 'events.inter_tree.satellite_attach.modules.inc'
     !# </include>
@@ -251,7 +252,7 @@ contains
                 message=message//"no"
              end if
              message=message//'} at time '//trim(label)//' Gyr'
-             call Galacticus_Display_Message(message,verbosityInfo)             
+             call Galacticus_Display_Message(message,verbosityInfo)
              ! Remove the node from the linked list.
              waitListEntryPrevious%next => waitListEntry        %next
              deallocate(waitListEntry)
@@ -272,11 +273,11 @@ contains
              if (isPrimary) then
                 ! Handle primary progenitor cases.
                 select type (event)
-                type is (nodeEventSubhaloPromotionInterTree)                
+                type is (nodeEventSubhaloPromotionInterTree)
                    ! Node being jumped to should not be a satellite in this case.
                    if (node%isSatellite()) call Galacticus_Error_Report('inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior'//{introspection:location})
                    ! Pulled node is the primary progenitor and a subhalo promotion. It is being pulled to a node that is a clone of its parent. Replace the
-                   ! clone with the pulled node.                
+                   ! clone with the pulled node.
                    if (associated(node%firstSatellite)) then
                       satelliteNode => node%firstSatellite
                       do while (associated(satelliteNode%sibling))
@@ -299,7 +300,7 @@ contains
                       mergeeNode%siblingMergee => pullNode  %firstMergee
                       pullNode  %firstMergee   => mergeeNode
                       mergeeNode               => mergeeNext
-                   end do                   
+                   end do
                    satelliteNode                        => pullNode%firstSatellite
                    do while (associated(satelliteNode))
                       satelliteNode%parent => pullNode
@@ -371,7 +372,7 @@ contains
                       !# <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
                       !#  <functionArgs>pullNode,node</functionArgs>
                       include 'events.inter_tree.satellite_insert.inc'
-                      !# </include>  
+                      !# </include>
                    else
                       ! Attach pulled node as the primary progenitor of the target node as it is the primary (and only progenitor).
                       pullNode%parent     => node
@@ -388,7 +389,7 @@ contains
                       attachBasic => node%basic()
                       call node   %           indexSet(pullNode %           index())
                       call attachBasic%            massSet(pullBasic%            mass())
-                      call attachBasic%timeLastIsolatedSet(pullBasic%timeLastIsolated())                   
+                      call attachBasic%timeLastIsolatedSet(pullBasic%timeLastIsolated())
                    end if
                 end select
              else
@@ -425,7 +426,7 @@ contains
                 pullNode   %parent         => attachNode
                 pullBasic                  => pullNode                 %basic()
                 if (associated(attachNode%parent)) then
-                   attachBasic => attachNode%parent%basic()                
+                   attachBasic => attachNode%parent%basic()
                    if (pullBasic%time() > attachBasic%time()) then
                       message='pulled node exceeds node in time [non-primary]:'//char(10)
                       message=message//" event ID="//event%id//char(10)
@@ -439,10 +440,10 @@ contains
                 ! Assign a merging time to the new satellite if possible.
                 select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)
-                   attachBasic => attachNode%basic()                
+                   attachBasic => attachNode%basic()
                    if (associated(event%mergeTimeSet)) call event%mergeTimeSet(event%creator,pullNode,attachNode)
                 type is (nodeEventBranchJumpInterTree      )
-                   attachBasic => attachNode%basic()                
+                   attachBasic => attachNode%basic()
                    if (associated(event%mergeTimeSet)) call event%mergeTimeSet(event%creator,pullNode,attachNode)
                 class default
                    call Galacticus_Error_Report('non-primary jump should be inter-tree branch jump'//{introspection:location})
@@ -484,7 +485,7 @@ contains
           waitListEntryPrevious => waitListEntry
           waitListEntry         => waitListEntry%next
        end do
-    end if           
+    end if
     !$omp end critical(interTreeWaitList)
     return
   end function Node_Pull_From_Tree
@@ -494,10 +495,10 @@ contains
   !# </universePostEvolveTask>
   subroutine Inter_Tree_Event_Post_Evolve()
     !% Check that the inter-tree transfer list is empty after universe evolution.
-    use ISO_Varying_String
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Display
-    use String_Handling
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : operator(//)
     implicit none
     type(interTreeTransfer), pointer :: waitListEntry
     type(varying_string   )          :: message
@@ -516,5 +517,5 @@ contains
     end if
     return
   end subroutine Inter_Tree_Event_Post_Evolve
-  
+
 end module Node_Events_Inter_Tree

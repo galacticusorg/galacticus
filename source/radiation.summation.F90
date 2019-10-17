@@ -57,7 +57,7 @@ contains
 
   function summationConstructorParameters(parameters) result (self)
     !% Constructor for the ``summation'' radiation field class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (radiationFieldSummation)                :: self
     type   (inputParameters        ), intent(inout) :: parameters
@@ -130,10 +130,10 @@ contains
     end do
     return
   end function summationFlux
-  
+
   subroutine summationDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily summation} radiation field class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(radiationFieldSummation), intent(inout) :: self
     class(radiationFieldClass    ), intent(inout) :: destination
@@ -150,7 +150,7 @@ contains
           allocate(radiationFieldNew_)
           if (associated(radiationFieldDestination_)) then
              radiationFieldDestination_%next       => radiationFieldNew_
-             radiationFieldDestination_            => radiationFieldNew_             
+             radiationFieldDestination_            => radiationFieldNew_
           else
              destination          %radiationFields => radiationFieldNew_
              radiationFieldDestination_            => radiationFieldNew_
@@ -158,7 +158,7 @@ contains
           allocate(radiationFieldNew_%radiationField_,mold=radiationField_%radiationField_)
           !# <deepCopy source="radiationField_%radiationField_" destination="radiationFieldNew_%radiationField_"/>
           radiationField_ => radiationField_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

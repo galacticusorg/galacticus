@@ -42,7 +42,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the null hot halo mass distribution class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(hotHaloMassDistributionNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
@@ -59,7 +59,7 @@ contains
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
-    
+
     nullDensity=0.0d0
     return
   end function nullDensity
@@ -75,7 +75,7 @@ contains
     nullDensityLogSlope=0.0d0
     return
   end function nullDensityLogSlope
-  
+
   double precision function nullEnclosedMass(self,node,radius)
     !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
@@ -87,7 +87,7 @@ contains
     nullEnclosedMass=0.0d0
     return
   end function nullEnclosedMass
-  
+
   double precision function nullRadialMoment(self,node,moment,radius)
     !% Return the density of the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
@@ -112,4 +112,4 @@ contains
     nullRotationNormalization=0.0d0
   return
   end function nullRotationNormalization
-  
+

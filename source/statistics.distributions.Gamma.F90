@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a 1D gamma distibution function.
-  
+
   !# <distributionFunction1D name="distributionFunction1DGamma">
   !#  <description>A 1D gamma distribution function class.</description>
   !# </distributionFunction1D>
@@ -46,7 +46,7 @@ contains
   function gammaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gamma} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DGamma)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
@@ -85,16 +85,16 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function gammaConstructorParameters
-  
+
   function gammaConstructorInternal(shape,rate,limitLower,limitUpper) result(self)
     !% Constructor for ``gamma'' 1D distribution function class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunction1DGamma)                          :: self
     double precision                             , intent(in   )           :: shape                        , rate
     double precision                             , intent(in   ), optional :: limitLower                   , limitUpper
     !# <constructorAssign variables="shape, rate"/>
-    
+
     if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('rate>0 and shape>0 are required'//{introspection:location})
     self%limitLowerExists=.false.
     self%limitUpperExists=.false.
@@ -122,7 +122,7 @@ contains
 
   double precision function gammaDensity(self,x)
     !% Return the density of a Gamma distribution.
-    use Gamma_Functions
+    use :: Gamma_Functions, only : Gamma_Function
     implicit none
     class           (distributionFunction1DGamma), intent(inout) :: self
     double precision                             , intent(in   ) :: x
@@ -150,7 +150,7 @@ contains
 
   double precision function gammaCumulative(self,x)
     !% Return the cumulative probability of a Gamma distribution.
-    use Gamma_Functions
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
     implicit none
     class           (distributionFunction1DGamma), intent(inout) :: self
     double precision                             , intent(in   ) :: x
@@ -186,8 +186,8 @@ contains
 
   double precision function gammaInverse(self,p)
     !% Return the inverse of a Gamma distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Gamma_Functions
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Gamma_Functions , only : Inverse_Gamma_Function_Incomplete_Complementary
     implicit none
     class           (distributionFunction1DGamma), intent(inout), target :: self
     double precision                             , intent(in   )         :: p

@@ -21,12 +21,12 @@
 
 module NBody_Simulation_Data
   !% Provides a class to store N-body simulation data.
-  use IO_HDF5
-  use Kind_Numbers
+  use :: IO_HDF5     , only : hdf5Object
+  use :: Kind_Numbers, only : kind_int8
   implicit none
   private
   public :: nBodyData
-  
+
   type :: nBodyData
      !% A class to store N-body simulation data.
      type            (hdf5Object)                              :: analysis

@@ -37,21 +37,21 @@ contains
 
   function buildToolFSPSParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolFSPS)                :: self
     type(inputParameters  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskBuildToolFSPS()
     return
   end function buildToolFSPSParameters
 
   subroutine buildToolFSPSPerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Error  , only : errorStatusSuccess
-    use Galacticus_Display
-    use Interfaces_FSPS
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Interfaces_FSPS   , only : Interface_FSPS_Initialize
     implicit none
     class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
@@ -60,7 +60,7 @@ contains
 
     call Galacticus_Display_Indent  ('Begin task: FSPS tool build')
     call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
-    call Galacticus_DisplaY_Message('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
+    call Galacticus_Display_Message('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: FSPS tool build')
     return
@@ -69,7 +69,7 @@ contains
   logical function buildToolFSPSRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskBuildToolFSPS), intent(inout) :: self    
+    class(taskBuildToolFSPS), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     buildToolFSPSRequiresOutputFile=.false.

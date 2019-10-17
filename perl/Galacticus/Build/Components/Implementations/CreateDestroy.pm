@@ -48,6 +48,7 @@ sub Implementation_Creation {
 	     }
 	    ]
     };
+    my %modules;
     # Add variables for any other components required for initialization.
     my $componentInitialization;
     foreach my $property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
@@ -113,6 +114,7 @@ CODE
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call allocateArray(self%{$property->{'name'}}Data,[{$property->{'classDefault'}->{'count'}}])
 CODE
+		$modules{'Memory_Management,only:allocateArray'} = 1;
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 self%{$property->{'name'}}Data={$property->{'classDefault'}->{'code'}}
@@ -131,6 +133,7 @@ CODE
 	    	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call allocateArray(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'data'}->{'rank'})}])
 CODE
+		$modules{'Memory_Management,only:allocateArray'} = 1;
 	    }
 	    if (&isIntrinsic($code::property->{'data'}->{'type'})) {
 		%code::nullValues = %intrinsicNulls;
@@ -144,6 +147,8 @@ CODE
 	    }
 	}
     }
+    push(@{$function->{'modules'}},keys(%modules))
+	if ( %modules );
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{$code::implementationTypeName}->{'boundFunctions'}},

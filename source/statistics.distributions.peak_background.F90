@@ -19,8 +19,8 @@
 
   !% Implementation of a peak-background split density 1D distibution function.
 
-  use Tables
-  
+  use :: Tables, only : table1D, table1DLinearLinear
+
   !# <distributionFunction1D name="distributionFunction1DPeakBackground">
   !#  <description>A peakBackground 1D distribution function class.</description>
   !# </distributionFunction1D>
@@ -30,7 +30,7 @@
      double precision                                   :: varianceBackground, thresholdCollapse, &
           &                                                normalization
      type            (table1DLinearLinear)              :: cdf
-     class           (table1D            ), allocatable :: cdfInverse   
+     class           (table1D            ), allocatable :: cdfInverse
    contains
      final     ::               peakBackgroundDestructor
      procedure :: density    => peakBackgroundDensity
@@ -51,12 +51,12 @@ contains
   function peakBackgroundConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DPeakBackground)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     double precision                                                      :: varianceBackground, thresholdCollapse
-    
+
     !# <inputParameter>
     !#   <name>varianceBackground</name>
     !#   <cardinality>1</cardinality>
@@ -75,10 +75,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function peakBackgroundConstructorParameters
-  
+
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse) result(self)
     !% Constructor for ``peakBackground'' 1D distribution function class.
-    use Error_Functions
+    use :: Error_Functions, only : Error_Function
     implicit none
     type            (distributionFunction1DPeakBackground)                :: self
     double precision                                      , intent(in   ) :: varianceBackground      , thresholdCollapse
@@ -124,7 +124,7 @@ contains
     !% Destructor for ``peakBackground'' 1D distribution function class.
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self
-    
+
     call    self%cdf       %destroy()
     if (allocated(self%cdfInverse)) then
        call self%cdfInverse%destroy()
@@ -132,10 +132,10 @@ contains
     end if
     return
   end subroutine peakBackgroundDestructor
-  
+
   double precision function peakBackgroundMinimum(self)
     !% Return the minimum possible value of a peak-background split distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -147,7 +147,7 @@ contains
 
   double precision function peakBackgroundMaximum(self)
     !% Return the maximum possible value of a peak-background split distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -159,7 +159,7 @@ contains
 
   double precision function peakBackgroundDensity(self,x)
     !% Return the density of a normal distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout) :: self
     double precision                                      , intent(in   ) :: x
@@ -213,7 +213,7 @@ contains
 
   double precision function peakBackgroundInverse(self,p)
     !% Return the inverse of a normal distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self
     double precision                                      , intent(in   )         :: p

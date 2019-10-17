@@ -21,10 +21,10 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use Cosmology_Functions
-  use Galacticus_Nodes   , only : treeNode
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass, timeToleranceRelativeBigCrunch
+  use :: Galacticus_Nodes   , only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>criticalOverdensity</name>
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
@@ -223,7 +223,7 @@ module Cosmological_Density_Field
   !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
-  
+
   !# <functionClass>
   !#  <name>cosmologicalMassVariance</name>
   !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
@@ -292,7 +292,7 @@ contains
   double precision function collapsingMassRoot(mass)
     !% Function used in root finding for the collapsing mass at a given time.
     implicit none
-    double precision, intent(in   ) :: mass        
+    double precision, intent(in   ) :: mass
 
     if (globalSelf%nodePresent) then
        collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass,node=globalSelf%node)

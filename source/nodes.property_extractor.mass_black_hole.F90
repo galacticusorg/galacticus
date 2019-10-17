@@ -43,7 +43,7 @@ contains
 
   function massBlackHoleConstructorParameters(parameters)
     !% Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
     type(inputParameters                   ), intent(inout) :: parameters
@@ -55,9 +55,7 @@ contains
 
   double precision function massBlackHoleExtract(self,node,instance)
     !% Implement a massBlackHole output analysis.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Galacticus_Nodes                  , only : nodeComponentBlackHole
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout)           :: self
     type (treeNode                          ), intent(inout), target   :: node
@@ -72,7 +70,7 @@ contains
 
   integer function massBlackHoleType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -83,7 +81,7 @@ contains
 
   integer function massBlackHoleQuantity(self)
     !% Return the class of the stellar luminosity property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -116,7 +114,7 @@ contains
 
   double precision function massBlackHoleUnitsInSI(self)
     !% Return the units of the massBlackHole property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
     !GCC$ attributes unused :: self

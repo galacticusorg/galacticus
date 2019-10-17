@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a satellite merging timescale class in which merging timescales are always zero.
- 
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesZero">
   !#  <description>Returns a zero timescale for merging.</description>
   !# </satelliteMergingTimescales>
@@ -39,7 +39,7 @@ contains
   function zeroConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily zero} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
@@ -56,7 +56,7 @@ contains
     type (treeNode                      ), intent(inout) :: node
     type (keplerOrbit                   ), intent(inout) :: orbit
     !GCC$ attributes unused :: self, node, orbit
-    
+
     zeroTimeUntilMerging=0.0d0
     return
   end function zeroTimeUntilMerging

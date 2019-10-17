@@ -16,8 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
-  use Cosmological_Density_Field, only : criticalOverdensity, criticalOverdensityClass, cosmologicalMassVariance, cosmologicalMassVarianceClass
+
+  use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass, criticalOverdensity, criticalOverdensityClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
   !#  <description>A property extractor class for peak height of the halo.</description>
@@ -36,7 +36,7 @@
      procedure :: unitsInSI    => peakHeightUnitsInSI
      procedure :: type         => peakHeightType
   end type nodePropertyExtractorPeakHeight
-  
+
   interface nodePropertyExtractorPeakHeight
      !% Constructors for the ``peakHeight'' output extractor class.
      module procedure peakHeightConstructorParameters
@@ -47,13 +47,13 @@ contains
 
   function peakHeightConstructorParameters(parameters) result(self)
     !% Constructor for the ``peakHeight'' property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorPeakHeight)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(criticalOverdensityClass       ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
-    
+
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=nodePropertyExtractorPeakHeight(criticalOverdensity_,cosmologicalMassVariance_)
@@ -73,7 +73,7 @@ contains
 
     return
   end function peakHeightConstructorInternal
-  
+
   subroutine peakHeightDestructor(self)
     !% Destructor for the {\normalfont \ttfamily peakHeight} property extractor class.
     implicit none
@@ -83,7 +83,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine peakHeightDestructor
-  
+
   integer function peakHeightElementCount(self,time)
     !% Return the number of elements in the {\normalfont \ttfamily peakHeight} property extractors.
     implicit none
@@ -94,10 +94,10 @@ contains
     peakHeightElementCount=3
     return
   end function peakHeightElementCount
-  
+
   function peakHeightExtract(self,node,time,instance)
     !% Implement a peakHeight output extractor.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     double precision                                 , dimension(:) , allocatable :: peakHeightExtract
     class           (nodePropertyExtractorPeakHeight), intent(inout), target      :: self
@@ -108,9 +108,9 @@ contains
     double precision                                                              :: criticalOverdensityLastIsolated, densityFieldRootVariance, &
          &                                                                           peakHeightNu
     !GCC$ attributes unused :: time, instance
-    
+
     basic => node%basic()
-    criticalOverdensityLastIsolated=self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated()) 
+    criticalOverdensityLastIsolated=self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated())
     densityFieldRootVariance       =self%cosmologicalMassVariance_%rootVariance(     basic%mass()                              )
     peakHeightNu                   =criticalOverdensityLastIsolated/densityFieldRootVariance
     allocate(peakHeightExtract(3))
@@ -171,7 +171,7 @@ contains
 
   integer function peakHeightType(self)
     !% Return the type of the peakHeight property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorPeakHeight), intent(inout) :: self
     !GCC$ attributes unused :: self

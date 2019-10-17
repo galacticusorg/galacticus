@@ -39,12 +39,12 @@ contains
 
   function nullConstructorParameters(parameters)
     !% Constructor for the null merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorNull)                :: nullConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     nullConstructorParameters=mergerTreeOperatorNull()
     return
   end function nullConstructorParameters
@@ -54,7 +54,7 @@ contains
     implicit none
     type(mergerTreeOperatorNull), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine nullDestructor

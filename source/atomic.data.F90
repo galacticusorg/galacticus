@@ -153,13 +153,13 @@ contains
 
   subroutine Atomic_Data_Initialize
     !% Ensure that the module is initialized by reading in data.
-    use FoX_dom
-    use Memory_Management
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling
-    use Galacticus_Paths
-    use ISO_Varying_String
-    use IO_XML
+    use :: FoX_dom
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String
+    use :: Memory_Management , only : Memory_Usage_Record    , allocateArray
+    use :: String_Handling   , only : String_Lower_Case      , char
     implicit none
     type            (Node    )              , pointer :: abundanceTypeElement, doc              , thisAtom, &
          &                                               thisElement
@@ -276,8 +276,8 @@ contains
 
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
     !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: String_Handling , only : String_Lower_Case
     implicit none
     integer          , intent(in   ), optional :: atomicNumber
     character(len=* ), intent(in   ), optional :: name         , shortLabel
@@ -322,8 +322,8 @@ contains
 
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
     !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: String_Handling , only : String_Lower_Case
     implicit none
     integer           , intent(in   ), optional :: abundanceIndex
     character(len=*  ), intent(in   ), optional :: abundanceName

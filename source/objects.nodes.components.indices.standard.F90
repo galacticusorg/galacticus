@@ -47,7 +47,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Indices_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the indices component by creating components in nodes and storing indices.
-    use Galacticus_Nodes, only : treeNode, nodeComponentIndices, defaultIndicesComponent, nodeComponentIndicesStandard
+    use :: Galacticus_Nodes, only : defaultIndicesComponent, nodeComponentIndices, nodeComponentIndicesStandard, treeNode
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     class(nodeComponentIndices)               , pointer :: thisIndices

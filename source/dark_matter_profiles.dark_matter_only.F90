@@ -19,9 +19,9 @@
 
   !% An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
 
-  use Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
-  
+  use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
   !# <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
   !#  <description>An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.</description>
   !# </darkMatterProfile>
@@ -63,7 +63,7 @@ contains
   function darkMatterOnlyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
     !% a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileDarkMatterOnly)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -108,7 +108,7 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine darkMatterOnlyDestructor
-  
+
   double precision function darkMatterOnlyDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -121,7 +121,7 @@ contains
          &                *self%darkMatterProfileDMO_%density(node,radius)
     return
   end function darkMatterOnlyDensity
-  
+
   double precision function darkMatterOnlyDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -169,7 +169,7 @@ contains
 
     darkMatterOnlyRadialMoment=+self%darkMatterFraction                                                          &
          &                     *self%darkMatterProfileDMO_%radialMoment(node,moment,radiusMinimum,radiusMaximum)
-    return 
+    return
   end function darkMatterOnlyRadialMoment
 
   double precision function darkMatterOnlyEnclosedMass(self,node,radius)
@@ -184,7 +184,7 @@ contains
          &                     *self%darkMatterProfileDMO_%enclosedMass(node,radius)
     return
   end function darkMatterOnlyEnclosedMass
-  
+
   double precision function darkMatterOnlyPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
@@ -192,8 +192,8 @@ contains
     class           (darkMatterProfileDarkMatterOnly), intent(inout), target   :: self
     type            (treeNode                       ), intent(inout), pointer  :: node
     double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status    
- 
+    integer                                          , intent(  out), optional :: status
+
     darkMatterOnlyPotential=+self%darkMatterFraction                                  &
          &                  *self%darkMatterProfileDMO_%potential(node,radius,status)
     return
@@ -283,7 +283,6 @@ contains
   double precision function darkMatterOnlyKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the dark matter halo density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout)         :: self
     type            (treeNode                       ), intent(inout), target :: node

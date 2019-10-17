@@ -21,7 +21,7 @@
 
 module Node_Component_NBody_Generic
   !% An implementation of the N-body component which supports generic properties.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   implicit none
   private
   public :: Node_Component_NBody_Generic_Promote          , Node_Component_NBody_Generic_Initialize  , &
@@ -84,7 +84,7 @@ module Node_Component_NBody_Generic
 
   ! Property names.
   type   (varying_string), allocatable, dimension(:) :: propertyNamesReal        , propertyNamesInteger
-  
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -92,8 +92,8 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_NBody_Generic_Initialize(globalParameters_)
     !% Initializes the generic N-body component module.
-    use Galacticus_Nodes, only : nodeComponentNBodyGeneric, defaultNBodyComponent
-    use Input_Parameters
+    use :: Galacticus_Nodes, only : defaultNBodyComponent, nodeComponentNBodyGeneric
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters             ), intent(inout) :: globalParameters_
     type(nodeComponentNBodyGeneric   )                :: nbodyComponent
@@ -115,12 +115,12 @@ contains
    subroutine Node_Component_NBody_Generic_Promote(node)
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the
      !% properties of {\normalfont \ttfamily node} to be those of its parent.
-     use Galacticus_Nodes, only : treeNode, nodeComponentNBody, nodeComponentNBodyGeneric
+     use :: Galacticus_Nodes, only : nodeComponentNBody, nodeComponentNBodyGeneric, treeNode
      implicit none
      type (treeNode          ), intent(inout), pointer :: node
      type (treeNode          )               , pointer :: nodeParent
      class(nodeComponentNBody)               , pointer :: nBodyParent, nBody
-     
+
      ! Get the nBody component.
      nBody => node%nBody()
      ! Ensure that it is of the generic class.
@@ -138,7 +138,7 @@ contains
 
    function Node_Component_NBody_Generic_Add_Real_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
-     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
      character(len=*                    ), intent(in   )             :: propertyName
@@ -175,10 +175,10 @@ contains
      !$omp end critical(nbodyGenericAccess)
      return
    end function Node_Component_NBody_Generic_Add_Real_Property
-   
+
    function Node_Component_NBody_Generic_Add_Integer_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
-     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
      implicit none
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
@@ -219,14 +219,14 @@ contains
 
    subroutine Node_Component_NBody_Generic_Set_Real_Property(self,propertyIndex,propertyValue)
      !% Set the value of the indexed real property.
-     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
-     use Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
      implicit none
      class           (nodeComponentNBodyGeneric), intent(inout)               :: self
      integer                                    , intent(in   )               :: propertyIndex
      double precision                           , intent(in   )               :: propertyValue
      double precision                           , allocatable  , dimension(:) :: propertyValuesCurrent, propertyValuesNew
-     
+
      if (.not.allocated(propertyNamesReal).or.propertyIndex > size(propertyNamesReal)) call Galacticus_Error_Report('property index is out of range'//{introspection:location})
      allocate(propertyValuesNew(size(propertyNamesReal)))
      propertyValuesCurrent           =self         %reals()
@@ -238,15 +238,15 @@ contains
 
    subroutine Node_Component_NBody_Generic_Set_Integer_Property(self,propertyIndex,propertyValue)
      !% Set the value of the indexed real property.
-     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
-     use Kind_Numbers
-     use Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Error, only : Galacticus_Error_Report
+     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     use :: Kind_Numbers    , only : kind_int8
      implicit none
      class           (nodeComponentNBodyGeneric), intent(inout)               :: self
      integer                                    , intent(in   )               :: propertyIndex
      integer         (kind_int8                ), intent(in   )               :: propertyValue
      integer         (kind_int8                ), allocatable  , dimension(:) :: propertyValuesCurrent, propertyValuesNew
-     
+
      if (.not.allocated(propertyNamesInteger).or.propertyIndex > size(propertyNamesInteger)) call Galacticus_Error_Report('property index is out of range'//{introspection:location})
      allocate(propertyValuesNew(size(propertyNamesReal)))
      propertyValuesCurrent           =self         %integers()
@@ -264,8 +264,8 @@ contains
         &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
         &,doublePropertyUnitsSI,time)
      !% Set names of black hole properties to be written to the \glc\ output file.
-     use String_Handling
-     use Galacticus_Nodes, only : treeNode
+     use :: Galacticus_Nodes, only : treeNode
+     use :: String_Handling , only : String_Upper_Case_First, char
      implicit none
      type            (treeNode)              , intent(inout), pointer :: node
      double precision                        , intent(in   )          :: time
@@ -304,7 +304,7 @@ contains
    !# </mergerTreeOutputPropertyCount>
    subroutine Node_Component_NBody_Generic_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
      !% Account for the number of black hole properties to be written to the the \glc\ output file.
-     use Galacticus_Nodes, only : treeNode
+     use :: Galacticus_Nodes, only : treeNode
      implicit none
      type            (treeNode), intent(inout), pointer :: node
      double precision          , intent(in   )          :: time
@@ -325,9 +325,9 @@ contains
    subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
         &,doubleBufferCount,doubleBuffer,time,instance)
      !% Store black hole properties in the \glc\ output file buffers.
-     use Galacticus_Nodes, only : treeNode, nodeComponentNBody
-     use Kind_Numbers
-     use Multi_Counters
+     use :: Galacticus_Nodes, only : nodeComponentNBody, treeNode
+     use :: Kind_Numbers    , only : kind_int8
+     use :: Multi_Counters  , only : multiCounter
      implicit none
      double precision                    , intent(in   )               :: time
      type            (treeNode          ), intent(inout), pointer      :: node

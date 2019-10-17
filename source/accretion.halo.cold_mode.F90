@@ -20,9 +20,9 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization and accounting for cold mode accretion.
 
-  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
-  use Kind_Numbers     , only : kind_int8
-  
+  use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
+  use :: Kind_Numbers     , only : kind_int8
+
   !# <accretionHalo name="accretionHaloColdMode">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.</description>
   !# </accretionHalo>
@@ -78,10 +78,10 @@
   end interface accretionHaloColdMode
 
 contains
-  
+
   function coldModeConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionHaloColdMode)                :: self
     type (inputParameters      ), intent(inout) :: parameters
@@ -138,17 +138,17 @@ contains
 
   subroutine coldModeAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(accretionHaloColdMode), intent(inout) :: self
 
     call calculationResetEvent%attach(self,coldModeCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine coldModeAutoHook
-  
+
   subroutine coldModeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily coldMode} halo accretion class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(accretionHaloColdMode), intent(inout) :: self
 
@@ -179,7 +179,7 @@ contains
          &                *self                    %coldModeFraction(node,accretionMode     )
     return
   end function coldModeAccretionRate
-  
+
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     implicit none
@@ -223,7 +223,7 @@ contains
     class (accretionHaloColdMode), intent(inout) :: self
     type  (treeNode             ), intent(inout) :: node
     integer                      , intent(in   ) :: accretionMode
-    
+
     coldModeAccretionRateMetals=+self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
          &                      *self                    %coldModeFraction   (node,accretionMode)
     return
@@ -246,7 +246,7 @@ contains
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     type            (chemicalAbundances   )                :: coldModeAccretionRateChemicals
     class           (accretionHaloColdMode), intent(inout) :: self
@@ -267,7 +267,7 @@ contains
 
   function coldModeAccretedMassChemicals(self,node,accretionMode)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Chemical_Abundances_Structure
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     type            (chemicalAbundances   )                :: coldModeAccretedMassChemicals
     class           (accretionHaloColdMode), intent(inout) :: self
@@ -288,11 +288,12 @@ contains
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes                 , only : nodeComponentBasic
-    use Abundances_Structure             , only : zeroAbundances
-    use Numerical_Constants_Astronomical
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
+    use :: Abundances_Structure             , only : zeroAbundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , treeNode
+    use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
+    use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
     type            (chemicalAbundances   )                :: coldModeChemicalMasses
     class           (accretionHaloColdMode), intent(inout) :: self
@@ -342,22 +343,22 @@ contains
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
-    use Galacticus_Nodes                  , only : nodeComponentBasic
-    use Abundances_Structure              , only : zeroAbundances
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Shocks_1D
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
+    use :: Abundances_Structure            , only : zeroAbundances
+    use :: Chemical_Abundances_Structure   , only : chemicalAbundances
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic      , treeNode
+    use :: Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, massSolar         , meanAtomicMassPrimordial, megaParsec
+    use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen      , atomicMassUnit
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes    , only : centi                   , kilo
+    use :: Numerical_Constants_Units       , only : ergs
+    use :: Shocks_1D                       , only : Shocks_1D_Density_Jump  , machNumberInfinite
     implicit none
     class           (accretionHaloColdMode   ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
-    double precision                          , parameter     :: adiabaticIndex             =5.0d0/3.0d0  
+    double precision                          , parameter     :: adiabaticIndex             =5.0d0/3.0d0
     double precision                          , parameter     :: perturbationInitialExponent=0.0d0
     double precision                          , parameter     :: logStabilityRatioMaximum   =60.0d0
     class           (nodeComponentBasic      ), pointer       :: basic
@@ -472,7 +473,7 @@ contains
        end select
     case default
        coldModeColdModeFraction=1.0d0
-       call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})  
+       call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
     end select
     return
   end function coldModeColdModeFraction

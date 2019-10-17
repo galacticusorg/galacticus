@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a luminosity function output analysis class.
 
-  use Geometry_Surveys
-  use Cosmology_Functions
-  use Stellar_Spectra_Dust_Attenuations
+  use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+  use :: Geometry_Surveys                 , only : surveyGeometryClass
+  use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
   !#  <description>A luminosity function output analysis class.</description>
@@ -47,7 +47,7 @@ contains
 
   function luminosityFunctionHalphaConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisLuminosityFunctionHalpha )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -149,7 +149,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -198,7 +198,7 @@ contains
 
   function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which reads bin information from a standard format file.
-    use IO_HDF5
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     type            (outputAnalysisLuminosityFunctionHalpha )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -251,15 +251,23 @@ contains
 
   function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
-    use ISO_Varying_String
-    use Memory_Management
-    use Output_Times
-    use String_Handling
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Numerical_Constants_Astronomical
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
-    use Numerical_Constants_Units
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
+    use :: Galactic_Filters                        , only : galacticFilterClass
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Geometry_Surveys                        , only : surveyGeometryClass
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyEmssnLine
+    use :: Numerical_Constants_Astronomical        , only : megaParsec
+    use :: Numerical_Constants_Units               , only : ergs
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
+          &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
+    use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
+    use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisLuminosityFunctionHalpha         )                                          :: self
     type            (varying_string                                 ), intent(in   )                           :: label                                                 , comment
@@ -293,7 +301,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
-    
+
     ! Compute weights that apply to each output redshift.
     self%binCount=size(luminosities,kind=c_size_t)
     call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
@@ -409,11 +417,11 @@ contains
   subroutine luminosityFunctionHalphaDestructor(self)
     !% Destructor for  the ``luminosityFunctionHalpha'' output analysis class.
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%surveyGeometry_"               />
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     !# <objectDestructor name="self%cosmologyFunctions_"           />
     !# <objectDestructor name="self%cosmologyFunctionsData"        />
     return
   end subroutine luminosityFunctionHalphaDestructor
-  
+

@@ -21,9 +21,9 @@
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Galacticus_Nodes        , only : treeNode
-  use Kind_Numbers
-  use Dark_Matter_Profiles_DMO
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galacticus_Nodes        , only : treeNode
+  use :: Kind_Numbers            , only : kind_int8
   implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
@@ -57,14 +57,14 @@ module Satellite_Orbits
   double precision                                               :: apocenterRadius
   double precision                                               :: apocenterVelocity
   !$omp threadprivate(lastUniqueID,pericenterCalculated,apocenterCalculated,timePrevious,orbitalEnergyPrevious,orbitalAngularMomentumPrevious,pericenterRadius,pericenterVelocity,apocenterRadius,apocenterVelocity)
-  
+
 contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
     !% Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
-    use Root_Finder
-    use Kepler_Orbits
-    use Dark_Matter_Halo_Scales
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+    use :: Kepler_Orbits          , only : keplerOrbit
+    use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (treeNode                 ), intent(inout), pointer  :: nodeHost
     type            (keplerOrbit              ), intent(inout)           :: orbit
@@ -110,9 +110,9 @@ contains
 
   double precision function Equivalent_Circular_Orbit_Solver(radius)
     !% Root function used in finding equivalent circular orbits.
-    use Galactic_Structure_Options
-    use Galactic_Structure_Potentials
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galactic_Structure_Options   , only : structureErrorCodeInfinite  , structureErrorCodeSuccess
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ) :: radius
     double precision, parameter     :: potentialInfinite=huge(1.0d0)
@@ -137,14 +137,14 @@ contains
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity)
     !% Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
-    use Root_Finder
-    use Kepler_Orbits
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Physical
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galactic_Structure_Options
-    use Galactic_Structure_Potentials
-    use Galacticus_Nodes             , only : nodeComponentBasic
+    use :: Galactic_Structure_Options   , only : structureErrorCodeInfinite  , structureErrorCodeSuccess
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes             , only : nodeComponentBasic          , treeNode
+    use :: Kepler_Orbits                , only : keplerOrbit
+    use :: Numerical_Constants_Physical , only : speedLight
+    use :: Numerical_Constants_Prefixes , only : kilo
+    use :: Root_Finder                  , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (treeNode          ), intent(inout), pointer :: nodeHost
     type            (keplerOrbit       ), intent(inout)          :: orbit
@@ -159,7 +159,7 @@ contains
     double precision                                             :: potential
 
 
-    
+
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost)
     ! Extract the orbital energy and angular momentum.
@@ -175,7 +175,7 @@ contains
          &   orbitalEnergyInternal          /= orbitalEnergyPrevious          &
          &  .or.                                                              &
          &   orbitalAngularMomentumInternal /= orbitalAngularMomentumPrevious &
-         & ) call Satellite_Orbit_Reset(nodeHost) 
+         & ) call Satellite_Orbit_Reset(nodeHost)
     ! Determine if we need to compute the extremum properties.
     if     (                                                                      &
          &   (extremumType == extremumPericenter .and. .not.pericenterCalculated) &
@@ -242,7 +242,7 @@ contains
           velocity=orbitalAngularMomentumInternal/radius
        else
           ! Orbit is radial - use energy to find velocity.
-          potential=Galactic_Structure_Potential(activeNode,radius,status=status)    
+          potential=Galactic_Structure_Potential(activeNode,radius,status=status)
           select case (status)
           case (structureErrorCodeSuccess )
              velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
@@ -282,11 +282,11 @@ contains
 
   double precision function Extremum_Solver(radius)
     !% Root function used in finding orbital extremum radius.
-    use Galactic_Structure_Potentials
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: potential
-    
+
     potential=Galactic_Structure_Potential(activeNode,radius)
     Extremum_Solver=potential+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
@@ -301,9 +301,9 @@ contains
     !% \end{equation}
     !% where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
     !% current halo.
-    use Galactic_Structure_Potentials
-    use Numerical_Constants_Physical
-    use Kepler_Orbits
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
+    use :: Kepler_Orbits                , only : keplerOrbit
+    use :: Numerical_Constants_Physical , only : gravitationalConstantGalacticus
     implicit none
     type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
     type            (keplerOrbit), intent(inout)          :: orbit
@@ -316,7 +316,7 @@ contains
     velocityVirialOriginal=                                                     orbit%velocityScale()
     potentialHost         =Galactic_Structure_Potential(currentHost,radiusVirialOriginal)
     ! Create a new orbit with an adjusted energy.
-    Satellite_Orbit_Convert_To_Current_Potential=orbit    
+    Satellite_Orbit_Convert_To_Current_Potential=orbit
     call Satellite_Orbit_Convert_To_Current_Potential%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)
     return
   end function Satellite_Orbit_Convert_To_Current_Potential
@@ -325,7 +325,7 @@ contains
     !% Reset the satellite orbit calculations.
     implicit none
     type(treeNode), intent(inout), pointer :: node
-    
+
     pericenterCalculated=.false.
     apocenterCalculated =.false.
     lastUniqueID        =node%uniqueID()

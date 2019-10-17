@@ -18,7 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module fodeiv2
-  use FGSL, only : fgsl_int, fgsl_long, fgsl_char, fgsl_double, fgsl_size_t, fgsl_strmax, fgsl_name
+  use            :: FGSL         , only : fgsl_char, fgsl_double, fgsl_int   , fgsl_long, &
+          &                               fgsl_name, fgsl_size_t, fgsl_strmax
   use, intrinsic :: iso_c_binding
   implicit none
   private
@@ -357,12 +358,12 @@ contains
          use, intrinsic :: iso_c_binding
          real   (kind=c_double)              , value         :: t
          real   (kind=c_double), dimension(*), intent(in   ) :: y
-         real   (kind=c_double), dimension(*)                :: dfdy        
+         real   (kind=c_double), dimension(*)                :: dfdy
          real   (kind=c_double), dimension(*)                :: dfdt
          type   (c_ptr        )              , value         :: params
          integer(kind=c_int   )                              :: jacobian
        end function jacobian
-      
+
     end interface
     integer(kind=fgsl_size_t)                          :: dimension
     type   (c_ptr           ), intent(in   ), optional :: params

@@ -21,12 +21,12 @@
 
 module Linear_Algebra
   !% Implements linear algebra calculations.
-  use FGSL, only : fgsl_size_t          , fgsl_int             , fgsl_matrix                , fgsl_permutation      , &
-       &           fgsl_matrix_init     , FGSL_Matrix_Align    , FGSL_Permutation_Alloc     , FGSL_LinAlg_LU_Decomp , &
-       &           FGSL_LinAlg_LU_Invert, fgsl_double          , FGSL_Matrix_Free           , FGSL_LinAlg_LU_lnDet  , &
-       &           FGSL_Permutation_Free, FGSL_LinAlg_LU_Det   , FGSL_Vector_Init           , FGSL_Vector_Align     , &
-       &           FGSL_LinAlg_LU_Solve , FGSL_Vector_Free     , fgsl_eigen_symmv_workspace , FGSL_Eigen_SymmV_Alloc, &
-       &           FGSL_Eigen_SymmV     , FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, fgsl_vector
+  use :: FGSL, only : FGSL_Eigen_SymmV     , FGSL_Eigen_SymmV_Alloc    , FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, &
+          &           FGSL_LinAlg_LU_Decomp, FGSL_LinAlg_LU_Det        , FGSL_LinAlg_LU_Invert, FGSL_LinAlg_LU_Solve       , &
+          &           FGSL_LinAlg_LU_lnDet , FGSL_Matrix_Align         , FGSL_Matrix_Free     , FGSL_Permutation_Alloc     , &
+          &           FGSL_Permutation_Free, FGSL_Vector_Align         , FGSL_Vector_Free     , FGSL_Vector_Init           , &
+          &           fgsl_double          , fgsl_eigen_symmv_workspace, fgsl_int             , fgsl_matrix                , &
+          &           fgsl_matrix_init     , fgsl_permutation          , fgsl_size_t          , fgsl_vector
   implicit none
   private
   public :: assignment(=), operator(*)
@@ -57,7 +57,7 @@ module Linear_Algebra
      generic   :: operator(-) => subtract
      generic   :: operator(+) => add
   end type vector
-  
+
   type, public :: matrix
      !% Matrix class.
      private
@@ -138,7 +138,7 @@ module Linear_Algebra
      procedure :: choleskyDecompose        => matrixCholeskyDecompose
      procedure :: covarianceProduct        => matrixCovarianceProduct
   end type matrix
-  
+
   ! Assignment interfaces.
   interface assignment(=)
      module procedure arrayToVectorAssign
@@ -167,7 +167,7 @@ contains
     self%elements=array
     return
   end subroutine arrayToVectorAssign
-  
+
   subroutine vectorToArrayAssign(array,vector1)
     !% Assign a vector to an array.
     implicit none
@@ -177,21 +177,21 @@ contains
     array=vector1%elements
     return
   end subroutine vectorToArrayAssign
-  
+
   subroutine vectorToVectorAssign(vector1,vector2)
     !% Assign a vector to an array.
     implicit none
     type            (vector), intent(  out)                 :: vector1
     type            (vector), intent(in   )                 :: vector2
-  
+
     if (allocated(vector1%elements)) deallocate(vector1%elements)
     vector1%elements=vector2%elements
     return
   end subroutine vectorToVectorAssign
-  
+
   subroutine vectorDestroy(self)
     !% Destroy a vector object.
-    implicit none   
+    implicit none
     type(vector), intent(inout) :: self
 
     if (allocated(self%elements)) deallocate(self%elements)
@@ -200,7 +200,7 @@ contains
 
   function vectorSubtract(vector1,vector2)
     !% Subtract one vector from another.
-    implicit none   
+    implicit none
     type (vector)                :: vectorSubtract
     class(vector), intent(in   ) :: vector1       , vector2
 
@@ -211,7 +211,7 @@ contains
 
   function vectorAdd(vector1,vector2)
     !% Add one vector to another.
-    implicit none   
+    implicit none
     type (vector)                :: vectorAdd
     class(vector), intent(in   ) :: vector1  , vector2
 
@@ -230,7 +230,7 @@ contains
     self%elements=array
     return
   end subroutine arrayToMatrixAssign
- 
+
   subroutine matrixToArrayAssign(array,matrix1)
     !% Assign a matrix to an array.
     implicit none
@@ -240,16 +240,16 @@ contains
     array=matrix1%elements
     return
   end subroutine matrixToArrayAssign
- 
+
   subroutine matrixDestroy(self)
     !% Destroy a matrix object.
-    implicit none   
+    implicit none
     type(matrix), intent(inout) :: self
 
     if (allocated(self%elements)) deallocate(self%elements)
     return
   end subroutine matrixDestroy
-  
+
   subroutine matrixMakeSemiPositiveDefinite(self)
     !% Make a matrix semi-positive definite by setting any negative
     !% eigenvalues to zero and reconstructing the matrix from its
@@ -328,14 +328,14 @@ contains
     selfArray                   =self%elements
     status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
     status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    matrixLogarithmicDeterminant=FGSL_LinAlg_LU_lnDet(selfMatrix)    
+    matrixLogarithmicDeterminant=FGSL_LinAlg_LU_lnDet(selfMatrix)
     call FGSL_Permutation_Free(permutations)
     call FGSL_Matrix_Free     (selfMatrix  )
     ! Restore the original matrix.
     self%elements               =selfArray
     return
   end function matrixLogarithmicDeterminant
-  
+
   double precision function matrixDeterminant(self)
     !% Return the of a matrix.
     implicit none
@@ -352,17 +352,17 @@ contains
     selfArray        =self%elements
     status           =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
     status           =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    matrixDeterminant=FGSL_LinAlg_LU_Det(selfMatrix,decompositionSign)    
+    matrixDeterminant=FGSL_LinAlg_LU_Det(selfMatrix,decompositionSign)
     call FGSL_Permutation_Free(permutations)
     call FGSL_Matrix_Free     (selfMatrix  )
     ! Restore the original matrix.
     self%elements    =selfArray
     return
   end function matrixDeterminant
-  
+
   function vectorVectorMultiply(vector1,vector2)
     !% Multiply a vector by a vector, returning a scalar.
-    implicit none   
+    implicit none
     double precision                        :: vectorVectorMultiply
     class           (vector), intent(in   ) :: vector1             , vector2
 
@@ -372,7 +372,7 @@ contains
 
   function matrixVectorMultiply(matrix1,vector2)
     !% Multiply a matrix by a vector, returning a vector.
-    implicit none   
+    implicit none
     type   (vector     )                :: matrixVectorMultiply
     class  (matrix     ), intent(in   ) :: matrix1
     class  (vector     ), intent(in   ) :: vector2
@@ -387,8 +387,8 @@ contains
 
   function matrixMatrixMultiply(matrix1,matrix2)
     !% Multiply a matrix by a matrix, returning a matrix.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    implicit none   
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
     type   (matrix)                :: matrixMatrixMultiply
     class  (matrix), intent(in   ) :: matrix1, matrix2
 
@@ -422,7 +422,7 @@ contains
     status                      =FGSL_Vector_Align(                      y%elements,selfMatrixSize,yVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
     status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
     status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    status                      =FGSL_LinAlg_LU_Solve(selfMatrix,permutations,yVector,xVector)  
+    status                      =FGSL_LinAlg_LU_Solve(selfMatrix,permutations,yVector,xVector)
     call FGSL_Permutation_Free(permutations)
     call FGSL_Matrix_Free     (selfMatrix  )
     call FGSL_Vector_Free     (yVector     )
@@ -431,7 +431,7 @@ contains
     self%elements               =selfArray
     return
   end function matrixLinearSystemSolve
-  
+
   double precision function matrixCovarianceProduct(self,y)
     !% Compute the quantity $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices. Instead of
     !% directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
@@ -443,7 +443,7 @@ contains
     matrixCovarianceProduct=y*self%linearSystemSolve(y)
     return
   end function matrixCovarianceProduct
-  
+
   function matrixTranspose(self)
     !% Transpose a matrix.
     implicit none
@@ -495,7 +495,7 @@ contains
     !% Symmetrize a matrix.
     implicit none
     class(matrix), intent(inout) :: self
-    
+
     self%elements=0.5d0*(self%elements+transpose(self%elements))
     return
   end subroutine matrixSymmetrize
@@ -515,5 +515,5 @@ contains
     call FGSL_Matrix_Free(selfMatrix)
     return
   end subroutine matrixCholeskyDecompose
-  
+
 end module Linear_Algebra

@@ -19,21 +19,21 @@
 
 !% Contains a module which implements a generic two-point correlation function output analysis class.
 
-  !$ use            :: OMP_Lib                               , only : omp_lock_kind
-  use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
-  use               :: Geometry_Surveys                      , only : surveyGeometry                    , surveyGeometryClass
   use               :: Cosmology_Functions                   , only : cosmologyFunctions                , cosmologyFunctionsClass
+  use               :: Dark_Matter_Halo_Biases               , only : darkMatterHaloBias                , darkMatterHaloBiasClass
+  use               :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMO              , darkMatterProfileDMOClass
   use               :: Galactic_Filters                      , only : galacticFilter                    , galacticFilterClass
-  use               :: Output_Times                          , only : outputTimes                       , outputTimesClass
+  use               :: Geometry_Surveys                      , only : surveyGeometry                    , surveyGeometryClass
+  use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifier    , haloModelPowerSpectrumModifierClass
+  use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
   use               :: Linear_Growth                         , only : linearGrowth                      , linearGrowthClass
+  use               :: Node_Property_Extractors              , only : nodePropertyExtractor             , nodePropertyExtractorClass
+  !$ use            :: OMP_Lib                               , only : omp_lock_kind
   use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperator, outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperator    , outputAnalysisPropertyOperatorClass
-  use               :: Node_Property_Extractors              , only : nodePropertyExtractor             , nodePropertyExtractorClass
-  use               :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMO              , darkMatterProfileDMOClass
-  use               :: Dark_Matter_Halo_Biases               , only : darkMatterHaloBias                , darkMatterHaloBiasClass
-  use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifier    , haloModelPowerSpectrumModifierClass
+  use               :: Output_Times                          , only : outputTimes                       , outputTimesClass
   use               :: Power_Spectra                         , only : powerSpectrum                     , powerSpectrumClass
-    
+
   !# <outputAnalysis name="outputAnalysisCorrelationFunction">
   !#  <description>A generic two-point correlation function output analysis class.</description>
   !# </outputAnalysis>
@@ -109,11 +109,11 @@
   end interface outputAnalysisCorrelationFunction
 
 contains
-  
+
   function correlationFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the ``correlationFunction'' output analysis class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter         , inputParameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (outputAnalysisCorrelationFunction      )                                :: self
     type            (inputParameters                        ), intent(inout)                 :: parameters
@@ -124,7 +124,7 @@ contains
     class           (linearGrowthClass                      ), pointer                       :: linearGrowth_
     class           (outputAnalysisDistributionOperatorClass), pointer                       :: massDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                       :: massPropertyOperator_             , separationPropertyOperator_
-    class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_   
+    class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), pointer                       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), pointer                       :: darkMatterHaloBias_
     class           (haloModelPowerSpectrumModifierClass    ), pointer                       :: haloModelPowerSpectrumModifier_
@@ -141,7 +141,7 @@ contains
     integer                                                                                  :: massHaloBinsPerDecade
     type            (varying_string                         )                                :: label                             , comment                                     , &
          &                                                                                      targetLabel
-    
+
     allocate(separations(parameters%count('separations')))
     !# <inputParameter>
     !#   <name>label</name>
@@ -265,7 +265,7 @@ contains
           !#   <variable>binnedProjectedCorrelationTarget1D</variable>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>binnedProjectedCorrelationCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -311,7 +311,7 @@ contains
     !# <objectBuilder class="nodePropertyExtractor"              name="massPropertyExtractor_"          parameterName="massPropertyExtractor"      source="parameters"/>
     !# <conditionalCall>
     !#  <call>
-    !#  self=outputAnalysisCorrelationFunction(                                                                  &amp;                 
+    !#  self=outputAnalysisCorrelationFunction(                                                                  &amp;
     !#        &amp;                            label                                                           , &amp;
     !#        &amp;                            comment                                                         , &amp;
     !#        &amp;                            separations                                                     , &amp;
@@ -331,7 +331,7 @@ contains
     !#        &amp;                            surveyGeometry_                                                 , &amp;
     !#        &amp;                            cosmologyFunctions_                                             , &amp;
     !#        &amp;                            outputTimes_                                                    , &amp;
-    !#        &amp;                            darkMatterProfileDMO_                                           , &amp;                                 
+    !#        &amp;                            darkMatterProfileDMO_                                           , &amp;
     !#        &amp;                            darkMatterHaloBias_                                             , &amp;
     !#        &amp;                            haloModelPowerSpectrumModifier_                                 , &amp;
     !#        &amp;                            powerSpectrum_                                                  , &amp;
@@ -365,9 +365,9 @@ contains
 
   function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,linearGrowth_,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
     !% Constructor for the ``correlation'' output analysis class which reads bin information from a standard format file.
-    use IO_HDF5             , only : hdf5Access                    , hdf5Object
-    use Cosmology_Parameters, only : cosmologyParametersSimple
-    use Cosmology_Functions , only : cosmologyFunctionsMatterLambda
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters, only : cosmologyParametersSimple
+    use :: IO_HDF5             , only : hdf5Access               , hdf5Object
     implicit none
     type            (outputAnalysisCorrelationFunction      )                                :: self
     type            (varying_string                         ), intent(in   )                 :: label                                     , comment
@@ -384,7 +384,7 @@ contains
     class           (outputTimesClass                       ), intent(in   ), target         :: outputTimes_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target         :: massDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target         :: massPropertyOperator_                     , separationPropertyOperator_
-    class           (nodePropertyExtractorClass             ), intent(in   ), target         :: massPropertyExtractor_   
+    class           (nodePropertyExtractorClass             ), intent(in   ), target         :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target         :: darkMatterHaloBias_
     class           (haloModelPowerSpectrumModifierClass    ), intent(in   ), target         :: haloModelPowerSpectrumModifier_
@@ -427,11 +427,11 @@ contains
 
   function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,linearGrowth_,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
     !% Constructor for the ``correlationFunction'' output analysis class for internal use.
-    use, intrinsic :: ISO_C_Binding            , only : c_size_t
     use            :: Galacticus_Error         , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding            , only : c_size_t
     use            :: Memory_Management        , only : allocateArray
-    use            :: Output_Analysis_Utilities, only : Output_Analysis_Output_Weight_Survey_Volume
     use            :: Numerical_Ranges         , only : Make_Range                                 , rangeTypeLogarithmic
+    use            :: Output_Analysis_Utilities, only : Output_Analysis_Output_Weight_Survey_Volume
     implicit none
     type            (outputAnalysisCorrelationFunction      )                                          :: self
     type            (varying_string                         ), intent(in   )                           :: label                          , comment
@@ -451,7 +451,7 @@ contains
     class           (cosmologyFunctionsClass                ), intent(in   ), target                   :: cosmologyFunctions_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target                   :: massDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target                   :: massPropertyOperator_          , separationPropertyOperator_
-    class           (nodePropertyExtractorClass             ), intent(in   ), target                   :: massPropertyExtractor_   
+    class           (nodePropertyExtractorClass             ), intent(in   ), target                   :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target                   :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target                   :: darkMatterHaloBias_
     class           (haloModelPowerSpectrumModifierClass    ), intent(in   ), target                   :: haloModelPowerSpectrumModifier_
@@ -536,13 +536,14 @@ contains
 
   subroutine correlationFunctionAnalyze(self,node,iOutput)
     !% Implement a correlationFunction output analysis.
+    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
     integer         (c_size_t                         ), intent(in   ) :: iOutput
     double precision                                                   :: mass
     integer                                                            :: massType
-    
+
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return
     ! Filter this node.
@@ -607,7 +608,7 @@ contains
     end do
     return
   end subroutine correlationFunctionAccumulateNode
-  
+
   subroutine correlationFunctionAccumulateHalo(self,indexOutput,node)
     !% Assumulate a single halo's contributions to the halo model one- and two-halo terms. For
     !% the one-halo term we count contributions from central-satellite pairs, and from
@@ -615,11 +616,17 @@ contains
     !% Fourier-transformed dark matter halo density profile---see
     !% \cite[][\S6.1]{cooray_halo_2002} for a discussion of this. The number of satellites in
     !% the halo is assumed to follow a Poisson binomial distribution.
-    use Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
-    use Vectors                            , only : Vector_Outer_Product
-    use Linear_Algebra                     , only : matrix                            , operator(*)                             , assignment(=)
-    use Galacticus_Nodes                   , only : nodeComponentBasic
-    use Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic                , treeNode
+    use :: Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
+    use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
+    use :: Output_Analyses_Options            , only : outputAnalysisPropertyTypeLinear
+    use :: Vectors                            , only : Vector_Outer_Product
+    use :: Linear_Algebra                     , only : matrix                            , operator(*)                             , assignment(=)
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic                , treeNode
+    use :: Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
+    use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
+    use :: Output_Analyses_Options            , only : outputAnalysisPropertyTypeLinear
+    use :: Vectors                            , only : Vector_Outer_Product
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                                                 :: self
     integer         (c_size_t                         ), intent(in   )                                                 :: indexOutput
@@ -637,9 +644,9 @@ contains
          &                                                                                                                biasHalo                , massHalo
     integer         (c_size_t                         )                                                                :: i                       , j                         , &
          &                                                                                                                indexOneHalo            , indexTwoHalo              , &
-         &                                                                                                                indexDensity    
+         &                                                                                                                indexDensity
     integer                                                                                                            :: haloMassBin             , scaleType
-    logical                                                                                                            :: mainBranchCounted    
+    logical                                                                                                            :: mainBranchCounted
     type            (matrix                           )                                                                :: jacobianMatrix
 
     ! Return immediately if no nodes have been accumulated.
@@ -685,7 +692,7 @@ contains
           countSatellitePairsMean=0.0d0
        end if
        ! Skip if this halo contains no galaxies.
-       if (self%probabilityCentral(i) > 0.0d0 .or. countSatellitesMean > 0.0d0) then             
+       if (self%probabilityCentral(i) > 0.0d0 .or. countSatellitesMean > 0.0d0) then
           ! Compute output halo weight.
           haloWeightOutput=node%hostTree%volumeWeight*self%outputWeight(i,indexOutput)
           ! Compute contribution to galaxy density.
@@ -805,7 +812,7 @@ contains
        termJacobian(:,1:self%countSatellites)=0.0d0
        jacobianMatrix=termJacobian
        allocate(mainBranchTermCovariance(self%massCount*(2*self%wavenumberCount+1),self%massCount*(2*self%wavenumberCount+1)))
-       mainBranchTermCovariance=jacobianMatrix*jacobianMatrix%transpose()          
+       mainBranchTermCovariance=jacobianMatrix*jacobianMatrix%transpose()
        do i=1,self%massCount
           mainBranchTermCovariance(                                                                 &
                &                   (i-1)*(2*self%wavenumberCount+1)+1:i*(2*self%wavenumberCount+1), &
@@ -841,11 +848,11 @@ contains
 
   subroutine correlationFunctionReduce(self,reduced)
     !% Implement a {\normalfont \ttfamily correlationFunction} output analysis reduction.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self
     class(outputAnalysisClass              ), intent(inout) :: reduced
-    
+
     select type (reduced)
     class is (outputAnalysisCorrelationFunction)
        !$ call OMP_Set_Lock(reduced%accumulateLock)
@@ -866,9 +873,9 @@ contains
 
   subroutine correlationFunctionFinalize(self)
     !% Implement a {\normalfont \ttfamily correlationFunction} output analysis finalization.
-    use IO_HDF5                         , only : hdf5Object          , hdf5Access
-    use Galacticus_HDF5                 , only : galacticusOutputFile
-    use Numerical_Constants_Astronomical, only : megaParsec
+    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self
     type (hdf5Object                       )                :: analysesGroup, analysisGroup, &
@@ -926,16 +933,16 @@ contains
 
   subroutine correlationFunctionFinalizeAnalysis(self)
     !% Compute final covariances and normalize.
+    use :: FFTLogs                 , only : FFTLog                             , fftLogForward                  , fftLogSine
 #ifdef USEMPI
-    use MPI_Utilities           , only : mpiSelf
+    use :: MPI_Utilities           , only : mpiSelf
 #endif
-    use Memory_Management       , only : allocateArray                      , deallocateArray
-    use FFTLogs                 , only : FFTLog                             , fftLogSine                     , fftLogForward
-    use Tables                  , only : table1DLogarithmicLinear           , tablesIntegrationWeightFunction
-    use Table_Labels            , only : extrapolationTypeExtrapolate
-    use Linear_Algebra          , only : matrix                             , operator(*)                    , assignment(=)
-    use Vectors                 , only : Matrix_Copy_Upper_To_Lower_Triangle, Vector_Outer_Product
-    use Numerical_Constants_Math, only : Pi
+    use :: Memory_Management       , only : allocateArray                      , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Table_Labels            , only : extrapolationTypeExtrapolate
+    use :: Tables                  , only : table1DLogarithmicLinear           , tablesIntegrationWeightFunction
+    use :: Vectors                 , only : Matrix_Copy_Upper_To_Lower_Triangle, Vector_Outer_Product
+    use :: Linear_Algebra          , only : matrix                             , operator(*)                    , assignment(=)
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
     double precision                                   , allocatable  , dimension(:  ) :: separation
@@ -1085,7 +1092,7 @@ contains
           self%twoHaloTerm(:,n)=self%twoHaloTerm(:,n)/self%meanDensity(n)
        end if
     end do
-    call deallocateArray(jacobian) 
+    call deallocateArray(jacobian)
     ! Square the two halo term, and multiply by the linear theory power spectrum.
     call allocateArray(jacobian            ,[self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount)])
     jacobian=0.0d0
@@ -1208,7 +1215,7 @@ contains
           end do
        end do
     end do
-    call deallocateArray(covarianceTmp)       
+    call deallocateArray(covarianceTmp)
     ! Construct correlation table.
     call correlationTable%create(separation(1),separation(self%wavenumberCount),size(separation),extrapolationTypeExtrapolate)
     ! Project the correlation function.
@@ -1249,7 +1256,7 @@ contains
     jacobian=0.0d0
     integrandWeightFunction => binningIntegrandWeight
     binWidthLogarithmic=log(self%separations(2)/self%separations(1))
-    do i=1,size(self%separations)      
+    do i=1,size(self%separations)
        binSeparationMinimum         =self%separations(i)*exp(-0.5d0*binWidthLogarithmic)
        binSeparationMaximum         =self%separations(i)*exp(+0.5d0*binWidthLogarithmic)
        jacobian(i,1:self%wavenumberCount)=correlationTable%integrationWeights(                         &
@@ -1282,7 +1289,7 @@ contains
       !% The weight function applied to the correlation function when integrating to get the projected correlation function.
       implicit none
       double precision, intent(in   ) :: separation
-      
+
       if (separation > projectedSeparation) then
          projectionIntegrandWeight=2.0d0*separation/sqrt(separation**2-projectedSeparation**2)
       else
@@ -1290,7 +1297,7 @@ contains
       end if
       return
     end function projectionIntegrandWeight
-    
+
     double precision function binningIntegrandWeight(separation)
       !% The weight function applied to the projected correlation function when integrating into bins.
       implicit none
@@ -1301,19 +1308,19 @@ contains
     end function binningIntegrandWeight
 
   end subroutine correlationFunctionFinalizeAnalysis
-    
+
   double precision function correlationFunctionLogLikelihood(self)
     !% Return the log-likelihood of a correlationFunction output analysis.
     use Linear_Algebra          , only : vector                 , matrix, assignment(=), operator(*)
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
     double precision                                   , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                   , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                           )                                :: residual
     type            (matrix                           )                                :: covariance
-    
+
     ! Check for existance of a target distribution.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
        ! Finalize analysis.

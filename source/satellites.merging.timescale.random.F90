@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by:  Alex Merson.
-  
+
   !% Implements calculations of satellite merging times that are chosen to occur randomly between snapshots.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
   !#  <description>Returns a random timescale for merging.</description>
-  !# </satelliteMergingTimescales>   
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesRandom
      !% A class implementing satellite merging timescales that are chosen to occur randomly between snapshots.
@@ -33,31 +33,29 @@
   end type satelliteMergingTimescalesRandom
 
   interface satelliteMergingTimescalesRandom
-     !% Constructors for the {\normalfont \ttfamily random} satellite merging timescale class.                                                                                
+     !% Constructors for the {\normalfont \ttfamily random} satellite merging timescale class.
      module procedure randomConstructorParameters
   end interface satelliteMergingTimescalesRandom
 
 contains
 
   function randomConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a                                                  
+    !% A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesRandom)                  :: self
     type(inputParameters                 ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=satelliteMergingTimescalesRandom()
     return
   end function randomConstructorParameters
-  
+
   double precision function randomTimeUntilMerging(self,node,orbit)
     !% Return a randomly chosen timescale for merging satellites.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Kepler_Orbits
-    use Satellite_Orbits
-    use Pseudo_Random
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
     class           (satelliteMergingTimescalesRandom), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -81,6 +79,6 @@ contains
          &                      +time                                                    &
          &                      -timeParent                                              &
          &                     )                                                         &
-         &                    +  timeParent    
+         &                    +  timeParent
     return
   end function randomTimeUntilMerging

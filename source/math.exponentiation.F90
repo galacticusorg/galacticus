@@ -22,7 +22,7 @@
 module Math_Exponentiation
   !% Provides a fast exponentiation class which utilizes tables to do rapid exponentiation in a limited range of argument for fixed
   !% exponent, along with other exponentiation functions.
-  use Tables
+  use :: Tables, only : table1DLinearLinear
   implicit none
   private
   public :: cubeRoot
@@ -52,7 +52,7 @@ module Math_Exponentiation
   interface fastExponentiator
      module procedure fastExponentiatorConstructor
   end interface fastExponentiator
-  
+
 contains
 
   function fastExponentiatorConstructor(rangeMinimum,rangeMaximum,exponent,density,abortOutsideRange) result (self)
@@ -74,7 +74,7 @@ contains
 
   double precision function fastExponentiatorExponentiate(self,x)
     !% Evaluate the result of an exponentiation operation.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (fastExponentiator), intent(inout) :: self
     double precision                   , intent(in   ) :: x
@@ -115,5 +115,5 @@ contains
     cubeRoot=cbrt(x)
     return
   end function cubeRoot
-  
+
 end module Math_Exponentiation

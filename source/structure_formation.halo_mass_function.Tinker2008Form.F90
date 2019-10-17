@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
-  use Cosmological_Density_Field
-  use Linear_Growth
-  use Cosmology_Functions
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Linear_Growth             , only : linearGrowthClass
 
   !# <haloMassFunction name="haloMassFunctionTinker2008Form" abstract="yes">
   !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}.</description>
@@ -76,13 +76,11 @@
        double precision                                , intent(in   ) :: time, mass
      end function tinker2008FormParameter
   end interface
-  
+
 contains
 
   double precision function tinker2008FormDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Numerical_Interpolation
-    use Table_Labels
     implicit none
     class           (haloMassFunctionTinker2008Form), intent(inout)            :: self
     double precision                                , intent(in   )            :: time , mass

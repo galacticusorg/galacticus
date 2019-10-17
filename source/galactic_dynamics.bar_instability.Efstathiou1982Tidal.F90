@@ -20,7 +20,7 @@
   !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but including the effects of
   !% tidal forces.
 
-  use Satellites_Tidal_Fields
+  use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
   !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.</description>
@@ -57,7 +57,7 @@ contains
   function efstathiou1982TidalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticDynamicsBarInstabilityEfstathiou1982Tidal)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
@@ -85,11 +85,11 @@ contains
          &                                                                                        timescaleMinimum         , massThresholdHarrassment
     class           (satelliteTidalFieldClass                         ), intent(in   ), target :: satelliteTidalField_
     !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
-    
+
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
     return
   end function efstathiou1982TidalConstructorInternal
-  
+
   subroutine efstathiou1982Destructor(self)
     !% Destructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
     implicit none
@@ -102,13 +102,13 @@ contains
   subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
-    use Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
     double precision                                                   , intent(  out) :: externalDrivingSpecificTorque, timescale
     class           (nodeComponentSpheroid                            ), pointer       :: spheroid
-  
+
     call self%galacticDynamicsBarInstabilityEfstathiou1982%timescale(node,timescale,externalDrivingSpecificTorque)
     ! Compute the external torque.
     if (timescale > 0.0d0) then
@@ -121,8 +121,8 @@ contains
 
   double precision function efstathiou1982TidalEstimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : nodeComponentDisk
+    use :: Galacticus_Nodes            , only : nodeComponentDisk              , treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
@@ -131,7 +131,7 @@ contains
     double precision                                                   , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                                ), pointer       :: disk
     double precision                                                                   :: massDisk
-    
+
     ! Get the disk.
     disk => node%disk()
     ! Compute the disk mass.
@@ -162,7 +162,7 @@ contains
 
   double precision function efstathiou1982TidalTidalTensorRadial(self,node)
     !% Compute the radial part of the tidal tensor.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type (treeNode                                         ), intent(inout) :: node

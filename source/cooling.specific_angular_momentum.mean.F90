@@ -41,7 +41,7 @@ contains
 
   function meanConstructorParameters(parameters) result(self)
     !% Constructor for the mean freefall radius class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingSpecificAngularMomentumMean)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
@@ -53,14 +53,14 @@ contains
 
   double precision function meanAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the mean model.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingSpecificAngularMomentumMean ), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
     double precision                                     , intent(in   ) :: radius
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
     !GCC$ attributes unused :: self, radius
-    
+
     ! Compute mean specific angular momentum from the hot halo component.
     hotHalo                     =>  node   %hotHalo        ()
     meanAngularMomentumSpecific =  +hotHalo%angularMomentum() &

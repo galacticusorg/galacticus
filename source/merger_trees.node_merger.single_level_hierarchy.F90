@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Provides a node merger class implementing a single level hierarchy.
-  
+
   !# <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
   !#  <description>A node merger class implementing a single level hierarchy.</description>
   !# </mergerTreeNodeMerger>
@@ -38,12 +38,12 @@ contains
 
   function singleLevelHierarchyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeNodeMergerSingleLevelHierarchy()
     return
   end function singleLevelHierarchyConstructorParameters
@@ -51,10 +51,13 @@ contains
 
   subroutine singleLevelHierarchyProcess(self,node)
     !% Processes a node merging event, utilizing a single level substructure hierarchy.
-    use Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes   , only : treeNode
+    use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     use String_Handling    , only : operator(//)
-    use Galacticus_Nodes   , only : treeNode
-    use Satellite_Promotion, only : Satellite_Move_To_New_Host
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes   , only : treeNode
+    use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     implicit none
     class(mergerTreeNodeMergerSingleLevelHierarchy), intent(inout)          :: self
     type (treeNode                                ), intent(inout), pointer :: node
@@ -62,7 +65,7 @@ contains
          &                                                                     nodeSatellite
     type (varying_string                          )                         :: message
     !GCC$ attributes unused :: self
-    
+
     ! Get the parent node.
     nodeParent => node      %parent
     ! Uncouple node from the children of its parent.

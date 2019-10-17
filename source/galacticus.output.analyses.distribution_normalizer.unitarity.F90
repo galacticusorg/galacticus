@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a unitarity output analysis distribution normalizer class.
-  
+
   !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity">
   !#  <description>A unitarity output analysis distribution normalizer class.</description>
   !# </outputAnalysisDistributionNormalizer>
@@ -38,12 +38,12 @@ contains
 
   function unitarityConstructorParameters(parameters) result(self)
     !% Constructor for the ``unitarity'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerUnitarity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=outputAnalysisDistributionNormalizerUnitarity()
     return
   end function unitarityConstructorParameters

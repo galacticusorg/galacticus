@@ -21,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class in which state is read from file.
 
-  use FGSL, only : fgsl_interp_accel, fgsl_interp
+  use :: FGSL, only : fgsl_interp, fgsl_interp_accel
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1
@@ -33,7 +33,7 @@
      !% An \gls{igm} state class which reads state from file.
      private
      ! Name of the file from which to read intergalactic medium state data.
-     type            (varying_string   )                            :: fileName     
+     type            (varying_string   )                            :: fileName
      ! Flag indicating whether or not data has been read.
      logical                                                        :: dataRead                                       =.false.
      ! Data tables.
@@ -57,7 +57,7 @@
      procedure :: singlyIonizedHeliumFraction => fileSinglyIonizedHeliumFraction
      procedure :: temperature                 => fileTemperature
   end type intergalacticMediumStateFile
-  
+
   interface intergalacticMediumStateFile
      !% Constructors for the file intergalactic medium state class.
      module procedure fileConstructorParameters
@@ -68,14 +68,14 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Default constructor for the file \gls{igm} state class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (intergalacticMediumStateFile)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass    ), pointer       :: cosmologyParameters_
     type (varying_string              )                :: fileName
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
@@ -95,7 +95,7 @@ contains
 
   function fileConstructorInternal(fileName,cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Constructor for the file \gls{igm} state class.
-    use File_Utilities
+    use :: File_Utilities, only : File_Name_Expand
     implicit none
     type (intergalacticMediumStateFile)                        :: self
     type (varying_string              ), intent(in   )         :: fileName
@@ -106,7 +106,7 @@ contains
     self%fileName=File_Name_Expand(char(fileName))
     return
   end function fileConstructorInternal
-  
+
   subroutine fileDestructor(self)
     !% Destructor for the file \gls{igm} state class.
     implicit none
@@ -119,10 +119,10 @@ contains
 
   subroutine fileReadData(self)
     !% Read in data describing the state of the intergalactic medium.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use IO_HDF5
-    use File_Utilities
-    use Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeAbort
+    use :: File_Utilities  , only : File_Exists
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: Table_Labels    , only : extrapolationTypeAbort , extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
     integer                                              :: fileFormatVersion   , iRedshift, &
@@ -166,7 +166,7 @@ contains
 
   double precision function fileTemperature(self,time)
     !% Return the temperature of the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -191,7 +191,7 @@ contains
 
   double precision function fileElectronFraction(self,time)
     !% Return the electron fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -219,7 +219,7 @@ contains
 
   double precision function fileNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -248,7 +248,7 @@ contains
 
   double precision function fileNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -277,7 +277,7 @@ contains
 
   double precision function fileSinglyIonizedHeliumFraction(self,time)
     !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time

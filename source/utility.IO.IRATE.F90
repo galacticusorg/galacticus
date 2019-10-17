@@ -21,9 +21,9 @@
 
 module IO_IRATE
   !% Provides IO in \gls{irate} format.
-  use ISO_Varying_String  , only : varying_string
-  use Cosmology_Functions , only : cosmologyFunctionsClass
-  use Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: ISO_Varying_String  , only : varying_string
   private
   public :: irate
 
@@ -76,12 +76,12 @@ module IO_IRATE
   interface irate
      module procedure irateConstructor
   end interface irate
-  
+
 contains
 
   function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_)
     !% Constructor for \gls{irate} file interface class.
-    use ISO_Varying_String, only : assignment(=)
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type     (irate                   )                        :: irateConstructor
     character(len=*                   ), intent(in   )         :: fileName
@@ -93,14 +93,14 @@ contains
     irateConstructor%fileName             =  trim(fileName)
     return
   end function irateConstructor
-  
+
   subroutine irateReadHalos(self,snapshot,redshift,center,velocity,mass)
     !% Read requested properties of halos from an \gls{irate} file.
-    use IO_HDF5
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use ISO_Varying_String              , only : char              , trim
+    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use :: IO_HDF5                         , only : hdf5Object
+    use :: ISO_Varying_String              , only : char              , trim
+    use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : hecto             , kilo
     implicit none
     class           (irate     ), intent(inout)                                        :: self
     integer                     , intent(in   )                                        :: snapshot
@@ -150,8 +150,8 @@ contains
 
   subroutine irateReadSimulation(self,boxSize)
     !% Read requested properties of the simulation from an \gls{irate} file.
-    use IO_HDF5
-    use ISO_Varying_String, only : char
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char
     implicit none
     class           (irate     ), intent(inout)           :: self
     double precision            , intent(  out), optional :: boxSize
@@ -167,13 +167,13 @@ contains
 
   subroutine irateCopySimulation(self,targetFile)
     !% Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
-    use IO_HDF5
-    use ISO_Varying_String, only : char
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
     type (hdf5Object)                :: selfIRATEFile, targetIRATEFile
-    
+
     call selfIRATEFile  %openFile(char(self      %fileName),readOnly=.true. )
     call targetIRATEFile%openFile(char(targetFile%fileName),readOnly=.false.)
     call selfIRATEFile  %copy    ("SimulationProperties"   ,targetIRATEFile )
@@ -181,16 +181,16 @@ contains
     call targetIRATEFile%close   (                                          )
     return
   end subroutine irateCopySimulation
-  
+
   subroutine irateCopyCosmology(self,targetFile)
     !% Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.
-    use IO_HDF5
-    use ISO_Varying_String, only : char
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
     type (hdf5Object)                :: selfIRATEFile, targetIRATEFile
-    
+
     call selfIRATEFile  %openFile(char(self      %fileName),readOnly=.true. )
     call targetIRATEFile%openFile(char(targetFile%fileName),readOnly=.false.)
     call selfIRATEFile  %copy    ("Cosmology"              ,targetIRATEFile )
@@ -198,13 +198,13 @@ contains
     call targetIRATEFile%close   (                                          )
     return
   end subroutine irateCopyCosmology
-  
+
   subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass)
     !% Read requested properties of halos from an \gls{irate} file.
-    use IO_HDF5
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use ISO_Varying_String              , only : char
+    use :: IO_HDF5                         , only : hdf5Object
+    use :: ISO_Varying_String              , only : char
+    use :: Numerical_Constants_Astronomical, only : massSolar , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : hecto     , kilo
     implicit none
     class           (irate     ), intent(inout)                           :: self
     integer                     , intent(in   )                           :: snapshot

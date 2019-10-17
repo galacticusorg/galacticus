@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an ISM mass output analysis property extractor class.
 
-  use Dark_Matter_Halo_Biases, only : darkMatterHaloBiasClass, darkMatterHaloBias
+  use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
   !#  <description>A node property extractor class for halo bias.</description>
@@ -47,7 +47,7 @@ contains
 
   function haloBiasConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloBias} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorHaloBias)                :: self
     type (inputParameters              ), intent(inout) :: parameters
@@ -69,7 +69,7 @@ contains
 
     return
   end function haloBiasConstructorInternal
-  
+
   subroutine haloBiasDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloBias} property extractor class.
     implicit none
@@ -78,7 +78,7 @@ contains
     !# <objectDestructor name="self%darkMatterHaloBias_"/>
     return
   end subroutine haloBiasDestructor
-  
+
   double precision function haloBiasExtract(self,node,instance)
     !% Implement a {\normalfont \ttfamily haloBias} node property extractor.
     implicit none
@@ -98,7 +98,7 @@ contains
 
   integer function haloBiasType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
     !GCC$ attributes unused :: self

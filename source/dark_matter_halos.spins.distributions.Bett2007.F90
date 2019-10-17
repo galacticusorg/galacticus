@@ -20,8 +20,7 @@
   !% An implementation of the dark matter halo spin distribution which uses the fitting function proposed by
   !% \cite{bett_spin_2007}.
 
-  use Tables
-  use Table_Labels
+  use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <haloSpinDistribution name="haloSpinDistributionBett2007">
   !#  <description>A halo spin distribution using the fitting formula of \cite{bett_spin_2007}.</description>
@@ -39,7 +38,7 @@
      procedure :: sample       => bett2007Sample
      procedure :: distribution => bett2007Distribution
   end type haloSpinDistributionBett2007
-  
+
   interface haloSpinDistributionBett2007
      !% Constructors for the {\normalfont \ttfamily bett2007} dark matter halo spin
      !% distribution class.
@@ -57,7 +56,7 @@ contains
   function bett2007ConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
     type            (inputParameters             ), intent(inout) :: parameters
@@ -90,9 +89,9 @@ contains
   function bett2007ConstructorInternal(lambda0,alpha)
     !% Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class.
+    use            :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding
-    use Gamma_Functions
-    use Array_Utilities
+    use            :: Table_Labels   , only : extrapolationTypeFix
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
     double precision                              , intent(in   ) :: lambda0                    , alpha
@@ -142,7 +141,7 @@ contains
     !% distribution class.
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self
-    
+
     call                                          self%distributionTable  %destroy()
     if (allocated(self%distributionInverse)) call self%distributionInverse%destroy()
     return
@@ -151,8 +150,7 @@ contains
   double precision function bett2007Sample(self,node)
     !% Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
     !% \ttfamily node}.
-    use Pseudo_Random
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -169,7 +167,7 @@ contains
   double precision function bett2007Distribution(self,node)
     !% Compute the spin parameter distribution for the given {\normalfont \ttfamily node} assuming the fitting function of
     !% \cite{bett_spin_2007}.
-    use Galacticus_Nodes, only : nodeComponentSpin
+    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node

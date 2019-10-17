@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar population spectra postprocessor builder which simply looks up postprocessors by name.
-  
+
   !# <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup">
   !#  <description>A stellar population spectra postprocessor builder which simply looks up postprocessors by name.</description>
   !# </stellarPopulationSpectraPostprocessorBuilder>
@@ -37,14 +37,14 @@
      module procedure lookupConstructorParameters
      module procedure lookupConstructorInternal
   end interface stellarPopulationSpectraPostprocessorBuilderLookup
-  
+
 contains
 
   function lookupConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class which takes a
     !% parameter list as input.
-    use Input_Parameters
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (inputParameters                                   ), intent(inout)               :: parameters
@@ -74,10 +74,10 @@ contains
     end do
     return
   end function lookupConstructorParameters
-  
+
   function lookupConstructorInternal(names,postprocessors) result(self)
     !% Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (varying_string                                    ), intent(in   ), dimension(:) :: names
@@ -87,7 +87,7 @@ contains
 
     if (size(names) /= size(postprocessors)) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
     do i=1,size(postprocessors)
-       !# <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>  
+       !# <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>
     end do
     return
   end function lookupConstructorInternal
@@ -106,7 +106,7 @@ contains
 
   function lookupBuild(self,descriptor)
     !% Return a stellar population spectra postprocessor by lookup via name.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarPopulationSpectraPostprocessorClass        ), pointer       :: lookupBuild
     class  (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self

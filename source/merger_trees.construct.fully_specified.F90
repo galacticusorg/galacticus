@@ -19,7 +19,7 @@
 
   !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
 
-  use FoX_DOM
+  use :: FoX_DOM
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
   !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
@@ -53,10 +53,10 @@
   end interface mergerTreeConstructorFullySpecified
 
 contains
-  
+
   function fullySpecifiedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
     type(varying_string                     ), intent(in   ) :: fileName
@@ -95,7 +95,7 @@ contains
     self%treeCount=getLength(self%trees)
     if (self%treeCount <= 0) call Galacticus_Error_Report('no trees were specified'//{introspection:location})
     !$omp end critical (FoX_DOM_Access)
-    return    
+    return
   end function fullySpecifiedConstructorInternal
 
   subroutine fullySpecifiedDestructor(self)
@@ -115,17 +115,17 @@ contains
     end if
     return
   end subroutine fullySpecifiedDestructor
-  
+
   function fullySpecifiedConstruct(self,treeNumber) result(tree)
     !% Construct a fully-specified merger tree.
+    use            :: FoX_DOM
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes  , only : mergerTree               , treeNode                   , treeNodeList
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes   , only : treeNodeList
-    use               FoX_DOM
-    use               Kind_Numbers
-    use               Galacticus_Error, only : Galacticus_Error_Report
-    use               Memory_Management
-    use               Galacticus_Display
-    use               Pseudo_Random
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : Memory_Usage_Record
+    use            :: Pseudo_Random     , only : pseudoRandom
     implicit none
     type            (mergerTree                         ), pointer                     :: tree
     class           (mergerTreeConstructorFullySpecified), intent(inout)               :: self
@@ -216,9 +216,9 @@ contains
 
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
-      use FoX_Dom
-      use Galacticus_Error, only : Galacticus_Error_Report
-      use Kind_Numbers
+      use :: FoX_Dom
+      use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Kind_Numbers    , only : kind_int8
       implicit none
       integer  (kind=kind_int8)                          :: indexNode
       type     (node          ), intent(in   ), pointer  :: nodeDefinition
@@ -251,16 +251,16 @@ contains
 
     function nodeLookup(nodeArray,indexValue) result (node)
       !% Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
-      use Galacticus_Nodes, only : treeNode, treeNodeList
-      use Kind_Numbers
-      use Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Galacticus_Nodes, only : treeNode               , treeNodeList
+      use :: Kind_Numbers    , only : kind_int8
       implicit none
       type   (treeNode      ), pointer                     :: node
       type   (treeNodeList  ), dimension(:), intent(in   ) :: nodeArray
       integer(kind=kind_int8)              , intent(in   ) :: indexValue
       integer                                              :: i
 
-      node => null()    
+      node => null()
       if (indexValue < 0_kind_int8) return
       do i=1,size(nodeArray)
          if (nodeArray(i)%node%index() == indexValue) then

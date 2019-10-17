@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Dark_Matter_Profile_Scales      , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-  use Halo_Mass_Functions
-  use Unevolved_Subhalo_Mass_Functions
-  use Dark_Matter_Halo_Biases
-  use Dark_Matter_Profiles_DMO
-  use Dark_Matter_Halo_Scales
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Linear_Growth
-  use Virial_Density_Contrast
-  use Transfer_Functions
-  use Cosmological_Density_Field
-  use Output_Times
+  use :: Cosmological_Density_Field      , only : cosmologicalMassVarianceClass    , criticalOverdensityClass         , haloEnvironmentClass
+  use :: Cosmology_Functions             , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters            , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Biases         , only : darkMatterHaloBiasClass
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales      , only : darkMatterProfileScaleRadius     , darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
+  use :: Halo_Mass_Functions             , only : haloMassFunctionClass
+  use :: Linear_Growth                   , only : linearGrowthClass
+  use :: Output_Times                    , only : outputTimesClass
+  use :: Transfer_Functions              , only : transferFunctionClass
+  use :: Unevolved_Subhalo_Mass_Functions, only : unevolvedSubhaloMassFunctionClass
+  use :: Virial_Density_Contrast         , only : virialDensityContrastClass
 
   !# <task name="taskHaloMassFunction">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
@@ -70,9 +70,9 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
-    use Galacticus_Nodes, only : treeNode, nodeClassHierarchyInitialize
-    use Node_Components
-    use Input_Parameters
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type            (taskHaloMassFunction             )                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -134,7 +134,7 @@ contains
     !#   <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
     !#   <cardinality>1</cardinality>
@@ -142,7 +142,7 @@ contains
     !#   <description>The HDF5 output group within which to write mass function data.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
@@ -241,13 +241,13 @@ contains
     double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
     !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
-    
+
     return
   end function haloMassFunctionConstructorInternal
-  
+
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
-    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskHaloMassFunction), intent(inout) :: self
 
@@ -273,20 +273,20 @@ contains
 
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
+    use            :: FGSL                            , only : FGSL_Integ_Gauss15           , fgsl_function              , fgsl_integration_workspace
+    use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
+    use            :: Galacticus_Display              , only : Galacticus_Display_Indent    , Galacticus_Display_Unindent
+    use            :: Galacticus_Error                , only : errorStatusSuccess
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic         , nodeComponentDarkMatterProfile, treeNode
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error                , only : errorStatusSuccess
-    use               Galacticus_Display    
-    use               Galacticus_Nodes                , only : mergerTree         , nodeComponentBasic        , nodeComponentDarkMatterProfile
-    use               Galacticus_Calculations_Resets
-    use               Galacticus_HDF5
-    use               Numerical_Constants_Astronomical
-    use               Memory_Management
-    use               Numerical_Ranges
-    use               Numerical_Integration
-    use               Dark_Matter_Profile_Scales
-    use               IO_HDF5
-    use               String_Handling
-    use               FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
+    use            :: Memory_Management               , only : allocateArray
+    use            :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
+    use            :: Numerical_Constants_Prefixes    , only : kilo
+    use            :: Numerical_Integration           , only : Integrate                    , Integrate_Done
+    use            :: Numerical_Ranges                , only : Make_Range                   , rangeTypeLogarithmic
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskHaloMassFunction          ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
@@ -320,7 +320,7 @@ contains
          &                                                                             cosmologyGroup                                       , dataset
     integer                                                                         :: statusHalfModeMass
     type            (varying_string                )                                :: groupName                                            , commentText
-   
+
     call Galacticus_Display_Indent('Begin task: halo mass function')
     ! Get the requested output redshifts.
     outputCount=self%outputTimes_%count()
@@ -378,7 +378,7 @@ contains
     ! Iterate over all output times.
     do iOutput=1,outputCount
        ! Set the time in the node.
-       call basic%timeSet(outputTimes(iOutput))      
+       call basic%timeSet(outputTimes(iOutput))
        ! Loop over all halo masses.
        do iMass=1,massCount
           ! Reset calculations.
@@ -469,7 +469,7 @@ contains
        call outputGroup%writeAttribute(outputExpansionFactors                        (  iOutput),'outputExpansionFactor'                                                                                                               )
        call outputGroup%writeAttribute(outputGrowthFactors                           (  iOutput),'growthFactor'                                                                                                                        )
        call outputGroup%writeAttribute(outputCriticalOverdensities                   (  iOutput),'criticalOverdensity'                                                                                                                 )
-       call outputGroup%writeAttribute(outputVirialDensityContrast                   (  iOutput),'virialDensityContrast'                                                                                                               )    
+       call outputGroup%writeAttribute(outputVirialDensityContrast                   (  iOutput),'virialDensityContrast'                                                                                                               )
        call outputGroup%writeAttribute(outputCharacteristicMass                      (  iOutput),'massHaloCharacteristic'                                                                                                              )
        call outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
        call dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )

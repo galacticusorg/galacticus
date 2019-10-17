@@ -40,12 +40,12 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Constructor for the ``file'' merger tree processing time estimator class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(metaTreeProcessingTimeFile)                :: self
     type(inputParameters           ), intent(inout) :: parameters
     type(varying_string            )                :: fileName
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <cardinality>1</cardinality>
@@ -59,9 +59,9 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Internal constructor for the ``file'' merger tree processing time estimator class.
-    use FoX_DOM         , only : parseFile              , node
-    use IO_XML          , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_DOM         , only : node                   , parseFile
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
     implicit none
     type   (metaTreeProcessingTimeFile)                :: self
     type   (varying_string            ), intent(in   ) :: fileName
@@ -94,4 +94,4 @@ contains
     fileTime=10.0d0**fileTime
     return
   end function fileTime
- 
+

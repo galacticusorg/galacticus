@@ -21,7 +21,7 @@
 
   !% Implements a file-based stellar population spectra class.
 
-  use FGSL, only : fgsl_interp_accel
+  use :: FGSL, only : fgsl_interp_accel
 
   type spectralTable
      !% Structure to hold tabulated stellar population  data.
@@ -39,7 +39,7 @@
    contains
      final :: spectralTableDestructorScalar, spectralTableDestructor1D
   end type spectralTable
-  
+
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFile">
   !#  <description>
   !#   Provides stellar population spectra via interpolation in a tabulation read from file. This should be an HDF5 file with the following structure:
@@ -60,7 +60,7 @@
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfKennicutt.hdf5}]  Corresponds to a Kennicutt IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfBaugh2005TopHeavy.hdf5}]  Corresponds to the top-heavy IMF of \cite{baugh_can_2005} computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfKroupa.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Kroupa IMF and a red horizontal branch morphology;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology; 
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology;
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfChabrier.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfSalpeter.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
   !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfChabrier.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
@@ -112,7 +112,6 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Constructor for the file stellar spectra class which takes a parameter set as input.
-    use Galacticus_Paths
     implicit none
     type   (stellarPopulationSpectraFile)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
@@ -138,10 +137,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
-  
+
   function fileConstructorInternal(forceZeroMetallicity,fileName) result(self)
     !% Internal constructor for the file stellar spectra class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (stellarPopulationSpectraFile)                :: self
     logical                                , intent(in   ) :: forceZeroMetallicity
@@ -151,10 +150,10 @@ contains
     self%fileRead=.false.
     return
   end function fileConstructorInternal
-  
+
   subroutine spectralTableDestructorScalar(self)
     !% Destructor for the stellar spectra table class.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(spectralTable), intent(inout) :: self
 
@@ -176,7 +175,6 @@ contains
 
   subroutine spectralTableDestructor1D(self)
     !% Destructor for the stellar spectra table class.
-    use Numerical_Interpolation
     implicit none
     type   (spectralTable), intent(inout), dimension(:) :: self
     integer                                             :: i
@@ -186,15 +184,16 @@ contains
     end do
     return
   end subroutine spectralTableDestructor1D
-  
+
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
     !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
     !% spectra.
+    use            :: Abundances_Structure   , only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
+          &                                           metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Numerical_Interpolation
-    use               Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess, errorStatusInputDomain
+    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors  , Interpolate_Locate
     implicit none
     class           (stellarPopulationSpectraFile), intent(inout)            :: self
     type            (abundances                  ), intent(in   )            :: abundancesStellar
@@ -217,7 +216,7 @@ contains
     if (present(status)) status=errorStatusSuccess
     ! Check for out of range conditions.
     if (age > self%spectra%ages(self%spectra%agesCount)) then
-       write (label,'(e12.4)') age 
+       write (label,'(e12.4)') age
        message='age ['//trim(label)//'] exceeds the maximum tabulated ['
        write (label,'(e12.4)') self%spectra%ages(self%spectra%agesCount)
        message=message//trim(label)//']'
@@ -323,10 +322,9 @@ contains
 
   subroutine fileReadFile(self)
     !% Read a file of simple stellar population spectra.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Memory_Management
-    use IO_HDF5
-    use File_Utilities
+    use :: File_Utilities  , only : File_Name_Expand
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
     integer                                              :: fileFormatVersion
@@ -365,8 +363,8 @@ contains
 
   subroutine fileTabulation(self,agesCount,metallicitiesCount,ages,metallicity)
     !% Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
-    use Memory_Management
-    use Numerical_Constants_Astronomical
+    use :: Memory_Management               , only : allocateArray
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
     integer                                                                  , intent(  out) :: agesCount, metallicitiesCount
@@ -386,8 +384,7 @@ contains
 
   subroutine fileWavelengths(self,wavelengthsCount,wavelengths)
     !% Return a tabulation of wavelengths at which stellar spectra should be tabulated.
-    use Memory_Management
-    use Numerical_Constants_Astronomical
+    use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
     integer                                                                  , intent(  out) :: wavelengthsCount
@@ -404,8 +401,7 @@ contains
 
   double precision function fileWavelengthInterval(self,wavelength)
     !% Return a tabulation of wavelengths at which stellar spectra should be tabulated.
-    use Memory_Management
-    use Numerical_Constants_Astronomical
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
     double precision                                                         , intent(in   ) :: wavelength

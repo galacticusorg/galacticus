@@ -19,8 +19,8 @@
 
   !% Implementation of halo bias using the Press-Schechter algorithm \citep{mo_analytic_1996}.
 
-  use Cosmological_Density_Field
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+
   !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{mo_analytic_1996}.
@@ -35,7 +35,7 @@
      final     ::               pressSchechterDestructor
      procedure :: biasByMass => pressSchechterBiasByMass
   end type darkMatterHaloBiasPressSchechter
-  
+
   interface darkMatterHaloBiasPressSchechter
      !% Constructors for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
      module procedure pressSchechterConstructorParameters
@@ -46,7 +46,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo mass bias which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasPressSchechter)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
