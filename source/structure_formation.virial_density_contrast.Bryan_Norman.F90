@@ -167,14 +167,15 @@ contains
     return
   end function bryanNorman1998DensityContrastRateOfChange
 
-  double precision function bryanNorman1998TurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
+  double precision function bryanNorman1998TurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing
+    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
 
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)

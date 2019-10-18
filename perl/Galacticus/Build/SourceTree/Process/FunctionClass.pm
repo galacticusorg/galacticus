@@ -187,6 +187,29 @@ sub Process_FunctionClass {
 		pass        => "yes",
 		code        => "!GCC\$ attributes unused :: self\n\n! Nothing to do by default.\n"
 	    };
+	    if ( exists($directive->{'autoHook'}) ) {
+		foreach my $module ( &List::ExtraUtils::as_array($directive->{'autoHook'}->{'modules'}) ) {
+		    my $moduleName = $module->{'name'};
+		    my @only       = split(/\s*,\s*/,$module->{'only'});       
+		    push(@{$methods{'autoHook'}->{'modules'}},{name => $moduleName, only => \@only});
+		}
+		$methods{'autoHook'}->{'code'} = $directive->{'autoHook'}->{'code'};
+	    }
+	    # Add destructor function.
+	    if ( exists($directive->{'destructor'}) ) {
+		$methods{'destructor'} = 
+		{
+		    description => "Destructor for this class.",
+		    type        => "void",
+		    pass        => "yes",
+		    code        => $directive->{'destructor'}->{'code'}
+		};
+		foreach my $module ( &List::ExtraUtils::as_array($directive->{'destructor'}->{'modules'}) ) {
+		    my $moduleName = $module->{'name'};
+		    my @only       = split(/\s*,\s*/,$module->{'only'});       
+		    push(@{$methods{'destructor'}->{'modules'}},{name => $moduleName, only => \@only});
+		}
+	    }
 	    # Add "descriptor" method.
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
@@ -870,6 +893,8 @@ CODE
 						if ( $rank > $rankMaximum );
 					}
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -878,6 +903,8 @@ CODE
 					    for(my $i=1;$i<=$rank;++$i) {
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }					    
+					    $assignments .= "end if\n"
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					}
 				}
 				# Deep copy of HDF5 objects.
@@ -2145,8 +2172,10 @@ CODE
 	    $preContains->[0]->{'content'} .= "    !@ <objectMethods>\n";
 	    $preContains->[0]->{'content'} .= "    !@   <object>".$directive->{'name'}."Class</object>\n";
 	    my $generics;
-	    foreach my $methodName ( keys(%methods) ) {
-		my $method = $methods{$methodName};
+            foreach my $methodName ( keys(%methods) ) {
+                next
+                    if ( $methodName eq "destructor" );
+                my $method = $methods{$methodName};
 		my $argumentList = "";
 		my @arguments;
 		if ( exists($method->{'argument'}) ) {
@@ -2235,12 +2264,17 @@ CODE
 		    align  => "left"
 		}
 		);    
-	    foreach ( keys(%methods) ) {
-		my $method = $methods{$_};
-		my $extension = "__";
-		$extension = ""
-		    if ( exists($method->{'code'}) );
-		$methodTable->add("",$_,$directive->{'name'}.ucfirst($_).$extension);
+            foreach ( keys(%methods) ) {
+                next
+                    if ( $_ eq "destructor" );
+                my $method = $methods{$_};
+                my $functionName;
+                if ( exists($method->{'function'}) ) {
+		    $functionName = $method->{'function'};
+                } else {
+		    $functionName = $directive->{'name'}.ucfirst($_).(exists($method->{'code'}) ? "" : "__");
+                }
+		$methodTable->add("",$_,$functionName);
 	    }
             $preContains->[0]->{'content'} .= $methodTable->table();
             if ( exists($directive->{'generic'}) ) {
@@ -2265,6 +2299,8 @@ CODE
 		}
 		$preContains->[0]->{'content'} .= $genericTable->table();
             }
+	    $preContains->[0]->{'content'} .= "   final :: ".$directive->{'name'}."Destructor\n"
+                if ( exists($methods{'destructor'}) );
 	    $preContains->[0]->{'content'} .= "   end type ".$directive->{'name'}."Class\n\n";
 	    # Insert any module-scope class content.
 	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
@@ -2662,12 +2698,15 @@ CODE
 	    $postContains->[0]->{'content'} .= "    !% Destroy the default object.\n";
 	    $postContains->[0]->{'content'} .= "    implicit none\n";
 	    $postContains->[0]->{'content'} .= "    !# <objectDestructor owner=\"module:".$node->{'parent'}->{'name'}."\" name=\"".$directive->{'name'}."Default\"/>\n";
+	    $postContains->[0]->{'content'} .= "    ".$directive->{'name'}."Initialized=.false.\n";
 	    $postContains->[0]->{'content'} .= "    return\n";
 	    $postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoDestroy\n\n";
 
 	    # Create functions.
 	    foreach my $methodName ( keys(%methods) ) {
-		my $method = $methods{$methodName};
+                my $method = $methods{$methodName};
+                next
+                    if ( exists($method->{'function'}) );
 		# Insert arguments.
 		my @arguments;
 		if ( exists($method->{'argument'}) ) {
@@ -2682,8 +2721,9 @@ CODE
 		    if ( exists($method->{'pass'}) );
 		my $argumentList = "";
 		my $argumentCode;
-		if ( $pass eq "yes" ) {
-		    $argumentCode .= "      class(".$directive->{'name'}."Class), intent(inout)";
+                if ( $pass eq "yes" ) {
+                    my $intrinsic = $methodName eq "destructor" ? "type" : "class";
+		    $argumentCode .= "      ".$intrinsic."(".$directive->{'name'}."Class), intent(inout)";
 		    $argumentCode .= ", target"
 			if ( exists($method->{'selfTarget'}) && $method->{'selfTarget'} eq "yes" );
 		    $argumentCode .= " :: self\n";
@@ -2801,7 +2841,7 @@ CODE
 	    foreach my $methodName ( keys(%methods) ) {
 		my $method = $methods{$methodName};
 		$documentation   .= "\\item[{\\normalfont \\ttfamily ".$methodName."}] ".$method->{'description'};
-		if ( exists($method->{'code'}) ) {
+		if ( exists($method->{'function'}) || exists($method->{'code'}) ) {
 		    $documentation .= " A default implementation exists. If overridden the following interface must be used:\n";
 		} else {
 		    $documentation .= " Must have the following interface:\n";

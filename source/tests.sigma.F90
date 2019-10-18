@@ -21,9 +21,11 @@ program Tests_Sigma
   !% Tests
   use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                , cosmologicalMassVarianceClass, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
+  use :: Cosmology_Functions                 , only : cosmologyFunctions                      , cosmologyFunctionsClass
   use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: ISO_Varying_String
   use :: Input_Parameters                    , only : inputParameters
+  use :: Linear_Growth                       , only : linearGrowth                            , linearGrowthClass
   use :: Numerical_Constants_Math            , only : Pi
   use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
@@ -38,6 +40,8 @@ program Tests_Sigma
   double precision                                          , dimension(massCount) :: mass                                         , massFromSigma      , &
        &                                                                              sigma
   class           (cosmologyParametersClass                ), pointer              :: cosmologyParameters_
+  class           (cosmologyFunctionsClass                 ), pointer              :: cosmologyFunctions_
+  class           (linearGrowthClass                       ), pointer              :: linearGrowth_
   class           (cosmologicalMassVarianceClass           ), pointer              :: cosmologicalMassVariance_
   type            (cosmologicalMassVarianceFilteredPower   )                       :: cosmologicalMassVarianceFilteredPower_
   type            (powerSpectrumWindowFunctionSharpKSpace  )                       :: powerSpectrumWindowFunctionSharpKSpace_
@@ -61,18 +65,20 @@ program Tests_Sigma
   mass=Make_Range(massMinimum,massMaximum,massCount,rangeType=rangeTypeLogarithmic)
   ! Get required objects.
   cosmologyParameters_      => cosmologyParameters     ()
+  cosmologyFunctions_       => cosmologyFunctions      ()
+  linearGrowth_             => linearGrowth            ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
   ! Check that converting from mass to sigma and back to mass gives consistent answers.
   do iMass=1,massCount
-     sigma        (iMass)=cosmologicalMassVariance_%rootVariance(mass (iMass))
-     massFromSigma(iMass)=cosmologicalMassVariance_%mass        (sigma(iMass))
+     sigma        (iMass)=cosmologicalMassVariance_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     massFromSigma(iMass)=cosmologicalMassVariance_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
-  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3)
+  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-2)
   ! Compute the mass corresponding to 8Mpc/h.
-  radius8=8.0d0/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-  mass8=4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
-  sigma8=cosmologicalMassVariance_%rootVariance(mass8)
-  call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=2.55d-6)
+  radius8=8.0d0   /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+  mass8  =4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
+  sigma8=cosmologicalMassVariance_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
+  call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=1.0d-3)
   ! Check normalization of sigma(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
   ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
   ! be (π√2/3)^{1/3}.
@@ -83,10 +89,11 @@ program Tests_Sigma
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
        &                                                                             time                               =13.8d0                                     &
-   &                                                                            )
+       &                                                                            )
   powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                               &
        &                                                                             powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &
-       &                                                                             transferFunction_                  =transferFunctionIdentity_                  &
+       &                                                                             transferFunction_                  =transferFunctionIdentity_                , &
+       &                                                                             linearGrowth_                      =linearGrowth_                              &
        &                                                                            )
   powerSpectrumWindowFunctionSharpKSpace_  =powerSpectrumWindowFunctionSharpKSpace  (                                                                               &
        &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
@@ -96,15 +103,16 @@ program Tests_Sigma
        &                                                                             sigma8                             =1.0d+0                                   , &
        &                                                                             tolerance                          =1.0d-4                                   , &
        &                                                                             toleranceTopHat                    =1.0d-4                                   , &
+       &                                                                             nonMonotonicIsFatal                =.true.                                   , &
        &                                                                             monotonicInterpolation             =.false.                                  , &
        &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
+       &                                                                             cosmologyFunctions_                =cosmologyFunctions_                      , &
+       &                                                                             linearGrowth_                      =linearGrowth_                            , &
        &                                                                             powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_, &
        &                                                                             powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_    &
        &                                                                            )
-
-
-  sigma8=cosmologicalMassVarianceFilteredPower_%rootVariance(mass8)
-  call Assert('σ(M₈) amplitude with sharp k-space window function',sigma8,(sqrt(2.0d0)*Pi/3.0d0)**(1.0d0/3.0d0),relTol=1.0d-5)
+  sigma8=cosmologicalMassVarianceFilteredPower_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
+  call Assert('σ(M₈) amplitude with sharp k-space window function',sigma8,(sqrt(2.0d0)*Pi/3.0d0)**(1.0d0/3.0d0),relTol=1.0d-4)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

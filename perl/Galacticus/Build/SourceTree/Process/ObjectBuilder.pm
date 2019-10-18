@@ -231,15 +231,20 @@ sub Process_ObjectBuilder {
 		    type      => "moduleUse",
 		    moduleUse =>
 		    {
-			$moduleName =>
+			"Input_Parameters" =>
 			{
 			    intrinsic => 0,
-			    only      => {$node->{'directive'}->{'class'} => 1, $node->{'directive'}->{'class'}."Class" => 1}
+			    only      => {inputParameter => 1}
 			}
 		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode)
-		    unless ( $isSelf );
+		};	
+		$usesNode->{'moduleUse'}->{$moduleName} =
+		{
+		    intrinsic => 0,
+		    only      => {$node->{'directive'}->{'class'} => 1, $node->{'directive'}->{'class'}."Class" => 1}
+		}
+		unless ( $isSelf );
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    }	    
 	    # Add new variables and attributes.
 	    unless ( exists($node->{'parent'}->{'objectBuilderDeclarations'}) ) {

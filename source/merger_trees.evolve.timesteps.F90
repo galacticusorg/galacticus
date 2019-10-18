@@ -36,12 +36,12 @@ module Merger_Tree_Timesteps
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type     (treeNode      ), intent(inout), target  :: node    </argument>
-  !#   <argument>procedure(timestepTask  ), intent(  out), pointer :: task    </argument>
-  !#   <argument>class    (*             ), intent(  out), pointer :: taskSelf</argument>
-  !#   <argument>logical                  , intent(in   )          :: report  </argument>
-  !#   <argument>type     (treeNode      ), intent(  out), pointer :: lockNode</argument>
-  !#   <argument>type     (varying_string), intent(  out)          :: lockType</argument>
+  !#   <argument>type     (treeNode      ), intent(inout)          , target  :: node    </argument>
+  !#   <argument>procedure(timestepTask  ), intent(  out)          , pointer :: task    </argument>
+  !#   <argument>class    (*             ), intent(  out)          , pointer :: taskSelf</argument>
+  !#   <argument>logical                  , intent(in   )                    :: report  </argument>
+  !#   <argument>type     (treeNode      ), intent(  out), optional, pointer :: lockNode</argument>
+  !#   <argument>type     (varying_string), intent(  out), optional          :: lockType</argument>
   !#  </method>
   !# </functionClass>
 

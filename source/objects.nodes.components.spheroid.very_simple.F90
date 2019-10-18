@@ -310,7 +310,8 @@ contains
     double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                                 :: spheroidMass                  , fractionalError
     character       (len=20                )                         :: valueString
-    type            (varying_string        )                         :: message
+    type            (varying_string        ), save                   :: message
+    !$omp threadprivate(message)
 
     ! Get the spheroid component.
     spheroid => node%spheroid()

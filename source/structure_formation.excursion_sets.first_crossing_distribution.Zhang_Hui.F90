@@ -46,7 +46,7 @@
      double precision                                                        :: timeDeltaPrevious                    , deltaStored
      ! Variables used in integrations.
      double precision                                                        :: barrierIntegrand                     , barrierGradientIntegrand               , &
-          &                                                                        timeIntegrand                        , varianceIntegrand
+          &                                                                     timeIntegrand                        , varianceIntegrand
    contains
      !@ <objectMethods>
      !@   <object>excursionSetFirstCrossingZhangHui</object>
@@ -405,7 +405,7 @@ contains
     ! Compute the divergent part of the integral with an analytic approximation.
     zhangHuiG2Integrated=+zhangHuiG2Integrated               &
          &               +erf(                               &
-         &                    +self%barrierGradientIntegrand &
+         &                    +barrierGradient &
          &                    *sqrt(                         &
          &                          +0.5d0                   &
          &                          *smallStep               &

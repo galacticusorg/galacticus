@@ -71,7 +71,7 @@ contains
     !% Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String
-    use :: Incomplete_Gamma
+    use :: Incomplete_Gamma  , only : GamInv
     implicit none
     double precision                , intent(in   ) :: P         , a
     integer                                         :: errorState

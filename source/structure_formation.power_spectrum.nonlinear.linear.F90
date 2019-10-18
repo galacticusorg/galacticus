@@ -20,7 +20,6 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
 !% power spectrum. Intended primarily for testing purposes.
 
-  use :: Linear_Growth, only : linearGrowthClass
   use :: Power_Spectra, only : powerSpectrumClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear">
@@ -29,7 +28,6 @@
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearLinear
      !% A linear transfer function class.
      private
-     class(linearGrowthClass ), pointer :: linearGrowth_ => null()
      class(powerSpectrumClass), pointer :: powerSpectrum_ => null()
    contains
      final     ::          linearDestructor
@@ -50,25 +48,21 @@ contains
     implicit none
     type (powerSpectrumNonlinearLinear)                :: self
     type (inputParameters             ), intent(inout) :: parameters
-    class(linearGrowthClass           ), pointer       :: linearGrowth_
     class(powerSpectrumClass          ), pointer       :: powerSpectrum_
 
     !# <objectBuilder class="powerSpectrum" name="powerSpectrum_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"  name="linearGrowth_"  source="parameters"/>
-    self=powerSpectrumNonlinearLinear(powerSpectrum_,linearGrowth_)
+    self=powerSpectrumNonlinearLinear(powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="powerSpectrum_"/>
-    !# <objectDestructor name="linearGrowth_" />
     return
   end function linearConstructorParameters
 
-  function linearConstructorInternal(powerSpectrum_,linearGrowth_) result(self)
+  function linearConstructorInternal(powerSpectrum_) result(self)
     !% Internal constructor for the linear nonlinear power spectrum class.
     implicit none
     type (powerSpectrumNonlinearLinear)                        :: self
     class(powerSpectrumClass          ), intent(in   ), target :: powerSpectrum_
-    class(linearGrowthClass           ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="*powerSpectrum_, *linearGrowth_"/>
+    !# <constructorAssign variables="*powerSpectrum_"/>
 
     return
   end function linearConstructorInternal
@@ -79,7 +73,6 @@ contains
     type(powerSpectrumNonlinearLinear), intent(inout) :: self
 
     !# <objectDestructor name="self%powerSpectrum_"/>
-    !# <objectDestructor name="self%linearGrowth_" />
     return
   end subroutine linearDestructor
 
@@ -89,6 +82,6 @@ contains
     class           (powerSpectrumNonlinearLinear), intent(inout) :: self
     double precision                              , intent(in   ) :: wavenumber, time
 
-    linearValue=self%powerSpectrum_%power(wavenumber)*self%linearGrowth_%value(time)**2
+    linearValue=self%powerSpectrum_%power(wavenumber,time)
     return
   end function linearValue

@@ -634,16 +634,16 @@ contains
     ! Build definitions.
     select case (self%virialDensityContrast)
     case (klypin2015DensityContrastFixed)
-       allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
        end select
     case (klypin2015DensityContrastVirial)
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.                                                     ,self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                                                          ,self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(self%darkMatterProfileDMODefinition_)
@@ -710,7 +710,7 @@ contains
             &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25)
        ! Find sigma.
-       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass())
+       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)
        b0            =self%fitParameters%interpolate(redshift,table=2)

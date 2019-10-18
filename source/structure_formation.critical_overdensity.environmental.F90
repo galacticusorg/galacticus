@@ -19,8 +19,6 @@
 
 !% Contains a module which implements an environmental critical overdensity class.
 
-  use :: Linear_Growth, only : linearGrowth, linearGrowthClass
-
   !# <criticalOverdensity name="criticalOverdensityEnvironmental">
   !#  <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
   !# </criticalOverdensity>
@@ -28,15 +26,15 @@
      !% A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
      private
      class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
-     class           (linearGrowthClass       ), pointer :: linearGrowth_ => null()
-     class           (haloEnvironmentClass    ), pointer :: haloEnvironment_ => null()
-     double precision                                    :: a                   , massEnvironment
+     class           (haloEnvironmentClass    ), pointer :: haloEnvironment_     => null()
+     double precision                                    :: a                             , massEnvironment
     contains
      final     ::                    environmentalDestructor
      procedure :: value           => environmentalValue
      procedure :: gradientTime    => environmentalGradientTime
      procedure :: gradientMass    => environmentalGradientMass
      procedure :: isMassDependent => environmentalIsMassDependent
+     procedure :: isNodeDependent => environmentalIsNodeDependent
   end type criticalOverdensityEnvironmental
 
   interface criticalOverdensityEnvironmental
@@ -65,7 +63,7 @@ contains
     !#   <name>a</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Parameter.</description>
+    !#   <description>Parameter controling environmental dependence of critical overdensity.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -207,3 +205,13 @@ contains
     environmentalIsMassDependent=self%criticalOverdensity_%isMassDependent()
     return
   end function environmentalIsMassDependent
+
+  logical function environmentalIsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensityEnvironmental), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    environmentalIsNodeDependent=.true.
+    return
+  end function environmentalIsNodeDependent

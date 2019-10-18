@@ -434,7 +434,8 @@ contains
     double precision                                                :: fractionalError                , specificAngularMomentum, &
          &                                                             spheroidMass
     character       (len=20               )                         :: valueString
-    type            (varying_string       )                         :: message
+    type            (varying_string       ), save                   :: message
+    !$omp threadprivate(message)
 
     ! Get the spheroid component.
     spheroid => node%spheroid()

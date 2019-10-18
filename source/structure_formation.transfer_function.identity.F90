@@ -32,6 +32,7 @@
      procedure :: logarithmicDerivative => identityLogarithmicDerivative
      procedure :: halfModeMass          => identityHalfModeMass
      procedure :: epochTime             => identityEpochTime
+     procedure :: descriptor            => identityDescriptor
   end type transferFunctionIdentity
 
   interface transferFunctionIdentity
@@ -135,3 +136,16 @@ contains
     identityEpochTime=self%time
     return
   end function identityEpochTime
+
+  subroutine identityDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters, only : inputParameters
+    implicit none
+    class  (transferFunctionIdentity), intent(inout)           :: self
+    type   (inputParameters         ), intent(inout)           :: descriptor
+    logical                          , intent(in   ), optional :: includeMethod
+    !GCC$ attributes unused :: self
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
+    return
+  end subroutine identityDescriptor

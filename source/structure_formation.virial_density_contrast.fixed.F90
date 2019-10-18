@@ -30,12 +30,13 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     double precision                                    :: densityContrastValue
+     double precision                                    :: densityContrastValue          , turnAroundOverVirialRadius
      integer                                             :: densityType
    contains
      final     ::                                fixedDestructor
      procedure :: densityContrast             => fixedDensityContrast
      procedure :: densityContrastRateOfChange => fixedDensityContrastRateOfChange
+     procedure :: turnAroundOverVirialRadii   => fixedTurnAroundOverVirialRadii
   end type virialDensityContrastFixed
 
   interface virialDensityContrastFixed
@@ -66,7 +67,7 @@ contains
     type            (inputParameters           ), intent(inout) :: parameters
     class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
-    double precision                                            :: densityContrastValue
+    double precision                                            :: densityContrastValue, turnAroundOverVirialRadius
     type            (varying_string            )                :: densityType
 
     !# <inputParameter>
@@ -85,25 +86,33 @@ contains
     !#  <type>string</type>
     !#  <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#  <name>turnAroundOverVirialRadius</name>
+    !#  <source>parameters</source>
+    !#  <defaultValue>2.0d0</defaultValue>
+    !#  <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
+    !#  <type>float</type>
+    !#  <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
+    self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(densityContrastValue,densityType,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function fixedConstructorInternal(densityContrastValue,densityType,turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialDensityContrastFixed)                        :: self
-    double precision                            , intent(in   )         :: densityContrastValue
+    double precision                            , intent(in   )         :: densityContrastValue, turnAroundOverVirialRadius
     integer                                     , intent(in   )         :: densityType
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="densityContrastValue, densityType, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="densityContrastValue, densityType, turnAroundOverVirialRadius, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
     return
@@ -179,3 +188,16 @@ contains
     end if
     return
   end function fixedDensityContrastRateOfChange
+
+  double precision function fixedTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    implicit none
+    class           (virialDensityContrastFixed), intent(inout)           :: self
+    double precision                            , intent(in   )           :: mass
+    double precision                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                     , intent(in   ), optional :: collapsing
+    !GCC$ attributes unused :: mass, time, expansionFactor, collapsing
+
+    fixedTurnAroundOverVirialRadii=self%turnAroundOverVirialRadius
+    return
+  end function fixedTurnAroundOverVirialRadii

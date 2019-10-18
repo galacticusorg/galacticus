@@ -38,7 +38,7 @@
     <running value="0.0"/>
   </powerSpectrumPrimordialMethod>
   <!-- Structure formation options -->
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <haloMassFunctionMethod value="tinker2008Generic">
     <a value="-0.127240525851282"/>
     <b value="0.0654435853813416"/>

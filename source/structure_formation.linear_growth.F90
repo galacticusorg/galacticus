@@ -44,7 +44,7 @@ module Linear_Growth
   !#  <name>linearGrowth</name>
   !#  <descriptiveName>Linear Growth of Cosmological Structure</descriptiveName>
   !#  <description>Object providing linear growth of cosmological structure.</description>
-  !#  <default>simple</default>
+  !#  <default>collisionlessMatter</default>
   !#  <method name="value" >
   !#   <description>Return the linear growth factor at the given time and mass.</description>
   !#   <type>double precision</type>
@@ -62,6 +62,21 @@ module Linear_Growth
   !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
   !#   <argument>integer         , intent(in   ), optional :: component                  </argument>
   !#   <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+  !#  </method>
+  !#  <method name="logarithmicDerivativeWavenumber" >
+  !#   <description>Return the logarithmic derivative of linear growth factor with respect to wavenumber.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <argument>integer         , intent(in   ), optional :: component                  </argument>
+  !#   <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+  !#  </method>
+  !#  <method name="isWavenumberDependent" >
+  !#   <description>Return true if the growth function is wavenumber-dependent.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ), optional :: component</argument>
   !#  </method>
   !# </functionClass>
 

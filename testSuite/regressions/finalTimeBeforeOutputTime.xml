@@ -127,7 +127,7 @@
     <timescale value="1.0"/>
   </coolingRateMethod>
   <treeNodeMethodSpin value="null"/>
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <treeNodeMethodDisk value="verySimple"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>

@@ -33,6 +33,7 @@
      procedure :: gradientTime    => peakBackgroundSplitGradientTime
      procedure :: gradientMass    => peakBackgroundSplitGradientMass
      procedure :: isMassDependent => peakBackgroundSplitIsMassDependent
+     procedure :: isNodeDependent => peakBackgroundSplitIsNodeDependent
   end type criticalOverdensityPeakBackgroundSplit
 
   interface criticalOverdensityPeakBackgroundSplit
@@ -53,22 +54,25 @@ contains
     class(haloEnvironmentClass                  ), pointer       :: haloEnvironment_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
+    class(linearGrowthClass                     ), pointer       :: linearGrowth_
 
     ! Check and read parameters.
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=criticalOverdensityPeakBackgroundSplit(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_)
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    self=criticalOverdensityPeakBackgroundSplit(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="criticalOverdensity_"     />
     !# <objectDestructor name="haloEnvironment_"         />
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
     return
   end function peakBackgroundSplitConstructorParameters
 
-  function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
+  function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
@@ -76,7 +80,8 @@ contains
     class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_
     class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass         ), target, intent(in   ) :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    class(linearGrowthClass                     ), target, intent(in   ) :: linearGrowth_
+    !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_"/>
 
     return
   end function peakBackgroundSplitConstructorInternal
@@ -90,6 +95,7 @@ contains
     !# <objectDestructor name="self%haloEnvironment_"         />
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%linearGrowth_"            />
     return
   end subroutine peakBackgroundSplitDestructor
 
@@ -105,13 +111,11 @@ contains
     ! Get the critical overdensity at zero environmental overdensity.
     peakBackgroundSplitValue=+self%criticalOverdensity_%value(time,expansionFactor,collapsing,mass,node)
     ! Offset the critical overdensity by the environmental overdensity. Note that the convention used with Galacticus is that the
-    ! critical overdensity is scaled by 1/D(t), where D(t) is the growth factor, while σ(M) remains constant at its z=0 value. The
-    ! environmental overdensity function provides the overdensity at z=0. This scales with redshift as δₑ(t)=δₑ(t[z=0])
-    ! D(t). Applying the 1/D(t) scaling used in our definition of critical overdensity then means that the environmental
-    ! contribution to the critical overdensity should always use the z=0 value.
-    if (present(node))                                                                                  &
-         & peakBackgroundSplitValue=+peakBackgroundSplitValue                                           &
-         &                          -self%haloEnvironment_   %overdensityLinear(node,presentDay=.true.)
+    ! critical overdensity always applies to perturbations at the current epoch, and σ(M,t) grows with time. The environmental
+    ! overdensity function provides the overdensity at the current epoch.
+    if (present(node))                                                                &
+         & peakBackgroundSplitValue=+peakBackgroundSplitValue                         &
+         &                          -self%haloEnvironment_   %overdensityLinear(node)
     return
   end function peakBackgroundSplitValue
 
@@ -124,7 +128,8 @@ contains
     double precision                                        , intent(in   ), optional :: mass
     type            (treeNode                              ), intent(inout), optional :: node
 
-    peakBackgroundSplitGradientTime=self%criticalOverdensity_%gradientTime(time,expansionFactor,collapsing,mass,node)
+    peakBackgroundSplitGradientTime=+self%criticalOverdensity_%gradientTime                 (time,expansionFactor,collapsing,mass,node) &
+         &                          -self%haloEnvironment_    %overdensityLinearGradientTime(                                     node)
     return
   end function peakBackgroundSplitGradientTime
 
@@ -149,3 +154,13 @@ contains
     peakBackgroundSplitIsMassDependent=self%criticalOverdensity_%isMassDependent()
     return
   end function peakBackgroundSplitIsMassDependent
+
+  logical function peakBackgroundSplitIsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    peakBackgroundSplitIsNodeDependent=.true.
+    return
+  end function peakBackgroundSplitIsNodeDependent

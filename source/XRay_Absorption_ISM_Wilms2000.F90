@@ -34,7 +34,7 @@ program XRay_Absorption_ISM_Wilms2000
   !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
   !% \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
   !% Galacticus::ISMColumnDensity} module.
-  use :: Atomic_Cross_Sections_Compton
+  use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
   use :: HDF5
   use :: IO_HDF5                      , only : hdf5Object

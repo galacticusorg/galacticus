@@ -101,16 +101,16 @@ contains
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
     use :: ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepSimple), intent(inout), target  :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    procedure       (timestepTask                  ), intent(  out), pointer :: task
-    class           (*                             ), intent(  out), pointer :: taskSelf
-    logical                                         , intent(in   )          :: report
-    type            (treeNode                      ), intent(  out), pointer :: lockNode
-    type            (varying_string                ), intent(  out)          :: lockType
-    class           (nodeComponentBasic            )               , pointer :: basic
-    double precision                                                         :: expansionFactor, timescaleExpansion, &
-         &                                                                      time
+    class           (mergerTreeEvolveTimestepSimple), intent(inout), target            :: self
+    type            (treeNode                      ), intent(inout), target            :: node
+    procedure       (timestepTask                  ), intent(  out), pointer           :: task
+    class           (*                             ), intent(  out), pointer           :: taskSelf
+    logical                                         , intent(in   )                    :: report
+    type            (treeNode                      ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                ), intent(  out)         , optional :: lockType
+    class           (nodeComponentBasic            )               , pointer           :: basic
+    double precision                                                                   :: expansionFactor, timescaleExpansion, &
+         &                                                                                time
 
     ! Find current expansion timescale.
     basic => node%basic()
@@ -122,10 +122,10 @@ contains
     else
        simpleTimeEvolveTo =                                               self%timeStepAbsolute +basic%time()
     end if
-    task     => null()
-    taskSelf => null()
-    lockNode => node
-    lockType =  "simple"
-    if (report) call Evolve_To_Time_Report("simple: ",simpleTimeEvolveTo)
+    task                            => null()
+    taskSelf                        => null()
+    if (present(lockNode)) lockNode => node
+    if (present(lockType)) lockType =  "simple"
+    if (        report   ) call Evolve_To_Time_Report("simple: ",simpleTimeEvolveTo)
     return
   end function simpleTimeEvolveTo

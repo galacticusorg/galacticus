@@ -24,6 +24,7 @@
 
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionEisensteinHu1999">
   !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>
@@ -32,6 +33,7 @@
      !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
      double precision                                    :: temperatureCMB27              , distanceSoundWave      , &
           &                                                 neutrinoMassFraction          , neutrinoNumberEffective, &
@@ -70,8 +72,7 @@ contains
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -120,14 +121,14 @@ contains
     double precision                                  , intent(in   )         :: neutrinoNumberEffective     , neutrinoMassSummed
     class           (darkMatterParticleClass         ), intent(in   ), target :: darkMatterParticle_
     class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass         ), intent(inout)         :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     double precision                                                          :: redshiftEquality            , redshiftComptonDrag   , &
          &                                                                       b1                          , b2                    , &
          &                                                                       massFractionBaryonic        , massFractionDarkMatter, &
          &                                                                       expansionFactorRatio        , massFractionMatter    , &
          &                                                                       massFractionBaryonsNeutrinos, suppressionDarkMatter , &
          &                                                                       suppressionMatter
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
+    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -137,7 +138,7 @@ contains
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
-    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Present day CMB temperature [in units of 2.7K].
     self%temperatureCMB27       =+self%cosmologyParameters_%temperatureCMB(                  )    &
          &                                                       /2.7d0

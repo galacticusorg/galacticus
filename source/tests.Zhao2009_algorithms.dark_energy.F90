@@ -43,7 +43,7 @@ program Test_Zhao2009_Dark_Energy
   type            (treeNode                               )                         , pointer :: node
   class           (nodeComponentBasic                     )                         , pointer :: basic
   integer                                                  , dimension(2), parameter          :: logarithmicHaloMasses           =[12,15]
-  double precision                                         , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,5.5d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
+  double precision                                         , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,7.9d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
   class           (cosmologyFunctionsClass                )                         , pointer :: cosmologyFunctions_
   class           (darkMatterProfileConcentrationClass    )                         , pointer :: darkMatterProfileConcentration_
   class           (darkMatterHaloMassAccretionHistoryClass)                         , pointer :: darkMatterHaloMassAccretionHistory_

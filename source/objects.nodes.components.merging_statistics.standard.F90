@@ -277,7 +277,7 @@ contains
     do while (nodeHost%isSatellite())
        nodeHierarchyLevel =  nodeHierarchyLevel       +1
        nodeHost           => nodeHost          %parent
-    end do    
+    end do
     nodeHierarchyLevelDepth=nodeHierarchyLevel
     ! Create a merger statistics component and initialize it.
     mergingStatistics => node%mergingStatistics(autoCreate=.true.)

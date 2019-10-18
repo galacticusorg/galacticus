@@ -24,7 +24,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
   use :: IO_HDF5                   , only : hdf5Object
-  use :: Stateful_Types
+  use :: Stateful_Types            , only : statefulInteger              , statefulDouble, statefulLogical
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.

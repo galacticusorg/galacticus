@@ -41,7 +41,7 @@ contains
 
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset)
     !% Perform interpolation on a set of points irregularly spaced on a 2D surface.
-    use :: Bivar
+    use :: Bivar            , only : idbvip
     use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     type            (interp2dIrregularObject)                               , intent(inout)           :: workspace

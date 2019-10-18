@@ -71,14 +71,21 @@ type, extends(eventHook) :: eventHook{$interfaceType}
   !@     <description>Attach a hook to the event.</description>
   !@   </objectMethod>
   !@   <objectMethod>
+  !@     <method>isAttached</method>
+  !@     <type>\logicalzero</type>
+  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
+  !@     <description>Return true if the object is attached to this event.</description>
+  !@   </objectMethod>
+  !@   <objectMethod>
   !@     <method>detach</method>
   !@     <type>\void</type>
   !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
   !@     <description>Detach a hook from the event.</description>
   !@   </objectMethod>
   !@ </objectMethods>
-  procedure :: attach => eventHook{$interfaceType}Attach
-  procedure :: detach => eventHook{$interfaceType}Detach
+  procedure :: attach     => eventHook{$interfaceType}Attach
+  procedure :: isAttached => eventHook{$interfaceType}IsAttached
+  procedure :: detach     => eventHook{$interfaceType}Detach
 end type eventHook{$interfaceType}
 
 abstract interface
@@ -91,8 +98,8 @@ CODE
 		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding)
-  !$ use OMP_Lib
   use Galacticus_Error, only : Galacticus_Error_Report
+  !$ use OMP_Lib
   implicit none
   class    (eventHook{$interfaceType}), intent(inout)           :: self
   class    (*                        ), intent(in   ), target   :: object_
@@ -102,7 +109,7 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
   integer                                                       :: i                  , openMPThreadBinding_
 
   !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
-  !$ call OMP_Set_Lock(self%lock_)
+  call self%lock()
   if (present(openMPThreadBinding)) then
      openMPThreadBinding_=openMPThreadBinding
   else
@@ -133,7 +140,7 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
      end if
   end select
   self%count_=self%count_+1
-  !$ call OMP_Unset_Lock(self%lock_)
+  call self%unlock()
   return
 end subroutine eventHook{$interfaceType}Attach
 CODE
@@ -156,7 +163,7 @@ subroutine eventHook{$interfaceType}Detach(self,object_,function_)
   class    (hook                     )               , pointer :: hook_    , hookPrevious_
 
   !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
-  !$ call OMP_Set_Lock(self%lock_)
+  call self%lock()
   if (associated(self%first_)) then
      hookPrevious_ => null()
      hook_         => self%first_
@@ -171,7 +178,7 @@ subroutine eventHook{$interfaceType}Detach(self,object_,function_)
                self         %first_ => hook_%next
              end if
              deallocate(hook_)
-             !$ call OMP_Unset_Lock(self%lock_)
+             call self%unlock()
              return
            end if
         end select
@@ -179,7 +186,7 @@ subroutine eventHook{$interfaceType}Detach(self,object_,function_)
         hook_         => hook_%next
      end do
   end if
-  !$ call OMP_Unset_Lock(self%lock_)
+  call self%unlock()
   call Galacticus_Error_Report('object/function not attached to this event'//{$location})
   return
 end subroutine eventHook{$interfaceType}Detach
@@ -194,7 +201,47 @@ CODE
 		    };
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$detacherNode]);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
-		}
+		    my $isAttacher = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
+  use Galacticus_Error, only : Galacticus_Error_Report
+  implicit none
+  class    (eventHook{$interfaceType}), intent(inout)          :: self
+  class    (*                        ), intent(in   ), target  :: object_
+  procedure(interface{$interfaceType})                         :: function_
+  class    (hook                     )               , pointer :: hook_
+
+  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  call self%lock(writeLock=.false.)
+  if (associated(self%first_)) then
+     hook_ => self%first_
+     do while (associated(hook_))
+        select type (hook_)
+        type is (hook{$interfaceType})
+           if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+             eventHook{$interfaceType}IsAttached=.true.
+             call self%unlock(writeLock=.false.)
+             return
+           end if
+        end select
+        hook_ => hook_%next
+     end do
+  end if
+  eventHook{$interfaceType}IsAttached=.false.
+  call self%unlock(writeLock=.false.)
+  return
+end function eventHook{$interfaceType}IsAttached
+CODE
+		    my $isAttacherNode   =
+		    {
+			type       => "code",
+			content    => $isAttacher,
+			firstChild => undef(),
+			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+			line       => 1
+		    };
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$isAttacherNode]);
+		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
+	        }
 		$hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
 		my $newNode   =
 		{
@@ -248,11 +295,11 @@ CODE
 			intrinsic => 0,
 			all       => 1
 		    },
-		    OMP_Lib         =>
+                    OMP_Lib          =>
 		    {
 			intrinsic => 0,
-			all       => 1,
-			openMP    => 1
+			openMP    => 1,
+			all       => 1
 		    }
 		}
 	    };
@@ -272,7 +319,16 @@ CODE
 		 },
                  {
 		     intrinsic  => "integer"      ,
-		     variables  => [ "ompLevel_" ]
+		     variables  => [ "ompLevel_", "ompLevelCurrent_" ]
+		 },
+                 {
+		     intrinsic  => "logical"      ,
+		     variables  => [ "ompAncestorGot_" ]
+		 },
+                 {
+                     intrinsic  => "integer"                        ,
+                     attributes => [ "dimension(:)", "allocatable" ],
+		     variables  => [ "ompAncestorThreadNum_" ]
 		 }
 		);
             my @declarations;
@@ -287,21 +343,33 @@ CODE
 	    $code::eventName     = $node->{'directive'}->{'name'    };
             $code::location      = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
-call {$eventName}Event%lock()
+call {$eventName}Event%lock(writeLock=.false.)
+ompAncestorGot_=.false.
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
    type is (hook{$interfaceType})
+      select case (hook_%openMPThreadBinding)
+      case (openMPThreadBindingAtLevel,openMPThreadBindingAllLevels)
+         if (.not.ompAncestorGot_) then
+            ompLevelCurrent_=OMP_Get_Level()
+            allocate(ompAncestorThreadNum_(0:ompLevelCurrent_))
+            do ompLevel_=0,ompLevelCurrent_
+               ompAncestorThreadNum_(ompLevel_)=OMP_Get_Ancestor_Thread_Num(ompLevel_)
+            end do
+            ompAncestorGot_=.true.
+         end if
+      end select
       select case (hook_%openMPThreadBinding)
       case (openMPThreadBindingNone)
          ! Not bound to any OpenMP thread, so always call.
          functionActive_=.true.
       case (openMPThreadBindingAtLevel)
          ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
-         if (hook_%openMPLevel == OMP_Get_Level()) then
+         if (hook_%openMPLevel == ompLevelCurrent_) then
             functionActive_=.true.
             do ompLevel_=0,hook_%openMPLevel
-               if (hook_%openMPThread(ompLevel_) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+               if (hook_%openMPThread(ompLevel_) /= ompAncestorThreadNum_(ompLevel_)) then
                   functionActive_=.false.
                   exit
                end if
@@ -311,10 +379,10 @@ do while (associated(hook_))
          end if
       case (openMPThreadBindingAllLevels)
          ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
-         if (hook_%openMPLevel <= OMP_Get_Level()) then
+         if (hook_%openMPLevel <= ompLevelCurrent_) then
             functionActive_=.true.
-            do ompLevel_=0,OMP_Get_Level()
-               if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+            do ompLevel_=0,ompLevelCurrent_
+               if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= ompAncestorThreadNum_(ompLevel_)) then
                   functionActive_=.false.
                   exit
                end if
@@ -330,7 +398,7 @@ do while (associated(hook_))
    end select
    hook_ => hook_%next
 end do
-call {$eventName}Event%unlock()
+call {$eventName}Event%unlock(writeLock=.false.)
 CODE
 	    # Insert the code.
 	    my $newNode =

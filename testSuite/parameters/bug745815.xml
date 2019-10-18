@@ -49,7 +49,7 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
@@ -79,7 +79,7 @@
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -178,7 +178,7 @@
   </spheroidMassDistribution>
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
   <virialOrbitMethod value="benson2005"/>
 
   <diskMassDistribution value="exponentialDisk">

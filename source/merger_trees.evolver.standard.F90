@@ -536,8 +536,8 @@ contains
                    node => nodeNext
                 end do treeWalkLoop
                 ! Output tree progress information.
-                if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-                   if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+               ! if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
+                 !  if (Galacticus_Verbosity_Level() >= verbosityLevel) then
                       write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
                       call Galacticus_Display_Indent(message,verbosityLevel)
                       write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
@@ -548,8 +548,8 @@ contains
                       call Galacticus_Display_Message(message,verbosityLevel)
                       call Galacticus_Display_Unindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount
-                   end if
-                end if
+                !   end if
+              !  end if
                 ! Report on current tree if deadlocked.
                 if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
              end if
@@ -616,13 +616,12 @@ contains
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    type            (treeNode                     )                         , pointer :: nodeLockStep
-    type            (varying_string               )                                   :: lockTypeStep
     double precision                                                                  :: expansionFactor                  , expansionTimescale, &
          &                                                                               hostTimeLimit                    , time              , &
          &                                                                               timeEarliest                     , evolveToTimeStep
     character       (len=9                        )                                   :: timeFormatted
-    type            (varying_string               )                                   :: message
+    type            (varying_string               ), save                             :: message
+    !$omp threadprivate(message)
 
     ! Initially set to the global end time.
     evolveToTime=timeEnd
@@ -738,12 +737,10 @@ contains
     end if
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLockStep,lockTypeStep)
+    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
-       evolveToTime                    =  evolveToTimeStep
-       timestepTask_                   => timestepTaskInternal
-       if (present(nodeLock)) nodeLock => nodeLockStep
-       if (present(lockType)) lockType =  lockTypeStep
+       evolveToTime  =  evolveToTimeStep
+       timestepTask_ => timestepTaskInternal
     else
        timestepTask_ => null()
        timestepSelf  => null()

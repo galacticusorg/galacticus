@@ -250,9 +250,9 @@ contains
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
     double precision                   , allocatable  , dimension(:    ) :: mass                    , time                    , &
-         &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  wavenumber
     double precision                   , allocatable  , dimension(:,:  ) :: barrier                 , firstCrossingProbability, &
+         &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  massFunctionDifferential
     double precision                   , allocatable  , dimension(:,:,:) :: firstCrossingRate
     integer                                                              :: iMass                   , jMass                   , &
@@ -272,9 +272,9 @@ contains
     massCount=max(int(dble(self%massesPerDecade)*log10(self%massMaximum/self%massMinimum))+1,2)
     ! Allocate arrays.
     call allocateArray(mass                    ,[massCount                    ])
-    call allocateArray(variance                ,[massCount                    ])
+    call allocateArray(variance                ,[massCount          ,timeCount])
     call allocateArray(wavenumber              ,[massCount                    ])
-    call allocateArray(powerSpectrumValue      ,[massCount                    ])
+    call allocateArray(powerSpectrumValue      ,[massCount          ,timeCount])
     call allocateArray(time                    ,[                    timeCount])
     call allocateArray(barrier                 ,[massCount          ,timeCount])
     call allocateArray(firstCrossingProbability,[massCount          ,timeCount])
@@ -288,24 +288,24 @@ contains
     do iMass=1,massCount
        do iTime=1,timeCount
           if (iTime == 1) then
-             wavenumber           (iMass      )=+(                                                                                     &
-                  &                               +3.0d0                                                                               &
-                  &                               *                                                                        mass(iMass) &
-                  &                               /4.0d0                                                                               &
-                  &                               /Pi                                                                                  &
-                  &                               /self%cosmologyParameters_%densityCritical()                                         &
-                  &                               /self%cosmologyParameters_%OmegaMatter    ()                                         &
+             wavenumber           (iMass      )=+(                                                                                    &
+                  &                               +3.0d0                                                                              &
+                  &                               *                                                           mass      (iMass      ) &
+                  &                               /4.0d0                                                                              &
+                  &                               /Pi                                                                                 &
+                  &                               /self%cosmologyParameters_%densityCritical()                                        &
+                  &                               /self%cosmologyParameters_%OmegaMatter    ()                                        &
                   &                              )**(-1.0d0/3.0d0)
-             powerSpectrumValue   (iMass      )=self%powerSpectrum_            %power       (wavenumber(iMass)                                                 )
-             variance             (iMass      )=self%cosmologicalMassVariance_ %rootVariance(                              mass(iMass)                         )**2
           end if
-          barrier                 (iMass,iTime)=self%excursionSetBarrier_      %barrier     (variance  (iMass),time(iTime)            ,node,rateCompute=.false.)
-          firstCrossingProbability(iMass,iTime)=self%excursionSetFirstCrossing_%probability (variance  (iMass),time(iTime)            ,node                    )
-          massFunctionDifferential(iMass,iTime)=self%haloMassFunction_         %differential(                  time(iTime),mass(iMass),node                    )
+          powerSpectrumValue      (iMass      ,iTime)=self%powerSpectrum_            %power       (wavenumber=wavenumber(iMass      )                                      ,time=time(iTime)                              )
+          variance                (iMass      ,iTime)=self%cosmologicalMassVariance_ %rootVariance(mass      =mass      (iMass      )                                      ,time=time(iTime)                              )**2
+          barrier                 (iMass      ,iTime)=self%excursionSetBarrier_      %barrier     (variance  =variance  (iMass,iTime)                                      ,time=time(iTime),node=node,rateCompute=.false.)
+          firstCrossingProbability(iMass      ,iTime)=self%excursionSetFirstCrossing_%probability (variance  =variance  (iMass,iTime)                                      ,time=time(iTime),node=node                    )
+          massFunctionDifferential(iMass      ,iTime)=self%haloMassFunction_         %differential(mass      =mass      (iMass      )                                      ,time=time(iTime),node=node                    )
           ! Compute halo branching rates.
           do jMass=1,iMass-1
-             varianceProgenitor                   =self%cosmologicalMassVariance_ %rootVariance(mass    (jMass)                                    )**2
-             firstCrossingRate (iMass,jMass,iTime)=self%excursionSetFirstCrossing_%rate        (variance(iMass),varianceProgenitor,time(iTime),node)
+             varianceProgenitor                      =self%cosmologicalMassVariance_ %rootVariance(mass      =mass      (jMass      )                                      ,time=time(iTime)                              )**2
+             firstCrossingRate    (iMass,jMass,iTime)=self%excursionSetFirstCrossing_%rate        (variance  =variance  (iMass,iTime),varianceProgenitor=varianceProgenitor,time=time(iTime),node=node                    )
           end do
        end do
     end do

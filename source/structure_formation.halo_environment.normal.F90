@@ -25,36 +25,45 @@
   use :: Linear_Growth           , only : linearGrowthClass
   use :: Statistics_Distributions, only : distributionFunction1DNormal, distributionFunction1DPeakBackground
   use :: Tables                  , only : table2DLinLinLin
+  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#  </stateStorable>
   !# </haloEnvironment>
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
      !% A normal halo environment class.
      private
-     class           (cosmologyParametersClass            ), pointer :: cosmologyParameters_            => null()
-     class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_             => null()
-     class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_       => null()
-     class           (linearGrowthClass                   ), pointer :: linearGrowth_                   => null()
-     class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_            => null()
-     type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
-     type            (distributionFunction1DNormal        )          :: distributionOverdensityMassive
-     type            (table2DLinLinLin                    )          :: linearToNonLinear
-     double precision                                                :: radiusEnvironment                        , variance           , &
-          &                                                             environmentalOverdensityMaximum          , overdensityPrevious, &
-          &                                                             includedVolumeFraction
-     integer         (kind_int8                           )          :: uniqueIDPrevious
-     logical                                                         :: linearToNonLinearInitialized
+     class           (cosmologyParametersClass                         ), pointer :: cosmologyParameters_            => null()
+     class           (cosmologyFunctionsClass                          ), pointer :: cosmologyFunctions_             => null()
+     class           (cosmologicalMassVarianceClass                    ), pointer :: cosmologicalMassVariance_       => null()
+     class           (linearGrowthClass                                ), pointer :: linearGrowth_                   => null()
+     class           (criticalOverdensityClass                         ), pointer :: criticalOverdensity_            => null()
+     type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_        => null()
+     type            (distributionFunction1DPeakBackground             )          :: distributionOverdensity
+     type            (distributionFunction1DNormal                     )          :: distributionOverdensityMassive
+     type            (table2DLinLinLin                                 )          :: linearToNonLinear
+     double precision                                                             :: radiusEnvironment                        , variance           , &
+          &                                                                          environmentalOverdensityMaximum          , overdensityPrevious, &
+          &                                                                          includedVolumeFraction
+     integer         (kind_int8                                        )          :: uniqueIDPrevious
+     logical                                                                      :: linearToNonLinearInitialized
    contains
-     final     ::                             normalDestructor
-     procedure :: overdensityLinear        => normalOverdensityLinear
-     procedure :: overdensityNonLinear     => normalOverdensityNonLinear
-     procedure :: environmentRadius        => normalEnvironmentRadius
-     procedure :: environmentMass          => normalEnvironmentMass
-     procedure :: overdensityLinearMaximum => normalOverdensityLinearMaximum
-     procedure :: pdf                      => normalPDF
-     procedure :: cdf                      => normalCDF
-     procedure :: overdensityLinearSet     => normalOverdensityLinearSet
+     final     ::                                  normalDestructor
+     procedure :: overdensityLinear             => normalOverdensityLinear
+     procedure :: overdensityLinearGradientTime => normalOverdensityLinearGradientTime
+     procedure :: overdensityNonLinear          => normalOverdensityNonLinear
+     procedure :: environmentRadius             => normalEnvironmentRadius
+     procedure :: environmentMass               => normalEnvironmentMass
+     procedure :: overdensityLinearMaximum      => normalOverdensityLinearMaximum
+     procedure :: pdf                           => normalPDF
+     procedure :: cdf                           => normalCDF
+     procedure :: overdensityLinearSet          => normalOverdensityLinearSet
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
@@ -120,24 +129,25 @@ contains
     !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
 
     ! Find the root-variance in the linear density field on the given scale.
-    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                  &
-         &                                                    +4.0d0                                            &
-         &                                                    /3.0d0                                            &
-         &                                                    *Pi                                               &
-         &                                                    *self%cosmologyParameters_%OmegaMatter      ()    &
-         &                                                    *self%cosmologyParameters_%densityCritical  ()    &
-         &                                                    *self                     %radiusEnvironment  **3 &
-         &                                                   )                                              **2
+    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                        &
+         &                                                    +4.0d0                                                  &
+         &                                                    /3.0d0                                                  &
+         &                                                    *Pi                                                     &
+         &                                                    *self%cosmologyParameters_%OmegaMatter      (     )     &
+         &                                                    *self%cosmologyParameters_%densityCritical  (     )     &
+         &                                                    *self                     %radiusEnvironment       **3, &
+         &                                                     self%cosmologyFunctions_ %cosmicTime       (1.0d0)     &
+         &                                                   )                                                   **2
     ! Build the distribution function.
     overdensityVariance                 =+self%variance                                            &
-         &                               *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
+         &                               *self%linearGrowth_      %value(expansionFactor=1.0d0)**2
     ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact
     ! that the region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White
     ! (1996; MNRAS; 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors.
-    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
-         &                               *(                                                       &
-         &                                 +1.0d0                                                 &
-         &                                 -limitUpperBuffer                                      &
+    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)   &
+         &                               *(                                                        &
+         &                                 +1.0d0                                                  &
+         &                                 -limitUpperBuffer                                       &
          &                                )
     self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
          &                                                                         overdensityVariance            , &
@@ -156,6 +166,9 @@ contains
     self%uniqueIDPrevious=-1_kind_int8
     ! Set initialization states.
     self%linearToNonLinearInitialized=.false.
+    ! Construct a spherical collapse solver.
+    allocate(self%sphericalCollapseSolver_)
+    !# <referenceConstruct owner="self" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
     return
   end function normalConstructorInternal
 
@@ -169,6 +182,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%criticalOverdensity_"      />
     !# <objectDestructor name="self%linearGrowth_"             />
+    !# <objectDestructor name="self%sphericalCollapseSolver_"  />
     return
   end subroutine normalDestructor
 
@@ -189,8 +203,8 @@ contains
           self%overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else
           ! Choose an overdensity.
-          basic    => node%hostTree%baseNode        %basic       (            )
-          variance =  self%cosmologicalMassVariance_%rootVariance(basic%mass())**2
+          basic    => node%hostTree%baseNode        %basic       (                                                       )
+          variance =  self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))**2
           if (variance > self%variance) then
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is
              ! drawn from the distribution expected for the background scale given that it hasn't collapsed to become a halo on
@@ -199,7 +213,7 @@ contains
                   &                                                                  randomNumberGenerator=node %hostTree%randomNumberGenerator    &
                   &                                                                 )
           else
-             ! The variance on the mass scale of the tree is less than that of the background. Give that the base halo of the tree
+             ! The variance on the mass scale of the tree is less than that of the background. Given that the base halo of the tree
              ! collapsed into a halo of mass Mₜ>Mₑ, the distribution of overdensities on the scale of Mₑ is just a Gaussian, with
              ! mean of δ_c, and variance equal to the difference in variance between the two scales.
              self%overdensityPrevious=+self%distributionOverdensityMassive%sample   (                                                              &
@@ -223,10 +237,26 @@ contains
     return
   end function normalOverdensityLinear
 
+  double precision function normalOverdensityLinearGradientTime(self,node)
+    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentBasic   ), pointer       :: basic
+
+    basic                               =>  node%basic()
+    normalOverdensityLinearGradientTime =  +self%overdensityLinear(node)                                                      &
+         &                                 *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
+         &                                 *self%cosmologyFunctions_%expansionRate                       (                    &
+         &                                  self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
+         &                                                                                               )
+    return
+  end function normalOverdensityLinearGradientTime
+
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes                , only : nodeComponentBasic                                , treeNode
-    use :: Spherical_Collapse_Matter_Lambda, only : Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node
@@ -234,7 +264,7 @@ contains
 
     ! Get a table of linear vs. nonlinear density.
     if (.not.self%linearToNonLinearInitialized) then
-       call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear,self%linearGrowth_,self%cosmologyFunctions_)
+       call self%sphericalCollapseSolver_%linearNonlinearMap(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear)
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.

@@ -1660,7 +1660,7 @@ contains
 #endif
     return
   end function counterIncrement
-  
+
   function counterGet(self)
     !% Return the current value of an MPI counter.
 #ifdef USEMPI

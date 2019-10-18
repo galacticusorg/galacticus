@@ -30,11 +30,11 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
      private
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_ => null()
-     double precision                                         :: timePrevious             , massPrevious, &
-          &                                                      lowerA                   , upperA      , &
+     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_    => null()
+     double precision                                         :: timePrevious                       , massPrevious, &
+          &                                                      lowerA                             , upperA      , &
           &                                                      upperC
    contains
      final     ::               tinker2010Destructor
@@ -107,7 +107,7 @@ contains
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =self%cosmologicalMassVariance_%rootVariance(               mass)
+    sigma        =self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
     nu           =+deltaCritical                                                   &
          &        /sigma
     ! Update fitting parameters if the time has changed.

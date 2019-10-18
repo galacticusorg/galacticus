@@ -30,10 +30,10 @@
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.
      private
-     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_ => null()
-     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_ => null()
-     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_ => null()
-     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_ => null()
+     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_               => null()
+     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_                    => null()
+     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_                     => null()
+     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_              => null()
      class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_ => null()
      ! Parent halo shared variables.
      double precision                                          :: parentDTimeDDeltaCritical                  , parentDelta           , &
@@ -54,6 +54,8 @@
      logical                                                   :: subresolutionFractionIntegrandFailureWarned
      ! Minimum mass to which subresolution fractions will be integrated.
      double precision                                          :: massMinimum
+     ! Current epoch.
+     double precision                                          :: timeNow
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBranchingProbabilityGnrlzdPrssSchchtr</object>
@@ -169,6 +171,7 @@ contains
     self%excursionSetsTested                        =.false.
     self%subresolutionFractionIntegrandFailureWarned=.false.
     self%massResolutionPrevious                     =-1.0d0
+    self%timeNow                                    =self%cosmologyFunctions_%cosmicTime(1.0d0)
   return
   end function generalizedPressSchechterConstructorInternal
 
@@ -195,9 +198,8 @@ contains
     if (.not.self%excursionSetsTested) then
        if (self%massMinimum > 0.0d0) then
           presentTime      =self%cosmologyFunctions_      %cosmicTime  (1.0d0                                                 )
-          self%sigmaMaximum=self%cosmologicalMassVariance_%rootVariance(self%massMinimum)
+          self%sigmaMaximum=self%cosmologicalMassVariance_%rootVariance(self%massMinimum                     ,presentTime     )
           varianceMaximum  =self%sigmaMaximum**2
-          testResult       =self%excursionSetFirstCrossing_%probability(                      varianceMaximum,presentTime,node)
           testResult       =self%excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime,node)
        end if
        self%excursionSetsTested=.true.
@@ -205,7 +207,7 @@ contains
     return
   end subroutine generalizedPressSchechterExcursionSetTest
 
-  double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
+  double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator,node)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
     !% \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
@@ -218,10 +220,11 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
-         &                                                                                      massResolution                 , probabilityFraction
+         &                                                                                      massResolution                 , probabilityFraction     , &
+         &                                                                                      time
     type            (pseudoRandom                                   ), intent(inout)         :: randomNumberGenerator
     type            (treeNode                                       ), intent(inout), target :: node
-    double precision                                                 , parameter             :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9
+    double precision                                                 , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-9
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
     type            (varying_string                                 )                        :: message
     character       (len=26                                         )                        :: label
@@ -235,7 +238,7 @@ contains
     generalizedPressSchechterSelf => self
     self%probabilityMinimumMass   =  massResolution
     self%probabilitySeek          =  probabilityFraction
-    call self%computeCommonFactors(node,haloMass,deltaCritical)
+    call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(generalizedPressSchechterMassBranchRoot)
@@ -307,36 +310,36 @@ contains
     return
   end function generalizedPressSchechterMassBranchRoot
 
-  double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,massResolution)
+  double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !% Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
     !% deltaCritical} should be allowed to take.
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
     double precision                                                 , intent(in   ) :: deltaCritical , haloMass, &
-         &                                                                              massResolution
-    !GCC$ attributes unused :: deltaCritical, haloMass, massResolution
+         &                                                                              massResolution, time
+    !GCC$ attributes unused :: deltaCritical, haloMass, massResolution, time
 
     generalizedPressSchechterStepMaximum=self%deltaStepMaximum
     return
   end function generalizedPressSchechterStepMaximum
 
-  double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,massResolution,bound,node)
+  double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !% Return bounds onthe probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
     implicit none
     class          (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
     double precision                                                , intent(in   )         :: deltaCritical , haloMass, &
-         &                                                                                     massResolution
+         &                                                                                     massResolution, time
     integer                                                         , intent(in   )         :: bound
     type            (treeNode                                      ), intent(inout), target :: node
     !GCC$ attributes unused :: bound
 
-    generalizedPressSchechterProbabilityBound=self%probability(haloMass,deltaCritical,massResolution,node)
+    generalizedPressSchechterProbabilityBound=self%probability(haloMass,deltaCritical,time,massResolution,node)
     return
   end function generalizedPressSchechterProbabilityBound
 
-  double precision function generalizedPressSchechterProbability(self,haloMass,deltaCritical,massResolution,node)
+  double precision function generalizedPressSchechterProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
@@ -345,7 +348,7 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                      massResolution
+         &                                                                                      massResolution      , time
     type            (treeNode                                       ), intent(inout), target :: node
     type            (fgsl_function                                  )                        :: integrandFunction
     type            (fgsl_integration_workspace                     )                        :: integrationWorkspace
@@ -354,7 +357,7 @@ contains
     call self%excursionSetTest(node)
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
-       call self%computeCommonFactors(node,haloMass,deltaCritical)
+       call self%computeCommonFactors(node,haloMass,deltaCritical,time)
        massMinimum                          =             massResolution
        massMaximum                          =  0.5d0*self%parentHaloMass
        generalizedPressSchechterSelf        => self
@@ -375,7 +378,7 @@ contains
     return
   end function generalizedPressSchechterProbability
 
-  double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,massResolution,node)
+  double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function     , fgsl_integration_workspace
@@ -385,7 +388,7 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &
-         &                                                                                      massResolution
+         &                                                                                      massResolution                                , time
     type            (treeNode                                       ), intent(inout), target :: node
     double precision                                                 , parameter             :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
     double precision                                                                         :: massMaximum                                   , massMinimum, &
@@ -397,18 +400,18 @@ contains
 
     call self%excursionSetTest(node)
     ! Get sigma and delta_critical for the parent halo.
-    call self%computeCommonFactors(node,haloMass,deltaCritical)
+    call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! If requested, compute the rate of smooth accretion.
     if (self%smoothAccretion) then
-       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                          &
-            &                                         *    self%excursionSetFirstCrossing_             %rateNonCrossing(self%parentSigmaSquared,self%parentTime  ,node            ) &
-            &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (self%parentDelta       ,self%sigmaMaximum,self%parentSigma)
+       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                                            &
+            &                                         *    self%excursionSetFirstCrossing_             %rateNonCrossing(              self%parentSigmaSquared                  ,self%parentTime,node) &
+            &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (node,haloMass,self%parentSigma       ,self%sigmaMaximum,self%parentTime     )
     else
        generalizedPressSchechterFractionSubresolution=0.0d0
     end if
 
     if (massResolution /= self%massResolutionPrevious) then
-       self%resolutionSigma       =self%cosmologicalMassVariance_%rootVariance(massResolution)
+       self%resolutionSigma       =self%cosmologicalMassVariance_%rootVariance(massResolution,self%parentTime)
        self%massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=self%resolutionSigma/self%parentSigma
@@ -435,7 +438,9 @@ contains
           else
              ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
              if (.not.self%subresolutionFractionIntegrandFailureWarned) then
-                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'//{introspection:location}
+                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)// &
+                &       'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
+                &       {introspection:location}
                 call Galacticus_Warn(message)
                 self%subresolutionFractionIntegrandFailureWarned=.true.
              end if
@@ -464,7 +469,7 @@ contains
     double precision, intent(in   ) :: childHaloMass
     double precision                :: childAlpha   , childSigma
 
-    call generalizedPressSchechterSelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
+    call generalizedPressSchechterSelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,generalizedPressSchechterSelf%parentTime,childSigma,childAlpha)
     generalizedPressSchechterProbabilityIntegrand=generalizedPressSchechterProgenitorMassFunction(childHaloMass,childSigma,childAlpha,generalizedPressSchechterNode)
     return
   end function generalizedPressSchechterProbabilityIntegrand
@@ -476,7 +481,7 @@ contains
     double precision                :: childAlpha   , childSigma
 
     if (childHaloMass>0.0d0) then
-       call generalizedPressSchechterSelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
+       call generalizedPressSchechterSelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,generalizedPressSchechterSelf%parentTime,childSigma,childAlpha)
        generalizedPressSchechterFractionSubresolutionIntegrand=+generalizedPressSchechterProgenitorMassFunction(childHaloMass,childSigma,childAlpha,generalizedPressSchechterNode) &
             &                                                  *                              childHaloMass                                                                        &
             &                                                  /generalizedPressSchechterSelf%parentHaloMass
@@ -510,29 +515,51 @@ contains
     double precision                          :: childSigmaSquared
 
     childSigmaSquared                   =+childSigma**2
-    generalizedPressSchechterMergingRate=-2.0d0                                                                                                                                                                                                 &
-         &                               *generalizedPressSchechterSelf%mergerTreeBranchingProbabilityModifier_%rateModifier(generalizedPressSchechterSelf%parentDelta       ,childSigma       ,generalizedPressSchechterSelf%parentSigma     ) &
-         &                               *generalizedPressSchechterSelf%excursionSetFirstCrossing_             %rate        (generalizedPressSchechterSelf%parentSigmaSquared,childSigmaSquared,generalizedPressSchechterSelf%parentTime ,node) &
-         &                               *childSigmaSquared                                                                                                                                                                                     &
-         &                               *abs(childAlpha)                                                                                                                                                                                       &
+    generalizedPressSchechterMergingRate=-2.0d0                                                                                                                                &
+         &                               *generalizedPressSchechterSelf%mergerTreeBranchingProbabilityModifier_%rateModifier(                                                  &
+         &                                                                                                                                                 node              , &
+         &                                                                                                                   generalizedPressSchechterSelf%parentHaloMass    , &
+         &                                                                                                                   generalizedPressSchechterSelf%parentSigma       , &
+         &                                                                                                                                                 childSigma        , &
+         &                                                                                                                   generalizedPressSchechterSelf%parentTime          &
+         &                                                                                                                  )                                                  &
+         &                               *generalizedPressSchechterSelf%excursionSetFirstCrossing_             %rate        (                                                  &
+         &                                                                                                                   generalizedPressSchechterSelf%parentSigmaSquared, &
+         &                                                                                                                                                 childSigmaSquared , &
+         &                                                                                                                   generalizedPressSchechterSelf%parentTime        , &
+         &                                                                                                                                                 node                &
+         &                                                                                                                  )                                                  &
+         &                               *childSigmaSquared                                                                                                                    &
+         &                               *abs(childAlpha)                                                                                                                      &
          &                               *generalizedPressSchechterSelf%parentDTimeDDeltaCritical
     return
   end function generalizedPressSchechterMergingRate
 
-  subroutine generalizedPressSchechterComputeCommonFactors(self,node,haloMass,deltaCritical)
+  subroutine generalizedPressSchechterComputeCommonFactors(self,node,haloMass,deltaCritical,time)
     !% Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
     type            (treeNode                                       ), intent(inout), target :: node
-    double precision                                                 , intent(in   )         :: haloMass, deltaCritical
+    double precision                                                 , intent(in   )         :: haloMass, deltaCritical, &
+         &                                                                                      time
 
-    generalizedPressSchechterNode  =>                                                                                               node
-    self%parentHaloMass            =                                              haloMass
-    self%parentSigma               =  self%cosmologicalMassVariance_%rootVariance(haloMass)
-    self%parentDelta               =  deltaCritical
-    self%parentSigmaSquared        =                                                 self%parentSigma                                    **2
-    self%parentTime                =        self%criticalOverdensity_%timeOfCollapse(self%parentDelta,     self%parentHaloMass,node=node)
-    self%parentDTimeDDeltaCritical =  1.0d0/self%criticalOverdensity_%gradientTime  (self%parentTime ,mass=self%parentHaloMass,node=node)
+    generalizedPressSchechterNode  =>                                                                                                                                           node
+    self%parentHaloMass            =                                                                                                                        haloMass
+    self%parentDelta               =                                                                                                deltaCritical
+    self%parentTime                =                                                                                                time
+    self%parentSigma               =    self%cosmologicalMassVariance_%rootVariance                       (time               =self%parentTime   ,mass=     haloMass)
+    self%parentSigmaSquared        =    self%parentSigma                                                                                                        **2
+    ! "deltaCritical" here is actually δ_c(t) σ(M,t₀) / σ(M,t).
+    self%parentDTimeDDeltaCritical = +1.0d0                                                                                                                                           &
+         &                           /  self%cosmologicalMassVariance_%rootVariance                       (time               =self%parentTime   ,mass=self%parentHaloMass          ) &
+         &                           *  self%cosmologicalMassVariance_%rootVariance                       (time               =self%timeNow      ,mass=self%parentHaloMass          ) &
+         &                           /                                                                                              deltaCritical                                     &
+         &                           /(                                                                                                                                               &
+         &                             +self%criticalOverdensity_     %gradientTime                       (time               =self%parentTime   ,mass=self%parentHaloMass,node=node) &
+         &                             /self%criticalOverdensity_     %value                              (time               =self%parentTime   ,mass=self%parentHaloMass,node=node) &
+         &                             -self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime(time               =self%parentTime   ,mass=self%parentHaloMass          ) &
+         &                             /                                                                                       self%parentTime                                        &
+         &                            )
     return
   end subroutine generalizedPressSchechterComputeCommonFactors
 

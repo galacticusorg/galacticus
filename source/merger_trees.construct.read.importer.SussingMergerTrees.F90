@@ -23,7 +23,7 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: ISO_Varying_String
   use :: Pseudo_Random       , only : pseudoRandom
-  use :: Stateful_Types
+
 
   !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
   !#  <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>

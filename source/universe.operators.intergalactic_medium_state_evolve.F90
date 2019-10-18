@@ -321,9 +321,9 @@ contains
      self%massFilteringComposite(1,:)=massFilteringODEs(1:2)
      self%massFiltering         (1  )=massFilteringODEs(3  )
      ! Find the initial mass variance on the filtering mass scale.
-     massFilteringVarianceInitial=self%cosmologicalMassVariance_%rootVariance(self%massFiltering(1))
+     massFilteringVarianceInitial=self%cosmologicalMassVariance_%rootVariance(self%massFiltering(1),timeMinimum)
      ! Set the initial clumping factor.
-     self%clumpingFactor(1)=1.0d0+(massFilteringVarianceInitial**2*self%linearGrowth_%value(timeMinimum)**2)
+     self%clumpingFactor(1)=1.0d0+massFilteringVarianceInitial**2
      ! Initialize optical depth.
      self%opticalDepth  (1)=0.0d0
      ! Initialize the IGM state object.
@@ -475,9 +475,8 @@ contains
            self%opticalDepth          (iNow    )=max(properties( 9   ),0.0d0)
            self%massFiltering         (iNow    )=properties(10   )
            ! Compute the filtering mass at this time.
-           self%clumpingFactor        (iNow    )=+1.0d0                                                                    &
-                &                                +self%cosmologicalMassVariance_%rootVariance(self%massFiltering(iNow))**2 &
-                &                                *self%linearGrowth_            %value       (self%time         (iNow))**2
+           self%clumpingFactor        (iNow    )=+1.0d0                                                                                    &
+                &                                +self%cosmologicalMassVariance_%rootVariance(self%massFiltering(iNow),self%time(iNow))**2
         end if
         ! Find the latest time across all trees in the universe.
         treeTimeLatest =  0.0d0
@@ -630,11 +629,8 @@ contains
      massFilteringCompositeRateOfChange=massFilteringODEsRateOfChange(1:2)
      massFilteringRateOfChange         =massFilteringODEsRateOfChange(3  )
      ! Compute the clumping factor.
-     clumpingFactor=+1.0d0                                                    &
-          &         +(                                                        &
-          &           +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_) &
-          &           *intergalacticMediumStateEvolveSelf%linearGrowth_            %value       (time          ) &
-          &          )**2
+     clumpingFactor=+1.0d0                                                                                             &
+          &         +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2
      ! Iterate over ionic species.
      iProperty=1 ! Counter for ionic species in properties array.
      do atomicNumber=1,2

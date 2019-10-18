@@ -231,6 +231,7 @@ contains
     !#   virialDensityContrastFixed                      (                                        &amp;
     !#      &amp;                                         haloDensityContrast                   , &amp;
     !#      &amp;                                         fixedDensityTypeCritical              , &amp;
+    !#      &amp;                                         2.0d0                                 , &amp;
     !#      &amp;                                         cosmologyParameters_                  , &amp;
     !#      &amp;                                         cosmologyFunctions_                     &amp;
     !#      &amp;                                        )
@@ -240,7 +241,7 @@ contains
     allocate(nodePropertyExtractor_      )
     !# <referenceConstruct object="nodePropertyExtractor_">
     !#  <constructor>
-    !#   nodePropertyExtractorConcentration    (                                        &amp;
+    !#   nodePropertyExtractorConcentration              (                                        &amp;
     !#       &amp;                                        virialDensityContrast_                  &amp;
     !#       &amp;                                       )
     !#  </constructor>
@@ -249,7 +250,7 @@ contains
     allocate(outputAnalysisWeightPropertyExtractor_)
     !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
     !#  <constructor>
-    !#   nodePropertyExtractorMassHalo         (                                        &amp;
+    !#   nodePropertyExtractorMassHalo                   (                                        &amp;
     !#      &amp;                                         virialDensityContrast_                  &amp;
     !#      &amp;                                        )
     !#  </constructor>

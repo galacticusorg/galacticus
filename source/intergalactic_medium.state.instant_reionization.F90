@@ -36,6 +36,7 @@
      procedure :: neutralHydrogenFraction     => instantReionizationNeutralHydrogenFraction
      procedure :: neutralHeliumFraction       => instantReionizationNeutralHeliumFraction
      procedure :: singlyIonizedHeliumFraction => instantReionizationSinglyIonizedHeliumFraction
+     procedure :: descriptor                  => instantReionizationDescriptor
   end type intergalacticMediumStateInstantReionization
 
   interface intergalacticMediumStateInstantReionization
@@ -308,3 +309,26 @@ contains
     end if
     return
   end function instantReionizationTemperature
+
+  subroutine instantReionizationDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters, only : inputParameters
+    implicit none
+    class    (intergalacticMediumStateInstantReionization), intent(inout)           :: self
+    type     (inputParameters                            ), intent(inout)           :: descriptor
+    logical                                               , intent(in   ), optional :: includeMethod
+    character(len=18                                     )                          :: parameterLabel
+    type     (inputParameters                            )                          :: parameters
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','instantReionization')
+    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime       ))
+    call parameters%addParameter('reionizationRedshift'   ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature
+    call parameters%addParameter('reionizationTemperature',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)')                                                                                               self%presentDayTemperature
+    call parameters%addParameter('presentDayTemperature'  ,trim(adjustl(parameterLabel)))
+    call self%cosmologyFunctions_ %descriptor(parameters)
+    call self%cosmologyParameters_%descriptor(parameters)
+    return
+  end subroutine instantReionizationDescriptor

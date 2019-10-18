@@ -32,22 +32,22 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
      !% A class implementing merger tree construction by building trees.
      private
-     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_   => null()
+     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_    => null()
      class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_ => null()
-     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_ => null()
-     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_ => null()
-     class           (outputTimesClass          ), pointer                   :: outputTimes_ => null()
+     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_     => null()
+     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_      => null()
+     class           (outputTimesClass          ), pointer                   :: outputTimes_           => null()
      ! Variables giving the mass range and sampling frequency for mass function sampling.
-     double precision                                                        :: timeBase               , timeSnapTolerance
+     double precision                                                        :: timeBase                        , timeSnapTolerance
      integer                                                                 :: treeBeginAt
      ! Direction in which to process trees.
      logical                                                                 :: processDescending
      ! Array of halo masses to use.
-     integer         (c_size_t                  )                            :: treeCount              , treeNumberOffset
-     double precision                            , allocatable, dimension(:) :: treeMass               , treeWeight       , &
-          &                                                                     treeMassMinimum        , treeMassMaximum
-     integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount          , rankMass
+     integer         (c_size_t                  )                            :: treeCount                       , treeNumberOffset
+     double precision                            , allocatable, dimension(:) :: treeMass                        , treeWeight       , &
+          &                                                                     treeMassMinimum                 , treeMassMaximum
+     integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount                   , rankMass
      logical                                                                 :: computeTreeWeights
    contains
      !@ <objectMethods>

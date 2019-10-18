@@ -32,7 +32,7 @@
      class          (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      double precision                                    :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
-     double precision                                   :: scatter
+     double precision                                    :: scatter
    contains
      final     ::                     jiang2008Destructor
      procedure :: timeUntilMerging => jiang2008TimeUntilMerging
@@ -152,9 +152,11 @@ contains
          &             /equivalentCircularOrbitRadius                                                       &
          &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    basic => node%basic()
-    basicHost => nodeHost%basic()
-    massRatio=basicHost%mass()/basic%mass()-1.0d0
+    basic     =>  node     %basic()
+    basicHost =>  nodeHost %basic()
+    massRatio =  +basicHost%mass () &
+         &       /basic    %mass () &
+         &       -1.0d0
     ! Check for a non-zero mass ratio.
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.

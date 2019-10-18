@@ -26,13 +26,14 @@
      !% A uniform halo environment class.
      private
    contains
-     procedure :: overdensityLinear    => uniformOverdensityLinear
-     procedure :: overdensityNonLinear => uniformOverdensityNonLinear
-     procedure :: environmentRadius    => uniformEnvironmentRadius
-     procedure :: environmentMass      => uniformEnvironmentMass
-     procedure :: pdf                  => uniformPDF
-     procedure :: cdf                  => uniformCDF
-     procedure :: overdensityLinearSet => uniformOverdensityLinearSet
+     procedure :: overdensityLinear             => uniformOverdensityLinear
+     procedure :: overdensityLinearGradientTime => uniformOverdensityLinearGradientTime
+     procedure :: overdensityNonLinear          => uniformOverdensityNonLinear
+     procedure :: environmentRadius             => uniformEnvironmentRadius
+     procedure :: environmentMass               => uniformEnvironmentMass
+     procedure :: pdf                           => uniformPDF
+     procedure :: cdf                           => uniformCDF
+     procedure :: overdensityLinearSet          => uniformOverdensityLinearSet
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
@@ -65,6 +66,17 @@ contains
     uniformOverdensityLinear=0.0d0
     return
   end function uniformOverdensityLinear
+
+  double precision function uniformOverdensityLinearGradientTime(self,node)
+    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+
+    uniformOverdensityLinearGradientTime=0.0d0
+    return
+  end function uniformOverdensityLinearGradientTime
 
   double precision function uniformOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.

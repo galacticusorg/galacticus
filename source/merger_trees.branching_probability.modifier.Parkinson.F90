@@ -19,16 +19,20 @@
 
 !% Implements a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.
 
+  use Cosmological_Density_Field, only : criticalOverdensityClass, criticalOverdensity
+
   !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierParkinson2008">
   !#  <description>Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.</description>
   !# </mergerTreeBranchingProbabilityModifier>
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierParkinson2008
      !% A merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.
      private
-     double precision :: G0                 , gamma1             , &
-          &              gamma2             , parentTerm         , &
-          &              deltaParentPrevious, sigmaParentPrevious
+     class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
+     double precision                                    :: G0                            , gamma1             , &
+          &                                                 gamma2                        , parentTerm         , &
+          &                                                 timeParentPrevious            , sigmaParentPrevious
    contains
+     final     ::                 parkinson2008Destructor
      procedure :: rateModifier => parkinson2008RateModifier
   end type mergerTreeBranchingProbabilityModifierParkinson2008
 
@@ -47,7 +51,8 @@ contains
     implicit none
     type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
-    double precision                                                                     :: G0        , gamma1, &
+    class           (criticalOverdensityClass                           ), pointer       :: criticalOverdensity_
+    double precision                                                                     :: G0                  , gamma1, &
          &                                                                                  gamma2
 
     !# <inputParameter>
@@ -74,44 +79,57 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=mergerTreeBranchingProbabilityModifierParkinson2008(G0,gamma1,gamma2)
+    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    self=mergerTreeBranchingProbabilityModifierParkinson2008(G0,gamma1,gamma2,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"/>
     return
   end function parkinson2008ConstructorParameters
 
-  function parkinson2008ConstructorInternal(G0,gamma1,gamma2) result(self)
+  function parkinson2008ConstructorInternal(G0,gamma1,gamma2,criticalOverdensity_) result(self)
     !% Default constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
     implicit none
-    type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
-    double precision                                                     , intent(in   ) :: G0    , gamma1, &
-         &                                                                                  gamma2
-    !# <constructorAssign variables="G0, gamma1, gamma2"/>
+    type            (mergerTreeBranchingProbabilityModifierParkinson2008)                        :: self
+    class           (criticalOverdensityClass                           ), intent(in   ), target :: criticalOverdensity_
+    double precision                                                     , intent(in   )         :: G0                  , gamma1, &
+         &                                                                                          gamma2
+    !# <constructorAssign variables="G0, gamma1, gamma2, *criticalOverdensity_"/>
 
-    self%deltaParentPrevious=-1.0d0
+    self%timeParentPrevious =-1.0d0
     self%sigmaParentPrevious=-1.0d0
     self%parentTerm         =+0.0d0
     return
   end function parkinson2008ConstructorInternal
 
-  double precision function parkinson2008RateModifier(self,deltaParent,sigmaChild,sigmaParent)
+  subroutine parkinson2008Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+    implicit none
+    type(mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self
+
+    !# <objectDestructor name="self%criticalOverdensity_"/>
+    return
+  end subroutine parkinson2008Destructor
+
+  double precision function parkinson2008RateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent)
     !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
     implicit none
     class           (mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self
-    double precision                                                     , intent(in   ) :: sigmaChild , deltaParent, &
-         &                                                                                  sigmaParent
+    type            (treeNode                                           ), intent(inout) :: nodeParent
+    double precision                                                     , intent(in   ) :: sigmaChild , timeParent, &
+         &                                                                                  sigmaParent, massParent
 
     ! Check if we need to update the "parent" term.
     if     (                                         &
-         &   deltaParent /= self%deltaParentPrevious &
+         &   timeParent  /= self%timeParentPrevious  &
          &  .or.                                     &
          &   sigmaParent /= self%sigmaParentPrevious &
          & ) then
        ! "Parent" term must be updated. Compute and store it for future re-use.
-       self%deltaParentPrevious=+deltaParent
+       self%timeParentPrevious =+timeParent
        self%sigmaParentPrevious=+sigmaParent
-       self%parentTerm         =+self%G0                                  &
-            &                   *((deltaParent/sigmaParent)**self%gamma2) &
-            &                   /(             sigmaParent **self%gamma1)
+       self%parentTerm         =+self%G0                                                                                                       &
+            &                   *((self%criticalOverdensity_%value(time=timeParent,mass=massParent,node=nodeParent)/sigmaParent)**self%gamma2) &
+            &                   /(                                                                                  sigmaParent **self%gamma1)
     end if
     ! Compute the modifier.
     parkinson2008RateModifier=self%parentTerm*(sigmaChild**self%gamma1)

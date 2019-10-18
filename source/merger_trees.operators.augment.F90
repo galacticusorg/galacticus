@@ -29,16 +29,16 @@
      !% An augmenting merger tree operator class.
      private
      double precision                         , allocatable, dimension(   :) :: timeSnapshots
-     integer         (c_size_t               )             , dimension(0:10) :: retryHistogram              , trialCount
-     double precision                                                        :: massCutOff                  , timeEarliest             , &
-          &                                                                     toleranceScale              , massCutOffScaleFactor    , &
+     integer         (c_size_t               )             , dimension(0:10) :: retryHistogram                        , trialCount
+     double precision                                                        :: massCutOff                            , timeEarliest             , &
+          &                                                                     toleranceScale                        , massCutOffScaleFactor    , &
           &                                                                     massOvershootScaleFactor
-     integer                                                                 :: retryMaximum                , rescaleMaximum           , &
-          &                                                                     attemptsMaximum             , massCutOffAttemptsMaximum, &
+     integer                                                                 :: retryMaximum                          , rescaleMaximum           , &
+          &                                                                     attemptsMaximum                       , massCutOffAttemptsMaximum, &
           &                                                                     massOvershootAttemptsMaximum
-     logical                                                                 :: performChecks               , useOneNodeTrees
-     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_ => null()
-     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_ => null()
+     logical                                                                 :: performChecks                         , useOneNodeTrees
+     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_           => null()
+     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_          => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeOperatorAugment</object>

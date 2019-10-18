@@ -1057,8 +1057,6 @@ contains
     implicit none
     class(inputParameters), intent(inout), target :: self
 
-    ! Check that global parameters have not yet been assigned.
-    if (associated(globalParameters)) call Galacticus_Error_Report('global parameters cannot be reassigned'//{introspection:location})
     ! Mark as global.
     self%global=.true.
     ! Set global parameters pointer.

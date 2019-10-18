@@ -33,6 +33,7 @@ program Tests_Halo_Mass_Function_Tinker
   use :: Input_Parameters          , only : inputParameters
   use :: Memory_Management         , only : allocateArray                 , deallocateArray
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Events_Hooks              , only : eventsHooksInitialize
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -49,6 +50,8 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: Tinker et al. (2008)")
 

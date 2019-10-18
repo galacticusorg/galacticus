@@ -500,7 +500,8 @@ contains
     double precision                                                :: timeEffective, h
     logical                                                         :: remakeTable
     integer                                                         :: i
-    type            (varying_string                )                :: message
+    type            (varying_string                ), save          :: message
+    !$omp threadprivate(message)
     character       (len=13                        )                :: label
 
     ! Get lock on interpolation tables.

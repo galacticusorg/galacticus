@@ -37,24 +37,25 @@
   type, extends(taskClass) :: taskHaloMassFunction
      !% Implementation of a task which computes and outputs the halo mass function and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
-     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
-     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_          => null()
-     class           (linearGrowthClass                ), pointer :: linearGrowth_                 => null()
-     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_             => null()
-     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_              => null()
-     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_ => null()
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_     => null()
-     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_           => null()
-     class           (transferFunctionClass            ), pointer :: transferFunction_             => null()
-     class           (outputTimesClass                 ), pointer :: outputTimes_                  => null()
-     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     double precision                                             :: haloMassMinimum                        , haloMassMaximum
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_                 => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_              => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_               => null()
+     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_                => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_                       => null()
+     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_                   => null()
+     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_                    => null()
+     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_       => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_                => null()
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_           => null()
+     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_                 => null()
+     class           (transferFunctionClass            ), pointer :: transferFunction_                   => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_                        => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_       => null()
+     double precision                                             :: haloMassMinimum                              , haloMassMaximum
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
+     logical                                                      :: includeUnevolvedSubhaloMassFunction
    contains
      final     ::            haloMassFunctionDestructor
      procedure :: perform => haloMassFunctionPerform
@@ -93,8 +94,9 @@ contains
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     type            (inputParameters                  ), pointer       :: parametersRoot
     type            (varying_string                   )                :: outputGroup
-    double precision                                                   :: haloMassMinimum              , haloMassMaximum
+    double precision                                                   :: haloMassMinimum                    , haloMassMaximum
     integer                                                            :: pointsPerDecade
+    logical                                                            :: includeUnevolvedSubhaloMassFunction
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -143,6 +145,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>includeUnevolvedSubhaloMassFunction</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true then also compute and output the unevolved subhalo mass function.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
@@ -158,26 +168,27 @@ contains
     !# <objectBuilder class="transferFunction"             name="transferFunction_"             source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=taskHaloMassFunction(                               &
-         &                    haloMassMinimum              , &
-         &                    haloMassMaximum              , &
-         &                    pointsPerDecade              , &
-         &                    outputGroup                  , &
-         &                    cosmologyParameters_         , &
-         &                    cosmologyFunctions_          , &
-         &                    virialDensityContrast_       , &
-         &                    darkMatterProfileDMO_        , &
-         &                    criticalOverdensity_         , &
-         &                    linearGrowth_                , &
-         &                    haloMassFunction_            , &
-         &                    haloEnvironment_             , &
-         &                    unevolvedSubhaloMassFunction_, &
-         &                    darkMatterHaloScale_         , &
-         &                    darkMatterProfileScaleRadius_, &
-         &                    cosmologicalMassVariance_    , &
-         &                    darkMatterHaloBias_          , &
-         &                    transferFunction_            , &
-         &                    outputTimes_                   &
+    self=taskHaloMassFunction(                                     &
+         &                    haloMassMinimum                    , &
+         &                    haloMassMaximum                    , &
+         &                    pointsPerDecade                    , &
+         &                    outputGroup                        , &
+         &                    includeUnevolvedSubhaloMassFunction, &
+         &                    cosmologyParameters_               , &
+         &                    cosmologyFunctions_                , &
+         &                    virialDensityContrast_             , &
+         &                    darkMatterProfileDMO_              , &
+         &                    criticalOverdensity_               , &
+         &                    linearGrowth_                      , &
+         &                    haloMassFunction_                  , &
+         &                    haloEnvironment_                   , &
+         &                    unevolvedSubhaloMassFunction_      , &
+         &                    darkMatterHaloScale_               , &
+         &                    darkMatterProfileScaleRadius_      , &
+         &                    cosmologicalMassVariance_          , &
+         &                    darkMatterHaloBias_                , &
+         &                    transferFunction_                  , &
+         &                    outputTimes_                         &
          &                   )
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"         />
@@ -198,26 +209,27 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(                               &
-       &                                       haloMassMinimum              , &
-       &                                       haloMassMaximum              , &
-       &                                       pointsPerDecade              , &
-       &                                       outputGroup                  , &
-       &                                       cosmologyParameters_         , &
-       &                                       cosmologyFunctions_          , &
-       &                                       virialDensityContrast_       , &
-       &                                       darkMatterProfileDMO_        , &
-       &                                       criticalOverdensity_         , &
-       &                                       linearGrowth_                , &
-       &                                       haloMassFunction_            , &
-       &                                       haloEnvironment_             , &
-       &                                       unevolvedSubhaloMassFunction_, &
-       &                                       darkMatterHaloScale_         , &
-       &                                       darkMatterProfileScaleRadius_, &
-       &                                       cosmologicalMassVariance_    , &
-       &                                       darkMatterHaloBias_          , &
-       &                                       transferFunction_            , &
-       &                                       outputTimes_                   &
+  function haloMassFunctionConstructorInternal(                                     &
+       &                                       haloMassMinimum                    , &
+       &                                       haloMassMaximum                    , &
+       &                                       pointsPerDecade                    , &
+       &                                       outputGroup                        , &
+       &                                       includeUnevolvedSubhaloMassFunction, &
+       &                                       cosmologyParameters_               , &
+       &                                       cosmologyFunctions_                , &
+       &                                       virialDensityContrast_             , &
+       &                                       darkMatterProfileDMO_              , &
+       &                                       criticalOverdensity_               , &
+       &                                       linearGrowth_                      , &
+       &                                       haloMassFunction_                  , &
+       &                                       haloEnvironment_                   , &
+       &                                       unevolvedSubhaloMassFunction_      , &
+       &                                       darkMatterHaloScale_               , &
+       &                                       darkMatterProfileScaleRadius_      , &
+       &                                       cosmologicalMassVariance_          , &
+       &                                       darkMatterHaloBias_                , &
+       &                                       transferFunction_                  , &
+       &                                       outputTimes_                         &
        &                                      ) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
     implicit none
@@ -238,9 +250,10 @@ contains
     class           (transferFunctionClass            ), intent(in   ), target :: transferFunction_
     class           (outputTimesClass                 ), intent(in   ), target :: outputTimes_
     type            (varying_string                   ), intent(in   )         :: outputGroup
-    double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
+    double precision                                   , intent(in   )         :: haloMassMinimum                    , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
-    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    logical                                            , intent(in   )         :: includeUnevolvedSubhaloMassFunction
+    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,includeUnevolvedSubhaloMassFunction,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
 
     return
   end function haloMassFunctionConstructorInternal
@@ -283,6 +296,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
+    use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Prefixes    , only : kilo
     use            :: Numerical_Integration           , only : Integrate                    , Integrate_Done
     use            :: Numerical_Ranges                , only : Make_Range                   , rangeTypeLogarithmic
@@ -301,7 +315,8 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: outputCharacteristicMass                             , outputCriticalOverdensities  , &
          &                                                                             outputExpansionFactors                               , outputGrowthFactors          , &
          &                                                                             outputRedshifts                                      , outputTimes                  , &
-         &                                                                             outputVirialDensityContrast                          , massHalo
+         &                                                                             outputVirialDensityContrast                          , outputTurnAroundRadius       , &
+         &                                                                             massHalo
     ! The upper limit to halo mass used when computing cumulative mass functions.
     double precision                                , parameter                     :: haloMassEffectiveInfinity                     =1.0d16
     ! Largest subhalo mass (in units of host mass) for which we expect significant unevolved subhalo mass function.
@@ -314,7 +329,8 @@ contains
     integer         (c_size_t                      )                                :: iOutput                                              , outputCount                  , &
          &                                                                             iMass                                                , massCount
     double precision                                                                :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
-         &                                                                             massHaloLogarithmicInterval                          , massHalfMode
+         &                                                                             massHaloLogarithmicInterval                          , massHalfMode                 , &
+         &                                                                             wavenumberComoving                                   , growthFactor
     type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
          &                                                                             containerGroup                                       , powerSpectrumGroup           , &
          &                                                                             cosmologyGroup                                       , dataset
@@ -330,6 +346,7 @@ contains
     call allocateArray(outputGrowthFactors                           ,[          outputCount])
     call allocateArray(outputCriticalOverdensities                   ,[          outputCount])
     call allocateArray(outputVirialDensityContrast                   ,[          outputCount])
+    call allocateArray(outputTurnaroundRadius                        ,[          outputCount])
     call allocateArray(outputCharacteristicMass                      ,[          outputCount])
     ! Compute number of tabulation points.
     massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*dble(self%pointsPerDecade))+1
@@ -363,6 +380,7 @@ contains
           outputCriticalOverdensities(iOutput)=0.0d0
        end if
        outputVirialDensityContrast   (iOutput)=self%virialDensityContrast_%densityContrast            (mass=self%haloMassMinimum                 ,time=outputTimes           (iOutput))
+       outputTurnaroundRadius        (iOutput)=self%virialDensityContrast_%turnAroundOverVirialRadii  (mass=self%haloMassMinimum                 ,time=outputTimes           (iOutput))
     end do
     ! Create a node object, assume zero environmental overdensity.
     tree%baseNode          => treeNode()
@@ -376,7 +394,7 @@ contains
     basic                 => tree%baseNode%basic            (autoCreate=.true.)
     darkMatterProfileHalo => tree%baseNode%darkMatterProfile(autoCreate=.true.)
     ! Iterate over all output times.
-    do iOutput=1,outputCount
+    do iOutput=outputCount,1,-1
        ! Set the time in the node.
        call basic%timeSet(outputTimes(iOutput))
        ! Loop over all halo masses.
@@ -390,45 +408,48 @@ contains
           ! Compute bin interval.
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)
+          ! Get the growth factor and this epoch and mass.
+          wavenumberComoving=2.0d0*Pi/(3.0d0*massHalo(iMass)/4.0d0/Pi/self%cosmologyFunctions_%matterDensityEpochal(outputTimes(iOutput)))**(1.0d0/3.0d0)*self%cosmologyFunctions_%expansionFactor(outputTimes(iOutput))
+          growthFactor      =self%linearGrowth_%value(outputTimes(iOutput),wavenumber=wavenumberComoving)
           ! Compute halo properties.
-          massFunctionDifferential                      (iMass,iOutput)=+self%haloMassFunction_            %differential                   (outputTimes(iOutput),massHalo          (iMass        )                          ,node=tree%baseNode)
-          massFunctionCumulative                        (iMass,iOutput)=+self%haloMassFunction_            %integrated                     (outputTimes(iOutput),massHalo          (iMass        ),haloMassEffectiveInfinity,node=tree%baseNode)
-          massFunctionMassFraction                      (iMass,iOutput)=+self%haloMassFunction_            %massFraction                   (outputTimes(iOutput),massHalo          (iMass        ),haloMassEffectiveInfinity,node=tree%baseNode)
-          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+self%haloMassFunction_            %integrated                     (outputTimes(iOutput),massHaloBinMinimum               ,massHaloBinMaximum       ,node=tree%baseNode)    &
+          densityFieldRootVariance                      (iMass,iOutput)=+self%cosmologicalMassVariance_    %rootVariance                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
+          densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+self%cosmologicalMassVariance_    %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
+          peakHeight                                    (iMass,iOutput)=+self%criticalOverdensity_         %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
+               &                                                        /densityFieldRootVariance                                          (                           iMass                                    ,                 iOutput)
+          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+self%haloMassFunction_            %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%baseNode)    &
                &                                                        /massHaloLogarithmicInterval
-          densityFieldRootVariance                      (iMass,iOutput)=+self%cosmologicalMassVariance_    %rootVariance                   (                     massHalo          (iMass        )                                             )
-          densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+self%cosmologicalMassVariance_    %rootVarianceLogarithmicGradient(                     massHalo          (iMass        )                                             )
-          peakHeightMassFunction                        (iMass,iOutput)=+massHalo                                                                                                  (iMass        )                                              **2 &
-               &                                                        *massFunctionDifferential                                                                                  (iMass,iOutput)                                                  &
-               &                                                        /self%cosmologyParameters_         %densityCritical                ()                                                                                                       &
-               &                                                        /self%cosmologyParameters_         %OmegaMatter                    ()                                                                                                       &
-               &                                                        /abs(                                                                                                                                                                       &
-               &                                                             self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(                                                                                                        &
-               &                                                                                                                                                 massHalo          (iMass        )                                                  &
-               &                                                                                                                           )                                                                                                        &
+          massFunctionDifferential                      (iMass,iOutput)=+self%haloMassFunction_            %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%baseNode)
+          massFunctionCumulative                        (iMass,iOutput)=+self%haloMassFunction_            %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
+          massFunctionMassFraction                      (iMass,iOutput)=+self%haloMassFunction_            %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
+          peakHeightMassFunction                        (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
+               &                                                        *massFunctionDifferential                                          (                           iMass                                ,                     iOutput                    )    &
+               &                                                        /self%cosmologyParameters_         %densityCritical                (                                                                                                                 )    &
+               &                                                        /self%cosmologyParameters_         %OmegaMatter                    (                                                                                                                 )    &
+               &                                                        /abs(                                                                                                                                                                                     &
+               &                                                             self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
                &                                                            )
-          biasHalo                                      (iMass,iOutput)=self%darkMatterHaloBias_           %bias                           (                                                                                      tree%baseNode)
-          velocityVirial                                (iMass,iOutput)=self%darkMatterHaloScale_          %virialVelocity                 (                                                                                      tree%baseNode)
-          temperatureVirial                             (iMass,iOutput)=self%darkMatterHaloScale_          %virialTemperature              (                                                                                      tree%baseNode)
-          radiusVirial                                  (iMass,iOutput)=self%darkMatterHaloScale_          %virialRadius                   (                                                                                      tree%baseNode)
-          velocityMaximum                               (iMass,iOutput)=self%darkMatterProfileDMO_         %circularVelocityMaximum        (                                                                                      tree%baseNode)
-          darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                   )
+          biasHalo                                      (iMass,iOutput)=self%darkMatterHaloBias_           %bias                           (                                                                                               node=tree%baseNode)
+          velocityVirial                                (iMass,iOutput)=self%darkMatterHaloScale_          %virialVelocity                 (                                                                                               node=tree%baseNode)
+          temperatureVirial                             (iMass,iOutput)=self%darkMatterHaloScale_          %virialTemperature              (                                                                                               node=tree%baseNode)
+          radiusVirial                                  (iMass,iOutput)=self%darkMatterHaloScale_          %virialRadius                   (                                                                                               node=tree%baseNode)
+          velocityMaximum                               (iMass,iOutput)=self%darkMatterProfileDMO_         %circularVelocityMaximum        (                                                                                               node=tree%baseNode)
+          darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
-          massFunctionCumulativeSubhalo                 (iMass,iOutput)=Integrate(                                                              &
-               &                                                                                    log(massHalo(1)/subhaloMassMaximum       ), &
-               &                                                                                    log(            haloMassEffectiveInfinity), &
-               &                                                                                    subhaloMassFunctionIntegrand              , &
-               &                                                                                    integrandFunction                         , &
-               &                                                                                    integrationWorkspace                      , &
-               &                                                                  toleranceAbsolute=0.0d+0                                    , &
-               &                                                                  toleranceRelative=1.0d-3                                    , &
-               &                                                                  integrationRule  =FGSL_Integ_Gauss15                          &
-               &                                                                 )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          if (self%includeUnevolvedSubhaloMassFunction) then
+             massFunctionCumulativeSubhalo                 (iMass,iOutput)=Integrate(                                                              &
+                  &                                                                                    log(massHalo(1)/subhaloMassMaximum       ), &
+                  &                                                                                    log(            haloMassEffectiveInfinity), &
+                  &                                                                                    subhaloMassFunctionIntegrand              , &
+                  &                                                                                    integrandFunction                         , &
+                  &                                                                                    integrationWorkspace                      , &
+                  &                                                                  toleranceAbsolute=0.0d+0                                    , &
+                  &                                                                  toleranceRelative=1.0d-3                                    , &
+                  &                                                                  integrationRule  =FGSL_Integ_Gauss15                          &
+                  &                                                                 )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+          end if
        end do
-       peakHeight                         (:,iOutput)=+outputCriticalOverdensities(  iOutput) &
-            &                                         /densityFieldRootVariance   (:,iOutput)
-       massFunctionDifferentialLogarithmic(:,iOutput)=+massFunctionDifferential   (:,iOutput) &
+       massFunctionDifferentialLogarithmic(:,iOutput)=+massFunctionDifferential(:,iOutput) &
             &                                         *massHalo
     end do
     ! Open the group for output time information.
@@ -464,53 +485,56 @@ contains
        groupName  =groupName  //iOutput
        commentText=commentText//iOutput
        outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
-       call outputGroup%writeAttribute(outputTimes                                   (  iOutput),'outputTime'                                                                                                                          )
-       call outputGroup%writeAttribute(outputRedshifts                               (  iOutput),'outputRedshift'                                                                                                                      )
-       call outputGroup%writeAttribute(outputExpansionFactors                        (  iOutput),'outputExpansionFactor'                                                                                                               )
-       call outputGroup%writeAttribute(outputGrowthFactors                           (  iOutput),'growthFactor'                                                                                                                        )
-       call outputGroup%writeAttribute(outputCriticalOverdensities                   (  iOutput),'criticalOverdensity'                                                                                                                 )
-       call outputGroup%writeAttribute(outputVirialDensityContrast                   (  iOutput),'virialDensityContrast'                                                                                                               )
-       call outputGroup%writeAttribute(outputCharacteristicMass                      (  iOutput),'massHaloCharacteristic'                                                                                                              )
-       call outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
-       call dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (massFunctionDifferentialLogarithmic           (:,iOutput),'haloMassFunctionLnM'           ,'The halo mass function (per logarithmic halo mass).'                        ,datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (massFunctionDifferentialLogarithmicBinAveraged(:,iOutput),'haloMassFunctionLnMBinAveraged','The halo mass function (per logarithmic halo mass averaged across the bin).',datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (massFunctionCumulative                        (:,iOutput),'haloMassFunctionCumulative'    ,'The halo cumulative mass function.'                                         ,datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (massFunctionCumulativeSubhalo                 (:,iOutput),'subhaloMassFunctionCumulative' ,'The subhalo cumulative mass function.'                                      ,datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (velocityVirial                                (:,iOutput),'haloVirialVelocity'            ,'The virial velocity of halos.'                                              ,datasetReturned=dataset)
-       call dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (temperatureVirial                             (:,iOutput),'haloVirialTemperature'         ,'The virial temperature of halos.'                                           ,datasetReturned=dataset)
-       call dataset    %writeAttribute(1.0d0                                                    ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
-       call dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
-       call dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (velocityMaximum                               (:,iOutput),'haloVelocityMaximum'           ,'The maximum circular velocity of halos.'                                    ,datasetReturned=dataset)
-       call dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call dataset    %close         (                                                                                                                                                                                                )
-       call outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
-       call outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )
-       call outputGroup%writeDataset  (densityFieldRootVarianceGradientLogarithmic   (:,iOutput),'haloAlpha'                     ,'dlog(σ)/dlog(m).'                                                                                   )
-       call outputGroup%writeDataset  (peakHeight                                    (:,iOutput),'haloPeakHeightNu'              ,'The peak height, ν, of the halo.'                                                                   )
-       call outputGroup%writeDataset  (massFunctionMassFraction                      (:,iOutput),'haloMassFractionCumulative'    ,'The halo cumulative mass fraction.'                                                                 )
-       call outputGroup%writeDataset  (peakHeightMassFunction                        (:,iOutput),'haloMassFunctionNuFNu'         ,'The halo mass fraction function as a function of the ν parameter, νF(ν).'                           )
-       call outputGroup%close         (                                                                                                                                                                                                )
+       call    outputGroup%writeAttribute(outputTimes                                   (  iOutput),'outputTime'                                                                                                                          )
+       call    outputGroup%writeAttribute(outputRedshifts                               (  iOutput),'outputRedshift'                                                                                                                      )
+       call    outputGroup%writeAttribute(outputExpansionFactors                        (  iOutput),'outputExpansionFactor'                                                                                                               )
+       call    outputGroup%writeAttribute(outputGrowthFactors                           (  iOutput),'growthFactor'                                                                                                                        )
+       call    outputGroup%writeAttribute(outputCriticalOverdensities                   (  iOutput),'criticalOverdensity'                                                                                                                 )
+       call    outputGroup%writeAttribute(outputVirialDensityContrast                   (  iOutput),'virialDensityContrast'                                                                                                               )
+       call    outputGroup%writeAttribute(outputTurnaroundRadius                        (  iOutput),'turnaroundToVirialRadiusRatio'                                                                                                       )
+       call    outputGroup%writeAttribute(outputCharacteristicMass                      (  iOutput),'massHaloCharacteristic'                                                                                                              )
+       call    outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmic           (:,iOutput),'haloMassFunctionLnM'           ,'The halo mass function (per logarithmic halo mass).'                        ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmicBinAveraged(:,iOutput),'haloMassFunctionLnMBinAveraged','The halo mass function (per logarithmic halo mass averaged across the bin).',datasetReturned=dataset)
+       call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massFunctionCumulative                        (:,iOutput),'haloMassFunctionCumulative'    ,'The halo cumulative mass function.'                                         ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       if (self%includeUnevolvedSubhaloMassFunction) then
+          call outputGroup%writeDataset  (massFunctionCumulativeSubhalo                 (:,iOutput),'subhaloMassFunctionCumulative' ,'The subhalo cumulative mass function.'                                      ,datasetReturned=dataset)
+          call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
+          call dataset    %close         (                                                                                                                                                                                                )
+       end if
+       call    outputGroup%writeDataset  (velocityVirial                                (:,iOutput),'haloVirialVelocity'            ,'The virial velocity of halos.'                                              ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (temperatureVirial                             (:,iOutput),'haloVirialTemperature'         ,'The virial temperature of halos.'                                           ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(1.0d0                                                    ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (velocityMaximum                               (:,iOutput),'haloVelocityMaximum'           ,'The maximum circular velocity of halos.'                                    ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
+       call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )
+       call    outputGroup%writeDataset  (densityFieldRootVarianceGradientLogarithmic   (:,iOutput),'haloAlpha'                     ,'dlog(σ)/dlog(m).'                                                                                   )
+       call    outputGroup%writeDataset  (peakHeight                                    (:,iOutput),'haloPeakHeightNu'              ,'The peak height, ν, of the halo.'                                                                   )
+       call    outputGroup%writeDataset  (massFunctionMassFraction                      (:,iOutput),'haloMassFractionCumulative'    ,'The halo cumulative mass fraction.'                                                                 )
+       call    outputGroup%writeDataset  (peakHeightMassFunction                        (:,iOutput),'haloMassFunctionNuFNu'         ,'The halo mass fraction function as a function of the ν parameter, νF(ν).'                           )
+       call    outputGroup%close         (                                                                                                                                                                                                )
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()

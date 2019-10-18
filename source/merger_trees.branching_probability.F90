@@ -36,14 +36,14 @@ module Merger_Tree_Branching
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
   !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="probabilityBound" >
   !#   <description>Computes a bound (upper or lower) to the probability per unit ``time'' that a branching event occurs.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
   !#   <argument>integer                   , intent(in   )         :: bound</argument>
   !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
   !#  </method>
@@ -52,7 +52,7 @@ module Merger_Tree_Branching
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
   !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="massBranch" >
@@ -60,7 +60,7 @@ module Merger_Tree_Branching
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision              , intent(in   )         :: haloMass             , deltaCritical, massResolution, probabilityFraction</argument>
+  !#   <argument>double precision              , intent(in   )         :: haloMass             , deltaCritical, time, massResolution, probabilityFraction</argument>
   !#   <argument>type            (pseudoRandom), intent(inout)         :: randomNumberGenerator</argument>
   !#   <argument>type            (treeNode    ), intent(inout), target :: node</argument>
   !#  </method>
@@ -68,7 +68,7 @@ module Merger_Tree_Branching
   !#   <description>Returns the maximum step in ``time'' allowed by this algorithm.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>double precision, intent(in   ) :: haloMass, deltaCritical, time, massResolution</argument>
   !#  </method>
   !# </functionClass>
 

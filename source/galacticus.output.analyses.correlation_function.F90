@@ -26,7 +26,6 @@
   use               :: Geometry_Surveys                      , only : surveyGeometry                    , surveyGeometryClass
   use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifier    , haloModelPowerSpectrumModifierClass
   use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
-  use               :: Linear_Growth                         , only : linearGrowth                      , linearGrowthClass
   use               :: Node_Property_Extractors              , only : nodePropertyExtractor             , nodePropertyExtractorClass
   !$ use            :: OMP_Lib                               , only : omp_lock_kind
   use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperator, outputAnalysisDistributionOperatorClass
@@ -46,7 +45,6 @@
      class           (outputTimesClass                       ), pointer                       :: outputTimes_                    => null()
      class           (surveyGeometryClass                    ), pointer                       :: surveyGeometry_                 => null()
      class           (cosmologyFunctionsClass                ), pointer                       :: cosmologyFunctions_             => null()
-     class           (linearGrowthClass                      ), pointer                       :: linearGrowth_                   => null()
      class           (outputAnalysisDistributionOperatorClass), pointer                       :: massDistributionOperator_       => null()
      class           (outputAnalysisPropertyOperatorClass    ), pointer                       :: massPropertyOperator_           => null(), separationPropertyOperator_        => null()
      class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_          => null()
@@ -56,8 +54,8 @@
      class           (powerSpectrumClass                     ), pointer                       :: powerSpectrum_                  => null()
      double precision                                         , allocatable, dimension(:    ) :: separations                              , wavenumber                                  , &
           &                                                                                      meanDensity                              , massMinima                                  , &
-          &                                                                                      massMaxima                               , linearGrowthFactorSquared                   , &
-          &                                                                                      massMinimaLogarithmic                    , massMaximaLogarithmic
+          &                                                                                      massMaxima                               , massMinimaLogarithmic                       , &
+          &                                                                                      massMaximaLogarithmic
      double precision                                         , allocatable, dimension(:,:  ) :: outputWeight                             , meanDensityMainBranch                       , &
           &                                                                                      oneHaloTerm                              , twoHaloTerm                                 , &
           &                                                                                      termCovariance                           , integralConstraint                          , &
@@ -121,7 +119,6 @@ contains
     class           (outputTimesClass                       ), pointer                       :: outputTimes_
     class           (surveyGeometryClass                    ), pointer                       :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), pointer                       :: cosmologyFunctions_
-    class           (linearGrowthClass                      ), pointer                       :: linearGrowth_
     class           (outputAnalysisDistributionOperatorClass), pointer                       :: massDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                       :: massPropertyOperator_             , separationPropertyOperator_
     class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_
@@ -296,7 +293,6 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                                                              source="parameters"/>
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                                                            source="parameters"/>
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                                               source="parameters"/>
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                                                            source="parameters"/>
@@ -326,7 +322,6 @@ contains
     !#        &amp;                            wavenumberMaximum                                               , &amp;
     !#        &amp;                            depthLineOfSight                                                , &amp;
     !#        &amp;                            halfIntegral                                                    , &amp;
-    !#        &amp;                            linearGrowth_                                                   , &amp;
     !#        &amp;                            galacticFilter_                                                 , &amp;
     !#        &amp;                            surveyGeometry_                                                 , &amp;
     !#        &amp;                            cosmologyFunctions_                                             , &amp;
@@ -351,7 +346,6 @@ contains
     !# <objectDestructor name="darkMatterHaloBias_"            />
     !# <objectDestructor name="haloModelPowerSpectrumModifier_"/>
     !# <objectDestructor name="powerSpectrum_"                 />
-    !# <objectDestructor name="linearGrowth_"                  />
     !# <objectDestructor name="galacticFilter_"                />
     !# <objectDestructor name="outputTimes_"                   />
     !# <objectDestructor name="surveyGeometry_"                />
@@ -363,7 +357,7 @@ contains
     return
   end function correlationFunctionConstructorParameters
 
-  function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,linearGrowth_,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
+  function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
     !% Constructor for the ``correlation'' output analysis class which reads bin information from a standard format file.
     use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters, only : cosmologyParametersSimple
@@ -377,7 +371,6 @@ contains
          &                                                                                      wavenumberMinimum                         , wavenumberMaximum
     logical                                                  , intent(in   )                 :: halfIntegral
     integer                                                  , intent(in   )                 :: massHaloBinsPerDecade
-    class           (linearGrowthClass                      ), intent(in   ), target         :: linearGrowth_
     class           (galacticFilterClass                    ), intent(in   ), target         :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ), target         :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), intent(in   ), target         :: cosmologyFunctions_
@@ -421,11 +414,11 @@ contains
     ! Finish reading data file.
     call dataFile%close      (                                       )
     !$ call hdf5Access%unset()
-    self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,linearGrowth_,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
+    self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
    return
   end function correlationFunctionConstructorFile
 
-  function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,linearGrowth_,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
+  function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
     !% Constructor for the ``correlationFunction'' output analysis class for internal use.
     use            :: Galacticus_Error         , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding            , only : c_size_t
@@ -444,7 +437,6 @@ contains
          &                                                                                                depthLineOfSight
     logical                                                  , intent(in   )                           :: halfIntegral
     integer                                                  , intent(in   )                           :: massHaloBinsPerDecade
-    class           (linearGrowthClass                      ), intent(in   ), target                   :: linearGrowth_
     class           (galacticFilterClass                    ), intent(in   ), target                   :: galacticFilter_
     class           (outputTimesClass                       ), intent(in   ), target                   :: outputTimes_
     class           (surveyGeometryClass                    ), intent(in   ), target                   :: surveyGeometry_
@@ -459,7 +451,7 @@ contains
     type            (varying_string                         ), intent(in   )                , optional :: targetLabel
     double precision                                         , intent(in   ), dimension(:,:), optional :: binnedProjectedCorrelationTarget  , binnedProjectedCorrelationCovarianceTarget
     integer         (c_size_t                               )                                          :: i
-    !# <constructorAssign variables="label, comment, separations, massMinima, massMaxima, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *linearGrowth_, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
+    !# <constructorAssign variables="label, comment, separations, massMinima, massMaxima, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
 
     ! Compute weight that applies to each output redshift.
     self%massCount=size(self%massMinima               )
@@ -467,11 +459,6 @@ contains
     call allocateArray(self%outputWeight,[self%massCount,self%outputTimes_%count()])
     do i=1,self%massCount
        self%outputWeight(i,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,massMinima(i))
-    end do
-    ! Pre-compute linear growth factors.
-    allocate(self%linearGrowthFactorSquared(self%outputTimes_%count()))
-    do i=1,self%outputTimes_%count()
-       self%linearGrowthFactorSquared=self%linearGrowth_%value(self%outputTimes_%time(i))**2
     end do
     ! Construct halo mass bins.
     self%massHaloLogarithmicMinimum        =                                 log10(                massHaloMinimum)
@@ -651,7 +638,7 @@ contains
 
     ! Return immediately if no nodes have been accumulated.
     if (all(self%probabilityCentral == 0.0d0) .and. self%countSatellites == 0) return
-    ! Construct the Fourier profile of the host halo.
+    ! Construct the Fourier profile of the host halo. We include the weighting by the square-root of the power spectrum here.
     expansionFactor=self%cosmologyFunctions_%expansionFactor(self%outputTimes_%time(indexOutput))
     allocate(wavenumber    (self%wavenumberCount))
     allocate(fourierProfile(self%wavenumberCount))
@@ -660,10 +647,13 @@ contains
        scaleType        =outputAnalysisPropertyTypeLinear
        wavenumber    (i)=+1.0d0                                                                                         &
             &            /self%separationPropertyOperator_%operate(1.0d0/self%waveNumber(i),node,scaleType,indexOutput)
-       fourierProfile(i)=self%darkMatterProfileDMO_%kSpace(                               &
-            &                                              node                         , &
-            &                                              wavenumber(i)/expansionFactor  &
-            &                                             )
+       fourierProfile(i)=+      self%darkMatterProfileDMO_%kSpace(                                                          &
+            &                                                     node                         ,                            &
+            &                                                     wavenumber(i)/expansionFactor                             &
+            &                                                    )                                                          &
+            &            *sqrt(                                                                                             &
+            &                  +self%powerSpectrum_%power        (self%wavenumber(i  ),self%outputTimes_%time(indexOutput)) &
+            &                 )
     end do
     ! Get the mass of this halo.
     basic    => node %basic()
@@ -1099,10 +1089,8 @@ contains
     do n=1,self%massCount
        do i=1,self%wavenumberCount
           jacobian((n-1)*(2*self%wavenumberCount)                     +i,(n-1)*(2*self%wavenumberCount)                     +i)=+1.0d0
-          jacobian((n-1)*(2*self%wavenumberCount)+self%wavenumberCount+i,(n-1)*(2*self%wavenumberCount)+self%wavenumberCount+i)=+2.0d0                                                &
-               &                                                                                                                *self%twoHaloTerm                              (i,n)  &
-               &                                                                                                                *self%powerSpectrum_%power     (self%wavenumber(i  )) &
-               &                                                                                                                *self%linearGrowthFactorSquared                (  n)
+          jacobian((n-1)*(2*self%wavenumberCount)+self%wavenumberCount+i,(n-1)*(2*self%wavenumberCount)+self%wavenumberCount+i)=+2.0d0                 &
+               &                                                                                                                *self%twoHaloTerm(i,n)
        end do
     end do
     jacobianMatrix      =jacobian
@@ -1110,9 +1098,7 @@ contains
     oneTwoHaloCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
     do n=1,self%massCount
        do i=1,self%wavenumberCount
-          self%twoHaloTerm(i,n)=+self%twoHaloTerm                              (i,n) **2 &
-               &                *self%powerSpectrum_%power     (self%wavenumber(i  ))    &
-               &                *self%linearGrowthFactorSquared                (  n)
+          self%twoHaloTerm(i,n)=+self%twoHaloTerm(i,n)**2
        end do
     end do
     call deallocateArray(jacobian)

@@ -102,7 +102,7 @@ contains
     basic => node%basic()
     ! Compute the shape parameter.
     nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-         &  /self%cosmologicalMassVariance_%rootVariance(                       basic%mass())
+         &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
     if (nu < nuMaximum) then
        gao2008Shape=0.155d0+0.0095d0*nu**2
     else

@@ -53,13 +53,13 @@ my @tests =
     );
 
 # Get Git revision.
-my $gitRevision = "Unknown";
+my $gitRevision;
 open(my $gitHndl,"git rev-parse HEAD|");
-while ( my $line = <$gitHndl> ) {
-    $gitRevision = $line;
-    chomp($gitRevision);
-}
+$gitRevision = <$gitHndl>;
 close($gitHndl);
+$gitRevision = "Unknown"
+    unless ( defined($gitRevision) );
+chomp($gitRevision);
 
 # Choose a random seed.
 my $randomSeed = int(rand(1000));
@@ -127,7 +127,7 @@ while ( my $fileName = readdir($testSuite) ) {
 	    print "--> Calibrating test '".$test->{'name'}."'...\n";
 	    my $calibration;
 	    for(my $i=0;$i<$options{'calibrateCount'};++$i) {
-		(my $values) = rcols("outputs/test-model-integration/".$modelName.$i."/".$test->{'label'}."_".$gitRevision.".txt",1);
+		(my $values) = rcols("outputs/test-model-integration/".$modelName.$i."/".$test->{'label'}."_r".$gitRevision.".txt",1);
 		$calibration = pdl zeroes($options{'calibrateCount'},nelem($values))
 		    unless ( defined($calibration) );
 		$calibration->(($i),:) .= $values;

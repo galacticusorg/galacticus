@@ -49,8 +49,8 @@
   <!-- Structure formation options -->
   <haloMassFunctionMethod value="tinker2008"/>
   <darkMatterHaloBiasMethod value="Tinker2010"/>
-  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMOMethod value="NFW"/>

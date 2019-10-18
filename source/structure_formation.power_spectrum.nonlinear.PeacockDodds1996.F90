@@ -21,7 +21,6 @@
 !% algorithm of \cite{peacock_non-linear_1996}.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use :: Linear_Growth      , only : linearGrowthClass
   use :: Power_Spectra      , only : powerSpectrumClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
@@ -30,11 +29,10 @@
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
      !% A linear transfer function class.
      private
-     double precision                         , dimension(2) :: waveNumberPrevious , fNLPrevious
+     double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious
      double precision                                        :: timePrevious
      class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_ => null()
-     class           (linearGrowthClass      ), pointer      :: linearGrowth_ => null()
-     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_ => null()
+     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_      => null()
   contains
      final     ::               peacockDodds1996Destructor
      procedure :: value      => peacockDodds1996Value
@@ -55,31 +53,27 @@ contains
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     type (inputParameters                       ), target, intent(inout) :: parameters
     class(cosmologyFunctionsClass               ), pointer               :: cosmologyFunctions_
-    class(linearGrowthClass                     ), pointer               :: linearGrowth_
     class(powerSpectrumClass                    ), pointer               :: powerSpectrum_
 
     ! Check and read parameters.
     ! Construct required objects.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
     !# <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
     ! Call the internal constructor.
-    self=peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_)
+    self=peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="linearGrowth_"      />
     !# <objectDestructor name="powerSpectrum_"     />
     return
   end function peacockDodds1996ConstructorParameters
 
-  function peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_) result(self)
+  function peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class(linearGrowthClass                     ), intent(in   ), target :: linearGrowth_
     class(powerSpectrumClass                    ), intent(in   ), target :: powerSpectrum_
-    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *powerSpectrum_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *powerSpectrum_"/>
 
     ! Initialize state.
     self%waveNumberPrevious=-1.0d0
@@ -93,7 +87,6 @@ contains
     type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%linearGrowth_"      />
     !# <objectDestructor name="self%powerSpectrum_"     />
     return
   end subroutine peacockDodds1996Destructor
@@ -110,17 +103,16 @@ contains
     double precision                             , parameter     :: updateFraction         =0.5d+0
     logical                                                      :: converged
     integer                                                      :: iterationCount                , i
-    double precision                                             :: A                             , B                        , &
-         &                                                          V                             , alpha                    , &
-         &                                                          beta                          , fNL                      , &
-         &                                                          fNLLastIteration              , g                        , &
-         &                                                          n                             , waveNumberLinear         , &
-         &                                                          x                             , linearGrowthFactorSquared, &
-         &                                                          omegaMatter                   , omegaDarkEnergy          , &
-         &                                                          omegaMatterFourSevenths       , logRatioBest
+    double precision                                             :: A                             , B               , &
+         &                                                          V                             , alpha           , &
+         &                                                          beta                          , fNL             , &
+         &                                                          fNLLastIteration              , g               , &
+         &                                                          n                             , waveNumberLinear, &
+         &                                                          x                             , logRatioBest    , &
+         &                                                          omegaMatter                   , omegaDarkEnergy , &
+         &                                                          omegaMatterFourSevenths
 
     ! Pre-compute quantities which depend only on time, and so will be constant throughout this calculation.
-    linearGrowthFactorSquared=self%linearGrowth_      %value                 (time)**2
     omegaMatter              =self%cosmologyFunctions_%omegaMatterEpochal    (time)
     omegaDarkEnergy          =self%cosmologyFunctions_%omegaDarkEnergyEpochal(time)
     omegaMatterFourSevenths  =omegaMatter                                           **(4.0d0/7.0d0)
@@ -136,7 +128,7 @@ contains
        end do
     end if
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
-    if (fNL < 0.0d0) fNL=self%powerSpectrum_%powerDimensionless(wavenumber)
+    if (fNL < 0.0d0) fNL=self%powerSpectrum_%powerDimensionless(wavenumber,time)
     fNLLastIteration=fNL
     ! Iterate until a converged solution is found.
     converged     =.false.
@@ -145,8 +137,8 @@ contains
        ! Find the corresponding linear wavenumber.
        waveNumberLinear=wavenumber/(1.0d0+fNL)**(1.0d0/3.0d0)
        ! Get the dimensionless linear power spectrum and its logarithmic slope.
-       x=self%powerSpectrum_%powerDimensionless        (      waveNumberLinear)*linearGrowthFactorSquared
-       n=self%powerSpectrum_%powerLogarithmicDerivative(0.5d0*waveNumberLinear)
+       x=self%powerSpectrum_%powerDimensionless        (      waveNumberLinear,time)
+       n=self%powerSpectrum_%powerLogarithmicDerivative(0.5d0*waveNumberLinear,time)
        ! Compute parameters of the Peacock & Dodds fitting function.
        A    = 0.482d0/(1.0d0+n/3.0d0)**0.947d0
        B    = 0.226d0/(1.0d0+n/3.0d0)**1.778d0

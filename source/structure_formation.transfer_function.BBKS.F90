@@ -22,6 +22,7 @@
 
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionBBKS">
   !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>
@@ -31,6 +32,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      double precision                                    :: Gamma                         , time
    contains
      final     ::                          bbksDestructor
@@ -81,8 +83,8 @@ contains
     type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
     class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass ), intent(inout)         :: cosmologyFunctions_
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
+    class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -92,7 +94,7 @@ contains
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
-    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the Gamma parameter.
     self%Gamma=+             self%cosmologyParameters_%OmegaMatter   (                  ) &
          &     *             self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
@@ -119,6 +121,7 @@ contains
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%darkMatterParticle_" />
     return

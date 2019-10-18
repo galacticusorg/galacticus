@@ -95,10 +95,10 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMOEinasto                       (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMOEinasto                       (darkMatterHaloScaleDefinition_                                                           )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
     return
   end function ludlow2016FitConstructorInternal
 
@@ -130,10 +130,10 @@ contains
          &                                                                                   gamma1                                      , gamma2         , &
          &                                                                                   nu0
 
-    basic           =>  node                          %basic          (                                            )
-    peakHeight      =  +                                                     criticalOverdensitySphericalCollapse    &
-         &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass                                ())
-    expansionFactor =   self%cosmologyFunctions_      %expansionFactor(basic%time                                ())
+    basic           =>  node                          %basic          (                                                       )
+    peakHeight      =  +criticalOverdensitySphericalCollapse    &
+         &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
+    expansionFactor =   self%cosmologyFunctions_      %expansionFactor(basic%time()                                           )
     if (expansionFactor < 0.1d0) call Galacticus_Error_Report('redshift out of range of fitting function'//{introspection:location})
     c0                        =+3.395d0*expansionFactor**0.215d0
     beta                      =+0.307d0/expansionFactor**0.540d0

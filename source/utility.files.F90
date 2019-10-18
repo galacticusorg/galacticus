@@ -218,21 +218,25 @@ contains
     return
   end subroutine File_Lock
 
-  subroutine File_Unlock(lock)
+  subroutine File_Unlock(lock,sync)
     !% Remove a lock from a file.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
-    type   (lockDescriptor), intent(inout) :: lock
-    integer                                :: fileUnit, errorStatus
+    type   (lockDescriptor), intent(inout)           :: lock
+    logical                , intent(in   ), optional :: sync
+    integer                                          :: fileUnit, errorStatus
+    !# <optionalArgument name="sync" defaultsTo=".true." />
 
+    if (sync_) then
+       open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
+       if (errorStatus == 0) then
+          if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
+          close(fileUnit)
+       end if
+    end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-    open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
-    if (errorStatus == 0) then
-       if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
-       close(fileUnit)
-    end if
     ! Then release the per-thread lock.
     !$ call OMP_Unset_Lock(lock%threadLock)
     return

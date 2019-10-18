@@ -36,7 +36,7 @@
   <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
   
   <!-- Structure formation -->
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <virialDensityContrastMethod value="percolation">
     <linkingLength value="0.2"/>
