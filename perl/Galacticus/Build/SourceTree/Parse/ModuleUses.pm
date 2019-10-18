@@ -39,7 +39,7 @@ sub Parse_ModuleUses {
 		# Determine if line is a module use line.
 		my $isModuleUse = 0;
 		$isModuleUse    = 1
-		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=,\s]+)?\s*$/ );
+		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=\/\*\-\+\.,\s]+)?\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleUse == 1 ) {
 		    $rawModuleUse .= $rawLine;
@@ -258,9 +258,10 @@ sub UpdateUses {
 	    foreach my $symbol ( sort(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
 		++$i;
 		my $j = $i % 4;
-		$useLine .= $symbol.(" " x ($columnLengthMax[$j]-length($symbol)));
+		$useLine .= $symbol;
 		--$symbolCount;
 		if ( $symbolCount > 0 ) {
+		    $useLine .= (" " x ($columnLengthMax[$j]-length($symbol)));
 		    $useLine .= ", ";
 		    if ( $j == 3 ) {
 			$useLine .= "&\n";
