@@ -8,6 +8,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Fortran::Utils;
+use Clone 'clone';
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'moduleUses'} = \&Parse_ModuleUses;
@@ -26,6 +27,7 @@ sub Parse_ModuleUses {
 	    # Read the code block, accumulating "uses" as we go.
 	    my $rawCode;
 	    my $rawModuleUse;
+	    my $rawPreprocessor;
 	    my $moduleUses;
 	    my @preprocessorStack;
 	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
@@ -42,6 +44,10 @@ sub Parse_ModuleUses {
 		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=\/\*\-\+\.,\s]+)?\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleUse == 1 ) {
+		    if ( $rawPreprocessor ) {
+			$rawModuleUse .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    $rawModuleUse .= $rawLine;
 		    my $isOpenMP    = $1;
 		    my $isIntrinsic = $3;
@@ -59,12 +65,20 @@ sub Parse_ModuleUses {
 		    } else {
 			$moduleUses->{$moduleName}->{'all'} = 1;
 		    }
-		    @{$moduleUses->{$moduleName}->{'conditions'}} = @preprocessorStack
+		    $moduleUses->{$moduleName}->{'conditions'} = clone(\@preprocessorStack)
 			if ( scalar(@preprocessorStack) > 0 );
-		} elsif ( $processedLine =~ m/^#/ && $rawModuleUse ) {
-		    $isModuleUse = 1;
-		    $rawModuleUse .= $rawLine
+		} elsif ( $processedLine =~ m/^#/ ) {
+		    if ( $rawModuleUse ) {
+			$isModuleUse = 1;
+			$rawModuleUse .= $rawLine;
+		    } else {
+			$rawPreprocessor .= $rawLine;
+		    }
 		} else {
+		    if ( $rawPreprocessor ) {
+			$rawCode .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    $rawCode      .= $rawLine;
 		}
 		# Handle preprocessor lines. Note that for #else and #endif directives we check that we have elements in the
@@ -87,6 +101,10 @@ sub Parse_ModuleUses {
 		# Process code and module use blocks as necessary.		
 		if ( ( $isModuleUse == 1 || eof($code) ) && $rawCode      ) {
 		    # Create a new node.
+		    if ( $rawPreprocessor ) {
+			$rawCode .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    my $newNode =
 		    {
 			type       => "code"  ,
@@ -144,7 +162,7 @@ sub Parse_ModuleUses {
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.
-	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
+	    unless ( scalar(@newNodes) == 0 || ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) ) {
 		# New nodes created, insert them, replacing the old node.
 		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
@@ -206,9 +224,14 @@ sub UpdateUses {
     my $usesNode = shift();
     # Find the indent level.
     my $indent = "";
-    if ( $usesNode->{'firstChild'}->{'content'} =~ m/^(\s*)/ ) {
-	$indent = $1;
+    open(my $code,"<",\$usesNode->{'firstChild'}->{'content'});
+    while ( ! eof($code) && $indent eq "" ) {
+	&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+	if ( $rawLine =~ m/^(\s*)/ ) {
+	    $indent = $1;
+	}
     }
+    close($code);
     # Check for OpenMP.
     my $openMP    = grep {$usesNode->{'moduleUse'}->{$_}->{'openMP'   }} keys(%{$usesNode->{'moduleUse'}});
     # Check for intrinsic.
