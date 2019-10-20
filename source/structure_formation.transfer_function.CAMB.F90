@@ -160,7 +160,7 @@ contains
   subroutine cambCheckRange(self,wavenumber)
     !% Check that the provided wavenumber is within the tabulated range and, if not, recompute
     !% the CAMB transfer function.
-    use :: File_Utilities , only : File_Lock_Initialize            , File_Lock, File_Unlock
+    use :: File_Utilities , only : File_Lock                       , File_Lock_Initialize, File_Unlock
     use :: Interfaces_CAMB, only : Interface_CAMB_Transfer_Function
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self

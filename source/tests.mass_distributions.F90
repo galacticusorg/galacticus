@@ -21,7 +21,7 @@
 
 program Test_Mass_Distributions
   !% Tests mass distributions.
-  use :: Coordinates             , only : coordinateSpherical           , assignment(=)
+  use :: Coordinates             , only : assignment(=)                 , coordinateSpherical
   use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error        , only : Galacticus_Error_Report
   use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass , massDistributionHernquist, massDistributionSersic, &

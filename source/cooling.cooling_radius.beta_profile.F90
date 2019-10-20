@@ -119,10 +119,10 @@ contains
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the $\beta$-profile cooling radius class.
+    use :: Abundances_Structure         , only : Abundances_Property_Count         , abundances
     use :: Array_Utilities              , only : operator(.intersection.)
-    use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Error             , only : Galacticus_Component_List         , Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionBetaProfile
     use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileVirial

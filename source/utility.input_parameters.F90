@@ -478,10 +478,10 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
-    use :: IO_XML            , only : XML_Path_Exists           , XML_Get_First_Element_By_Tag_Name
     use :: File_Utilities    , only : File_Name_Temporary
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: String_Handling   , only : String_Strip
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -943,7 +943,7 @@ contains
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     use    :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                verbositySilent
+          &                               verbositySilent
     !$ use :: OMP_Lib
     use    :: Regular_Expressions, only : regEx
     use    :: String_Handling    , only : String_Levenshtein_Distance
@@ -1129,8 +1129,8 @@ contains
 
   function inputParametersNode(self,parameterName,requireValue,copyInstance)
     !% Return the node containing the parameter.
-    use :: IO_XML          , only : XML_Path_Exists
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Path_Exists
     implicit none
     type     (inputParameter ), pointer                 :: inputParametersNode
     class    (inputParameters), intent(in   )           :: self
@@ -1328,8 +1328,8 @@ contains
 
   subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !% Return the value of the parameter specified by name.
-    use :: IO_HDF5         , only : hdf5Access
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
     implicit none
     class           (inputParameters), intent(inout)           :: self
     character       (len=*          ), intent(in   )           :: parameterName
@@ -1362,9 +1362,9 @@ contains
 
   subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
-    use :: IO_HDF5         , only : hdf5Access
-    use :: IO_XML          , only : XML_Path_Exists        , XML_Get_First_Element_By_Tag_Name
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
+    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     {Type¦match¦^(Character|VarStr)Rank1$¦use :: String_Handling , only : String_Split_Words¦}
     implicit none
     class           (inputParameters), intent(inout)           :: self

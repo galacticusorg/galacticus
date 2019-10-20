@@ -269,13 +269,13 @@ contains
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeGalactic                        , radiusLarge
-    use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask                           , nodeComponentBasic, nodeComponentSatellite, &
+    use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask                           , nodeComponentBasic   , nodeComponentSatellite, &
           &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : tensorIdentityR2D3Sym           , assignment(=)                           , operator(*)
+    use :: Tensors                           , only : assignment(=)                   , operator(*)                             , tensorIdentityR2D3Sym
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Outer_Product                    , Vector_Product
     implicit none
     type            (treeNode                       ), pointer     , intent(inout) :: thisNode

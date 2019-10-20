@@ -207,7 +207,7 @@ contains
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
     !% Compute correlation lengths.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: ISO_Varying_String, only : varying_string           , assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none

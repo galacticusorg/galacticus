@@ -19,10 +19,10 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
 
-  use :: Cosmology_Functions      , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters     , only : cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO , only : darkMatterProfileDMONFW
-  use :: Virial_Density_Contrast  , only : virialDensityContrastFixed
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>

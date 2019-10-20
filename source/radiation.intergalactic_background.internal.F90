@@ -629,7 +629,7 @@ contains
 
     double precision function stellarSpectraConvolution(age)
       !% Integrand for convolution of stellar spectra.
-      use :: Galacticus_Error, only : errorStatusSuccess, errorStatusInputDomain
+      use :: Galacticus_Error, only : errorStatusInputDomain, errorStatusSuccess
       implicit none
       double precision, intent(in   ) :: age
       integer                         :: status

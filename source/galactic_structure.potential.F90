@@ -44,8 +44,8 @@ contains
   double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,status)
     !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale          , darkMatterHaloScaleClass
-    use :: Galacticus_Nodes          , only : optimizeForPotentialSummation, reductionSummation      , treeNode
     use :: Galactic_Structure_Options, only : componentTypeAll             , massTypeAll             , structureErrorCodeSuccess
+    use :: Galacticus_Nodes          , only : optimizeForPotentialSummation, reductionSummation      , treeNode
     !# <include directive="potentialTask" type="moduleUse">
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>

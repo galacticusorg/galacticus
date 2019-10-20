@@ -175,7 +175,7 @@ contains
 
   double precision function miyamotoNagaiDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use :: Coordinates, only : coordinateCylindrical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates
@@ -347,7 +347,7 @@ contains
 
     double precision function integrandZ(z)
       !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
-      use :: Coordinates, only : coordinateCylindrical, assignment(=)
+      use :: Coordinates, only : assignment(=), coordinateCylindrical
       implicit none
       double precision                       , intent(in   ) :: z
       type            (coordinateCylindrical)                :: position
@@ -405,7 +405,7 @@ contains
 
     double precision function integrandSurfaceDensity(height)
       !% Integrand function used for finding the surface density of Miyamoto-Nagai disks.
-      use :: Coordinates, only : coordinateCylindrical, assignment(=)
+      use :: Coordinates, only : assignment(=), coordinateCylindrical
       implicit none
       double precision                       , intent(in   ) :: height
       type            (coordinateCylindrical)                :: position
@@ -419,7 +419,7 @@ contains
 
   double precision function miyamotoNagaiSurfaceDensity(self,coordinates)
     !% Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Miyamoto-Nagai mass distribution.
-    use :: Coordinates, only : coordinateCylindrical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates
@@ -579,7 +579,7 @@ contains
 
   double precision function miyamotoNagaiPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use :: Coordinates                 , only : coordinateCylindrical          , assignment(=)
+    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self

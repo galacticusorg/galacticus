@@ -141,7 +141,7 @@ end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
   !% Computes the density at a given position for an standard spheroid.
-  use :: Coordinates                          , only : coordinateSpherical     , assignment(=)
+  use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
   use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic  , &
           &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, weightByLuminosity, &
           &                                            weightByMass
@@ -198,8 +198,8 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
 end function Node_Component_Spheroid_Standard_Density
 
 double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status)
-  use :: Coordinates                          , only : coordinateSpherical            , assignment(=)
-  use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass , weightIndexNull
+  use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
+  use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   use :: Numerical_Constants_Physical         , only : gravitationalConstantGalacticus
   !% Return the potential due to the standard spheroid.

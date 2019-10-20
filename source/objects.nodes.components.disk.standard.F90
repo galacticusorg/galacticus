@@ -702,16 +702,16 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the standard disk node mass rate of change.
-    use :: Abundances_Structure            , only : abs                    , abundances           , max                , zeroAbundances           , &
-         &                                          operator(*)
+    use :: Abundances_Structure            , only : abs                    , abundances           , max               , operator(*)              , &
+          &                                         zeroAbundances
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent   , interruptTask        , nodeComponentDisk  , nodeComponentDiskStandard, &
-          &                                         nodeComponentHotHalo   , nodeComponentSpheroid, propertyTypeActive , propertyTypeAll          , &
+    use :: Galacticus_Nodes                , only : defaultDiskComponent   , interruptTask        , nodeComponentDisk , nodeComponentDiskStandard, &
+          &                                         nodeComponentHotHalo   , nodeComponentSpheroid, propertyTypeActive, propertyTypeAll          , &
           &                                         propertyTypeInactive   , treeNode
     use :: Histories                       , only : history                , operator(*)
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Stellar_Luminosities_Structure  , only : abs                    , max                  , stellarLuminosities, zeroStellarLuminosities  , &
-         &                                          operator(*)
+    use :: Stellar_Luminosities_Structure  , only : abs                    , max                  , operator(*)       , stellarLuminosities      , &
+          &                                         zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -1011,8 +1011,8 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs              , abundances               , max                  , unitAbundances         , &
-         &                                        operator(*)
+    use :: Abundances_Structure          , only : abs              , abundances               , max                  , operator(*)            , &
+          &                                       unitAbundances
     use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : abs              , max                      , stellarLuminosities  , unitStellarLuminosities

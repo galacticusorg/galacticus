@@ -89,10 +89,10 @@ contains
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use :: FGSL                  , only : FGSL_Failure               , FGSL_Success
     use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: ISO_Varying_String    , only : varying_string             , operator(//)  , assignment(=)
+    use :: ISO_Varying_String    , only : assignment(=)              , operator(//)      , varying_string
     use :: Numerical_Integration2, only : integratorMultiVectorized1D
+    use :: ODE_Solver_Error_Codes, only : interruptedAtX             , odeSolverInterrupt
     use :: String_Handling       , only : operator(//)
-    use :: ODE_Solver_Error_Codes, only : odeSolverInterrupt         , interruptedAtX
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount

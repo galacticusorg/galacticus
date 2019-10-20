@@ -66,10 +66,10 @@ contains
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
     use :: FGSL                        , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+    use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
     use :: Numerical_Integration       , only : Integrate         , Integrate_Done
-    use :: Numerical_Constants_Math    , only : Pi
     implicit none
     class           (radiationFieldClass       ), target      , intent(inout) :: self
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange

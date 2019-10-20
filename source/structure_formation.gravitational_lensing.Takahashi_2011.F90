@@ -24,7 +24,7 @@
   use    :: Locks                  , only : ompReadWriteLock
   !$ use :: OMP_Lib
   use    :: Power_Spectra_Nonlinear, only : powerSpectrumNonlinearClass
-  use    :: Tables                 , only : table1DLogarithmicLinear   , table1DGeneric
+  use    :: Tables                 , only : table1DGeneric             , table1DLogarithmicLinear
 
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>

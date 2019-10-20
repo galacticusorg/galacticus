@@ -33,10 +33,10 @@ contains
   !# </enclosedMassTask>
   double precision function Dark_Matter_Profile_Enclosed_Mass_Task(node,radius,componentType,massType,weightBy,weightIndex)
     !% Computes the mass within a given radius for a dark matter profile.
-    use :: Dark_Matter_Profiles      , only : darkMatterProfileClass, darkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeAll      , componentTypeDarkHalo, massTypeAll, massTypeDark, &
-          &                                   radiusLarge           , weightByMass
-    use :: Galacticus_Nodes          , only : nodeComponentBasic    , treeNode
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile , darkMatterProfileClass
+    use :: Galactic_Structure_Options, only : componentTypeAll  , componentTypeDarkHalo , massTypeAll, massTypeDark, &
+          &                                   radiusLarge       , weightByMass
+    use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNode
     implicit none
     type            (treeNode              ), intent(inout)           :: node
     integer                                 , intent(in   )           :: componentType     , massType   , &
@@ -99,8 +99,8 @@ contains
   !# </densityTask>
   double precision function Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
-    use :: Dark_Matter_Profiles      , only : darkMatterProfileClass, darkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeAll      , componentTypeDarkHalo, massTypeAll, massTypeDark, &
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
+    use :: Galactic_Structure_Options, only : componentTypeAll , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   weightByMass
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
@@ -162,8 +162,8 @@ contains
   !# </potentialTask>
   double precision function Dark_Matter_Profile_Potential_Task(node,radius,componentType,massType,status)
     !% Return the potential due to dark matter.
-    use :: Dark_Matter_Profiles      , only : darkMatterProfileClass   , darkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo, massTypeAll, massTypeDark, &
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile        , darkMatterProfileClass
+    use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   structureErrorCodeSuccess
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : treeNode

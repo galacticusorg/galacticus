@@ -22,7 +22,7 @@
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use            :: FODEIV2
-  use            :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use            :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
   use, intrinsic :: ISO_C_Binding
   use            :: Numerical_Integration2   , only : integratorMultiVectorizedCompositeGaussKronrod1D
   use            :: ODEIV2_Solver            , only : ODEIV2_Solve                                    , ODEIV2_Solver_Free

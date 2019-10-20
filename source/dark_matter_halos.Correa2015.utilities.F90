@@ -29,10 +29,10 @@ contains
 
   subroutine Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,aTilde,bTilde)
     !% Computes fitting function parameters for the \cite{correa_accretion_2015} dark matter halo models.
-    use Cosmology_Functions       , only : cosmologyFunctionsClass
-    use Cosmological_Density_Field, only : cosmologicalMassVarianceClass
-    use Linear_Growth             , only : linearGrowthClass
-    use Numerical_Constants_Math  , only : Pi
+    use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+    use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+    use :: Linear_Growth             , only : linearGrowthClass
+    use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                               , intent(in   ) :: mass                             , expansionFactor
     double precision                               , intent(  out) :: aTilde                           , bTilde

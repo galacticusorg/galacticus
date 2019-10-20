@@ -67,7 +67,7 @@ contains
 
   function wdmThermalConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class which takes a parameter set as input.
-    use :: Input_Parameters    , only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterParticleWDMThermal)                :: self
     type            (inputParameters             ), intent(inout) :: parameters

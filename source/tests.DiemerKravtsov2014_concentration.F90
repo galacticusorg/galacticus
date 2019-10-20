@@ -27,7 +27,7 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationDiemerKravtsov2014
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : File_Exists
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
   use :: Galacticus_Error                    , only : Galacticus_Error_Report
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                    , nodeComponentBasic               , treeNode

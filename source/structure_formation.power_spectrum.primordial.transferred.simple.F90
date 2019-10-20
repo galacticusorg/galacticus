@@ -19,9 +19,9 @@
 
   !% A simple transferred primordial power spectrum class.
 
+  use :: Linear_Growth           , only : linearGrowthClass
   use :: Power_Spectra_Primordial, only : powerSpectrumPrimordialClass
   use :: Transfer_Functions      , only : transferFunctionClass
-  use :: Linear_Growth           , only : linearGrowthClass
 
   !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>

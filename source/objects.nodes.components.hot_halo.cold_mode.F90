@@ -173,10 +173,10 @@ contains
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
-    use :: Abundances_Structure                 , only : abundances                        , operator(*)
+    use :: Abundances_Structure                 , only : abundances             , operator(*)
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask                     , nodeComponentHotHalo  , nodeComponentHotHaloColdMode, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode, currentNode                 , formationNode
+    use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloColdMode      , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
     type            (treeNode                    ), intent(inout)          , pointer :: node
@@ -493,8 +493,8 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use :: Accretion_Halos                      , only : accretionModeTotal                  , accretionModeCold
-    use :: Abundances_Structure                 , only : abundances                          , zeroAbundances      , operator(*)
+    use :: Abundances_Structure                 , only : abundances                          , operator(*)         , zeroAbundances
+    use :: Accretion_Halos                      , only : accretionModeCold                   , accretionModeTotal
     use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic    , radiusLarge
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, &

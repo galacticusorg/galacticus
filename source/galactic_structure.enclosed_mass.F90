@@ -38,8 +38,8 @@ contains
   double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
-    use :: Galacticus_Nodes          , only : optimizeForEnclosedMassSummation, reductionSummation, treeNode
     use :: Galactic_Structure_Options, only : radiusLarge
+    use :: Galacticus_Nodes          , only : optimizeForEnclosedMassSummation, reductionSummation, treeNode
     !# <include directive="enclosedMassTask" type="moduleUse">
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
@@ -73,9 +73,9 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale       , darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles      , only : darkMatterProfile         , darkMatterProfileClass
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
     use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: ISO_Varying_String
@@ -218,8 +218,8 @@ contains
 
   subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     !% Set the default values for options in the enclosed mass functions.
+    use :: Galactic_Structure_Options, only : componentTypeAll       , massTypeAll, weightByLuminosity, weightByMass
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galactic_Structure_Options, only : weightByLuminosity     , weightByMass, massTypeAll, componentTypeAll
     implicit none
     integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex
 

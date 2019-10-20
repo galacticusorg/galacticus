@@ -19,9 +19,9 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
-  use Tables                    , only : table1D
-  use Cosmology_Functions       , only : cosmologyFunctionsClass                         , cosmologyFunctions
-  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmology_Functions       , only : cosmologyFunctions                              , cosmologyFunctionsClass
+  use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+  use :: Tables                    , only : table1D
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>

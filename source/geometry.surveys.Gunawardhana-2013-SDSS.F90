@@ -101,8 +101,8 @@ contains
     use :: Cosmology_Functions_Options     , only : distanceTypeComoving
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Units       , only : ergs
     use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &

@@ -74,7 +74,7 @@ contains
 
   function randomIsotropicPosition(self,node)
     !% Return the position of an orphan satellite in a random isotropic distribution.
-    use :: Coordinates             , only : coordinateCartesian  , coordinateSpherical, assignment(=)
+    use :: Coordinates             , only : assignment(=)        , coordinateCartesian, coordinateSpherical
     use :: Galacticus_Nodes        , only : nodeComponentPosition, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none

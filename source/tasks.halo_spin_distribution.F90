@@ -171,13 +171,6 @@ contains
     use            :: IO_HDF5                , only : hdf5Object
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: String_Handling        , only : operator(//)
-    use            :: Galacticus_Display     , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report        , errorStatusSuccess
-    use            :: Galacticus_HDF5        , only : galacticusOutputFile
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
-    use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
-    use            :: IO_HDF5                , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     implicit none
     class           (taskHaloSpinDistribution      ), intent(inout), target       :: self
     integer                                         , intent(  out), optional     :: status

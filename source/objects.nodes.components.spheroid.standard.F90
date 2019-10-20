@@ -638,8 +638,8 @@ contains
           &                                         propertyTypeActive      , propertyTypeAll     , propertyTypeInactive , treeNode
     use :: Histories                       , only : history                 , operator(*)
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Stellar_Luminosities_Structure  , only : abs                     , max                 , stellarLuminosities  , zeroStellarLuminosities      , &
-         &                                          operator(*)
+    use :: Stellar_Luminosities_Structure  , only : abs                     , max                 , operator(*)          , stellarLuminosities          , &
+          &                                         zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -908,11 +908,11 @@ contains
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
-    use :: Abundances_Structure          , only : abs              , max                  , unitAbundances               , operator(*)
-    use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
-    use :: Histories                     , only : history          , operator(*)
-    use :: Stellar_Luminosities_Structure, only : abs              , max                  , stellarLuminosities          , unitStellarLuminosities, &
-         &                                        operator(*)
+    use :: Abundances_Structure          , only : abs                    , max                  , operator(*)                  , unitAbundances
+    use :: Galacticus_Nodes              , only : nodeComponentDisk      , nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Histories                     , only : history                , operator(*)
+    use :: Stellar_Luminosities_Structure, only : abs                    , max                  , operator(*)                  , stellarLuminosities, &
+          &                                       unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid

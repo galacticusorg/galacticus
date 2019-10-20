@@ -115,8 +115,8 @@ contains
 
   function isothermalConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the isothermal cooling radius class.
-    use :: Array_Utilities              , only : operator(.intersection.)
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
+    use :: Array_Utilities              , only : operator(.intersection.)
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent

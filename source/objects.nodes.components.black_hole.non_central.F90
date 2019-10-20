@@ -132,8 +132,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
-    use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
-         &                                      treeNode
+    use :: Galacticus_Nodes            , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
+          &                                     treeNode
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node

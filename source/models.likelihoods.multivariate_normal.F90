@@ -89,7 +89,7 @@ contains
 
   double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
-    use :: Linear_Algebra                , only : operator(*)                    , assignment(=)
+    use :: Linear_Algebra                , only : assignment(=)                  , operator(*)
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none

@@ -83,9 +83,9 @@ contains
 
   function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} critical overdensity class.
-    use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy, cllsnlssMttrDarkEnergyFixedAtUndefined
+    use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined, sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
     type            (criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy)                          :: self
     class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_

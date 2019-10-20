@@ -21,8 +21,8 @@
 
 module Sort
   !% Implements sorting.
-  use  :: FGSL              , only : FGSL_HeapSort, FGSL_HeapSort_Index, FGSL_SizeOf
-  use  :: ISO_Varying_String, only : varying_string
+  use :: FGSL              , only : FGSL_HeapSort , FGSL_HeapSort_Index, FGSL_SizeOf
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Sort_Do, Sort_Index_Do, sortByIndex
@@ -158,7 +158,7 @@ contains
 
   function Sort_Index_Do_Double(array)
     !% Given an unsorted double {\normalfont \ttfamily array}, sorts it in place.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_size_t
     implicit none
     real   (kind=c_double), dimension(:                        ), intent(in   ) :: array
     integer(kind=c_size_t), dimension(size(array,kind=c_size_t))                :: Sort_Index_Do_Double
@@ -170,7 +170,7 @@ contains
 
   subroutine Sort_Do_Double_C(arraySize,array)
     !% Do a double precision sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double, c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_loc, c_ptr, c_size_t
     implicit none
     integer(kind=c_size_t), intent(in   )         :: arraySize
     real   (kind=c_double), intent(inout), target :: array       (arraySize)
@@ -185,7 +185,7 @@ contains
 
   subroutine Sort_Do_Integer_C(arraySize,array)
     !% Do a integer sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_int, c_loc, c_ptr, c_size_t
     implicit none
     integer(kind=c_size_t), intent(in   )         :: arraySize
     integer(kind=c_int   ), intent(inout), target :: array       (arraySize)
@@ -200,7 +200,7 @@ contains
 
   subroutine Sort_Do_Integer8_C(arraySize,array)
     !% Do a long integer sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t , c_long_long, c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_loc    , c_long_long, c_ptr, c_size_t
     use            :: Kind_Numbers , only : kind_int8
     implicit none
     integer(kind=c_size_t   ), intent(in   )         :: arraySize
@@ -216,7 +216,7 @@ contains
 
   subroutine Sort_Index_Do_Integer8_C(arraySize,array,idx)
     !% Do a integer sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t , c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_loc    , c_ptr, c_size_t
     use            :: Kind_Numbers , only : kind_int8
     implicit none
     integer(kind=c_size_t ), intent(in   )         :: arraySize
@@ -234,7 +234,7 @@ contains
 
   subroutine Sort_Index_Do_Integer_C(arraySize,array,idx)
     !% Do an integer sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_loc    , c_ptr, c_size_t
     use            :: Kind_Numbers , only : kind_int4
     implicit none
     integer                , intent(in   )         :: arraySize
@@ -252,7 +252,7 @@ contains
 
   subroutine Sort_Index_Do_Double_C(arraySize,array,idx)
     !% Do an double sort.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double, c_ptr, c_loc
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_loc, c_ptr, c_size_t
     implicit none
     integer(kind=c_size_t), intent(in   )         :: arraySize
     real   (c_double     ), intent(in   ), target :: array       (arraySize)
@@ -269,7 +269,7 @@ contains
 
   function Compare_Double(x,y) bind(c)
     !% Comparison function for double precision data.
-    use, intrinsic :: ISO_C_Binding, only : c_int, c_double, c_ptr, c_f_pointer
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_f_pointer, c_int, c_ptr
     type   (c_ptr        ), value   :: x             , y
     integer(kind=c_int   )          :: Compare_Double
     real   (kind=c_double), pointer :: rx            , ry
@@ -288,7 +288,7 @@ contains
 
   function Compare_Integer(x,y) bind(c)
     !% Comparison function for integer data.
-    use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr, c_f_pointer
+    use, intrinsic :: ISO_C_Binding, only : c_f_pointer, c_int, c_ptr
     type   (c_ptr     ), value   :: x              , y
     integer(kind=c_int)          :: Compare_Integer
     integer(kind=c_int), pointer :: rx             , ry
@@ -307,7 +307,7 @@ contains
 
   function Compare_Integer8(x,y) bind(c)
     !% Comparison function for integer data.
-    use, intrinsic :: ISO_C_Binding, only : c_int, c_long_long, c_ptr, c_f_pointer
+    use, intrinsic :: ISO_C_Binding, only : c_f_pointer, c_int, c_long_long, c_ptr
     type   (c_ptr           ), value   :: x               , y
     integer(kind=c_int      )          :: Compare_Integer8
     integer(kind=c_long_long), pointer :: rx              , ry

@@ -63,8 +63,8 @@ contains
 
   function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
+    use :: File_Utilities  , only : File_Lock     , File_Lock_Initialize, File_Unlock
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
-    use :: File_Utilities  , only : File_Lock     , File_Unlock       , File_Lock_Initialize
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
@@ -87,17 +87,17 @@ contains
   subroutine hopkins2007BuildFile(self)
     !% Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
+    use            :: File_Utilities                  , only : Count_Lines_in_File       , Directory_Make                  , File_Exists              , File_Lock                  , &
+          &                                                    File_Unlock
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                                     verbosityWorking
+          &                                                    verbosityWorking
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath            , pathTypeDataDynamic             , pathTypeDataStatic
-    use            :: File_Utilities                  , only : File_Lock                 , File_Unlock                     , File_Exists              , Directory_Make             , &
-         &                                                     Count_Lines_in_File
     use            :: IO_HDF5                         , only : hdf5Access                , hdf5Object
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
-    use            :: Numerical_Constants_Units       , only : angstromsPerMeter
     use            :: Numerical_Constants_Physical    , only : speedLight
+    use            :: Numerical_Constants_Units       , only : angstromsPerMeter
     use            :: Numerical_Ranges                , only : Make_Range                , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do

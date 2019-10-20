@@ -395,7 +395,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Vitvitska_Scale_Set(node)
     !% Set scales for properties in the Vitvitska implementation of the spin component.
-    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentSpinVitvitska , treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVitvitska, treeNode
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     double precision                   , parameter              :: spinScaleAbsolute=1.0d-4
@@ -417,7 +417,7 @@ contains
     !% random position towards the host at virial radius distance and a random velocity vector
     !% consistent with the orbital parameters of the satellite.
     use :: Coordinates     , only : assignment(=)     , coordinateCartesian
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasic , nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     use :: Vectors         , only : Vector_Product
     implicit none

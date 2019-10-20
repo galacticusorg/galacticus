@@ -25,7 +25,7 @@ program Test_Prada2011_Concentration
   use :: Cosmology_Parameters                , only : cosmologyParameters                , cosmologyParametersClass           , hubbleUnitsLittleH
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentration     , darkMatterProfileConcentrationClass
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set     , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize       , nodeComponentBasic                 , treeNode
   use :: ISO_Varying_String

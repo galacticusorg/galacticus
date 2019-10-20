@@ -19,7 +19,7 @@
 
 !% Implements a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.
 
-  use Cosmological_Density_Field, only : criticalOverdensityClass, criticalOverdensity
+  use :: Cosmological_Density_Field, only : criticalOverdensity, criticalOverdensityClass
 
   !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierParkinson2008">
   !#  <description>Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.</description>

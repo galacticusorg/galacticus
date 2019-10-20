@@ -25,7 +25,6 @@ module Galacticus_Error
           &                                    FGSL_Set_Error_Handler, FGSL_StrError          , FGSL_StrMax  , FGSL_Success , &
           &                                    FGSL_eDom             , FGSL_eRange            , FGSL_eUndrFlw, FGSL_eZeroDiv, &
           &                                    fgsl_error_handler_t
-  use            :: HDF5
   use, intrinsic :: ISO_C_Binding
   use            :: ISO_Varying_String
   implicit none
@@ -96,6 +95,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     character(len=*), intent(in   ) :: message
@@ -206,6 +206,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -254,6 +255,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -302,6 +304,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -350,6 +353,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -398,6 +402,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -441,6 +446,9 @@ contains
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
     use :: Semaphores, only : Semaphore_Post_On_Error
+#ifndef UNCLEANEXIT
+    use :: HDF5      , only : H5Close_F
+#endif
     implicit none
     integer :: error
 
@@ -463,6 +471,7 @@ contains
     !$ use :: OMP_Lib
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line

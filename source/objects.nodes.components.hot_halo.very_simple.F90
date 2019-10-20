@@ -487,8 +487,8 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    use :: Abundances_Structure, only : abundances        , operator(*)         , zeroAbundances
     use :: Accretion_Halos     , only : accretionModeHot  , accretionModeTotal
-    use :: Abundances_Structure, only : abundances        , zeroAbundances      , operator(*)
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node

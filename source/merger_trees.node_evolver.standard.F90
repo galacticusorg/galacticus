@@ -944,10 +944,6 @@ contains
           &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
     use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
     use            :: String_Handling   , only : operator(//)
-    use            :: FODEIV2           , only : FODEIV2_Driver_Errors
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
-    use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
     implicit none
     integer         (kind=c_int    ), intent(in   )                                              :: status
     real            (kind=c_double ), intent(in   )                                              :: time
@@ -1083,8 +1079,8 @@ contains
 
   subroutine standardPromote(self,node)
     !% Transfer the properties of {\normalfont \ttfamily node} to its parent node, then destroy it.
-    use String_Handling   , only : operator(//)
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: String_Handling   , only : operator(//)
     !# <include directive="nodePromotionTask" type="moduleUse">
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
@@ -1177,7 +1173,7 @@ contains
   subroutine standardMerge(self,node)
     !% Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use String_Handling   , only : operator(//)
+    use :: String_Handling   , only : operator(//)
     !# <include directive="nodeMergerTask" type="moduleUse">
     include 'events.node_mergers.process.modules.inc'
     !# </include>

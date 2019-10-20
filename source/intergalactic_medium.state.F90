@@ -257,10 +257,10 @@ contains
 
     double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
       !% Integrand for electron scattering optical depth calculations.
-      use :: Numerical_Constants_Astronomical, only : gigaYear          , heliumByMassPrimordial, hydrogenByMassPrimordial, massSolar, &
+      use :: Numerical_Constants_Astronomical, only : gigaYear        , heliumByMassPrimordial, hydrogenByMassPrimordial, massSolar, &
           &                                           megaParsec
-      use :: Numerical_Constants_Physical    , only : speedLight        , thomsonCrossSection
-      use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen, atomicMassHelium      , atomicMassUnit
+      use :: Numerical_Constants_Atomic      , only : atomicMassHelium, atomicMassHydrogen    , atomicMassUnit
+      use :: Numerical_Constants_Physical    , only : speedLight      , thomsonCrossSection
       implicit none
       double precision, intent(in   ) :: time
       double precision                :: electronFraction, expansionFactor

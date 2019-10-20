@@ -22,9 +22,9 @@
 program Test_Tensors
   !% Tests of coordinate system functions.
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Tensors           , only : tensorIdentityR2D3Sym         , tensorNullR2D3Sym     , tensorRank2Dimension3Symmetric, assignment(=)    , &
-       &                            operator(*)
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group          , Unit_Tests_Finish
+  use :: Tensors           , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
+          &                         tensorRank2Dimension3Symmetric
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   type(tensorRank2Dimension3Symmetric) :: tensorR2D3Sym,resultTensor
 
   ! Set verbosity level.

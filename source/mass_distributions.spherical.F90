@@ -90,7 +90,7 @@ contains
 
   double precision function sphericalMassEnclosedBySphereIntegrand(radius)
     !% Enclosed mass integrand for spherical mass distributions.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     double precision                     , intent(in   ) :: radius
     type            (coordinateSpherical)                :: position

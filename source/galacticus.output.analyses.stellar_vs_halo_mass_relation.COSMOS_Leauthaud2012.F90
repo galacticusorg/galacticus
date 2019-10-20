@@ -134,28 +134,7 @@ contains
           &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
-    use :: Tables                                , only : table                                      , table1DGeneric
-    use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed
     use :: String_Handling                       , only : operator(//)
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
-    use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: FGSL                                  , only : fgsl_interp_cspline
-    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
-    use :: Galacticus_Error                      , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
-    use :: Geometry_Surveys                      , only : surveyGeometryFullSky
-    use :: IO_HDF5                               , only : hdf5Object
-    use :: ISO_Varying_String
-    use :: Memory_Management                     , only : allocateArray
-    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
-    use :: Numerical_Constants_Astronomical      , only : massSolar
-    use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
-    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
-    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass, outputAnalysisPropertyOperatorLog10, &
-          &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
-    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
-    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Tables                                , only : table                                      , table1DGeneric
     use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed
     implicit none

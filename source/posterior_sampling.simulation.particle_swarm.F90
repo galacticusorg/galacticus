@@ -74,8 +74,8 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Input_Parameters  , only : inputParameter            , inputParameters
-    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
     use :: MPI_Utilities     , only : mpiSelf
+    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
     use :: String_Handling   , only : operator(//)
     implicit none
     type            (posteriorSampleSimulationParticleSwarm        )                              :: self
@@ -577,9 +577,9 @@ contains
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers                , only : kind_int4
-    use            :: MPI_Utilities               , only : mpiBarrier                 , mpiSelf
-    use            :: Models_Likelihoods_Constants, only : logImpossible
+    use            :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use            :: Model_Parameters            , only : modelParameterListLogPrior
+    use            :: Models_Likelihoods_Constants, only : logImpossible
     use            :: Sort                        , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)               :: self

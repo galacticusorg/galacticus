@@ -75,7 +75,7 @@ contains
 
   function vanHoof2014ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gauntFactorVanHoof2014        )                :: self
     type (inputParameters               ), intent(inout) :: parameters

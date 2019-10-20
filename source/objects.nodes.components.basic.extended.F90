@@ -96,10 +96,10 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Basic_Extended_Bindings(globalParameters_)
     !% Initializes the ``extended'' implementation of the basic component.
-    use :: Galacticus_Nodes       , only : nodeComponentBasicStandardExtended
+    use :: Galacticus_Nodes          , only : nodeComponentBasicStandardExtended
     use :: ISO_Varying_String
-    use :: Input_Parameters       , only : inputParameter                                , inputParameters
-    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Input_Parameters          , only : inputParameter                                , inputParameters
+    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
     type(inputParameters                   ), intent(inout) :: globalParameters_
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
@@ -177,8 +177,8 @@ contains
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasicStandardExtended                             , treeNode
-    use :: Virial_Density_Contrast             , only : virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy, virialDensityContrastBryanNorman1998
+    use :: Galacticus_Nodes                    , only : nodeComponentBasicStandardExtended  , treeNode
+    use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998, virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode

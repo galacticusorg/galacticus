@@ -19,7 +19,7 @@
 
 program Tests_Kepler_Orbits
   !% Tests for orbital parameter conversions.
-  use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set , verbosityStandard
   use :: ISO_Varying_String
   use :: Input_Parameters            , only : inputParameters
   use :: Kepler_Orbits               , only : keplerOrbit

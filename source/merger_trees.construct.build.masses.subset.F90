@@ -44,7 +44,7 @@ contains
   function subsetConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily subset} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeBuildMassesSubset)                :: self
     type   (inputParameters            ), intent(inout) :: parameters

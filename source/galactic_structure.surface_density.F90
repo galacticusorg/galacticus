@@ -36,11 +36,11 @@ contains
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
+    use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
+          &                                   massTypeAll                         , weightByMass                        , weightIndexNull
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation       , reductionsummation, &
+    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation       , &
           &                                   treeNode
-    use :: Galactic_Structure_Options, only : massTypeAll                         , weightByMass                        , weightIndexNull          , componentTypeAll  , &
-         &                                    coordinateSystemSpherical           , coordinateSystemCylindrical         , coordinateSystemCartesian
     implicit none
     type            (treeNode                 ), intent(inout)           :: thisNode
     integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &

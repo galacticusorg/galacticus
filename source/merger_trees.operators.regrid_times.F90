@@ -19,9 +19,9 @@
 
   !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
 
-  use Cosmology_Functions       , only : cosmologyFunctionsClass
-  use Cosmological_Density_Field, only : criticalOverdensityClass
-  use Linear_Growth             , only : linearGrowthClass
+  use :: Cosmological_Density_Field, only : criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Linear_Growth             , only : linearGrowthClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>

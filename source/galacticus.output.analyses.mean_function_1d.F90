@@ -811,8 +811,8 @@ contains
 
   double precision function meanFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a meanFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
     use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self

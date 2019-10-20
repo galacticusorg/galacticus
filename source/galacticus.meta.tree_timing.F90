@@ -266,7 +266,7 @@ contains
   subroutine Meta_Tree_Timing_Output
     !% Outputs collected meta-data on tree evolution.
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Object          , hdf5Access
+    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup

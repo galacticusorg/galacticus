@@ -147,6 +147,8 @@ contains
   double precision function cosmicEmuValue(self,waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
     use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
+    use :: File_Utilities         , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock, &
+          &                                File_Name_Temporary         , File_Remove        , File_Unlock
     use :: Galacticus_Display     , only : Galacticus_Display_Message  , verbosityWorking
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataDynamic
@@ -156,8 +158,6 @@ contains
     use :: Numerical_Interpolation, only : Interpolate                 , Interpolate_Done
     use :: System_Command         , only : System_Command_Do
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
-    use :: File_Utilities         , only : File_Name_Temporary         , Directory_Make     , File_Lock  , File_Unlock, &
-         &                                 File_Exists                 , Count_Lines_In_File, File_Remove
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
     double precision                                 , intent(in   ) :: time             , waveNumber

@@ -41,11 +41,11 @@ contains
 
   function Galacticus_Build_String()
     !% Returns a string describing the build environment of \glc.
-    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer, c_null_char
     use            :: FGSL              , only : FGSL_Version
     use            :: FoX_Common
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: HDF5
+    use            :: HDF5              , only : h5get_libversion_f
+    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer, c_null_char
     use            :: ISO_Varying_String
     use            :: String_Handling   , only : operator(//)
     implicit none
@@ -111,7 +111,6 @@ contains
   !# </outputFileOpenTask>
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
-    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer  , c_null_char
     use            :: FGSL              , only : FGSL_Version
     use            :: File_Utilities    , only : File_Exists
     use            :: FoX_Common
@@ -119,9 +118,10 @@ contains
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec
     use            :: HDF5              , only : h5get_libversion_f
-    use            :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//), char, &
-         &                                       operator(/=)
-    use            :: IO_HDF5           , only : hdf5Object             , hdf5Access
+    use            :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer , c_null_char
+    use            :: ISO_Varying_String, only : assignment(=)          , char        , operator(//), operator(/=), &
+          &                                      varying_string
     use            :: String_Handling   , only : operator(//)
     implicit none
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString

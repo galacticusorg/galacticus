@@ -223,7 +223,7 @@ contains
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)        , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess

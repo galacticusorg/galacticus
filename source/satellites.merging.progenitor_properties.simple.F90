@@ -120,8 +120,8 @@ contains
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid, treeNode
-    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerSpheroid       , destinationMergerDisk, destinationMergerUnmoved
+    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid    , treeNode
+    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesSimple), intent(inout)         :: self
     type            (treeNode                        ), intent(inout), target :: nodeSatellite            , nodeHost

@@ -22,7 +22,7 @@
 program Test_Vectors
   !% Tests of vector functions.
   use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level_Set, &
-       &                            verbosityStandard
+          &                         verbosityStandard
   use :: ISO_Varying_String
   use :: Kind_Numbers      , only : kind_int8
   use :: Unit_Tests        , only : Assert                   , Unit_Tests_Begin_Group    , Unit_Tests_End_Group       , Unit_Tests_Finish

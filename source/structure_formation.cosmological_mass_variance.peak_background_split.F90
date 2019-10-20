@@ -20,8 +20,8 @@
   !% An implementation of cosmological density field mass variance which modifies another member of the class by offsetting for
   !% the peak-background split.
 
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit">
   !#  <description>

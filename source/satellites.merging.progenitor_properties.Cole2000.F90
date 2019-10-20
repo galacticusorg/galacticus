@@ -133,7 +133,7 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
-    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerSpheroid       , destinationMergerDisk                   , destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self
     type            (treeNode                          ), intent(inout), target :: nodeSatellite                  , nodeHost

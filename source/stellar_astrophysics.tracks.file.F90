@@ -98,7 +98,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), varying_string
     use :: Memory_Management , only : allocateArray
     use :: String_Handling   , only : operator(//)
     implicit none

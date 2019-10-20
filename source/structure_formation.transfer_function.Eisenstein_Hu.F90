@@ -22,9 +22,9 @@
   !% Contains a module which implements a transfer function class using the fitting function of
   !% \cite{eisenstein_power_1999}.
 
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionEisensteinHu1999">
   !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>

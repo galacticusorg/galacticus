@@ -25,7 +25,7 @@ program Test_Math_Special_Functions
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set   , verbosityStandard
   use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic, &
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq

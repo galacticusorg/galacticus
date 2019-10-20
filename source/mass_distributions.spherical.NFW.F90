@@ -161,7 +161,7 @@ contains
 
   double precision function nfwDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
-    use :: Coordinates, only : coordinate, coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinate, coordinateSpherical
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     class           (coordinate         ), intent(in   ) :: coordinates

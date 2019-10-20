@@ -21,7 +21,7 @@
   !% algorithm.
 
   use :: Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass , cosmologyParametersClass
+  use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
   use :: Root_Finder             , only : rootFinder
 

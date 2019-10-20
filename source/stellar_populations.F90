@@ -21,10 +21,10 @@
 
 module Stellar_Populations
   !% Implements a class for stellar populations.
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Abundances_Structure      , only : abundances
-  use            :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   use            :: Hashes                    , only : integerSizeTScalarHash
+  use, intrinsic :: ISO_C_Binding             , only : c_size_t
+  use            :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   implicit none
   private
 

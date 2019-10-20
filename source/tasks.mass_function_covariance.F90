@@ -1007,7 +1007,7 @@ contains
     use            :: FFTW3                   , only : FFTW_Wavenumber
     use            :: Galacticus_Display      , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use, intrinsic :: ISO_C_Binding           , only : c_double_complex
-    use            :: Memory_Management       , only : allocateArray             , deallocateArray                 , deallocateArray
+    use            :: Memory_Management       , only : allocateArray             , deallocateArray
     use            :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self

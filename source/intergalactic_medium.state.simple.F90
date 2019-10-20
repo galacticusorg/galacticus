@@ -126,7 +126,7 @@ contains
   double precision function simpleElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the simple model.
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
-    use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen    , atomicMassHelium
+    use :: Numerical_Constants_Atomic      , only : atomicMassHelium      , atomicMassHydrogen
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -201,7 +201,7 @@ contains
 
   subroutine simpleDescriptor(self,descriptor,includeMethod)
     !% Return an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateSimple), intent(inout)           :: self
     type     (inputParameters               ), intent(inout)           :: descriptor

@@ -122,8 +122,8 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Input_Parameters  , only : inputParameter            , inputParameters
-    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
     use :: MPI_Utilities     , only : mpiSelf
+    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
     use :: String_Handling   , only : operator(//)
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -373,10 +373,10 @@ contains
 
   subroutine differentialEvolutionSimulate(self)
     !% Perform a differential evolution simulation.
-    use :: File_Utilities              , only : File_Exists              , File_Remove
-    use :: Galacticus_Display          , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error            , only : Galacticus_Error_Report  , Galacticus_Warn
-    use :: MPI_Utilities               , only : mpiBarrier               , mpiSelf
+    use :: File_Utilities              , only : File_Exists               , File_Remove
+    use :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error            , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
     use :: Pseudo_Random               , only : pseudoRandom
@@ -633,8 +633,8 @@ contains
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers      , only : kind_int4
-    use            :: Model_Parameters  , only : modelParameterListLogPrior
     use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
+    use            :: Model_Parameters  , only : modelParameterListLogPrior
     use            :: Sort              , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self

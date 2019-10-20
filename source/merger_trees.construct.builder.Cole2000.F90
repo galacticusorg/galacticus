@@ -19,7 +19,7 @@
 
   !% An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
 
-  use :: Cosmological_Density_Field        , only : criticalOverdensityClass                 , cosmologicalMassVarianceClass
+  use :: Cosmological_Density_Field        , only : cosmologicalMassVarianceClass            , criticalOverdensityClass
   use :: Cosmology_Functions               , only : cosmologyFunctionsClass
   use :: Merger_Tree_Branching             , only : mergerTreeBranchingProbabilityClass
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass

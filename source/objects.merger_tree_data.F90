@@ -918,11 +918,11 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
     !% Read in merger tree data from an ASCII file.
+    use :: File_Utilities    , only : Count_Lines_In_File
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Memory_Management , only : allocateArray             , deallocateArray
     use :: String_Handling   , only : String_Count_Words        , String_Split_Words, operator(//)
-    use :: File_Utilities    , only : Count_Lines_In_File
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
@@ -1390,10 +1390,10 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator)
     !% Read in particle data from an ASCII file.
+    use :: File_Utilities   , only : Count_Lines_In_File
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     use :: String_Handling  , only : String_Count_Words     , String_Split_Words
-    use :: File_Utilities   , only : Count_Lines_In_File
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
@@ -1528,7 +1528,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,outputFormat,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an HDF5 file.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5
+    use :: HDF5            , only : hsize_t
     implicit none
     integer  (kind=hsize_t  ), intent(in   )           :: hdfChunkSize
     integer                  , intent(in   )           :: hdfCompressionLevel, outputFormat
@@ -1557,7 +1557,7 @@ contains
     !% Output a set of merger trees to a Galacticus-format HDF5 file.
     use            :: File_Utilities   , only : File_Exists
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use            :: HDF5
+    use            :: HDF5             , only : HSIZE_T                , hsize_t
     use            :: IO_HDF5          , only : hdf5Access             , hdf5Object
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management, only : deallocateArray
@@ -1836,7 +1836,7 @@ contains
     use :: Array_Utilities  , only : Array_Index            , Array_Which
     use :: File_Utilities   , only : File_Exists
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5
+    use :: HDF5             , only : hsize_t
     use :: IO_HDF5          , only : hdf5Access             , hdf5Object
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none

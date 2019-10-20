@@ -70,8 +70,8 @@ contains
     use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
     use :: ISO_Varying_String
     use :: Numerical_Constants_Astronomical, only : massSolar
-    use :: Numerical_Constants_Units       , only : ergs
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     type   (supernovaePopulationIIIHegerWoosley2002)                         :: self
     class  (stellarAstrophysicsClass               ), intent(in   ), target  :: stellarAstrophysics_

@@ -22,8 +22,8 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Tables                    , only : table1DGeneric
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Tables                    , only : table1DGeneric
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>

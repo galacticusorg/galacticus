@@ -186,7 +186,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use :: Coordinates            , only : coordinateSpherical         , assignment(=)
+    use :: Coordinates            , only : assignment(=)               , coordinateSpherical
     use :: Numerical_Interpolation, only : Interpolate
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
     implicit none
@@ -306,7 +306,7 @@ contains
 
   double precision function sersicPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use :: Coordinates                 , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     use :: Numerical_Interpolation     , only : Interpolate
     implicit none

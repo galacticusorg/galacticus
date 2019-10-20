@@ -21,8 +21,8 @@
   !% matter plus cosmological constant universe.
 
   use :: Dark_Matter_Particles     , only : darkMatterParticleClass
-  use :: Tables                    , only : table1D
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+  use :: Tables                    , only : table1D
 
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>

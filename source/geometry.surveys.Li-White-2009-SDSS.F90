@@ -190,7 +190,7 @@ contains
 
   subroutine liWhite2009SDSSRandomsInitialize(self)
     !% Compute the window function for the survey.
-    use :: File_Utilities          , only : Directory_Make            , File_Exists        , Count_Lines_In_File
+    use :: File_Utilities          , only : Count_Lines_In_File       , Directory_Make     , File_Exists
     use :: Galacticus_Display      , only : Galacticus_Display_Message
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic

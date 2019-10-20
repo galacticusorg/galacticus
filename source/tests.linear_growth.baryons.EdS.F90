@@ -19,12 +19,12 @@
 
 program Tests_Linear_Growth_EdS_Baryons
   !% Tests linear growth calculations.
-  use Unit_Tests                , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
-  use Linear_Growth             , only : linearGrowthBaryonsDarkMatter , componentDarkMatter
-  use Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
-  use Cosmology_Parameters      , only : cosmologyParametersSimple
-  use Intergalactic_Medium_State, only : intergalacticMediumStateSimple
-  use Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Intergalactic_Medium_State, only : intergalacticMediumStateSimple
+  use :: Linear_Growth             , only : componentDarkMatter           , linearGrowthBaryonsDarkMatter
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                                , dimension(5), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
   type            (cosmologyParametersSimple     )                          :: cosmologyParameters_

@@ -170,7 +170,7 @@ contains
 
   logical function Node_Pull_From_Tree(event,node,deadlockStatus)
     !% Pull a node from the tree.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message, verbosityWarn                , verbosityInfo
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message, verbosityInfo                , verbosityWarn
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode

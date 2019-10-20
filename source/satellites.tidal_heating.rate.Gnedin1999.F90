@@ -116,8 +116,8 @@ contains
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : max                              , tensorIdentityR2D3Sym                   , tensorRank2Dimension3Symmetric, assignment(=), &
-         &                                            operator(*)
+    use :: Tensors                           , only : assignment(=)                    , max                                     , operator(*) , tensorIdentityR2D3Sym, &
+          &                                           tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                 , Vector_Outer_Product
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self

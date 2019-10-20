@@ -213,7 +213,7 @@ contains
     use :: Conditional_Mass_Functions       , only : conditionalMassFunctionBehroozi2010
     use :: Galacticus_Error                 , only : Galacticus_Error_Report
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
-    use :: Linear_Algebra                   , only : operator(*)                        , assignment(=)
+    use :: Linear_Algebra                   , only : assignment(=)                      , operator(*)
     use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass

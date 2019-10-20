@@ -22,7 +22,7 @@
 
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                     , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory, darkMatterHaloMassAccretionHistoryClass
+  use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory  , darkMatterHaloMassAccretionHistoryClass
   use :: Dark_Matter_Profiles_DMO                 , only : darkMatterProfileDMONFW
   use :: Virial_Density_Contrast                  , only : virialDensityContrastBryanNorman1998
 
