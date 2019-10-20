@@ -23,6 +23,7 @@
   !#  <description>Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryLocalGroupSDSS
+     private
      double precision :: distanceMaximumSurvey
    contains
      procedure :: distanceMaximum => localGroupSDSSDistanceMaximum

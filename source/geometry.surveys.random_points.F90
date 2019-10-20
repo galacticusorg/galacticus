@@ -23,6 +23,7 @@
   !#  <description>Implements survey geometries defined by random points.</description>
   !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryRandomPoints
+     private
      logical                                     :: geometryInitialized
      double precision, allocatable, dimension(:) :: randomTheta        , randomPhi
    contains

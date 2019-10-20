@@ -24,6 +24,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionSpherical) :: massDistributionNFW
      !% The NFW \citep{navarro_structure_1996} mass distribution.
+     private
      double precision :: densityNormalization, scaleLength
    contains
      procedure :: density => nfwDensity

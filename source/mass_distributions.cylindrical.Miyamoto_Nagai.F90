@@ -26,6 +26,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionMiyamotoNagai
      !% The Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution.
+     private
      double precision                           :: a                        , b                      , &
           &                                        densityNormalization     , mass                   , &
           &                                        shape                    , radiusHalfMassValue

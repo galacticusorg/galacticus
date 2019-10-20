@@ -27,6 +27,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
      !% The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
+     private
      double precision                           :: scaleRadius                           , scaleHeight                           , &
           &                                        densityNormalization                  , surfaceDensityNormalization           , &
           &                                        mass

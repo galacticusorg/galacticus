@@ -25,6 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
+     private
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      final     ::                      martin2010ALFALFADestructor

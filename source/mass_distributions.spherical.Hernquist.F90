@@ -24,6 +24,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionSpherical) :: massDistributionHernquist
      !% The Hernquist \citep{hernquist_analytical_1990} mass distribution.
+     private
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains

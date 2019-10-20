@@ -24,6 +24,7 @@
   !#  <description>Implements a geometry corresponding to the detectability of classical Local Group galaxies.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupClassical
+     private
      double precision:: distanceMaximumSurvey, massThreshold
    contains
      procedure :: fieldCount                => localGroupClassicalFieldCount

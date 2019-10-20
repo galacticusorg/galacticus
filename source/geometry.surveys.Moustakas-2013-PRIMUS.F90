@@ -25,6 +25,7 @@
   !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
           &                                                redshiftMinimum              , redshiftMaximum

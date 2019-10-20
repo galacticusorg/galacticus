@@ -25,6 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
      double precision                                   :: redshiftMinimum               , redshiftMaximum
      double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum

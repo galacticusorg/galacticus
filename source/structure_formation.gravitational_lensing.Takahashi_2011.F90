@@ -30,6 +30,7 @@
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
+     private
      class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_    => null()
      class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_     => null()
      class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()

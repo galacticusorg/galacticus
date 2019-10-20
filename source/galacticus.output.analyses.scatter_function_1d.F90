@@ -34,6 +34,7 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
      !% A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
+     private
      type            (varying_string              )                              :: label                       , comment                          , &
           &                                                                         propertyLabel               , propertyComment                  , &
           &                                                                         scatterLabel                , scatterComment                   , &

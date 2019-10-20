@@ -25,6 +25,7 @@
   !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
   !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
+     private
      logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
      double precision        , allocatable, dimension(:  ) :: solidAngles
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra

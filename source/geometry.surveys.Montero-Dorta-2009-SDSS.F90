@@ -25,6 +25,7 @@
   !#  <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      character       (len=1                  )          :: band
      double precision                                   :: redshiftMinimum         , redshiftMaximum         , &
