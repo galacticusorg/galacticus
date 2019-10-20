@@ -1372,12 +1372,6 @@ contains
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Comparison, only : Values_Agree
-#ifdef YEPPP
-    use            :: yepCore
-#endif
-#ifdef YEPPP
-    use            :: yepMath
-#endif
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
     double precision                                            , intent(in   )                        :: a,b
@@ -1385,11 +1379,6 @@ contains
     logical                                                                                            :: converged
     double precision                                                                                   :: cumulant         , integrand, &
          &                                                                                                integrandPrevious, step
-#ifdef YEPPP
-    integer         (c_int                                     )                                       :: s
-    double precision                                                                                   :: summand
-    double precision                                            , dimension(2**self%iterationsMaximum) :: functionValues
-#endif
 
     cumulant =0.5d0*sum(self%integrand([b,a]))
     iteration=1
@@ -1404,13 +1393,7 @@ contains
        n   =2**iteration
        step=(b-a)/dble(n)
        ! Evaluate only every second point, as the others were computed in previous iterations.
-#ifdef YEPPP
-       functionValues(1:n/2)=self%integrand(self%d(n/2+1:n)*(b-a)+a)
-       s                    =yepCore_Sum_V64f_S64f(functionValues,summand,int(n/2,kind=c_size_t))
-       cumulant             =cumulant+summand
-#else
-       cumulant             =cumulant+sum(self%integrand(self%d(n/2+1:n)*(b-a)+a))
-#endif
+       cumulant =cumulant+sum(self%integrand(self%d(n/2+1:n)*(b-a)+a))
        integrand=step*cumulant
        if (iteration > 2)                                    &
             & converged=Values_Agree(                        &
