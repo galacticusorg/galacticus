@@ -379,7 +379,8 @@ contains
     use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
     use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode                   , universe     , &
           &                                                           universeEvent
-    use   , intrinsic :: ISO_C_Binding
+    use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
+    
     use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
     use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
     use               :: Merger_Trees_Initialize             , only : Merger_Tree_Initialize

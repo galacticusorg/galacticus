@@ -21,7 +21,7 @@
 
 module Locks
   !% Provides advanced locks.
-  use   , intrinsic :: ISO_C_Binding
+  use   , intrinsic :: ISO_C_Binding, only : c_size_t
   !$ use            :: OMP_Lib
   implicit none
   private

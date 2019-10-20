@@ -24,7 +24,7 @@
 
 module File_Utilities
   !% Implements various file-related utilities.
-  use   , intrinsic :: ISO_C_Binding
+  use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
   use               :: ISO_Varying_String, only : varying_string
   !$ use            :: OMP_Lib
   implicit none

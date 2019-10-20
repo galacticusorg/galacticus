@@ -21,7 +21,7 @@
 
 module Task_Evolve_Forests_Work_Shares
   !% Provides a class that implements general tasks to be performed by \glc.
-  use   , intrinsic :: ISO_C_Binding
+  use   , intrinsic :: ISO_C_Binding, only : c_size_t
   !$ use            :: OMP_Lib
   private
 

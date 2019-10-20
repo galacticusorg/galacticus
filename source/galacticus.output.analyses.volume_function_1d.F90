@@ -21,7 +21,7 @@
 !% mass function) output analysis class.
 
   use               :: Galactic_Filters                        , only : galacticFilterClass
-  use   , intrinsic :: ISO_C_Binding
+  use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
   use               :: ISO_Varying_String
   use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
   !$ use            :: OMP_Lib

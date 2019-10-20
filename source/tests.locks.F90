@@ -23,7 +23,7 @@ program Test_Locks
   !% Tests of OpenMP locking functions.
   use               :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
   use               :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
-  use   , intrinsic :: ISO_C_Binding
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
   use               :: ISO_Varying_String
   use               :: Locks             , only : ompIncrementalLock
   !$ use            :: OMP_Lib
