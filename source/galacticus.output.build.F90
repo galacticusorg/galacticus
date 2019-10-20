@@ -42,7 +42,7 @@ contains
   function Galacticus_Build_String()
     !% Returns a string describing the build environment of \glc.
     use            :: FGSL              , only : FGSL_Version
-    use            :: FoX_Common
+    use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : h5get_libversion_f
     use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer, c_null_char
@@ -113,7 +113,7 @@ contains
     !% Output build information to the main output file.
     use            :: FGSL              , only : FGSL_Version
     use            :: File_Utilities    , only : File_Exists
-    use            :: FoX_Common
+    use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec

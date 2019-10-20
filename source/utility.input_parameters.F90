@@ -21,7 +21,7 @@
 
 module Input_Parameters
   !% Implements reading of parameters from an XML file.
-  use :: FoX_dom
+  use :: FoX_dom           , only : node
   use :: Function_Classes  , only : functionClass
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String
@@ -350,6 +350,7 @@ contains
 
   function inputParametersConstructorNull()
     !% Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
+    use :: FoX_dom, only : getDocumentElement, getImplementation, setLiveNodeLists, createDocument
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
 
@@ -369,7 +370,8 @@ contains
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
-    use :: IO_XML, only : XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom, only : node                             , parseString
+    use :: IO_XML , only : XML_Get_First_Element_By_Tag_Name
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -427,6 +429,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
     use :: File_Utilities  , only : File_Exists
+    use :: FoX_dom         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
     implicit none
@@ -479,6 +482,7 @@ contains
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use :: File_Utilities    , only : File_Name_Temporary
+    use :: FoX_dom           , only : getOwnerDocument                 , getTextContent , node, setLiveNodeLists
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
@@ -573,6 +577,8 @@ contains
 
   recursive subroutine inputParametersBuildTree(self,parentParameter,parametersNode)
     !% Build a tree representation of the input parameter file.
+    use :: FoX_dom, only : ELEMENT_NODE, getChildNodes, getLength, getNodeType, &
+          &                item        , node         , nodeList
     implicit none
     class  (inputParameters), intent(inout)          :: self
     type   (inputParameter ), intent(inout), pointer :: parentParameter
@@ -607,6 +613,7 @@ contains
 
    subroutine inputParametersResolveReferences(self)
     !% Build a tree representation of the input parameter file.
+    use :: FoX_dom, only : ELEMENT_NODE, getNodeName, getNodeType, hasAttribute
     implicit none
     class(inputParameters), intent(inout) :: self
     type (inputParameter ), pointer       :: currentParameter, referencedParameter
@@ -643,6 +650,7 @@ contains
 
   function inputParametersWalkTree(currentNode) result(nextNode)
     !% Perform a depth-first walk of a parameter tree.
+    implicit none
     type(inputParameter), pointer                :: nextNode
     type(inputParameter), pointer, intent(in   ) :: currentNode
 
@@ -668,6 +676,8 @@ contains
 
   subroutine inputParametersDestroy(self)
     !% Destructor for the {\normalfont \ttfamily inputParameters} class.
+    use :: FoX_DOM, only : destroy
+    implicit none    
     class(inputParameters), intent(inout) :: self
 
     ! Destroy the parameters document. Note that we do not use a finalizer for input parameters. This could destroy part of a
@@ -688,6 +698,7 @@ contains
   subroutine inputParametersFinalize(self)
     !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
     use :: File_Utilities, only : File_Remove
+    use :: FoX_dom       , only : destroy
     use :: IO_HDF5       , only : hdf5Access
     implicit none
     type(inputParameters), intent(inout) :: self
@@ -743,7 +754,8 @@ contains
 
   logical function inputParameterIsParameter(self)
     !% Return true if this is a valid parameter.
-    use :: IO_XML, only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeType, hasAttribute
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     class(inputParameter), intent(in   ) :: self
 
@@ -839,6 +851,7 @@ contains
 
   recursive subroutine inputParameterReset(self,children)
     !% Reset objects associated with this parameter and any sub-parameters.
+    use    :: FoX_dom, only : destroy
     !$ use :: OMP_Lib
     implicit none
     class  (inputParameter), intent(inout), target :: self
@@ -891,8 +904,9 @@ contains
     return
   end subroutine inputParameterReset
 
- subroutine inputParameterSetDouble(self,value)
-   !% Set the value of a parameter.
+  subroutine inputParameterSetDouble(self,value)
+    !% Set the value of a parameter.
+    use :: FoX_DOM, only : setAttribute
     implicit none
     class           (inputParameter), intent(inout) :: self
     double precision                , intent(in   ) :: value
@@ -905,6 +919,7 @@ contains
 
  subroutine inputParameterSetVarStr(self,value)
    !% Set the value of a parameter.
+    use :: FoX_DOM, only : setAttribute
     implicit none
     class    (inputParameter), intent(inout) :: self
     type     (varying_string), intent(in   ) :: value
@@ -915,6 +930,8 @@ contains
 
   function inputParameterGet(self)
     !% Get the value of a parameter.
+    use :: FoX_dom         , only : DOMException           , getAttributeNode, getNodeName, getTextContent, &
+          &                         hasAttribute           , inException     , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
@@ -942,6 +959,7 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
+    use    :: FoX_dom            , only : destroy                    , getNodeName               , node
     use    :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
           &                               verbositySilent
     !$ use :: OMP_Lib
@@ -1129,6 +1147,8 @@ contains
 
   function inputParametersNode(self,parameterName,requireValue,copyInstance)
     !% Return the node containing the parameter.
+    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
+          &                         node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Path_Exists
     implicit none
@@ -1179,7 +1199,9 @@ contains
 
   logical function inputParametersIsPresent(self,parameterName,requireValue)
     !% Return true if the specified parameter is present.
-    use :: IO_XML, only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
+          &                node
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1221,6 +1243,8 @@ contains
 
   integer function inputParametersCopiesCount(self,parameterName,requireValue,zeroIfNotPresent)
     !% Return true if the specified parameter is present.
+    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
+          &                         node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Path_Exists
     implicit none
@@ -1296,6 +1320,7 @@ contains
 
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
     !% Return sub-parameters of the specified parameter.
+    use :: FoX_dom         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access
     implicit none
@@ -1328,6 +1353,7 @@ contains
 
   subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !% Return the value of the parameter specified by name.
+    use :: FoX_dom         , only : hasAttribute           , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access
     implicit none
@@ -1362,10 +1388,17 @@ contains
 
   subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
+    use :: FoX_dom         , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
+          &                         getTextContent                   , hasAttribute      , inException     , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access
     use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     {Type¦match¦^(Character|VarStr)Rank1$¦use :: String_Handling , only : String_Split_Words¦}
+    use :: FoX_dom         , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
+          &                         getTextContent                   , hasAttribute      , inException     , node
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access
+    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     implicit none
     class           (inputParameters), intent(inout)           :: self
     type            (inputParameter ), intent(in   )           :: parameterNode
@@ -1489,7 +1522,7 @@ contains
 
   subroutine inputParameterListSerializeToXML(self,parameterDoc)
     !% Serialize a list of input parameters to an XML document.
-    use :: FoX_wXML
+    use :: FoX_wXML, only : xmlf_t, xml_NewElement, xml_AddAttribute, xml_EndElement
     class (inputParameterList), intent(in   ) :: self
     type  (xmlf_t            ), intent(inout) :: parameterDoc
     integer                                   :: i
@@ -1506,6 +1539,7 @@ contains
 
   recursive function inputParametersSerializeToString(self,hashed)
     !% Serialize input parameters to a string.
+    use :: FoX_dom             , only : getNodeName, node
     use :: Hashes_Cryptographic, only : Hash_MD5
     implicit none
     type   (varying_string )                          :: inputParametersSerializeToString
@@ -1546,6 +1580,7 @@ contains
 
   subroutine inputParametersSerializeToXML(self,parameterFile)
     !% Serialize input parameters to an XML file.
+    use :: FoX_DOM, only : serialize
     implicit none
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
@@ -1556,6 +1591,8 @@ contains
 
   subroutine inputParametersAddParameter(self,parameterName,parameterValue)
     !% Add a parameter to the set.
+    use :: FoX_dom, only : appendChild , createElementNS, getNamespaceURI, node, &
+         &                 setAttribute
     implicit none
     class    (inputParameters), intent(inout) :: self
     character(len=*          ), intent(in   ) :: parameterName   , parameterValue

@@ -101,7 +101,8 @@ contains
   subroutine Filter_Response_Load(filterName)
     !% Load a filter response curve.
     use :: File_Utilities           , only : File_Exists
-    use :: FoX_dom
+    use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , extractDataContent, &
+          &                                  node                   , parseFile                        , inException       , getExceptionCode
     use :: Galacticus_Error         , only : Galacticus_Error_Report
     use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic

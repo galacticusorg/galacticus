@@ -60,8 +60,8 @@ contains
     !% Output version information to the main output file.
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom
-    use :: FoX_utils
+    use :: FoX_dom           , only : parseFile                        , extractDataContent, destroy, node
+    use :: FoX_utils         , only : generate_UUID
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_HDF5   , only : galacticusOutputFile
     use :: IO_HDF5           , only : hdf5Access                       , hdf5Object

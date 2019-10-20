@@ -100,7 +100,8 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use :: FoX_dom
+    use :: FoX_dom         , only : Node                   , NodeList          , destroy  , extractDataContent  , &
+          &                         getLength              , item              , parseFile, getElementsByTagname
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataStatic
     implicit none
