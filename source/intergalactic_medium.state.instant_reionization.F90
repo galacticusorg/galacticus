@@ -229,7 +229,7 @@ contains
   double precision function instantReionizationElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the instantReionization model.
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
-    use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen    , atomicMassHelium
+    use :: Numerical_Constants_Atomic      , only : atomicMassHelium      , atomicMassHydrogen
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
@@ -312,7 +312,7 @@ contains
 
   subroutine instantReionizationDescriptor(self,descriptor,includeMethod)
     !% Return an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateInstantReionization), intent(inout)           :: self
     type     (inputParameters                            ), intent(inout)           :: descriptor

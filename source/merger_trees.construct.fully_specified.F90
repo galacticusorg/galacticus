@@ -19,7 +19,7 @@
 
   !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
 
-  use :: FoX_DOM
+  use :: FoX_DOM, only : node, nodeList
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
   !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
@@ -76,6 +76,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
+    use :: FoX_DOM         , only : parseFile              , getElementsByTagname, getLength
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
@@ -100,6 +101,7 @@ contains
 
   subroutine fullySpecifiedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+    use :: FoX_DOM, only : destroy
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
@@ -118,7 +120,8 @@ contains
 
   function fullySpecifiedConstruct(self,treeNumber) result(tree)
     !% Construct a fully-specified merger tree.
-    use            :: FoX_DOM
+    use            :: FoX_DOM           , only : getElementsByTagname     , getLength                  , item                      , node         , &
+          &                                      nodeList
     use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes  , only : mergerTree               , treeNode                   , treeNodeList
@@ -216,7 +219,8 @@ contains
 
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
-      use :: FoX_Dom
+      use :: FoX_Dom         , only : extractDataContent     , getElementsByTagname, getLength, item, &
+          &                           node                   , nodeList
       use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Kind_Numbers    , only : kind_int8
       implicit none

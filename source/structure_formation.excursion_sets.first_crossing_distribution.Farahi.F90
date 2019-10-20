@@ -1108,7 +1108,7 @@ contains
 
   subroutine farahiFileWrite(self)
     !% Write tabulated data on excursion set first crossing probabilities to file.
-    use :: HDF5
+    use :: HDF5   , only : hsize_t
     use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self

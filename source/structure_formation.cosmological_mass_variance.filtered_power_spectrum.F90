@@ -51,12 +51,12 @@
   !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
   !#  </stateStorable>
   !# </cosmologicalMassVariance>
-  use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters                , only : cosmologyParametersClass
+  use :: File_Utilities                      , only : lockDescriptor
+  use :: Linear_Growth                       , only : linearGrowthClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
-  use :: Linear_Growth                       , only : linearGrowthClass
-  use :: File_Utilities                      , only : lockDescriptor
   use :: Tables                              , only : table1DLinearCSpline
 
   !# <stateStorable class="uniqueTable"/>
@@ -234,8 +234,8 @@ contains
 
   function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
-    use Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
-    use File_Utilities  , only : Directory_Make, File_Path          , File_Lock_Initialize
+    use :: File_Utilities  , only : Directory_Make, File_Lock_Initialize, File_Path
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: self
     double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat       , &
@@ -504,12 +504,12 @@ contains
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: File_Utilities          , only : File_Lock                , File_Unlock
+    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message       , Galacticus_Display_Unindent, verbosityWorking
+    use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
     use :: Numerical_Constants_Math, only : Pi
-    use :: Galacticus_Error        , only : Galacticus_Error_Report          , Galacticus_Warn
-    use :: Numerical_Ranges        , only : Make_Range                       , rangeTypeLogarithmic
-    use :: File_Utilities          , only : File_Lock                        , File_Unlock
-    use :: Galacticus_Display      , only : Galacticus_Display_Message       , Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
-    use :: Tables                  , only : table1DLogarithmicMonotoneCSpline, table1DLogarithmicCSpline
+    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
+    use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , intent(in   ), optional     :: mass                      , time
@@ -876,7 +876,7 @@ contains
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
     !% Compute interoplants in time.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -907,10 +907,10 @@ contains
 
   subroutine filteredPowerFileRead(self)
     !% Read tabulated data on mass variance from file.
-    use :: IO_HDF5           , only : hdf5Object                       , hdf5Access
     use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message       , verbosityWorking
-    use :: Tables            , only : table1DLogarithmicMonotoneCSpline, table1DLogarithmicCSpline
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Tables            , only : table1DLogarithmicCSpline , table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -971,9 +971,9 @@ contains
 
   subroutine filteredPowerFileWrite(self)
     !% Write tabulated data on mass variance to file.
-    use HDF5              , only : hsize_t
-    use IO_HDF5           , only : hdf5Object                , hdf5Access
-    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: HDF5              , only : hsize_t
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp

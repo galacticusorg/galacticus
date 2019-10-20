@@ -1961,8 +1961,8 @@ contains
     !% Create a 1-D linear table.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLinear
-    use :: Table_Labels     , only : extrapolationTypeZero  , extrapolationTypeExtrapolate
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DLinearMonotoneCSpline), intent(inout)                         :: self
     double precision                              , intent(in   )                         :: xMaximum         , xMinimum

@@ -221,8 +221,8 @@ contains
 
   subroutine duttonMaccio2014Definitions(self)
     !% Establish virial density contrast and dark matter profile definitions.
-    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout), target  :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_

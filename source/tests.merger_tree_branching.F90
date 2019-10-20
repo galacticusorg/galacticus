@@ -19,24 +19,24 @@
 
 program Tests_Merger_Tree_Branching
   !% Tests of merger tree branching rates.
-  use Unit_Tests                          , only : Unit_Tests_Begin_Group                          , Unit_Tests_End_Group                                         , Unit_Tests_Finish, Assert
-  use Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower           , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
-  use Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
-  use Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
-  use Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
-  use Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use Cosmology_Parameters                , only : cosmologyParametersSimple
-  use Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
-  use Transfer_Functions                  , only : transferFunctionIdentity
-  use Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityParkinsonColeHelly, mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
-  use Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity
-  use Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingLinearBarrier          , excursionSetFirstCrossingFarahiMidpoint
-  use Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
-  use Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                  , verbosityWorking
-  use Dark_Matter_Particles               , only : darkMatterParticleCDM
-  use Galacticus_Nodes                    , only : treeNode
-  use Events_Hooks                        , only : eventsHooksInitialize
-  use ISO_Varying_String                  , only : var_str
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                , only : cosmologyParametersSimple
+  use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
+  use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingFarahiMidpoint        , excursionSetFirstCrossingLinearBarrier
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                 , verbosityWorking
+  use :: Galacticus_Nodes                    , only : treeNode
+  use :: ISO_Varying_String                  , only : var_str
+  use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
+  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGnrlzdPrssSchchtr, mergerTreeBranchingProbabilityParkinsonColeHelly
+  use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity
+  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
+  use :: Transfer_Functions                  , only : transferFunctionIdentity
+  use :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (cosmologyParametersSimple                                    )               :: cosmologyParametersSimple_
   type            (cosmologyFunctionsMatterLambda                               )               :: cosmologyFunctionsMatterLambda_

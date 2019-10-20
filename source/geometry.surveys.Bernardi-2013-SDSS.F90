@@ -24,6 +24,7 @@
   !#  <description>Implements the geometry of the SDSS survey of \cite{bernardi_massive_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
+     private
    contains
      procedure :: fieldCount                => bernardi2013SDSSFieldCount
      procedure :: distanceMaximum           => bernardi2013SDSSDistanceMaximum

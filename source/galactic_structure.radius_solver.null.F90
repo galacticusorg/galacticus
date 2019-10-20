@@ -41,7 +41,7 @@ contains
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} galactic structure solver class which takes a
     !% parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticStructureSolverNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
@@ -53,7 +53,8 @@ contains
 
   subroutine nullAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
+          &                     satelliteMergerEvent
     implicit none
     class(galacticStructureSolverNull), intent(inout) :: self
 
@@ -66,7 +67,7 @@ contains
 
   subroutine nullDestructor(self)
     !% Destructor for the {\normalfont \ttfamily null} galactic structure solver class.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverNull), intent(inout) :: self
 
@@ -79,7 +80,7 @@ contains
 
   subroutine nullSolveHook(self,node)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -95,7 +96,7 @@ contains
 
   subroutine nullSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node

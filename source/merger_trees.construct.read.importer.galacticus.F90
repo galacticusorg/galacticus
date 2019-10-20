@@ -24,7 +24,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
   use :: IO_HDF5                   , only : hdf5Object
-  use :: Stateful_Types            , only : statefulInteger              , statefulDouble, statefulLogical
+  use :: Stateful_Types            , only : statefulDouble               , statefulInteger, statefulLogical
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
@@ -532,8 +532,8 @@ contains
 
   integer function galacticusVelocitiesIncludeHubbleFlow(self)
     !% Return a Boolean integer specifying whether or not velocities include the Hubble flow.
-    use :: Numerical_Constants_Boolean, only : booleanUnknown
     use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -553,8 +553,8 @@ contains
 
   integer function galacticusPositionsArePeriodic(self)
     !% Return a Boolean integer specifying whether or not positions are periodic.
-    use :: Numerical_Constants_Boolean, only : booleanUnknown
     use :: IO_HDF5                    , only : hdf5Access
+    use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -653,7 +653,7 @@ contains
   subroutine galacticusForestIndicesRead(self)
     !% Read the tree indices.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: HDF5
+    use :: HDF5                            , only : HSIZE_T
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Sort                            , only : Sort_Index_Do
@@ -963,7 +963,7 @@ contains
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
     use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
-    use :: HDF5
+    use :: HDF5                            , only : hsize_t
     use :: IO_HDF5                         , only : hdf5Access
     use :: Memory_Management               , only : Memory_Usage_Record    , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar      , megaParsec

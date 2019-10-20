@@ -24,6 +24,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionSpherical) :: massDistributionHernquist
      !% The Hernquist \citep{hernquist_analytical_1990} mass distribution.
+     private
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains
@@ -145,7 +146,7 @@ contains
 
   double precision function hernquistDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
     class           (coordinate               ), intent(in   ) :: coordinates
@@ -225,7 +226,7 @@ contains
 
   double precision function hernquistPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
-    use :: Coordinates                 , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionHernquist), intent(inout) :: self

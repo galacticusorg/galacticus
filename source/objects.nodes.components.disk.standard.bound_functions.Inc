@@ -110,9 +110,9 @@ end function Node_Component_Disk_Standard_Enclosed_Mass
 
 double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
   !% Computes the density at a given position for an standard disk.
-  use :: Coordinates                      , only : coordinateSpherical , assignment(=)
-  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk, massTypeAll    , massTypeBaryonic  , &
-          &                                        massTypeGalactic    , massTypeGaseous  , massTypeStellar, weightByLuminosity, &
+  use :: Coordinates                      , only : assignment(=)       , coordinateSpherical
+  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll    , massTypeBaryonic  , &
+          &                                        massTypeGalactic    , massTypeGaseous    , massTypeStellar, weightByLuminosity, &
           &                                        weightByMass
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
   implicit none
@@ -158,8 +158,8 @@ end function Node_Component_Disk_Standard_Density
 
 double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status)
   !% Compute the gravitational potential due to an standard disk.
-  use :: Coordinates                      , only : coordinateCylindrical          , assignment(=)
-  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk, radiusLarge, weightByMass, &
+  use :: Coordinates                      , only : assignment(=)                  , coordinateCylindrical
+  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk    , radiusLarge, weightByMass, &
           &                                        weightIndexNull
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
   use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
@@ -271,13 +271,13 @@ end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
   !% Computes the surface density at a given position for an standard disk.
   use :: Coordinates                      , only : coordinateCylindrical
-  use :: Galactic_Structure_Options       , only : componentTypeAll           , componentTypeDisk                 , massTypeAll                       , massTypeBaryonic                    , &
-          &                                        massTypeGalactic           , massTypeGaseous                   , massTypeStellar                   , weightByLuminosity                  , &
+  use :: Galactic_Structure_Options       , only : componentTypeAll                    , componentTypeDisk         , massTypeAll                       , massTypeBaryonic            , &
+          &                                        massTypeGalactic                    , massTypeGaseous           , massTypeStellar                   , weightByLuminosity          , &
           &                                        weightByMass
   use :: Mass_Distributions               , only : massDistributionCylindrical
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution       , lastUniqueID                      , radiusScaleDisk                   , radiusScaleDiskComputed             , &
-          &                                        surfaceDensityCentralGas   , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar      , surfaceDensityCentralStellarComputed, &
-          &                                        surfaceDensityCentralTotal , surfaceDensityCentralTotalComputed, Node_Component_Disk_Standard_Reset
+  use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset  , diskMassDistribution      , lastUniqueID                      , radiusScaleDisk             , &
+          &                                        radiusScaleDiskComputed             , surfaceDensityCentralGas  , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar, &
+          &                                        surfaceDensityCentralStellarComputed, surfaceDensityCentralTotal, surfaceDensityCentralTotalComputed
   use :: Numerical_Constants_Math         , only : Pi
   implicit none
   class           (nodeComponentDiskStandard), intent(inout) :: self

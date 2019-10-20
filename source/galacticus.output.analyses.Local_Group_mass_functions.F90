@@ -30,6 +30,7 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassFunction
      !% An output analysis class for Local Group satellite galaxy mass functions.
+     private
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionSatellites          => null(), volumeFunctionCentrals => null()
      double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                    , &
           &                                                                           massFunctionTarget

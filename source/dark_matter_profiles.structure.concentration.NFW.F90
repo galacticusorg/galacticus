@@ -22,8 +22,8 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>

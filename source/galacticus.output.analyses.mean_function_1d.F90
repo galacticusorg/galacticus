@@ -34,6 +34,7 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisMeanFunction1D
      !% A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
+     private
      type            (varying_string                )                              :: label                             , comment                         , &
           &                                                                           propertyLabel                     , propertyComment                 , &
           &                                                                           meanLabel                         , meanComment                     , &
@@ -811,8 +812,8 @@ contains
 
   double precision function meanFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a meanFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
     use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self

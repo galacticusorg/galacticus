@@ -35,7 +35,7 @@ contains
     !% Open the file for \glc\ output.
     use            :: Galacticus_HDF5 , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
          &                                     galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
-    use            :: HDF5
+    use            :: HDF5            , only : hsize_t                   , size_t
     use            :: IO_HDF5         , only : hdf5Access                , IO_HDF5_Set_Defaults
     use, intrinsic :: ISO_C_Binding
     use            :: Input_Parameters, only : globalParameters          , inputParameter

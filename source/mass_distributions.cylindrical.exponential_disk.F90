@@ -27,6 +27,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
      !% The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
+     private
      double precision                           :: scaleRadius                           , scaleHeight                           , &
           &                                        densityNormalization                  , surfaceDensityNormalization           , &
           &                                        mass
@@ -283,7 +284,7 @@ contains
 
   double precision function exponentialDiskDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use :: Coordinates     , only : coordinateCylindrical  , assignment(=)
+    use :: Coordinates     , only : assignment(=)          , coordinateCylindrical
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
@@ -424,7 +425,7 @@ contains
 
   double precision function exponentialDiskPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use :: Coordinates                 , only : coordinateCylindrical          , assignment(=)
+    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self

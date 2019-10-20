@@ -91,7 +91,7 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_) result(self)
     !% Internal constructor for the ``lightcone'' output extractor property extractor class.
-    use :: Numerical_Constants_Astronomical, only : degreesToRadians, degreesToRadians    , megaParsec
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
@@ -231,7 +231,7 @@ contains
   subroutine lightconeAddInstances(self,node,instance)
     !% Implement adding of instances to a lightcone property extractor.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling , only : operator(//)
+    use :: String_Handling , only : operator(//)
     implicit none
     class    (nodePropertyExtractorLightcone), intent(inout) :: self
     type     (treeNode                      ), intent(inout) :: node

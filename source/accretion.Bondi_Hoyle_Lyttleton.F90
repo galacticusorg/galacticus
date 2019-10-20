@@ -31,9 +31,9 @@ contains
     !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     double precision, intent(in   )           :: density   , mass, temperature, velocity
     double precision, intent(in   ), optional :: radius

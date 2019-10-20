@@ -28,6 +28,7 @@
   !#  <description>Implements a survey geometry which combines multiple other surveys.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryClass) :: surveyGeometryCombined
+     private
      type(surveyGeometryList), pointer :: surveyGeometries => null()
    contains
      final      ::                            combinedDestructor

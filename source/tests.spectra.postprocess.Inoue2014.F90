@@ -21,7 +21,7 @@
 
 program Test_Inoue2014
   !% Tests the \cite{inoue_updated_2014} algorithm for IGM absorption.
-  use :: Galacticus_Display                    , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display                    , only : Galacticus_Verbosity_Level_Set                , verbosityStandard
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorInoue2014
   use :: Unit_Tests                            , only : Assert                                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                             compareLessThanOrEqual

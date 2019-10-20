@@ -114,7 +114,7 @@ contains
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless) result(self)
     !% Constructor for ``betaProfile'' convergence class.
     use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                  verbosityDebug
+          &                                 verbosityDebug
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Comparison    , only : Values_Agree             , Values_Differ
@@ -210,7 +210,7 @@ contains
 
   double precision function betaProfileDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (massDistributionBetaProfile), intent(inout) :: self
     class           (coordinate                 ), intent(in   ) :: coordinates
@@ -227,7 +227,7 @@ contains
 
   double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (massDistributionBetaProfile), intent(inout)           :: self
     class           (coordinate                 ), intent(in   )           :: coordinates
@@ -321,7 +321,7 @@ contains
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     !% \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     !% Alpha}.
-    use :: Coordinates                 , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
     use :: Hypergeometric_Functions    , only : Hypergeometric_2F1
     use :: Numerical_Comparison        , only : Values_Agree
     use :: Numerical_Constants_Math    , only : Pi

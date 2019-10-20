@@ -19,7 +19,7 @@
 
   !% A spherical collapse solver class for universes consisting of baryons, collisionless matter, and dark energy.
 
-  use Cosmology_Parameters, only : cosmologyParametersClass, cosmologyParameters
+  use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
 
   !# <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
   !#  <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
@@ -50,7 +50,7 @@ contains
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
     !% input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                :: self
     type   (inputParameters                                   ), intent(inout) :: parameters
@@ -85,8 +85,8 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Linear_Growth   , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Linear_Growth   , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
     logical                                                    , intent(in   )         :: baryonsCluster
@@ -121,11 +121,11 @@ contains
 
   subroutine baryonsDarkMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
-    use Root_Finder       , only : rootFinder               , rangeExpandMultiplicative  , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Galacticus_Error  , only : Galacticus_Error_Report
-    use Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter   , Galacticus_Display_Counter_Clear, &
-         &                         verbosityWorking
-    use Tables            , only : table1DLogarithmicLinear
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
+          &                           verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
+    use :: Tables            , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)             , intent(inout) :: self
     double precision                                                                 , intent(in   ) :: time
@@ -388,10 +388,10 @@ contains
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
-    use FGSL            , only : FGSL_Success
-    use ODEIV2_Solver   , only : ODEIV2_Solve           , ODEIV2_Solver_Free
-    use FODEIV2         , only : fodeiv2_system         , fodeiv2_driver
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: FGSL            , only : FGSL_Success
+    use :: FODEIV2         , only : fodeiv2_driver         , fodeiv2_system
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: ODEIV2_Solver   , only : ODEIV2_Solve           , ODEIV2_Solver_Free
     implicit none
     double precision                    , intent(in   )                        :: perturbationOverdensityInitial           , time
     double precision                    , intent(  out)             , optional :: expansionRatePerturbation                , radiusPerturbation
@@ -491,7 +491,7 @@ contains
 
   integer function baryonsDarkMatterDarkEnergyPerturbationODEs(time,y,dydt)
     !% Differential equations describing the evolution of spherical perturbations in a universe containing baryons, collisionless dark matter and dark energy.
-    use FGSL, only : FGSL_Success
+    use :: FGSL, only : FGSL_Success
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: y

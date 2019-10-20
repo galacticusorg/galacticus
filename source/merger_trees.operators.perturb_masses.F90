@@ -89,7 +89,7 @@ contains
     !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Linear_Algebra     , only : matrix                       , vector            , assignment(=), operator(*)
+    use            :: Linear_Algebra     , only : assignment(=)                , matrix            , operator(*), vector
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorPerturbMasses), intent(inout), target         :: self

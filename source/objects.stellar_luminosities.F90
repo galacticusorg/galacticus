@@ -526,7 +526,8 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, item, node, &
+          &                         nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout)          :: self
@@ -1783,8 +1784,7 @@ contains
   subroutine Stellar_Luminosities_State_Restore(stateFile,fgslStateFile,stateOperationID)
     !% Retrieve the luminosities state from the file.
     use            :: FGSL                                  , only : fgsl_file
-    use            :: Galacticus_Display                    , only : Galacticus_Display_Indent                   , Galacticus_Display_Message                       , Galacticus_Display_Unindent, &
-         &                                                           verbosityWorking
+    use            :: Galacticus_Display                    , only : Galacticus_Display_Indent                   , Galacticus_Display_Message                       , Galacticus_Display_Unindent, verbosityWorking
     use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
     use            :: Instruments_Filters                   , only : Filter_Get_Index

@@ -370,7 +370,7 @@ contains
 
     double precision function inverseCosineIntegral(a,x)
       !% Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
-      use :: Trigonometric_Functions, only : cot, cosec
+      use :: Trigonometric_Functions, only : cosec, cot
       implicit none
       double precision, intent(in) :: a , x
       double complex               :: aa, xx

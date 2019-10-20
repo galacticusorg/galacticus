@@ -121,7 +121,7 @@ contains
     use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
     use            :: Galacticus_HDF5         , only : galacticusOutputFile
     use            :: Galacticus_Nodes        , only : mergerTree          , nodeComponentBasic       , treeNode
-    use            :: IO_HDF5                 , only : hdf5Object          , hdf5Access
+    use            :: IO_HDF5                 , only : hdf5Access          , hdf5Object
     use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
     use            :: Kind_Numbers            , only : kind_int8

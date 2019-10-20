@@ -19,11 +19,11 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
-  use Tables                               , only : table1D
-  use Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
-  use Cosmology_Functions                  , only : cosmologyFunctions                                , cosmologyFunctionsClass
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
-  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Cosmology_Functions                  , only : cosmologyFunctions                                , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
+  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Tables                               , only : table1D
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
@@ -84,8 +84,8 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters          , only : inputParameter                                , inputParameters
-    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Input_Parameters          , only : inputParameter                                , inputParameters
+    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type   (inputParameters                                           ), intent(inout) :: parameters
@@ -195,7 +195,7 @@ contains
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass
@@ -218,7 +218,7 @@ contains
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass
@@ -274,7 +274,7 @@ contains
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass

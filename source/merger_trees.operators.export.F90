@@ -132,7 +132,6 @@ contains
     use :: FGSL                            , only : fgsl_interp_accel
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &
           &                                         treeNode
-    use :: HDF5
     use :: Memory_Management               , only : allocateArray                , deallocateArray
     use :: Merger_Tree_Data_Structure      , only : mergerTreeData               , metaDataTypeCosmology , metaDataTypeProvenance, propertyTypeDescendentIndex, &
           &                                         propertyTypeHostIndex        , propertyTypeNodeIndex , propertyTypeNodeMass  , propertyTypePositionX      , &

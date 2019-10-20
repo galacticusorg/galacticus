@@ -21,7 +21,6 @@
 
 module ODEIV2_Solver
   !% Contains an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-  use            :: FODEIV2
   use, intrinsic :: ISO_C_Binding
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
@@ -88,11 +87,14 @@ contains
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use :: FGSL                  , only : FGSL_Failure               , FGSL_Success
+    use :: FODEIV2               , only : fodeiv2_driver             , fodeiv2_system      , fodeiv2_step_type              , FODEIV2_Driver_Status     , &
+         &                                FODEIV2_System_Init        , Fodeiv2_Step_RKCK   , FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, &
+         &                                FODEIV2_Driver_Reset       , FODEIV2_Driver_Apply, FODEIV2_Driver_h
     use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: ISO_Varying_String    , only : varying_string             , operator(//)  , assignment(=)
+    use :: ISO_Varying_String    , only : assignment(=)              , operator(//)        , varying_string
     use :: Numerical_Integration2, only : integratorMultiVectorized1D
+    use :: ODE_Solver_Error_Codes, only : interruptedAtX             , odeSolverInterrupt
     use :: String_Handling       , only : operator(//)
-    use :: ODE_Solver_Error_Codes, only : odeSolverInterrupt         , interruptedAtX
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount
@@ -298,8 +300,9 @@ contains
 
     subroutine latentIntegrator(x)
       !% Wrapper function which performs integration of latent variables.
+      use :: FODEIV2           , only : FODEIV2_Driver_MSBDFActive_State
       use :: Galacticus_Display, only : Galacticus_Display_Message
-      use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+      use :: Galacticus_Error  , only : Galacticus_Error_Report         , errorStatusSuccess
       implicit none
       double precision, intent(in   )     :: x
       double precision, dimension(yCount) :: y
@@ -326,6 +329,7 @@ contains
 
     subroutine integrandsWrapper(nz,x,e,dzdx)
       !% Wrapper function which calls the integrands functions.
+      use :: FODEIV2, only : FODEIV2_Driver_MSBDFActive_Context
       implicit none
       integer         , intent(in   )                            :: nz
       double precision, intent(in   ), dimension(            : ) :: x
@@ -377,6 +381,7 @@ contains
 
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
+    use :: FODEIV2, only : fodeiv2_driver, fodeiv2_system, Fodeiv2_Driver_Free, Fodeiv2_System_Free
     implicit none
     type(fodeiv2_driver), intent(inout) :: odeDriver
     type(fodeiv2_system), intent(inout) :: odeSystem

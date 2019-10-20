@@ -79,7 +79,7 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !% Internal constructor for the ``ratio'' output analysis property extractor class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_

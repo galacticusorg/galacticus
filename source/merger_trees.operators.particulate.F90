@@ -333,7 +333,7 @@ contains
 
   subroutine particulateOperate(self,tree)
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
-    use :: Coordinates                       , only : coordinateCartesian              , coordinateSpherical                     , assignment(=)
+    use :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
     use :: Cosmology_Parameters              , only : hubbleUnitsLittleH
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeDark

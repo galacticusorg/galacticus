@@ -270,7 +270,7 @@ contains
     use            :: Dates_and_Times               , only : Formatted_Date_and_Time
     use            :: Error_Functions               , only : Error_Function
     use            :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                                   verbosityInfo
+          &                                                  verbosityInfo
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Linear_Algebra                , only : assignment(=)

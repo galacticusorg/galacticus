@@ -25,6 +25,7 @@
   !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
   !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
+     private
      logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
      double precision        , allocatable, dimension(:  ) :: solidAngles
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
@@ -121,8 +122,8 @@ contains
   double precision function mangleSolidAngle(self,field)
     !% Return the survey solid angle computed from \gls{mangle} polygons.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : operator(//)
     use :: Geometry_Mangle , only : geometryMangleSolidAngle
+    use :: String_Handling , only : operator(//)
     implicit none
     class  (surveyGeometryMangle), intent(inout)               :: self
     integer                      , intent(in   ), optional     :: field
@@ -175,8 +176,8 @@ contains
   double precision function mangleAngularPower(self,i,j,l)
     !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : operator(//)
     use :: Geometry_Mangle , only : geometryMangleAngularPower
+    use :: String_Handling , only : operator(//)
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     integer                               , intent(in   )               :: i          , j, &

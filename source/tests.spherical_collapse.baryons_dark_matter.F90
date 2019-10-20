@@ -19,22 +19,22 @@
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !% Tests linear growth calculations.
-  use Unit_Tests                           , only : Unit_Tests_Begin_Group                                        , Unit_Tests_End_Group                                      , Unit_Tests_Finish                    , Assert
-  use Galacticus_Display                   , only : Galacticus_Verbosity_Level_Set                                , verbosityStandard
-  use Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
-  use Linear_Growth                        , only : linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter                           , componentDarkMatter
-  use Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
-  use Cosmology_Parameters                 , only : cosmologyParametersSimple
-  use Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
-  use Dark_Matter_Particles                , only : darkMatterParticleCDM
-  use Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
-  use Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
-  use Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
-  use Transfer_Functions                   , only : transferFunctionIdentity
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
-  use Cosmological_Density_Field           , only : criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt  , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy  , cosmologicalMassVarianceFilteredPower
-  use Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
-  use Events_Hooks                         , only : eventsHooksInitialize
+  use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                 , only : cosmologyParametersSimple
+  use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
+  use :: Events_Hooks                         , only : eventsHooksInitialize
+  use :: Galacticus_Display                   , only : Galacticus_Verbosity_Level_Set                            , verbosityStandard
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
+  use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
+  use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                  , linearGrowthCollisionlessMatter
+  use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
+  use :: Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Transfer_Functions                   , only : transferFunctionIdentity
+  use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                         , Unit_Tests_End_Group                                         , Unit_Tests_Finish
+  use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
   implicit none
   double precision                                                                 , dimension(5), parameter :: redshift                                                   =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
   integer                                                                                        , parameter :: countFractionBaryon                                        =25

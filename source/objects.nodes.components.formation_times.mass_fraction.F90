@@ -71,7 +71,7 @@ contains
   subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion(node)
     !% Handle node promotion for formation times.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes  , only : treeNode               , nodeComponentFormationTime, nodeComponentFormationTimeMassFraction
+    use :: Galacticus_Nodes  , only : nodeComponentFormationTime, nodeComponentFormationTimeMassFraction, treeNode
     use :: ISO_Varying_String
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
@@ -97,7 +97,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
-    use :: Galacticus_Nodes  , only : treeNode, nodeComponentFormationTime, nodeComponentBasic, defaultFormationTimeComponent
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent, nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
     type            (treeNode                  )               , pointer :: nodeProgenitor

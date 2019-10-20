@@ -30,7 +30,7 @@ program Test_Zhao2009_Flat
   use :: Dark_Matter_Profiles_Concentration       , only : darkMatterProfileConcentration     , darkMatterProfileConcentrationClass
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: File_Utilities                           , only : Count_Lines_in_File
-  use :: Galacticus_Display                       , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Display                       , only : Galacticus_Verbosity_Level_Set     , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize       , nodeComponentBasic                     , treeNode
   use :: Galacticus_Paths                         , only : galacticusPath                     , pathTypeExec

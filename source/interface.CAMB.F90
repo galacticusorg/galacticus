@@ -52,12 +52,12 @@ contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
     !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
-    use ISO_Varying_String, only : varying_string            , replace            , operator(//), assignment(=), &
-         &                         char
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace, &
+          &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
     type   (varying_string), intent(  out)           :: cambPath, cambVersion
@@ -132,27 +132,7 @@ contains
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sort                            , only : Sort_Index_Do
-    use               :: System_Command                  , only : System_Command_Do
-    use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
-    use               :: Tables                          , only : table                       , table1DGeneric
     use               :: String_Handling                 , only : operator(//)
-    use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: FGSL                            , only : FGSL_Interp_cSpline
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock  , &
-          &                                                       File_Lock_Initialize        , File_Path          , File_Remove, File_Unlock, &
-          &                                                       lockDescriptor
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
-    use               :: HDF5                            , only : hsize_t
-    use               :: Hashes_Cryptographic            , only : Hash_MD5
-    use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
-    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract    , len        , &
-          &                                                       operator(==)                , varying_string
-    use               :: Input_Parameters                , only : inputParameters
-    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
-    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
-    use               :: Sort                            , only : Sort_Index_Do
     use               :: System_Command                  , only : System_Command_Do
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
     use               :: Tables                          , only : table                       , table1DGeneric

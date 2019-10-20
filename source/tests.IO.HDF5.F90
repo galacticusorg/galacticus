@@ -20,7 +20,7 @@
 program Tests_IO_HDF5
   !% Tests the HDF5 I/O module.
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: HDF5
+  use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5               , hdf5Object
   use :: ISO_Varying_String
   use :: Kind_Numbers      , only : kind_int8

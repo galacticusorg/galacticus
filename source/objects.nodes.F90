@@ -22,22 +22,22 @@
 
 module Galacticus_Nodes
   !% Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
+  use            :: Abundances_Structure            , only : abundances
+  use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
   use            :: Galacticus_Error                , only : Galacticus_Error_Report
+  use            :: Hashes                          , only : doubleScalarHash              , genericScalarHash
+  use            :: Histories                       , only : history                       , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
   use, intrinsic :: ISO_C_Binding
   use            :: ISO_Varying_String
+  use            :: Kepler_Orbits                   , only : keplerOrbit
   use            :: Kind_Numbers                    , only : kind_int8
   use            :: Memory_Management               , only : Memory_Usage_Record           , memoryTypeNodes
-  use            :: Kepler_Orbits                   , only : keplerOrbit
-  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric
-  use            :: Abundances_Structure            , only : abundances
-  use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
-  use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-  use            :: Histories                       , only : history                       , longIntegerHistory
-  use            :: Numerical_Constants_Astronomical, only : massSolar                     , gigaYear          , megaParsec, luminosityZeroPointAB
+  use            :: Numerical_Constants_Astronomical, only : gigaYear                      , luminosityZeroPointAB, massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes    , only : kilo
   use            :: Pseudo_Random                   , only : pseudoRandom
-  use            :: Hashes                          , only : doubleScalarHash              , genericScalarHash
+  use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
+  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
@@ -1052,7 +1052,7 @@ module Galacticus_Nodes
     !% called a very large number of times).
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
-    use String_Handling   , only : operator(//)
+    use :: String_Handling   , only : operator(//)
     implicit none
     character(len=*         ), intent(in   ) :: nameComponent
     integer  (kind_int8     ), intent(in   ) :: indexNode

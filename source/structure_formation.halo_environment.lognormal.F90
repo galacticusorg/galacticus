@@ -179,7 +179,7 @@ contains
 
   double precision function logNormalOverdensityLinearGradientTime(self,node)
     !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node

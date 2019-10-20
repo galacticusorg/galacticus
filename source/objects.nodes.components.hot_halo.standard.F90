@@ -262,14 +262,14 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Initialize(globalParameters_)
     !% Initializes the standard hot halo component module.
-    use :: Abundances_Structure                 , only : Abundances_Property_Count         , abundances
+    use :: Abundances_Structure                 , only : Abundances_Property_Count           , abundances
     use :: Chemical_Abundances_Structure        , only : Chemicals_Property_Count
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent           , nodeComponentHotHaloStandard
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent             , nodeComponentHotHaloStandard
     use :: ISO_Varying_String
-    use :: Input_Parameters                     , only : inputParameter                    , inputParameters
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode      , hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, &
-          &                                              starveSatellites                  , starveSatellitesOutflowed   , currentNode                         , formationNode
+    use :: Input_Parameters                     , only : inputParameter                      , inputParameters
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                         , formationNode                  , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode   , &
+          &                                              hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed
     implicit none
     type(inputParameters             ), intent(inout) :: globalParameters_
     type(varying_string              )                :: hotHaloCoolingFromText
@@ -751,10 +751,10 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
-    use :: Abundances_Structure                 , only : abundances                        , max                   , operator(*)
+    use :: Abundances_Structure                 , only : abundances             , max                 , operator(*)
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask                     , nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode, currentNode                 , formationNode
+    use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     implicit none
     type            (treeNode                ), intent(inout)          , pointer :: node
     double precision                          , intent(in   )                    :: massRate
@@ -1164,12 +1164,12 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Outflow_Return(self,interrupt,interruptProcedure)
     !% Return outflowed gas to the hot halo.
-    use :: Abundances_Structure                 , only : abundances                          , max
+    use :: Abundances_Structure                 , only : abundances                           , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask                       , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                    , starveSatellitesOutflowed
+    use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Numerical_Constants_Math             , only : Pi
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
@@ -1371,7 +1371,7 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
     !% Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
     !% accreted if the merger tree had infinite resolution).
-    use :: Accretion_Halos       , only : accretionModeTotal               , accretionModeHot
+    use :: Accretion_Halos       , only : accretionModeHot                 , accretionModeTotal
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : defaultHotHaloComponent          , nodeComponentBasic, nodeComponentHotHalo, nodeEvent, &
           &                               nodeEventSubhaloPromotion        , treeNode
@@ -1432,14 +1432,14 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Standard_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use :: Abundances_Structure                 , only : abundances                          , zeroAbundances        , operator(*)
+    use :: Abundances_Structure                 , only : abundances                          , operator(*)         , zeroAbundances
     use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , zeroChemicalAbundances, operator(*)
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)         , zeroChemicalAbundances
     use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic      , radiusLarge
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, &
+    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic    , radiusLarge
+    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites      , starveSatellitesOutflowed
+    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites    , starveSatellitesOutflowed
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: nodeParent

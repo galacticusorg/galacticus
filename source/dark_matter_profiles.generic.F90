@@ -896,8 +896,8 @@ contains
 
   double precision function genericCircularVelocityMaximumNumerical(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use Root_Finder         , only : rootFinder  , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
-    use Numerical_Comparison, only : Values_Agree
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
     type            (treeNode                ), intent(inout), target :: node

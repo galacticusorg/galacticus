@@ -22,8 +22,8 @@
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use :: Linear_Growth      , only : linearGrowthClass
   use :: Galacticus_Nodes   , only : treeNode
+  use :: Linear_Growth      , only : linearGrowthClass
   use :: Tables             , only : table1DLinearLinear
 
   private
@@ -291,7 +291,7 @@ contains
   double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node)
     !% Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
-    use :: Root_Finder        , only : rootFinder                    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
+    use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (criticalOverdensityClass), intent(inout)              , target :: self
     double precision                          , intent(in   )                       :: criticalOverdensity

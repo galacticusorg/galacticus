@@ -127,7 +127,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
-    use :: Abundances_Structure              , only : abundances                   , zeroAbundances                       , operator(*)
+    use :: Abundances_Structure              , only : abundances                   , operator(*)                          , zeroAbundances
     use :: Galacticus_Nodes                  , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode
     use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporation, hotHaloOutflowReincorporationClass
     implicit none

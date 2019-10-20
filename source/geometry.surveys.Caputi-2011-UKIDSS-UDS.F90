@@ -25,6 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
           &                                                redshiftMinimum              , redshiftMaximum

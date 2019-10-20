@@ -34,6 +34,7 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
      !% A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
+     private
      type            (varying_string              )                              :: label                       , comment                          , &
           &                                                                         propertyLabel               , propertyComment                  , &
           &                                                                         scatterLabel                , scatterComment                   , &
@@ -638,8 +639,8 @@ contains
 
   double precision function scatterFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a scatterFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
     use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self

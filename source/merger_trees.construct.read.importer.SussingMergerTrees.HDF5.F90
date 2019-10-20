@@ -211,7 +211,7 @@ contains
     !% Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
     use            :: Arrays_Search     , only : Search_Indexed
     use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                       verbosityWorking
+          &                                      verbosityWorking
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers      , only : kind_int8

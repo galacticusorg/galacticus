@@ -566,7 +566,7 @@ contains
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
     !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use :: Cosmology_Parameters, only : hubbleUnitsTime, hubbleUnitsStandard
+    use :: Cosmology_Parameters, only : hubbleUnitsStandard, hubbleUnitsTime
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: expansionFactor

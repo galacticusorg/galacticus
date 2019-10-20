@@ -28,7 +28,7 @@ contains
 
   subroutine Functions_Global_Set()
     !% Set pointers to all global functions.
-    use Functions_Global
+    use :: Functions_Global
     !# <include directive="functionGlobal" type="moduleUse">
     include 'functionGlobal.modules.inc'
     !# </include>

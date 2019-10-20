@@ -24,6 +24,7 @@
   !# </surveyGeometry>
 
   type, extends(surveyGeometryBaldry2012GAMA) :: surveyGeometryKelvin2014GAMAnear
+     private
      double precision :: distanceMinimumSurvey
    contains
      procedure :: distanceMinimum => kelvin2014GAMAnearDistanceMinimum

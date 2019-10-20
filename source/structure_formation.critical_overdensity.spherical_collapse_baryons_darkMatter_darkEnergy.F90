@@ -19,11 +19,11 @@
 
   !% An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
 
-  use Tables                               , only : table1D
-  use Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
-  use Dark_Matter_Particles                , only : darkMatterParticle                                , darkMatterParticleClass
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
-  use Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
+  use :: Dark_Matter_Particles                , only : darkMatterParticle                                , darkMatterParticleClass
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
+  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Tables                               , only : table1D
 
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy">
   !#  <description>Critical overdensity for collapse based on the spherical collapse accounting for non-clustering of baryons.</description>
@@ -77,7 +77,7 @@ contains
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type            (inputParameters                                         ), intent(inout) :: parameters
@@ -122,9 +122,9 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
-    use Dark_Matter_Particles     , only : darkMatterParticleCDM
-    use Galacticus_Error          , only : Galacticus_Error_Report
-    use Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
+    use :: Dark_Matter_Particles     , only : darkMatterParticleCDM
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                          :: self
     class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_

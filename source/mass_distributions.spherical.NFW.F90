@@ -24,6 +24,7 @@
   !# </massDistribution>
   type, public, extends(massDistributionSpherical) :: massDistributionNFW
      !% The NFW \citep{navarro_structure_1996} mass distribution.
+     private
      double precision :: densityNormalization, scaleLength
    contains
      procedure :: density => nfwDensity
@@ -161,7 +162,7 @@ contains
 
   double precision function nfwDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
-    use :: Coordinates, only : coordinate, coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinate, coordinateSpherical
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     class           (coordinate         ), intent(in   ) :: coordinates

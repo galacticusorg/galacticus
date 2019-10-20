@@ -380,7 +380,7 @@ contains
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : Search_Array_For_Closest
     use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
-    use            :: FODEIV2
+    use            :: FODEIV2                     , only : fodeiv2_system               , fodeiv2_driver
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5             , only : galacticusOutputFile
@@ -629,7 +629,7 @@ contains
 
     double precision function stellarSpectraConvolution(age)
       !% Integrand for convolution of stellar spectra.
-      use :: Galacticus_Error, only : errorStatusSuccess, errorStatusInputDomain
+      use :: Galacticus_Error, only : errorStatusInputDomain, errorStatusSuccess
       implicit none
       double precision, intent(in   ) :: age
       integer                         :: status

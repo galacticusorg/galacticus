@@ -19,8 +19,8 @@
 
   !% A spherical collapse solver class for universes consisting of collisionless matter and a cosmological constant.
 
-  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
-  use Linear_Growth      , only : linearGrowthClass      , linearGrowth
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: Linear_Growth      , only : linearGrowth      , linearGrowthClass
 
   !# <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt">
   !#  <description>A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.</description>
@@ -92,7 +92,7 @@ contains
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
     !% input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                :: self
     type (inputParameters                                 ), intent(inout) :: parameters
@@ -131,10 +131,10 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
     !% Compute the critical overdensity for collapse for the spherical collapse model.
-    use ISO_Varying_String , only : varying_string    , operator(//)
-    use Galacticus_Error   , only : errorStatusSuccess
-    use Galacticus_Paths   , only : galacticusPath    , pathTypeDataDynamic
-    use Tables             , only : table1D
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)      , varying_string
+    use :: Tables            , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)              , intent(inout) :: self
     double precision                                                                , intent(in   ) :: time
@@ -159,10 +159,10 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
     !% Tabulate the virial density contrast for the spherical collapse model.
-    use ISO_Varying_String , only : varying_string         , operator(//)
-    use Galacticus_Error   , only : errorStatusSuccess
-    use Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
-    use Tables             , only : table1D
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)      , varying_string
+    use :: Tables            , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -187,10 +187,10 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
-    use ISO_Varying_String , only : varying_string          , operator(//)
-    use Galacticus_Error   , only : errorStatusSuccess
-    use Galacticus_Paths   , only : galacticusPath          , pathTypeDataDynamic
-    use Tables             , only : table1D
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)      , varying_string
+    use :: Tables            , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -215,12 +215,12 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
-    use Root_Finder        , only : rootFinder                    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Kind_Numbers       , only : kind_dble
-    use Tables             , only : table1DLogarithmicLinear
-    use Cosmology_Functions, only : timeToleranceRelativeBigCrunch
-    use Linear_Growth      , only : normalizeMatterDominated
-    use Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Kind_Numbers       , only : kind_dble
+    use :: Linear_Growth      , only : normalizeMatterDominated
+    use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables             , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -384,7 +384,7 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
     !% Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
-    use Root_Finder, only : rootFinder
+    use :: Root_Finder, only : rootFinder
     implicit none
     double precision            , intent(in   ) :: epsilonPerturbation
     double precision            , parameter     :: toleranceAbsolute               =0.0d0, toleranceRelative               =1.0d-9
@@ -442,8 +442,8 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
   double precision function cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)
-    use Numerical_Integration, only : Integrate    , Integrate_Done
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation
     type   (fgsl_function             )                      :: integrandFunction
@@ -526,14 +526,14 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
     !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
-    use Linear_Growth        , only : normalizeMatterDominated
-    use Root_Finder          , only : rootFinder              , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Numerical_Integration, only : Integrate               , Integrate_Done
-    use Numerical_Ranges     , only : Make_Range              , rangeTypeLinear          , rangeTypeLogarithmic
-    use Array_Utilities      , only : Array_Reverse
-    use Arrays_Search        , only : Search_Array
-    use FGSL                 , only : fgsl_function           , fgsl_integration_workspace
-    use Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Array_Utilities      , only : Array_Reverse
+    use :: Arrays_Search        , only : Search_Array
+    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Linear_Growth        , only : normalizeMatterDominated
+    use :: Numerical_Integration, only : Integrate                , Integrate_Done
+    use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
+    use :: Root_Finder          , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                  , intent(in   ) :: time
@@ -758,8 +758,8 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusRoot(radiusNow)
     !% Root function used in solving for the radius of a perturbation.
-    use Numerical_Integration, only : Integrate    , Integrate_Done
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     double precision                            , intent(in   ) :: radiusNow
     double precision                            , parameter     :: numericalLimitEpsilon=1.0d-4
@@ -803,12 +803,12 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
     !% Attempt to restore a table from file.
-    use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
-    use IO_HDF5           , only : hdf5Object        , hdf5Access
-    use File_Utilities    , only : File_Exists       , lockDescriptor          , File_Lock_Initialize, File_Lock, &
-         &                         File_Unlock
-    use Tables            , only : table1D           , table1DLogarithmicLinear
-    use ISO_Varying_String, only : varying_string    , char
+    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Lock_Initialize, File_Unlock, &
+          &                           lockDescriptor
+    use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
+    use :: IO_HDF5           , only : hdf5Access     , hdf5Object
+    use :: ISO_Varying_String, only : char           , varying_string
+    use :: Tables            , only : table1D        , table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -856,11 +856,11 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
     !% Attempt to restore a table from file.
-    use IO_HDF5           , only : hdf5Object    , hdf5Access
-    use Tables            , only : table1D
-    use ISO_Varying_String, only : varying_string, char
-    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
-         &                         File_Path     , Directory_Make
+    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Lock_Initialize, File_Path, &
+          &                           File_Unlock   , lockDescriptor
+    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: ISO_Varying_String, only : char          , varying_string
+    use :: Tables            , only : table1D
     implicit none
     class  (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     class  (table1D                                         ), intent(in   ) :: storeTable

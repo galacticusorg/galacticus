@@ -496,7 +496,8 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, getNodeName, &
+          &                         item                   , node                , nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(keplerOrbit), intent(inout) :: self
@@ -1156,7 +1157,7 @@ contains
 
   function Kepler_Orbits_Position(orbit) result(position)
     !% Return the position of the orbit in Cartesian coordinates.
-    use :: Coordinates, only : coordinateCartesian, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateCartesian
     implicit none
     type (coordinateCartesian)                :: position
     class(keplerOrbit        ), intent(inout) :: orbit
@@ -1172,7 +1173,7 @@ contains
 
   function Kepler_Orbits_Velocity(orbit) result(velocity)
     !% Return the position of the orbit in Cartesian coordinates.
-    use :: Coordinates, only : coordinateCartesian, assignment(=)
+    use :: Coordinates, only : assignment(=) , coordinateCartesian
     use :: Vectors    , only : Vector_Product
     implicit none
     type            (coordinateCartesian)                :: velocity

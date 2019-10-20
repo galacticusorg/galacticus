@@ -20,9 +20,9 @@
   !% Contains a module which implements the transfer function fitting function of
   !% \cite{bardeen_statistics_1986}.
 
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionBBKS">
   !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>

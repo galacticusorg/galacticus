@@ -25,6 +25,7 @@
   !#  <description>Implements the geometry of the GAMA survey of \cite{baldry_galaxy_2012}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBaldry2012GAMA
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_   => null()
      double precision                                   :: distanceMaximumSurvey
    contains

@@ -123,7 +123,7 @@ contains
   double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
-    use Kind_Numbers    , only : kind_int8
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
     class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
     double precision                                                 , intent(in   ) :: mass                , massMaximum, &

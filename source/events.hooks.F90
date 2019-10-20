@@ -21,7 +21,7 @@
 
 module Events_Hooks
   !% Handles hooking of object function class into events.
-  use Locks, only : ompReadWriteLock
+  use :: Locks, only : ompReadWriteLock
   private
   public :: hook, hookUnspecified
 
@@ -238,7 +238,7 @@ contains
 
   logical function eventHookUnspecifiedIsAttached(self,object_,function_)
     !% Return true if an object is attached to an event hook.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
     class    (*                   ), intent(in   ), target  :: object_

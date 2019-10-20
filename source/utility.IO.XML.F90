@@ -21,7 +21,7 @@
 
 module IO_XML
   !% Implements various utility functions for extracting data from XML files.
-  use :: FoX_dom
+  use :: FoX_dom           , only : node, nodeList
   use :: ISO_Varying_String
   implicit none
   private
@@ -57,6 +57,7 @@ contains
 
   function XML_Extract_Text(xmlElement)
     !% Extract the text from an XML element and return as a variable length string.
+    use :: FoX_dom, only : getTextContent, node
     implicit none
     type(varying_string)                         :: XML_Extract_Text
     type(node          ), intent(in   ), pointer :: xmlElement
@@ -67,6 +68,7 @@ contains
 
   integer function XML_Array_Length(xmlElement,arrayElementName)
     !% Return the length of an array of XML elements.
+    use :: FoX_dom, only : getElementsByTagName, getLength, node, nodeList
     implicit none
     type     (node    ), intent(in   ), pointer :: xmlElement
     character(len=*   ), intent(in   )          :: arrayElementName
@@ -79,6 +81,8 @@ contains
 
   subroutine XML_Array_Read_Static_One_Column(xmlElement,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
+    use :: FoX_dom, only : extractDataContent, getElementsByTagName, getLength, item, &
+          &                node              , nodeList
     implicit none
     type            (node    )              , intent(in   ), pointer :: xmlElement
     character       (len=*   )              , intent(in   )          :: arrayElementName
@@ -99,6 +103,8 @@ contains
 
   subroutine XML_Array_Read_One_Column(xmlElement,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
+    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, getLength, item, &
+          &                          node              , nodeList
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (node    )                           , intent(in   ), pointer :: xmlElement
@@ -121,6 +127,8 @@ contains
 
   subroutine XML_Array_Read_Two_Column(xmlElement,arrayElementName,column1,column2)
     !% Read two columns of data from an array of XML elements.
+    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, getLength, item, &
+          &                          node              , nodeList
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (node    )                           , intent(in   ), pointer :: xmlElement
@@ -145,6 +153,8 @@ contains
 
   subroutine XML_List_Array_Read_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
+    use :: FoX_dom          , only : extractDataContent, getLength, item, node, &
+          &                          nodeList
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (nodeList)                           , intent(in   ), pointer :: xmlElements
@@ -166,6 +176,8 @@ contains
 
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
+    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
+          &                nodeList
     implicit none
     type            (nodeList)              , intent(in   ), pointer :: xmlElements
     character       (len=*   )              , intent(in   )          :: arrayElementName
@@ -185,6 +197,8 @@ contains
 
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
+    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
+          &                nodeList
     implicit none
     type     (nodeList)              , intent(in   ), pointer :: xmlElements
     character(len=*   )              , intent(in   )          :: arrayElementName
@@ -204,6 +218,8 @@ contains
 
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of character data from an array of XML elements.
+    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
+          &                nodeList
     implicit none
     type     (nodeList        )              , intent(in   ), pointer :: xmlElements
     character(len=*           )              , intent(in   )          :: arrayElementName
@@ -223,6 +239,8 @@ contains
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
+    use :: FoX_dom         , only : getElementsByTagName   , getLength, getParentNode, item, &
+          &                         node                   , nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
@@ -272,6 +290,8 @@ contains
 
   logical function XML_Path_Exists(xmlElement,path)
     !% Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
+    use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
+          &                getParentNode, item                , node     , nodeList
     implicit none
     type     (node         ), intent(in   ), pointer :: xmlElement
     character(len=*        ), intent(in   )          :: path
@@ -317,6 +337,8 @@ contains
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
     !% specified---if the extracted method does not match one of these an error is issued.
+    use :: FoX_dom         , only : Node                              , NodeList, extractDataContent, getElementsByTagname, &
+          &                         getLength                         , item
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Table_Labels    , only : enumerationExtrapolationTypeEncode
     implicit none
@@ -350,7 +372,13 @@ contains
 
   function XML_Parse(fileName,iostat) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
-    use :: File_Utilities  , only : File_Exists            , File_Name, File_Path
+    use :: File_Utilities  , only : File_Exists            , File_Name       , File_Path
+    use :: FoX_dom         , only : ELEMENT_NODE           , destroy         , getAttribute , getChildNodes , &
+          &                         getDocumentElement     , getFirstChild   , getLength    , getNextSibling, &
+          &                         getNodeName            , getNodeType     , getParentNode, hasAttribute  , &
+          &                         hasChildNodes          , importNode      , insertBefore , item          , &
+          &                         node                   , nodeList        , parseFile    , removeChild   , &
+          &                         replaceChild           , setLiveNodeLists
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &

@@ -100,7 +100,8 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use :: FoX_dom
+    use :: FoX_dom         , only : Node                   , NodeList          , destroy, extractDataContent, &
+          &                         getElementsByTagname   , getLength         , item   , parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataStatic
     implicit none
@@ -179,7 +180,8 @@ contains
 
   subroutine Chemical_Structure_Export(thisChemical,outputFile)
     !% Export a chemical structure to a chemical markup language (CML) file.
-    use :: FoX_wxml
+    use :: FoX_wxml, only : xmlf_t        , xml_OpenFile, xml_NewElement, xml_AddCharacters, &
+         &                  xml_EndElement, xml_Close
     implicit none
     class    (chemicalStructure), intent(in   ) :: thisChemical
     character(len=*            ), intent(in   ) :: outputFile

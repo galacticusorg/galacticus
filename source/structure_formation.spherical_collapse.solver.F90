@@ -21,7 +21,7 @@
 
 module Spherical_Collapse_Solvers
   !% Provides a class implementing solvers for collapse of spherical perturbations.
-  use Tables, only : table1D, table2DLinLinLin
+  use :: Tables, only : table1D, table2DLinLinLin
   private
 
   !# <functionClass>

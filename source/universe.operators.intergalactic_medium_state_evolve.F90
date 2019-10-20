@@ -372,7 +372,7 @@ contains
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
      use            :: Arrays_Search           , only : Search_Array_For_Closest
-     use            :: FODEIV2
+     use            :: FODEIV2                 , only : fodeiv2_system           , fodeiv2_driver
      use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
      use            :: Galacticus_HDF5         , only : galacticusOutputFile

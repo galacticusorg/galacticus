@@ -1267,7 +1267,7 @@ contains
     !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     !% dimensionless wavenumber.
     use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                 verbosityWorking          , verbosityInfo
+          &                                verbosityInfo             , verbosityWorking
     use :: Galacticus_Error       , only : Galacticus_Error_Report   , errorStatusSuccess
     use :: Memory_Management      , only : allocateArray             , deallocateArray
     use :: Numerical_Integration  , only : Integrate                 , Integrate_Done
@@ -1797,8 +1797,7 @@ contains
 
   subroutine einastoRadialVelocityDispersionTabulate(self,radius,alphaRequired)
     !% Tabulates the radial velocity dispersion vs. radius for Einasto halos.
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                 verbosityWorking
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
     use :: Memory_Management      , only : allocateArray             , deallocateArray
     use :: Numerical_Interpolation, only : Interpolate_Done
     use :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear          , rangeTypeLogarithmic

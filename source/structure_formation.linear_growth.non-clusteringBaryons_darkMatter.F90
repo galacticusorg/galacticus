@@ -23,9 +23,9 @@
   !# <linearGrowth name="linearGrowthNonClusteringBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
-  use Tables              , only : table1D
-  use Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsTime
-  use Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsTime
+  use :: Tables              , only : table1D
 
   type, extends(linearGrowthClass) :: linearGrowthNonClusteringBaryonsDarkMatter
      !% A linear growth of cosmological structure contrast class in the limit where baryons do not cluster (i.e. small scales),
@@ -122,10 +122,10 @@ contains
   subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
-    use FGSL      , only : fgsl_odeiv_step         , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-         &                 FGSL_Success
-    use Tables    , only : table1DLogarithmicLinear
-    use ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
+    use :: FGSL      , only : FGSL_Success            , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
+          &                   fgsl_odeiv_system
+    use :: ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
+    use :: Tables    , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
     double precision                                            , intent(in   ) :: time

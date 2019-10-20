@@ -21,10 +21,10 @@
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: File_Utilities            , only : lockDescriptor
   use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
   use :: Linear_Growth             , only : linearGrowth            , linearGrowthClass
   use :: Tables                    , only : table                   , table1DLogarithmicLinear
-  use File_Utilities            , only : lockDescriptor
 
   public :: gnedin2000ODEs
 
@@ -145,8 +145,8 @@ contains
 
   function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
     !% Constructor for the filtering mass class.
-    use Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
-    use File_Utilities  , only : Directory_Make, File_Path, File_Lock_Initialize
+    use :: File_Utilities  , only : Directory_Make, File_Lock_Initialize, File_Path
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type (intergalacticMediumFilteringMassGnedin2000)                        :: self
     class(cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
@@ -252,10 +252,10 @@ contains
   subroutine gnedin2000Tabulate(self,time)
     !% Construct a table of filtering mass as a function of cosmological time.
     use :: FODEIV2                 , only : fodeiv2_driver         , fodeiv2_system
+    use :: File_Utilities          , only : File_Lock              , File_Unlock
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: ODEIV2_Solver           , only : ODEIV2_Solve
-    use File_Utilities          , only : File_Lock              , File_Unlock
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
@@ -597,8 +597,8 @@ contains
 
   subroutine gnedin2000FileRead(self)
     !% Read tabulated data on linear growth factor from file.
-    use IO_HDF5       , only : hdf5Object , hdf5Access
-    use File_Utilities, only : File_Exists
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access , hdf5Object
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
     double precision                                            , dimension(:), allocatable :: massFiltering
@@ -623,8 +623,8 @@ contains
 
   subroutine gnedin2000FileWrite(self)
     !% Write tabulated data on linear growth factor to file.
-    use HDF5   , only : hsize_t
-    use IO_HDF5, only : hdf5Object, hdf5Access
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     type (hdf5Object                                )                :: dataFile

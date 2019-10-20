@@ -163,7 +163,7 @@ contains
 
   double precision function betaProfileDensity(self,node,radius)
     !% Return the density in a single-betaProfile hot halo mass distribution.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -178,7 +178,7 @@ contains
 
   double precision function betaProfileDensityLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node

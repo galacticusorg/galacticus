@@ -384,7 +384,7 @@ contains
 
   subroutine Node_Component_Satellite_Preset_Orphanize(node)
     !% Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level          , verbosityInfo
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic        , nodeComponentSatellite    , treeNode
     use :: ISO_Varying_String
     use :: String_Handling   , only : operator(//)

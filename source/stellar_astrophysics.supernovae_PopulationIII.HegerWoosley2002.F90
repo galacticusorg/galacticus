@@ -64,14 +64,14 @@ contains
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
-    use :: FoX_dom
+    use :: FoX_dom                         , only : destroy                , node              , parseFile
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataStatic
     use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
     use :: ISO_Varying_String
     use :: Numerical_Constants_Astronomical, only : massSolar
-    use :: Numerical_Constants_Units       , only : ergs
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     type   (supernovaePopulationIIIHegerWoosley2002)                         :: self
     class  (stellarAstrophysicsClass               ), intent(in   ), target  :: stellarAstrophysics_

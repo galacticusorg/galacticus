@@ -39,8 +39,8 @@ contains
 
   function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters          , only : inputParameter                                , inputParameters
-    use Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Input_Parameters          , only : inputParameter                                , inputParameters
+    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy)                :: self
     type   (inputParameters                                           ), intent(inout) :: parameters
@@ -75,7 +75,7 @@ contains
 
   function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} dark matter halo virial density contrast class.
-    use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
+    use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
     type   (virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy)                        :: self
     integer                                                            , intent(in   )         :: energyFixedAt

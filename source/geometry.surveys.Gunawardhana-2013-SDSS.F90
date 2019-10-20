@@ -25,7 +25,8 @@
   !#  <description>Implements the geometry of the SDSS survey of \cite{gunawardhana_galaxy_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryGunawardhana2013SDSS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     private
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                    gunawardhana2013SDSSDestructor
      procedure :: distanceMinimum => gunawardhana2013SDSSDistanceMinimum
@@ -101,8 +102,8 @@ contains
     use :: Cosmology_Functions_Options     , only : distanceTypeComoving
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Units       , only : ergs
     use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &

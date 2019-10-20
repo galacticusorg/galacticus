@@ -374,7 +374,8 @@ contains
 
   subroutine Abundances_Builder(self,abundancesDefinition)
     !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, item, &
+          &                         node                   , nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (abundances), intent(inout)          :: self
@@ -910,7 +911,7 @@ contains
 
   double precision function Abundances_Hydrogen_Mass_Fraction(self)
     !% Returns the mass fraction of hydrogen.
-    use :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, hydrogenByMassPrimordial, metallicitySolar
+    use :: Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, hydrogenByMassSolar, metallicitySolar
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision            , parameter     :: massFractionMinimum=0.7d0
@@ -925,7 +926,7 @@ contains
 
   double precision function Abundances_Helium_Mass_Fraction(self)
     !% Returns the mass fraction of helium.
-    use :: Numerical_Constants_Astronomical, only : heliumByMassSolar, heliumByMassPrimordial, metallicitySolar
+    use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, heliumByMassSolar, metallicitySolar
     implicit none
     class(abundances), intent(in   ) :: self
 
@@ -939,7 +940,7 @@ contains
 
   double precision function Abundances_Hydrogen_Number_Fraction(self)
     !% Returns the number fraction of hydrogen.
-    use :: Numerical_Constants_Atomic, only : atomicMassHydrogen, atomicMassHelium
+    use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
@@ -955,7 +956,7 @@ contains
 
   double precision function Abundances_Helium_Number_Fraction(self)
     !% Returns the mass fraction of helium.
-    use :: Numerical_Constants_Atomic, only : atomicMassHydrogen, atomicMassHelium
+    use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
@@ -972,8 +973,8 @@ contains
   subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time,outputInstance)
     !% Store an abundances object in the output buffers.
-    use :: Multi_Counters, only : multiCounter
     use :: Kind_Numbers  , only : kind_int8
+    use :: Multi_Counters, only : multiCounter
     implicit none
     class           (abundances    )                , intent(in   ) :: self
     double precision                                , intent(in   ) :: time

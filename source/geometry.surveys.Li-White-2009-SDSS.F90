@@ -25,6 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
      double precision                                   :: redshiftMinimum               , redshiftMaximum
      double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum
@@ -190,7 +191,7 @@ contains
 
   subroutine liWhite2009SDSSRandomsInitialize(self)
     !% Compute the window function for the survey.
-    use :: File_Utilities          , only : Directory_Make            , File_Exists        , Count_Lines_In_File
+    use :: File_Utilities          , only : Count_Lines_In_File       , Directory_Make     , File_Exists
     use :: Galacticus_Display      , only : Galacticus_Display_Message
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic

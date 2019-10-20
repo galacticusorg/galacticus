@@ -20,8 +20,8 @@
   !% An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
-  use Linear_Growth             , only : linearGrowthClass      , linearGrowth
-  use Cosmology_Functions       , only : cosmologyFunctionsClass, cosmologyFunctions
+  use :: Cosmology_Functions       , only : cosmologyFunctions           , cosmologyFunctionsClass
+  use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
   !#  <description>Dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.</description>

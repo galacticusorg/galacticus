@@ -20,11 +20,11 @@
   !% An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
   !% of radiation perturbations.
 
-  use Tables                    , only : table2DLogLogLin
-  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
-  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
-  use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
-  use File_Utilities            , only : lockDescriptor
+  use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
+  use :: File_Utilities            , only : lockDescriptor
+  use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use :: Tables                    , only : table2DLogLogLin
 
   !# <linearGrowth name="linearGrowthBaryonsDarkMatter">
   !#  <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
@@ -169,9 +169,9 @@ contains
 
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
-    use File_Utilities  , only : Directory_Make         , File_Path, File_Lock_Initialize
+    use :: File_Utilities  , only : Directory_Make         , File_Lock_Initialize, File_Path
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                           :: self
     double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
@@ -242,15 +242,15 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use   FGSL            , only : FGSL_Success
-    use   ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
-    use   FODEIV2         , only : fodeiv2_system                  , fodeiv2_driver
-    use   Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
-    use   Tables          , only : table1DGeneric
-    use   Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
-    use   Galacticus_Error, only : Galacticus_Error_Report
-    use   File_Utilities  , only : File_Lock                       , File_Unlock
-    !$use OMP_Lib         , only : omp_lock_kind
+    use    :: FGSL            , only : FGSL_Success
+    use    :: FODEIV2         , only : fodeiv2_driver                  , fodeiv2_system
+    use    :: File_Utilities  , only : File_Lock                       , File_Unlock
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    use    :: Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
+    use    :: ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
+    !$ use :: OMP_Lib         , only : omp_lock_kind
+    use    :: Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use    :: Tables          , only : table1DGeneric
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   )           :: time
@@ -389,10 +389,10 @@ contains
 
     integer function growthFactorODEs(time,values,derivatives)
       !% System of differential equations to solve for the growth factor.
-      use Numerical_Constants_Physical    , only : boltzmannsConstant
-      use Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, heliumByMassPrimordial
-      use Numerical_Constants_Atomic      , only : massHydrogenAtom        , massHeliumAtom        , electronMass
-      use Numerical_Constants_Prefixes    , only : kilo
+      use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
+      use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
+      use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+      use :: Numerical_Constants_Prefixes    , only : kilo
       implicit none
       double precision              , intent(in   ) :: time
       double precision, dimension(:), intent(in   ) :: values
@@ -589,10 +589,10 @@ contains
 
   subroutine baryonsDarkMatterFileRead(self)
     !% Read tabulated data on linear growth factor from file.
-    use IO_HDF5           , only : hdf5Object                , hdf5Access
-    use File_Utilities    , only : File_Exists
-    use Table_Labels      , only : extrapolationTypeAbort    , extrapolationTypeFix
-    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Table_Labels      , only : extrapolationTypeAbort    , extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -629,9 +629,9 @@ contains
 
   subroutine baryonsDarkMatterFileWrite(self)
     !% Write tabulated data on linear growth factor to file.
-    use HDF5              , only : hsize_t
-    use IO_HDF5           , only : hdf5Object                , hdf5Access
-    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: HDF5              , only : hsize_t
+    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5Object                   )                :: dataFile

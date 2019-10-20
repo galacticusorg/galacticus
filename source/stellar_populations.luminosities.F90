@@ -75,20 +75,20 @@ contains
 
   subroutine Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     !% Tabulate stellar population luminosity in the given filters.
-    use            :: Abundances_Structure                  , only : logMetallicityZero           , metallicityTypeLogarithmicByMassSolar
-    use            :: File_Utilities                        , only : File_Exists                  , File_Lock                            , File_Lock_Initialize     , File_Unlock                , &
-         &                                                           lockDescriptor
-    use            :: Galacticus_Display                    , only : Galacticus_Display_Counter   , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                                           verbosityWorking
-    use            :: Galacticus_Error                      , only : Galacticus_Error_Report      , Galacticus_Warn                      , errorStatusFail          , errorStatusSuccess
-    use            :: Galacticus_Paths                      , only : galacticusPath               , pathTypeDataDynamic
-    use            :: IO_HDF5                               , only : hdf5Access                   , hdf5Object
+    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar
+    use            :: File_Utilities                        , only : File_Exists                              , File_Lock                            , File_Lock_Initialize     , File_Unlock                , &
+          &                                                          lockDescriptor
+    use            :: Galacticus_Display                    , only : Galacticus_Display_Counter               , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                                          verbosityWorking
+    use            :: Galacticus_Error                      , only : Galacticus_Error_Report                  , Galacticus_Warn                      , errorStatusFail          , errorStatusSuccess
+    use            :: Galacticus_Paths                      , only : galacticusPath                           , pathTypeDataDynamic
+    use            :: IO_HDF5                               , only : hdf5Access                               , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: Input_Parameters                      , only : globalParameters             , inputParameter                       , inputParameters
-    use            :: Instruments_Filters                   , only : Filter_Extent                , Filter_Name
-    use            :: Memory_Management                     , only : Memory_Usage_Record          , allocateArray                        , deallocateArray
+    use            :: Input_Parameters                      , only : globalParameters                         , inputParameter                       , inputParameters
+    use            :: Instruments_Filters                   , only : Filter_Extent                            , Filter_Name
+    use            :: Memory_Management                     , only : Memory_Usage_Record                      , allocateArray                        , deallocateArray
     use            :: Numerical_Constants_Astronomical      , only : metallicitySolar
-    use            :: Numerical_Integration                 , only : Integrate                    , Integrate_Done
+    use            :: Numerical_Integration                 , only : Integrate                                , Integrate_Done
     use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
     use            :: Stellar_Populations                   , only : stellarPopulationClass
@@ -473,12 +473,12 @@ contains
     !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}.
-    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar, Abundances_Get_Metallicity
+    use            :: Abundances_Structure                  , only : Abundances_Get_Metallicity               , logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Error                      , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
-    use            :: Stellar_Populations                   , only : stellarPopulationClass
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
+    use            :: Stellar_Populations                   , only : stellarPopulationClass
     implicit none
     integer                                                    , dimension( :                   ), intent(in   ) :: filterIndex                           , luminosityIndex
     double precision                                           , dimension( :                   ), intent(in   ) :: age                                   , redshift
@@ -555,12 +555,12 @@ contains
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from
     !% the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}, for all available ages.
+    use            :: Abundances_Structure                  , only : Abundances_Get_Metallicity               , logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use, intrinsic :: ISO_C_Binding
-    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar, Abundances_Get_Metallicity
     use            :: Memory_Management                     , only : allocateArray
     use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
-    use            :: Stellar_Populations                   , only : stellarPopulationClass
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
+    use            :: Stellar_Populations                   , only : stellarPopulationClass
     implicit none
     integer                                                    , intent(in   ), dimension( :   )              :: filterIndex                           , luminosityIndex
     double precision                                           , intent(in   ), dimension( :   )              :: redshift

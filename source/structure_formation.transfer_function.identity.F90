@@ -139,7 +139,7 @@ contains
 
   subroutine identityDescriptor(self,descriptor,includeMethod)
     !% Return an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor

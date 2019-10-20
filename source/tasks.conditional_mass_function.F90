@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Conditional_Mass_Functions    , only : conditionalMassFunction   , conditionalMassFunctionClass   , conditionalMassFunctionClass
-  use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass        , cosmologyFunctionsClass
-  use :: Geometry_Surveys              , only : surveyGeometry            , surveyGeometryClass            , surveyGeometryClass
-  use :: Halo_Mass_Functions           , only : haloMassFunction          , haloMassFunctionClass          , haloMassFunctionClass
-  use :: Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass, massFunctionIncompletenessClass
+  use :: Conditional_Mass_Functions    , only : conditionalMassFunction   , conditionalMassFunctionClass
+  use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
+  use :: Geometry_Surveys              , only : surveyGeometry            , surveyGeometryClass
+  use :: Halo_Mass_Functions           , only : haloMassFunction          , haloMassFunctionClass
+  use :: Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass
 
   !# <task name="taskConditionalMassFunction">
   !#  <description>A task which computes the conditional mass function in bins of mass for a fixed halo mass.</description>
@@ -299,15 +299,7 @@ contains
     use :: ISO_Varying_String   , only : char                     , var_str
     use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : Integrate
-    use String_Handling      , only : operator(//)
-    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
-    use :: Galacticus_HDF5      , only : galacticusOutputFile
-    use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : char                     , var_str
-    use :: Memory_Management    , only : allocateArray
-    use :: Numerical_Integration, only : Integrate
+    use :: String_Handling      , only : operator(//)
     implicit none
     class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status

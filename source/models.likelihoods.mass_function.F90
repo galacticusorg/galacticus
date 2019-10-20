@@ -247,7 +247,7 @@ contains
     use :: Conditional_Mass_Functions    , only : conditionalMassFunctionBehroozi2010
     use :: FGSL                          , only : fgsl_function                              , fgsl_integration_workspace
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Linear_Algebra                , only : operator(*)                                , assignment(=)
+    use :: Linear_Algebra                , only : assignment(=)                              , operator(*)
     use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessSurfaceBrightness
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Numerical_Integration         , only : Integrate                                  , Integrate_Done

@@ -300,10 +300,7 @@ contains
     use :: Galacticus_HDF5 , only : galacticusOutputFile
     use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
     use :: IO_HDF5         , only : hdf5Access          , hdf5Object
-    use String_Handling , only : operator(//)
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: String_Handling , only : operator(//)
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node

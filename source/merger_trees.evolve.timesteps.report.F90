@@ -30,9 +30,9 @@ contains
   subroutine Evolve_To_Time_Report(message,time,index)
     !% Display a report on evolution timestep criteria.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
-    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : assignment(=)             , varying_string
     use :: Kind_Numbers      , only : kind_int8
+    use :: String_Handling   , only : operator(//)
     implicit none
     character       (len=*         ), intent(in   )           :: message
     double precision                , intent(in   )           :: time

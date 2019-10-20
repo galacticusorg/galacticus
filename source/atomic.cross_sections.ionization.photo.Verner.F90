@@ -1963,8 +1963,8 @@ contains
     !% improved to fit smoothly the experimental inner-shell ionization energies
     !% of neutral atoms.
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, barn      , electronVolt
     use :: Numerical_Constants_Prefixes, only : centi            , mega
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, barn      , electronVolt
     implicit none
     class           (atomicCrossSectionIonizationPhotoVerner), intent(inout) :: self
     integer                                                  , intent(in   ) :: atomicNumber  , ionizationState , shellNumber

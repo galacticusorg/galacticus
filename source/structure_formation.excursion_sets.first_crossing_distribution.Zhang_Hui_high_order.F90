@@ -88,11 +88,11 @@ contains
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                            verbosityWorking
+          &                                           verbosityWorking
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management      , only : allocateArray             , deallocateArray
     use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLogarithmic               , rangeTypeLinear
+    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time

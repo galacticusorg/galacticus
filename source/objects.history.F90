@@ -478,7 +478,7 @@ contains
 
   subroutine History_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(history), intent(inout) :: self
@@ -491,7 +491,7 @@ contains
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(longIntegerHistory), intent(inout) :: self
@@ -505,7 +505,7 @@ contains
   subroutine History_Dump(self)
     !% Dumps a history object.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
     implicit none
     class    (history       ), intent(in   ) :: self
     integer                                  :: i      , j
@@ -577,7 +577,7 @@ contains
   subroutine History_Long_Integer_Dump(self)
     !% Dumps a history object.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
     implicit none
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
@@ -1247,8 +1247,8 @@ contains
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
      use            :: Arrays_Search   , only : Search_Array
      use            :: Galacticus_Error, only : Galacticus_Error_Report
-     use            :: Numerical_Ranges, only : rangeTypeUndefined
      use, intrinsic :: ISO_C_Binding
+     use            :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
      class           (history ), intent(inout)           :: thisHistory
      type            (history ), intent(in   )           :: addHistory
@@ -1372,9 +1372,9 @@ contains
    subroutine History_Extend(thisHistory,timeRange,times)
      !% Extends a history to encompass the given time range.
      use :: Galacticus_Error  , only : Galacticus_Error_Report
-     use :: ISO_Varying_String, only : varying_string         , operator(//)        , assignment(=)
-     use :: String_Handling   , only : operator(//)
+     use :: ISO_Varying_String, only : assignment(=)          , operator(//)        , varying_string
      use :: Numerical_Ranges  , only : rangeTypeLinear        , rangeTypeLogarithmic, rangeTypeUndefined
+     use :: String_Handling   , only : operator(//)
      implicit none
      class           (history       )                             , intent(inout)           :: thisHistory
      double precision                             , dimension(2  ), intent(in   ), optional :: timeRange

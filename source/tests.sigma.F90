@@ -20,8 +20,8 @@
 program Tests_Sigma
   !% Tests
   use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                , cosmologicalMassVarianceClass, cosmologicalMassVarianceFilteredPower
-  use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
   use :: Cosmology_Functions                 , only : cosmologyFunctions                      , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
   use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: ISO_Varying_String
   use :: Input_Parameters                    , only : inputParameters

@@ -127,9 +127,9 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(globalParameters_)
     !% Initializes the tree node recent merging flow statistics module.
-    use :: Galacticus_Nodes , only : defaultMergingStatisticsComponent
-    use :: Input_Parameters , only : inputParameter                   , inputParameters
-    use :: Memory_Management, only : allocateArray
+    use :: Galacticus_Nodes                             , only : defaultMergingStatisticsComponent
+    use :: Input_Parameters                             , only : inputParameter                   , inputParameters
+    use :: Memory_Management                            , only : allocateArray
     use :: Node_Component_Merging_Statistics_Recent_Data, only : mergingStatisticsRecentCount
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_

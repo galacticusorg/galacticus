@@ -24,6 +24,7 @@
   !#  <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES
+     private
      double precision :: distanceMaximumSurvey
    contains
      procedure :: fieldCount                => localGroupDESFieldCount

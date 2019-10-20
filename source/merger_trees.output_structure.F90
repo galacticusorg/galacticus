@@ -48,7 +48,7 @@ contains
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScale          , darkMatterHaloScaleClass
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic      , treeNode
-    use :: IO_HDF5                         , only : hdf5Object                   , hdf5Access
+    use :: IO_HDF5                         , only : hdf5Access                   , hdf5Object
     use :: ISO_Varying_String
     use :: Input_Parameters                , only : globalParameters             , inputParameter
     use :: Kind_Numbers                    , only : kind_int8

@@ -109,7 +109,7 @@ contains
   function tinker2008ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_DOM
+    use :: FoX_DOM           , only : destroy                     , node                             , parseFile
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
     use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name

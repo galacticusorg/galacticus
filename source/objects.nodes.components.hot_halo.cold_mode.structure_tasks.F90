@@ -135,7 +135,7 @@ contains
   !# </densityTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
-    use :: Coordinates               , only : coordinateSpherical    , assignment(=)
+    use :: Coordinates               , only : assignment(=)          , coordinateSpherical
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
           &                                   massTypeGaseous        , weightByMass
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode

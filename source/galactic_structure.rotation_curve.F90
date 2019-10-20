@@ -33,8 +33,8 @@ contains
 
   double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,componentType,massType)
     !% Solve for the rotation curve a given radius. Assumes that galactic structure has already been solved for.
+    use :: Galactic_Structure_Options, only : componentTypeAll                 , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForRotationCurveSummation, reductionSummation, treeNode
-    use :: Galactic_Structure_Options, only : massTypeAll                      , componentTypeAll
     !# <include directive="rotationCurveTask" type="moduleUse">
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
     !# </include>

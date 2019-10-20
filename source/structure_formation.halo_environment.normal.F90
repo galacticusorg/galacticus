@@ -19,13 +19,13 @@
 
 !% Contains a module which implements a normally-distributed halo environment.
 
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Kind_Numbers            , only : kind_int8
-  use :: Linear_Growth           , only : linearGrowthClass
-  use :: Statistics_Distributions, only : distributionFunction1DNormal, distributionFunction1DPeakBackground
-  use :: Tables                  , only : table2DLinLinLin
-  use Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Kind_Numbers              , only : kind_int8
+  use :: Linear_Growth             , only : linearGrowthClass
+  use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
+  use :: Statistics_Distributions  , only : distributionFunction1DNormal                    , distributionFunction1DPeakBackground
+  use :: Tables                    , only : table2DLinLinLin
 
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
@@ -239,7 +239,7 @@ contains
 
   double precision function normalOverdensityLinearGradientTime(self,node)
     !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node

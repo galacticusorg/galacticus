@@ -19,9 +19,9 @@
 
 !% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
 
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !# <transferFunction name="transferFunctionBode2001">
   !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>

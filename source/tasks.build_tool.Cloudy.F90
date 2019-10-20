@@ -49,7 +49,7 @@ contains
 
   subroutine buildToolCloudyPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent  , Galacticus_Display_Unindent, Galacticus_Display_Message
+    use :: Galacticus_Display, only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error  , only : errorStatusSuccess
     use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
     implicit none

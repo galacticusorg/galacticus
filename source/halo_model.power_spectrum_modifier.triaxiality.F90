@@ -26,6 +26,7 @@
   !#  <description>A triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.</description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierTriaxiality
+     private
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      type (table1DLogarithmicLinear)          :: triaxialityTable
    contains

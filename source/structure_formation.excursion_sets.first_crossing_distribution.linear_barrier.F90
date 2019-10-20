@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a excursion set first crossing statistics class for linear barriers.
 
-  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
   !#  <description>An excursion set first crossing statistics class for linear barriers.</description>

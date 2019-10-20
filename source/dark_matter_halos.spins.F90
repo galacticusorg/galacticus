@@ -32,9 +32,9 @@ contains
 
   subroutine assertPropertiesGettable()
     !% Assert that properties required for spin calculations are gettable.
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent    , defaultSpinComponent
-    use ISO_Varying_String, only : operator(//)
+    use :: Galacticus_Error  , only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes  , only : defaultBasicComponent    , defaultSpinComponent
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
 
     if (.not.propertiesAsserted) then

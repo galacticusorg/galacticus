@@ -297,7 +297,7 @@ contains
   subroutine augmentOperate(self,tree)
     !% Augment the resolution of a merger tree by inserting high resolution branches.
     use            :: Galacticus_Display , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                        verbosityWorking
+          &                                       verbosityWorking
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic        , treeNode                   , treeNodeList
     use, intrinsic :: ISO_C_Binding
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes

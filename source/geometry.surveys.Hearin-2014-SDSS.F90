@@ -25,6 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: distanceMinimumLimit, distanceMaximumLimit   , &
           &                                                massPrevious        , distanceMaximumPrevious

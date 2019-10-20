@@ -21,7 +21,8 @@
 
 program Tests_IO_XML
   !% Tests the XML I/O module.
-  use :: FoX_DOM
+  use :: FoX_DOM           , only : destroy                       , extractDataContent    , getElementsByTagName , node                             , &
+          &                         nodeList                      , serialize
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error  , only : Galacticus_Error_Report
   use :: IO_XML            , only : XML_Array_Length              , XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &

@@ -49,8 +49,8 @@ contains
           &                                          FGSL_Well_Defined            , fgsl_odeiv_control      , fgsl_odeiv_evolve      , fgsl_odeiv_step        , &
           &                                          fgsl_odeiv_system
     use            :: Galacticus_Error      , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding         , only : c_size_t                     , c_ptr
-    use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt           , interruptedAtX
+    use, intrinsic :: ISO_C_Binding         , only : c_ptr                        , c_size_t
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX               , odeSolverInterrupt
     implicit none
     double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
     integer                             , intent(in   )           :: yCount
@@ -124,7 +124,7 @@ contains
 
   function odesWrapper(x,y,dydx,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} ODE functions.
-    use, intrinsic :: ISO_C_Binding, only : c_int, c_double, c_ptr
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(kind=c_int   )                              :: odesWrapper
     real   (kind=c_double), value                       :: x

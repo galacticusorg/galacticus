@@ -208,7 +208,7 @@ contains
 
   subroutine geometryMangleBuild()
     !% Download and build the \textsc{mangle} code.
-    use :: File_Utilities    , only : File_Exists            , Directory_Make
+    use :: File_Utilities    , only : Directory_Make         , File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String

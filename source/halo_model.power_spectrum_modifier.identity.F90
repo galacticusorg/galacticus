@@ -23,6 +23,7 @@
   !#  <description>A identity modifier for power spectra in the halo model of clustering.</description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierIdentity
+     private
    contains
      procedure :: modify => identityModify
   end type haloModelPowerSpectrumModifierIdentity
