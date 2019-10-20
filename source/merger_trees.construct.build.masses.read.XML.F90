@@ -79,7 +79,7 @@ contains
 
   subroutine readXMLRead(self,mass,weight)
     !% Read merger tree masses from file.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : destroy                , getDocumentElement   , node           , parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Array_Read         , XML_Array_Read_Static, XML_Path_Exists
     implicit none

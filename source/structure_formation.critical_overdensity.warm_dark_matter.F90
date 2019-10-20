@@ -108,7 +108,7 @@ contains
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: FoX_DOM
+    use :: FoX_DOM              , only : destroy                     , node                             , parseFile
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataStatic
     use :: IO_XML               , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name

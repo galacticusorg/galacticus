@@ -244,7 +244,6 @@ contains
 
   subroutine summationDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use :: FoX_DOM
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (coolingFunctionSummation), intent(inout)           :: self

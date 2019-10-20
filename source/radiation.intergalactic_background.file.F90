@@ -90,10 +90,11 @@ contains
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
-    use :: Array_Utilities  , only : Array_Is_Monotonic     , Array_Reverse , directionIncreasing
-    use :: FoX_DOM
+    use :: Array_Utilities  , only : Array_Is_Monotonic     , Array_Reverse     , directionIncreasing
+    use :: FoX_DOM          , only : destroy                , extractDataContent, getElementsByTagname , getLength                        , &
+          &                          item                   , node              , nodeList             , parseFile
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Array_Length       , XML_Array_Read, XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML           , only : XML_Array_Length       , XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                        :: self

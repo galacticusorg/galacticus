@@ -508,7 +508,7 @@ contains
 
   subroutine Chemicals_Builder(self,chemicalsDefinition)
     !% Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(chemicalAbundances), intent(inout) :: self

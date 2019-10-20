@@ -526,7 +526,8 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, item, node, &
+          &                         nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout)          :: self

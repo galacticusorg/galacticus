@@ -242,7 +242,8 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
     !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, item, &
+          &                         node                   , nodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(inout)            :: self

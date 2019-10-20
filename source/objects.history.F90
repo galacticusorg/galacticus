@@ -478,7 +478,7 @@ contains
 
   subroutine History_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(history), intent(inout) :: self
@@ -491,7 +491,7 @@ contains
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
     !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
-    use :: FoX_DOM
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(longIntegerHistory), intent(inout) :: self

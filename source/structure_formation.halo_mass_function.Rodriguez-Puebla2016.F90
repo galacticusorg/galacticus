@@ -73,7 +73,6 @@ contains
 
   function rodriguezPuebla2016ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
-    use :: FoX_DOM
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String
     implicit none
