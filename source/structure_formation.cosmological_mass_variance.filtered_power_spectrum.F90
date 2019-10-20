@@ -107,11 +107,13 @@
      !@   <objectMethod>
      !@     <method>fileWrite</method>
      !@     <type>void</type>
+     !@     <arguments></arguments>
      !@     <description>Write the tabulated mass variance to file.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>fileRead</method>
      !@     <type>void</type>
+     !@     <arguments></arguments>
      !@     <description>Read the tabulated mass variance from file.</description>
      !@   </objectMethod>
      !@   <objectMethod>
