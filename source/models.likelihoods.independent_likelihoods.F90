@@ -37,7 +37,8 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods
      !% Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
      private
-     type(posteriorSampleLikelihoodList), pointer :: modelLikelihoods => null()
+     type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
+     double precision                                         :: logLikelihoodAccept
    contains
      final     ::                    independentLikelihoodsDestructor
      procedure :: evaluate        => independentLikelihoodsEvaluate
@@ -66,6 +67,15 @@ contains
          &                                                                     errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
 
+    !# <inputParameter>
+    !#   <name>logLikelihoodAccept</name>
+    !#   <variable>self%logLikelihoodAccept</variable>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     if     (                                                                                   &
          &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
          &  /=                                                                                 &
@@ -108,12 +118,13 @@ contains
     return
   end function independentLikelihoodsConstructorParameters
 
-  function independentLikelihoodsConstructorInternal(modelLikelihoods) result(self)
+  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept) result(self)
     !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
-    type(posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
-    type(posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
-    !# <constructorAssign variables="*modelLikelihoods"/>
+    type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
+    type            (posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
+    double precision                                                         , intent(in   ) :: logLikelihoodAccept
+    !# <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept"/>
 
     return
   end function independentLikelihoodsConstructorInternal
@@ -144,7 +155,8 @@ contains
 
   double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
@@ -158,7 +170,7 @@ contains
     type            (posteriorSampleLikelihoodList                  ), pointer                     :: modelLikelihood_
     double precision                                                 , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
     real                                                                                           :: timeEvaluate_
-    double precision                                                                               :: logLikelihoodVariance_
+    double precision                                                                               :: logLikelihoodVariance_, logPriorProposed_
     integer                                                                                        :: i                     , j
     !GCC$ attributes unused :: forceAcceptance
 
@@ -210,6 +222,12 @@ contains
        end forall
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
+       ! Determine if the chain is already accepted - if it is we set the proposed prior to be impossible so that the model will not actually be evaluated.
+       if (logLikelihoodCurrent > self%logLikelihoodAccept) then
+          logPriorProposed_=logImpossible
+       else
+          logPriorProposed_=logPriorProposed
+       end if
        ! Evaluate this likelihood
        timeEvaluate_=-1.0
        independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                        &
@@ -221,7 +239,7 @@ contains
             &                                                                                                                     temperature             , &
             &                                                                                                                     logLikelihoodCurrent    , &
             &                                                                                                                     logPriorCurrent         , &
-            &                                                                                                                     logPriorProposed        , &
+            &                                                                                                                     logPriorProposed_       , &
             &                                                                                                                     timeEvaluate_           , &
             &                                                                                                                     logLikelihoodVariance_    &
             &                                                                                                                    )
