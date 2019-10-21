@@ -19,7 +19,7 @@
 
   !% Implementation of an ADAF accretion disk.
 
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib, only : omp_lock_kind
   use    :: Tables , only : table1DLogarithmicLinear
 
   !# <accretionDisks name="accretionDisksADAF">

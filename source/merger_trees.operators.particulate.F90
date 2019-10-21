@@ -333,22 +333,23 @@ contains
 
   subroutine particulateOperate(self,tree)
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
-    use :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
-    use :: Cosmology_Parameters              , only : hubbleUnitsLittleH
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeDark
-    use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Display                , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear        , verbosityStandard    , verbosityWorking
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition, nodeComponentSatellite, &
-          &                                           treeNode
-    use :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
-    use :: ISO_Varying_String
-    use :: Memory_Management                 , only : allocateArray                    , deallocateArray
-    use :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
-    use :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use :: Numerical_Comparison              , only : Values_Agree
-    use :: Numerical_Constants_Math          , only : Pi
+    use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
+    use    :: Cosmology_Parameters              , only : hubbleUnitsLittleH
+    use    :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
+    use    :: Galactic_Structure_Options        , only : massTypeDark
+    use    :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
+    use    :: Galacticus_Display                , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear        , verbosityStandard    , verbosityWorking
+    use    :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition, nodeComponentSatellite, &
+          &                                              treeNode
+    use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
+    use    :: ISO_Varying_String
+    use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
+    use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
+    use    :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use    :: Numerical_Comparison              , only : Values_Agree
+    use    :: Numerical_Constants_Math          , only : Pi
+    !$ use :: OMP_Lib                           , only : OMP_Get_Thread_Num
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree

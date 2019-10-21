@@ -52,7 +52,7 @@ contains
     !% Evolves all properties of a merger tree to the specified time.
     use    :: Galacticus_Error       , only : errorStatusSuccess
     use    :: Merger_Trees_Initialize, only : Merger_Tree_Initialize
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib                , only : OMP_Set_Lock          , OMP_Unset_Lock, omp_lock_kind
     implicit none
     class           (mergerTreeEvolverNonEvolving)                   , intent(inout) :: self
     integer                                       , optional         , intent(  out) :: status

@@ -19,7 +19,7 @@
 
   !% Implementation of an exponential disk mass distribution class.
 
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib, only : omp_lock_kind
   use    :: Tables , only : table1DLogarithmicLinear
 
   !# <massDistribution name="massDistributionExponentialDisk">

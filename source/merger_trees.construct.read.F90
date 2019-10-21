@@ -968,7 +968,7 @@ contains
     use    :: Merger_Tree_Read_Importers, only : nodeDataMinimal                  , nodeData
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
     use    :: Pseudo_Random             , only : pseudoRandom
     use    :: Sort                      , only : Sort_Do
     use    :: String_Handling           , only : operator(//)

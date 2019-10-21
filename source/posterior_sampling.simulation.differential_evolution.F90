@@ -509,6 +509,10 @@ contains
        end if
        ! Store the proposed state vector.
        call stateProposed%update(stateVectorProposed,.true.,.false.)
+       select type (stateProposed)
+       type is (posteriorSampleStateSimple)
+          call stateProposed%countSet(self%posteriorSampleState_%count())
+       end select
        ! Evaluate likelihood.
        timeEvaluatePrevious=timeEvaluate
        timeEvaluate        =-1.0

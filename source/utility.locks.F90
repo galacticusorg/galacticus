@@ -22,7 +22,7 @@
 module Locks
   !% Provides advanced locks.
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
-  !$ use            :: OMP_Lib
+  !$ use            :: OMP_Lib      , only : omp_lock_kind
   implicit none
   private
   public :: ompLock, ompReadWriteLock, ompIncrementalLock
@@ -174,6 +174,7 @@ contains
 
   subroutine ompLockDestructor(self)
     !% Destructor for OpenMP lock objects.
+    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompLock), intent(inout) :: self
 
@@ -184,6 +185,7 @@ contains
 
   subroutine ompLockInitialize(self)
     !% (Re)initialize an OpenMP lock object.
+    !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompLock), intent(inout) :: self
 
@@ -195,6 +197,7 @@ contains
 
   subroutine ompLockSet(self)
     !% Get a lock on an OpenMP lock objects.
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Set_Lock
     implicit none
     class(ompLock), intent(inout) :: self
 
@@ -206,6 +209,7 @@ contains
 
   subroutine ompLockUnset(self)
     !% Release a lock on an OpenMP lock objects.
+    !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class(ompLock), intent(inout) :: self
 
@@ -216,6 +220,7 @@ contains
 
   logical function ompLockOwnedByThread(self)
     !% Return true if the lock is owend by the current thread.
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     class(ompLock), intent(inout) :: self
 
@@ -226,6 +231,7 @@ contains
 
   function ompReadWriteLockConstructor() result (self)
     !% Constructor for OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : omp_get_max_threads
     implicit none
     type(ompReadWriteLock) :: self
 
@@ -237,6 +243,7 @@ contains
 
   subroutine ompReadWriteLockDestructor(self)
     !% Destructor for OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompReadWriteLock), intent(inout) :: self
     integer                                  :: i
@@ -254,6 +261,7 @@ contains
 
   subroutine ompReadWriteLockInitialize(self)
     !% (Re)initialize an OpenMP read/write lock object.
+    !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout) :: self
     integer                                  :: i
@@ -267,6 +275,7 @@ contains
 
   subroutine ompReadWriteLockSetRead(self)
     !% Get a read lock on an OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : OMP_Set_Lock, omp_get_thread_num
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
 
@@ -276,6 +285,7 @@ contains
 
   subroutine ompReadWriteLockUnsetRead(self)
     !% Release a read lock on an OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : OMP_Unset_Lock, omp_get_thread_num
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
 
@@ -285,6 +295,7 @@ contains
 
   subroutine ompReadWriteLockSetWrite(self,haveReadLock)
     !% Get a write lock on an OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : OMP_Set_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout)               :: self
     logical                  , intent(in   ), optional     :: haveReadLock
@@ -303,6 +314,7 @@ contains
 
   subroutine ompReadWriteLockUnsetWrite(self,haveReadLock)
     !% Release a write lock on an OpenMP read/write lock objects.
+    !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout)           :: self
     logical                  , intent(in   ), optional :: haveReadLock
@@ -328,6 +340,7 @@ contains
 
   subroutine ompIncrementalLockDestructor(self)
     !% Destructor for OpenMP incremental lock objects.
+    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompIncrementalLock), intent(inout) :: self
 
@@ -338,6 +351,7 @@ contains
 
   subroutine ompIncrementalLockInitialize(self)
     !% (Re)initialize an OpenMP incremental lock object.
+    !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompIncrementalLock), intent(inout) :: self
 
@@ -349,6 +363,7 @@ contains
 
   subroutine ompIncrementalLockSet(self,lockValue)
     !% Get a lock on an OpenMP incremental lock object.
+    !$ use :: OMP_Lib, only : OMP_Set_Lock
     implicit none
     class  (ompIncrementalLock), intent(inout) :: self
     integer(c_size_t          ), intent(in   ) :: lockValue
@@ -365,6 +380,7 @@ contains
 
   subroutine ompIncrementalLockUnset(self)
     !% Release a lock on an OpenMP incremental lock object.
+    !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class(ompIncrementalLock), intent(inout) :: self
 

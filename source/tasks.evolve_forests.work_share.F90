@@ -22,7 +22,7 @@
 module Task_Evolve_Forests_Work_Shares
   !% Provides a class that implements general tasks to be performed by \glc.
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
-  !$ use            :: OMP_Lib
+  !$ use            :: OMP_Lib      , only : OMP_Get_Thread_Num
   private
 
   !# <functionClass>
@@ -67,7 +67,7 @@ contains
 #ifdef USEMPI
     use    :: MPI_Utilities, only : mpiSelf
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib      , only : OMP_Get_Max_Threads
     implicit none
     class  (evolveForestsWorkShareClass), intent(inout)               :: self
     logical                             , intent(in   )               :: utilizeOpenMPThreads

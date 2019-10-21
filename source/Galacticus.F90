@@ -36,7 +36,7 @@ program Galacticus
   use    :: MPI                                 , only : MPI_Thread_Single                        , MPI_Thread_Multiple        , MPI_Comm_World
   use    :: MPI_Utilities                       , only : mpiFinalize                              , mpiInitialize
 #endif
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib                             , only : OMP_Get_Max_Threads                      , OMP_Set_Nested
   use    :: System_Limits                       , only : System_Limits_Set
   use    :: Tasks                               , only : task                                     , taskClass                  , taskDoDestroy
   implicit none

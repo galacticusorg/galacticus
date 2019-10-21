@@ -92,7 +92,7 @@ contains
 
   subroutine Galacticus_Error_Report_Char(message)
     !% Display an error message.
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -203,7 +203,7 @@ contains
 #ifdef USEMPI
     use    :: MPI       , only : MPI_COmm_Rank           , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -250,9 +250,9 @@ contains
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -299,9 +299,9 @@ contains
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -348,9 +348,9 @@ contains
   subroutine Galacticus_Signal_Handler_SIGBUS()
     !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -397,9 +397,9 @@ contains
   subroutine Galacticus_Signal_Handler_SIGILL()
     !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
@@ -466,9 +466,9 @@ contains
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI, only : MPI_Initialized, MPI_Comm_Rank, MPI_Comm_World
+    use    :: MPI       , only : MPI_Initialized        , MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F

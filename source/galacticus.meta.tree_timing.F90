@@ -21,9 +21,8 @@
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
-  use   , intrinsic :: ISO_C_Binding, only : c_size_t
-  use               :: Kind_Numbers , only : kind_int8
-  !$ use            :: OMP_Lib
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Kind_Numbers , only : kind_int8
   implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Tree_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
@@ -92,6 +91,7 @@ contains
   !# </mergerTreePreTreeConstructionTask>
   subroutine Meta_Tree_Timing_Pre_Construction()
     !% Record the CPU time prior to construction of a tree.
+    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_WTime
     implicit none
 
     ! Ensure the module is initialized.
@@ -118,8 +118,9 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Meta_Tree_Timing_Pre_Evolve(tree)
     !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
-    use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use    :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    !$ use :: OMP_Lib            , only : OMP_In_Parallel         , OMP_Get_WTime
     implicit none
     type (mergerTree              ), intent(in   ) :: tree
     type (treeNode                ), pointer       :: node
@@ -158,7 +159,8 @@ contains
   !# </mergerTreePostEvolveTask>
   subroutine Meta_Tree_Timing_Post_Tree_Evolve()
     !% Record the CPU time after evolving a tree.
-    use :: Memory_Management, only : allocateArray, deallocateArray
+    use    :: Memory_Management, only : allocateArray  , deallocateArray
+    !$ use :: OMP_Lib          , only : OMP_In_Parallel, OMP_Get_WTime
     implicit none
     double precision           , allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
          &                                                    treeMassesTemporary
