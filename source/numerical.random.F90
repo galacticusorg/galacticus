@@ -120,7 +120,7 @@ contains
 
   subroutine pseudoRandomReset(pseudoSequenceObject,reset,ompThreadOffset,mpiRankOffset,incrementSeed)
 #ifdef USEMPI
-    use    :: MPI
+    use    :: MPI    , only : MPI_Comm_Rank, MPI_Comm_World
 #endif
     !$ use :: OMP_Lib
     implicit none

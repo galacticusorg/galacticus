@@ -320,8 +320,8 @@ contains
   !# <unitName>Node_Component_Basic_Standard_Post_Step</unitName>
   !# </postStepTask>
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
-    !% Trim histories attached to the disk.
-    use :: FGSL
+    !% Test for failure in the basic mass evolution.
+    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node

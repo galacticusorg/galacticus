@@ -27,7 +27,7 @@ program Tests_Excursion_Sets
   use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
   use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingClass                 , excursionSetFirstCrossingFarahi                              , excursionSetFirstCrossingFarahiMidpoint, excursionSetFirstCrossingLinearBarrier, &
           &                                           excursionSetFirstCrossingZhangHui              , excursionSetFirstCrossingZhangHuiHighOrder
-  use :: Galacticus_Display
+  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                 , verbosityStandard
   use :: Galacticus_Nodes                    , only : treeNode
   use :: ISO_Varying_String                  , only : var_str
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
@@ -68,7 +68,7 @@ program Tests_Excursion_Sets
   logical                                                                                       :: testRates
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityWorking) !Standard)
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   call eventsHooksInitialize()
   ! Build all objects needed for these tests.
   darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                        &

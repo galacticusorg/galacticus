@@ -33,9 +33,7 @@ program Galacticus
   use    :: ISO_Varying_String
   use    :: Input_Parameters                    , only : inputParameter                           , inputParameters
 #ifdef USEMPI
-  use    :: MPI
-#endif
-#ifdef USEMPI
+  use    :: MPI                                 , only : MPI_Thread_Single                        , MPI_Thread_Multiple        , MPI_Comm_World
   use    :: MPI_Utilities                       , only : mpiFinalize                              , mpiInitialize
 #endif
   !$ use :: OMP_Lib
