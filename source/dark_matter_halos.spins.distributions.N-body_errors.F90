@@ -42,7 +42,8 @@
      class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
      class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
-     double precision                                                                 :: massParticle                           , time
+     double precision                                                                 :: massParticle                           , time       , &
+          &                                                                              logNormalRange
      logical                                                                          :: fixedPoint
      integer                                                                          :: particleCountMinimum
      integer                                                                          :: spinCount                              , massCount
@@ -116,14 +117,14 @@ contains
     class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     double precision                                                   :: massParticle                 , redshift                          , &
-         &                                                                time                         , energyEstimateParticleCountMaximum
+         &                                                                time                         , energyEstimateParticleCountMaximum, &
+         &                                                                logNormalRange
     integer                                                            :: particleCountMinimum
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
-    !#   <variable>massParticle</variable>
     !#   <description>Mass of particle in the simulation.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -131,7 +132,6 @@ contains
     !# <inputParameter>
     !#   <name>particleCountMinimum</name>
     !#   <source>parameters</source>
-    !#   <variable>particleCountMinimum</variable>
     !#   <description>Minimum number of particles per halo in the N-body simulation.</description>
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
@@ -139,7 +139,6 @@ contains
     !# <inputParameter>
     !#   <name>energyEstimateParticleCountMaximum</name>
     !#   <source>parameters</source>
-    !#   <variable>energyEstimateParticleCountMaximum</variable>
     !#   <description>Maximum number of particles used in estimating the potential energy of halos. Set to a very large number if no such maximum was used.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -147,8 +146,16 @@ contains
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
-    !#   <variable>redshift</variable>
     !#   <description>Redshift at which the spin distribution should be evaluated.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logNormalRange</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
+    !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -172,6 +179,7 @@ contains
          &                              massParticle                      , &
          &                              particleCountMinimum              , &
          &                              energyEstimateParticleCountMaximum, &
+         &                              logNormalRange                    , &
          &                              time                              , &
          &                              nbodyHaloMassError_               , &
          &                              haloMassFunction_                 , &
@@ -189,7 +197,7 @@ contains
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                        :: self
@@ -199,10 +207,10 @@ contains
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
-    double precision                                   , intent(in   )         :: massParticle                      , time, &
-         &                                                                        energyEstimateParticleCountMaximum
+    double precision                                   , intent(in   )         :: massParticle                      , time          , &
+         &                                                                        energyEstimateParticleCountMaximum, logNormalRange
     integer                                            , intent(in   )         :: particleCountMinimum
-    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
 
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
@@ -634,6 +642,10 @@ contains
            &             nonCentralChiSquaredModeLogarithmic                 +rangeIntegration*nonCentralChiSquaredRootVarianceLogarithmic, &
            &             nonCentralChiSquaredModeLogarithmic-logNormalLogMean+rangeIntegration*logNormalWidth                               &
            &            )
+      ! Limit the range of the log-normal distribution over which we integrate. This is useful to prevent inclusion of halos which
+      ! would be far from equilibrium as judged by an energy condition.
+      logSpinMinimum=max(logSpinMinimum,log(spinMeasured/self%logNormalRange))
+      logSpinMaximum=min(logSpinMaximum,log(spinMeasured*self%logNormalRange))
       ! Evaluate the integrand.
       spinErrorIntegral=+Integrate(                                                & ! Multiply by the integral which gives us the product distribution
            &                       logSpinMinimum                                , & ! of log-normal and non-central χ-square distributions.
@@ -645,7 +657,7 @@ contains
            &                       toleranceRelative       =+1.0d-3                &
            &                      )                                                &
            &            /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
-           &            /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
+           &            /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.      
       call Integrate_Done(integrandFunctionProduct,integrationWorkspaceProduct)
       return
     end function spinErrorIntegral

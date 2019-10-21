@@ -52,12 +52,21 @@ contains
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (*                                     ), pointer       :: percolationObjects_
-    double precision                                                        :: timeRecent
+    double precision                                                        :: timeRecent                   , logNormalRange
 
     !# <inputParameter>
     !#   <name>timeRecent</name>
     !#   <source>parameters</source>
     !#   <description>Halos which experienced a major node merger within a time $\Delta t=${\normalfont \ttfamily [timeRecent]} of the analysis time will be excluded from the analysis.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logNormalRange</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
+    !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -69,7 +78,7 @@ contains
     !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisSpinDistributionBett2007(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisSpinDistributionBett2007(timeRecent,logNormalRange,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="outputTimes_"                 />
@@ -81,7 +90,7 @@ contains
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
+  function spinDistributionBett2007ConstructorInternal(timeRecent,logNormalRange,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
     !% Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
@@ -107,7 +116,7 @@ contains
     use :: Virial_Density_Contrast                 , only : virialDensityContrastPercolation
     implicit none
     type            (outputAnalysisSpinDistributionBett2007           )                              :: self
-    double precision                                                                , intent(in   )  :: timeRecent
+    double precision                                                                , intent(in   )  :: timeRecent                                       , logNormalRange
     class           (cosmologyFunctionsClass                          ), target     , intent(inout)  :: cosmologyFunctions_
     class           (outputTimesClass                                 ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_
@@ -188,6 +197,7 @@ contains
     !#     &amp;                           massParticle                      =massParticleMillennium                                   , &amp;
     !#     &amp;                           particleCountMinimum              =                                               300       , &amp;
     !#     &amp;                           energyEstimateParticleCountMaximum=                                              1000.000d0 , &amp;
+    !#     &amp;                           logNormalRange                    =logNormalRange                                           , &amp;
     !#     &amp;                           time                              =cosmologyFunctions_               %cosmicTime(   1.000d0), &amp;
     !#     &amp;                           nbodyHaloMassError_               =nbodyHaloMassError_                                      , &amp;
     !#     &amp;                           haloMassFunction_                 =haloMassFunction_                                        , &amp;
