@@ -350,7 +350,7 @@ contains
 
   function inputParametersConstructorNull()
     !% Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
-    use :: FoX_dom, only : getDocumentElement, getImplementation, setLiveNodeLists, createDocument
+    use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
 
@@ -780,7 +780,7 @@ contains
 
   logical function inputParameterObjectCreated(self)
     !% Return true if the specified instance of the object associated with this parameter has been created.
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(in   ) :: self
     integer                                :: instance
@@ -803,7 +803,7 @@ contains
   function inputParameterObjectGet(self)
     !% Return a pointer to the object associated with this parameter.
     use    :: Galacticus_Error, only : Galacticus_Error_Report
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
@@ -826,7 +826,7 @@ contains
 
   subroutine inputParameterObjectSet(self,object)
     !% Set a pointer to the object associated with this parameter.
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Max_Threads, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout)         :: self
     class  (functionClass ), intent(in   ), target :: object
@@ -851,8 +851,7 @@ contains
 
   recursive subroutine inputParameterReset(self,children)
     !% Reset objects associated with this parameter and any sub-parameters.
-    use    :: FoX_dom, only : destroy
-    !$ use :: OMP_Lib
+    use :: FoX_dom, only : destroy
     implicit none
     class  (inputParameter), intent(inout), target :: self
     logical                , intent(in   ), optional :: children
@@ -959,12 +958,11 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
-    use    :: FoX_dom            , only : destroy                    , getNodeName               , node
-    use    :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                               verbositySilent
-    !$ use :: OMP_Lib
-    use    :: Regular_Expressions, only : regEx
-    use    :: String_Handling    , only : String_Levenshtein_Distance
+    use :: FoX_dom            , only : destroy                    , getNodeName               , node
+    use :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                            verbositySilent
+    use :: Regular_Expressions, only : regEx
+    use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
@@ -1522,7 +1520,7 @@ contains
 
   subroutine inputParameterListSerializeToXML(self,parameterDoc)
     !% Serialize a list of input parameters to an XML document.
-    use :: FoX_wXML, only : xmlf_t, xml_NewElement, xml_AddAttribute, xml_EndElement
+    use :: FoX_wXML, only : xml_AddAttribute, xml_EndElement, xml_NewElement, xmlf_t
     class (inputParameterList), intent(in   ) :: self
     type  (xmlf_t            ), intent(inout) :: parameterDoc
     integer                                   :: i
@@ -1592,7 +1590,7 @@ contains
   subroutine inputParametersAddParameter(self,parameterName,parameterValue)
     !% Add a parameter to the set.
     use :: FoX_dom, only : appendChild , createElementNS, getNamespaceURI, node, &
-         &                 setAttribute
+          &                setAttribute
     implicit none
     class    (inputParameters), intent(inout) :: self
     character(len=*          ), intent(in   ) :: parameterName   , parameterValue

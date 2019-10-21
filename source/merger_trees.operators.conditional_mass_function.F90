@@ -20,7 +20,7 @@
   !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
 
   use    :: Cosmology_Functions              , only : cosmologyFunctionsClass
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
@@ -204,7 +204,8 @@ contains
 
   function conditionalMFConstructorParameters(parameters) result(self)
     !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
-    use :: Memory_Management, only : allocateArray
+    use    :: Memory_Management, only : allocateArray
+    !$ use :: OMP_Lib          , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     type            (inputParameters                ), intent(inout), target       :: parameters
@@ -606,6 +607,7 @@ contains
 
   subroutine conditionalMFDestructor(self)
     !% Destructor for the merger tree operator function class.
+    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
 
@@ -618,10 +620,11 @@ contains
 
   subroutine conditionalMFOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
-    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
-    use :: Numerical_Comparison, only : Values_Agree
+    use    :: Galacticus_Error    , only : Galacticus_Error_Report
+    use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use    :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
+    use    :: Numerical_Comparison, only : Values_Agree
+    !$ use :: OMP_Lib             , only : OMP_Set_Lock                 , OMP_Unset_Lock
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                               , target :: self
     type            (mergerTree                     ), intent(inout)                               , target :: tree
@@ -1472,11 +1475,12 @@ contains
 
   subroutine conditionalMFFinalize(self)
     !% Outputs conditional mass function.
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
-    use :: ISO_Varying_String
-    use :: Memory_Management               , only : allocateArray       , deallocateArray
-    use :: Numerical_Constants_Astronomical, only : massSolar
+    use    :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use    :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use    :: ISO_Varying_String
+    use    :: Memory_Management               , only : allocateArray       , deallocateArray
+    use    :: Numerical_Constants_Astronomical, only : massSolar
+    !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                         :: self
     type            (hdf5Object                     )                                        :: conditionalMassFunctionGroup       , massDataset

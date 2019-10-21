@@ -21,14 +21,13 @@
 
 program Test_Locks
   !% Tests of OpenMP locking functions.
-  use               :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
-  use               :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
-  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
-  use               :: ISO_Varying_String
-  use               :: Locks             , only : ompIncrementalLock
-  !$ use            :: OMP_Lib
-  use               :: String_Handling   , only : operator(//)
-  use               :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
+  use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: ISO_Varying_String
+  use            :: Locks             , only : ompIncrementalLock
+  use            :: String_Handling   , only : operator(//)
+  use            :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer         (c_size_t          ), parameter               :: elementCount   =100_c_size_t
   integer         (c_size_t          ), dimension(elementCount) :: orderedCount

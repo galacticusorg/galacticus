@@ -184,7 +184,7 @@ contains
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
     use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting  , deadlockStatusIsSuspendable
     use    :: Merger_Trees_Initialize            , only : Merger_Tree_Initialize
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib                            , only : OMP_Set_Lock                , OMP_Unset_Lock                    , omp_lock_kind
     use    :: String_Handling                    , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard )                    , intent(inout) :: self

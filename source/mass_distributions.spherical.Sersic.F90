@@ -20,7 +20,7 @@
   !% Implementation of a S\'ersic mass distribution class.
 
   use    :: FGSL   , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib, only : omp_lock_kind
 
   !# <massDistribution name="massDistributionSersic">
   !#  <description>A S\'ersic mass distribution class.</description>

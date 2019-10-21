@@ -19,10 +19,9 @@
 
 !% Contains a module which implements a gravitational lensing output analysis distribution operator class.
 
-  use    :: Gravitational_Lensing, only : gravitationalLensingClass
-  use    :: Locks                , only : ompReadWriteLock
-  !$ use :: OMP_Lib
-  use    :: Output_Times         , only : outputTimesClass
+  use :: Gravitational_Lensing, only : gravitationalLensingClass
+  use :: Locks                , only : ompReadWriteLock
+  use :: Output_Times         , only : outputTimesClass
 
   type :: grvtnlLnsngTransferMatrix
      double precision, allocatable, dimension(:,:) :: matrix

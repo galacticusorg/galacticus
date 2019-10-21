@@ -111,7 +111,6 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use :: Nearest_Neighbors , only : nearestNeighbors
     use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
-    use :: OMP_Lib
     use :: Pseudo_Random     , only : pseudoRandom
     implicit none
     class           (nbodyOperatorPairCounts), intent(inout)                 :: self
