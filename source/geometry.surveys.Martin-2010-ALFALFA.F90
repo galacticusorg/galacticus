@@ -19,12 +19,13 @@
 
 !% Implements the survey geometry used by \cite{martin_arecibo_2010}.
 
-  use Cosmology_Parameters
-  
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+
   !# <surveyGeometry name="surveyGeometryMartin2010ALFALFA">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
+     private
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      final     ::                      martin2010ALFALFADestructor
@@ -46,7 +47,7 @@ contains
 
   function martin2010ALFALFAConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{martin_arecibo_2010} conditional mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (surveyGeometryMartin2010ALFALFA)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -60,10 +61,9 @@ contains
     !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function martin2010ALFALFAConstructorParameters
-    
+
   function martin2010ALFALFAConstructorInternal(cosmologyParameters_) result(self)
     !% Internal constructor for the \cite{martin_arecibo_2010} conditional mass function class.
-    use Input_Parameters
     implicit none
     type (surveyGeometryMartin2010ALFALFA)                        :: self
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
@@ -77,15 +77,14 @@ contains
     !% Destructor for the ``martin2010ALFALFA'' survey geometry class.
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine martin2010ALFALFADestructor
-  
+
   double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
-    use Cosmology_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute, luminosity
@@ -103,7 +102,7 @@ contains
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
     !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Get the logarithm of the mass.
@@ -125,38 +124,28 @@ contains
 
   double precision function martin2010ALFALFASolidAngle(self,field)
     !% Return the solid angle of the \cite{martin_arecibo_2010} sample.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     integer                                          , intent(in   ), optional :: field
     double precision                                 , parameter               :: solidAngleSurvey=0.79415674617213461d0 ! Computed from survey bounds in Martin et al. (2010; ApJ; 723; 1359)
     !GCC$ attributes unused :: self
-    
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     martin2010ALFALFASolidAngle=solidAngleSurvey
     return
   end function martin2010ALFALFASolidAngle
-  
+
   subroutine martin2010ALFALFARandomsInitialize(self)
     !% Initialize random points for the survey.
-    use Vectors
-    use File_Utilities
-    use Meshes
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Numerical_Constants_Astronomical
-    use Memory_Management
-    use Galacticus_Display
-    use ISO_Varying_String
-    use Cosmology_Functions
-    use Cosmology_Parameters
-    use String_Handling
-    use File_Utilities
-    use Galacticus_Paths
-    use System_Command
-    use Galacticus_Error
-    use Pseudo_Random
+    use            :: ISO_Varying_String
+    use            :: Memory_Management               , only : allocateArray
+    use            :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
+    use            :: Numerical_Constants_Math        , only : Pi
+    use            :: Pseudo_Random                   , only : pseudoRandom
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self
     integer                                          , parameter                               :: randomsCount=1000000

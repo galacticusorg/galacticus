@@ -44,7 +44,7 @@ contains
 
   function stellarMassMorphologyConstructorParameters(parameters)
     !% Constructor for the ``stellarMassMorphology'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterStellarMassMorphology)                :: stellarMassMorphologyConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
@@ -73,7 +73,7 @@ contains
 
   logical function stellarMassMorphologyPasses(self,node)
     !% Implement a stellar mass-weighted morphology high-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterStellarMassMorphology), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of incompleteness assuming a complete sample.
-  
+
   !# <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
   !#  <description>Computes incompleteness for a complete survey.</description>
   !# </massFunctionIncompleteness>
@@ -33,28 +33,28 @@
      !% Constructors for the {\normalfont \ttfamily complete} incompleteness class.
      module procedure completeConstructorParameters
   end interface massFunctionIncompletenessComplete
-  
+
 contains
-  
+
   function completeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily complete} incompleteness class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(massFunctionIncompletenessComplete)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=massFunctionIncompletenessComplete()
     return
   end function completeConstructorParameters
-  
+
   double precision function completeCompleteness(self,mass)
     !% Return the completeness.
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass
     !GCC$ attributes unused :: self, mass
-    
+
     completeCompleteness=1.0d0
     return
   end function completeCompleteness

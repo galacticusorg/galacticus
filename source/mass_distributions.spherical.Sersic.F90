@@ -19,10 +19,9 @@
 
   !% Implementation of a S\'ersic mass distribution class.
 
-  use FGSL      , only : fgsl_function, fgsl_integration_workspace, &
-       &                 fgsl_interp  , fgsl_interp_accel
-  !$ use OMP_Lib
-  
+  use    :: FGSL   , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
+  !$ use :: OMP_Lib
+
   !# <massDistribution name="massDistributionSersic">
   !#  <description>A S\'ersic mass distribution class.</description>
   !# </massDistribution>
@@ -32,10 +31,10 @@
           &                                                            radiusHalfMass_              , index
      ! Tabulation of the Sérsic profile.
      double precision                                               :: coefficient                  , radiusStart
-     logical                                                        :: tableInitialized             
+     logical                                                        :: tableInitialized
      integer                                                        :: tableCount
      double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
-     double precision                                               :: table3dRadiusHalfMass        
+     double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
      double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
           &                                                            tablePotential               , tableRadius
@@ -80,13 +79,13 @@
   ! Module scope variables used in integration and root finding.
   class  (massDistributionSersic), pointer   :: sersicActive
   !$omp threadprivate(sersicActive)
-  
+
 contains
 
   function sersicConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sersic} mass distribution class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionSersic)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
@@ -139,9 +138,8 @@ contains
 
   function sersicConstructorInternal(index,radiusHalfMass,mass,dimensionless) result(self)
     !% Internal constructor for ``sersic'' mass distribution class.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type            (massDistributionSersic)                          :: self
     double precision                        , intent(in   )           :: index
@@ -188,9 +186,9 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use Coordinates
-    use Numerical_Interpolation
-    use Table_Labels
+    use :: Coordinates            , only : assignment(=)               , coordinateSpherical
+    use :: Numerical_Interpolation, only : Interpolate
+    use :: Table_Labels           , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionSersic), intent(inout) :: self
     class           (coordinate            ), intent(in   ) :: coordinates
@@ -221,12 +219,10 @@ contains
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Returns a radial density moment for the S\'ersic mass distribution.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
-    double precision                        , intent(in   )           :: moment    
+    double precision                        , intent(in   )           :: moment
     double precision                        , intent(in   ), optional :: radiusMinimum    , radiusMaximum
     logical                                 , intent(  out), optional :: isInfinite
     integer                                                           :: iRadius
@@ -277,8 +273,7 @@ contains
 
   double precision function sersicMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
-    use Numerical_Constants_Math
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
     double precision                        , intent(in   )         :: radius
@@ -311,9 +306,9 @@ contains
 
   double precision function sersicPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use Numerical_Constants_Physical
-    use Coordinates
-    use Numerical_Interpolation
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Interpolation     , only : Interpolate
     implicit none
     class           (massDistributionSersic), intent(inout) :: self
     class           (coordinate            ), intent(in   ) :: coordinates
@@ -370,12 +365,12 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
-    use Memory_Management
-    use Numerical_Ranges
-    use Numerical_Integration
-    use Numerical_Interpolation
-    use Numerical_Constants_Math
-    use Root_Finder
+    use :: Memory_Management       , only : allocateArray            , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate                , Integrate_Done
+    use :: Numerical_Interpolation , only : Interpolate              , Interpolate_Done
+    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
+    use :: Root_Finder             , only : rangeExpandMultiplicative, rootFinder
     implicit none
     class           (massDistributionSersic    ), intent(inout), target   :: self
     double precision                            , intent(in   ), optional :: radius
@@ -520,7 +515,7 @@ contains
 
   double precision function sersicCoefficientRoot(coefficient)
     !% Root function used in finding the coefficient for S\'ersic profiles.
-    use Gamma_Functions
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete
     implicit none
     double precision, intent(in   ) :: coefficient
 
@@ -530,7 +525,7 @@ contains
 
   double precision function sersicAbelIntegrand(radius)
     !% The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
 

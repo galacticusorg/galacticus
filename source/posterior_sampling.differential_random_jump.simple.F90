@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed
   !% distribution.
-  
+
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple">
   !#  <description>A posterior sampling differential evolution random jump class in which the jump is drawn from a fixed distribution.</description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
@@ -41,12 +41,12 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} posterior sampling differential evolution random jump class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpSimple)                 :: self
     type(inputParameters                            ), intent(inout)  :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=posteriorSampleDffrntlEvltnRandomJumpSimple()
     return
   end function simpleConstructorParameters

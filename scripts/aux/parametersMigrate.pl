@@ -721,7 +721,7 @@ my @translations =
 		 "Cole2000"          => "cole2000"        ,
 		 "Covington2008"     => "covington2008"
 	     },
-	     galacticStructureRadiusSolverMethod =>
+	     galacticStructureRadiusSolverMethod              =>
 	     {
 		 "adiabatic"         => "equilibrium"
 	     },
@@ -733,6 +733,20 @@ my @translations =
 	     {
 		 "gnedin2004"        => "adiabaticGnedin2004",
 		 "static"            => "darkMatterOnly"
+	     },
+	     linearGrowthMethod                               =>
+	     {
+		 "simple"            => "collisionlessMatter"
+	     },
+		     criticalOverdensityMethod                =>
+	     {
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
+	     },
+	     virialDensityContrastMethod                      =>
+	     {
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
 	     },
 	     imfSelectionFixed                                =>
 	     {		

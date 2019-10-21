@@ -37,15 +37,15 @@
   end interface satelliteTidalFieldSphericalSymmetry
 
 contains
-  
+
   function sphericalSymmetryConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     double precision                                                      :: factorBoost
-    
+
     !# <inputParameter>
     !#   <name>factorBoost</name>
     !#   <cardinality>1</cardinality>
@@ -71,14 +71,14 @@ contains
 
   double precision function sphericalSymmetryTidalTensorRadial(self,node)
     !% Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
-    use Galacticus_Nodes                  , only : nodeComponentSatellite
-    use Kepler_Orbits
-    use Satellite_Orbits
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
+    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : coordinateSystemCylindrical
+    use :: Galacticus_Nodes                  , only : nodeComponentSatellite                          , treeNode
+    use :: Kepler_Orbits                     , only : keplerOrbit
+    use :: Numerical_Constants_Math          , only : Pi
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Satellite_Orbits                  , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node

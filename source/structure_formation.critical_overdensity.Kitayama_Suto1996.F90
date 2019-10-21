@@ -20,9 +20,7 @@
   !% Contains a module which implements a critical overdensity class based on the fitting functions of
   !% \cite{kitayama_semianalytic_1996}.
 
-  use Linear_Growth
-  use Cosmology_Functions
-  use Dark_Matter_Particles
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
   !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
@@ -30,8 +28,7 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     double precision                                   :: timePrevious       , valuePrevious
-     class           (linearGrowthClass      ), pointer :: linearGrowth_ => null()
+     double precision                                   :: timePrevious                 , valuePrevious
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
     contains
      final     ::                    kitayamaSuto1996Destructor
@@ -39,6 +36,7 @@
      procedure :: gradientTime    => kitayamaSuto1996GradientTime
      procedure :: gradientMass    => kitayamaSuto1996GradientMass
      procedure :: isMassDependent => kitayamaSuto1996IsMassDependent
+     procedure :: isNodeDependent => kitayamaSuto1996IsNodeDependent
   end type criticalOverdensityKitayamaSuto1996
 
   interface criticalOverdensityKitayamaSuto1996
@@ -52,8 +50,8 @@ contains
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
@@ -77,8 +75,8 @@ contains
 
   function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
-    use Dark_Matter_Particles
-    use Galacticus_Error
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                        :: self
     class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_
@@ -86,7 +84,7 @@ contains
     class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
     class(darkMatterParticleClass            ), target, intent(in   ) :: darkMatterParticle_
     !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_"/>
-    
+
     self%timePrevious=-1.0d0
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -112,7 +110,7 @@ contains
 
   double precision function kitayamaSuto1996Value(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity at the given time and mass.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
     double precision                                     , intent(in   ), optional :: time               , expansionFactor
@@ -121,19 +119,18 @@ contains
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_
     !GCC$ attributes unused :: mass, node
-    
+
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
          & self%valuePrevious=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                  &
-         &                    *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_))) &
-         &                    /                      self%linearGrowth_      %value             (time_)
+         &                    *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_)))
     kitayamaSuto1996Value=self%valuePrevious
     return
   end function kitayamaSuto1996Value
 
   double precision function kitayamaSuto1996GradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
     double precision                                     , intent(in   ), optional :: time      , expansionFactor
@@ -142,18 +139,14 @@ contains
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_     , expansionFactor_
     !GCC$ attributes unused :: mass, node
-    
+
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
-    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                                 &
-         &                       *(                                                                                                         &
-         &                                +0.0123d0*      self%cosmologyFunctions_%omegaMatterRateOfChange             (time_           )   &
-         &                         /                      self%cosmologyFunctions_%omegaMatterEpochal                  (time_           )   &
-         &                         /                log  (10.0d0                                                                         )  &
-         &                         -(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal                  (time_           ))) &
-         &                         *                      self%linearGrowth_      %logarithmicDerivativeExpansionFactor(time_           )   &
-         &                         *                      self%cosmologyFunctions_%expansionRate                       (expansionFactor_)   &
-         &                        )                                                                                                         &
-         &                       /                        self%linearGrowth_      %value                               (time_           )
+    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                          &
+         &                       *(                                                                  &
+         &                         +0.0123d0*self%cosmologyFunctions_%omegaMatterRateOfChange(time_) &
+         &                         /         self%cosmologyFunctions_%omegaMatterEpochal     (time_) &
+         &                         /log(10.0d0)  &
+         &                        )
     return
   end function kitayamaSuto1996GradientTime
 
@@ -180,3 +173,13 @@ contains
     kitayamaSuto1996IsMassDependent=.false.
     return
   end function kitayamaSuto1996IsMassDependent
+
+  logical function kitayamaSuto1996IsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    kitayamaSuto1996IsNodeDependent=.false.
+    return
+  end function kitayamaSuto1996IsNodeDependent

@@ -39,7 +39,7 @@ contains
 
   function bertschingerConstructorParameters(parameters) result (self)
     !% Constructor for the bertschinger total halo accretion state class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionHaloTotalBertschinger)                :: self
     type(inputParameters               ), intent(inout) :: parameters
@@ -51,7 +51,7 @@ contains
 
   double precision function bertschingerAccretionRate(self,node)
     !% Return the accretion rate onto a halo.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
@@ -65,7 +65,7 @@ contains
 
   double precision function bertschingerAccretedMass(self,node)
     !% Return the mass accreted onto a halo.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node

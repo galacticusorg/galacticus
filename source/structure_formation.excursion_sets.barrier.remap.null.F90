@@ -35,7 +35,7 @@ contains
   !# </excursionSetBarrierRemapInitialize>
   subroutine Excursion_Sets_Barriers_Remap_Null_Initialize(excursionSetBarrierRemapMethods,barrierName,ratesCalculation,matchedCount)
     !% Initialize the null excursion set barrier remapping module.
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods
     type   (varying_string)              , intent(inout) :: barrierName
@@ -68,7 +68,7 @@ contains
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
     !GCC$ attributes unused :: barrier, variance, time, ratesCalculation, iRemap
-    
+
     return
   end subroutine Excursion_Sets_Barrier_Remap_Null
 

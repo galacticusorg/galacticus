@@ -40,11 +40,11 @@ contains
 
   function nbodyHaloMassErrorNullParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily null} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nbodyHaloMassErrorNull)                :: nbodyHaloMassErrorNullParameters
     type(inputParameters       ), intent(inout) :: parameters
-    
+
     ! Check and read parameters.
     nbodyHaloMassErrorNullParameters=nbodyHaloMassErrorNull()
     !# <inputParametersValidate source="parameters"/>
@@ -61,10 +61,10 @@ contains
     nullErrorFractional=0.0d0
     return
   end function nullErrorFractional
-  
+
   double precision function nullCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node1 , node2
@@ -84,14 +84,14 @@ contains
     end if
     return
   end function nullCorrelation
-  
+
   logical function nullErrorZeroAlways(self)
     !% Return true since errors are always zero in this model.
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     nullErrorZeroAlways=.true.
     return
   end function nullErrorZeroAlways
-  
+

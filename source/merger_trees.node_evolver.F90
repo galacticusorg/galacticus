@@ -21,10 +21,10 @@
 
 module Merger_Trees_Evolve_Node
   !% Provides a class that implements evolution of nodes.
-  use Galacticus_Nodes          , only : mergerTree                  , treeNode, interruptTask
-  use Galactic_Structure_Solvers, only : galacticStructureSolverClass
+  use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
+  use :: Galacticus_Nodes          , only : interruptTask               , mergerTree, treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>mergerTreeNodeEvolver</name>
   !#  <descriptiveName>Merger Tree Node Evolvers</descriptiveName>
@@ -63,5 +63,5 @@ module Merger_Trees_Evolve_Node
   !#   <argument>double precision, intent(in   ) :: valueNode, valueExpected</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Trees_Evolve_Node

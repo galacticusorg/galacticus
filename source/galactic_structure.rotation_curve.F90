@@ -21,7 +21,6 @@
 
 module Galactic_Structure_Rotation_Curves
   !% Implements calculations of the rotation curve as a specified radius.
-  use Galactic_Structure_Options
   implicit none
   private
   public :: Galactic_Structure_Rotation_Curve
@@ -34,7 +33,8 @@ contains
 
   double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,componentType,massType)
     !% Solve for the rotation curve a given radius. Assumes that galactic structure has already been solved for.
-    use Galacticus_Nodes, only : treeNode, optimizeForRotationCurveSummation, reductionSummation
+    use :: Galactic_Structure_Options, only : componentTypeAll                 , massTypeAll
+    use :: Galacticus_Nodes          , only : optimizeForRotationCurveSummation, reductionSummation, treeNode
     !# <include directive="rotationCurveTask" type="moduleUse">
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
     !# </include>
@@ -74,7 +74,7 @@ contains
 
   double precision function Component_Rotation_Curve(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    use Galacticus_Nodes, only : nodeComponent
+    use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

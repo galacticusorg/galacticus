@@ -21,8 +21,7 @@
 
 module Abundances_Structure
   !% Defines the abundances structure used for describing elemental abundances in \glc.
-  use ISO_Varying_String
-  use Numerical_Constants_Astronomical
+  use :: ISO_Varying_String
   implicit none
   private
   public :: abundances, Abundances_Names, Abundances_Index_From_Name, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
@@ -258,7 +257,7 @@ module Abundances_Structure
      !% Constructors for the {\normalfont \ttfamily abundances} class.
      module procedure abundancesConstructorZero
   end interface abundances
-  
+
   ! Count of the number of elements being tracked.
   integer                                                                    :: elementsCount        =0
   integer                                                                    :: propertyCount
@@ -308,9 +307,9 @@ contains
 
   subroutine Abundances_Initialize
     !% Initialize the {\normalfont \ttfamily abundanceStructure} object module. Determines which abundances are to be tracked.
-    use Input_Parameters
-    use Memory_Management
-    use Atomic_Data
+    use :: Atomic_Data      , only : Atom_Lookup
+    use :: Input_Parameters , only : globalParameters, inputParameter
+    use :: Memory_Management, only : allocateArray
     implicit none
     integer :: iElement
 
@@ -362,10 +361,10 @@ contains
     self=zeroAbundances
     return
   end function abundancesConstructorZero
-  
+
   subroutine Abundances_Destroy(self)
     !% Destroy an abundances object.
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     class(abundances), intent(inout) :: self
 
@@ -375,8 +374,9 @@ contains
 
   subroutine Abundances_Builder(self,abundancesDefinition)
     !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
-    use FoX_DOM
-    use Galacticus_Error
+    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, item, &
+          &                         node                   , nodeList
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (abundances), intent(inout)          :: self
     type   (node      ), intent(in   ), pointer :: abundancesDefinition
@@ -406,7 +406,7 @@ contains
 
   subroutine Abundances_Dump(self)
     !% Reset an abundances object.
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message
     implicit none
     class    (abundances    ), intent(in   ) :: self
     integer                                  :: i
@@ -629,7 +629,7 @@ contains
 
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index
@@ -658,7 +658,7 @@ contains
     implicit none
     character(len=*), intent(in   ) :: name
     integer                         :: i
-    
+
     Abundances_Index_From_Name=-1
     do i=1,elementsCount
        if (trim(name) == elementsToTrack(i)) then
@@ -668,10 +668,10 @@ contains
     end do
     return
   end function Abundances_Index_From_Name
-  
+
   integer function Abundances_Atomic_Index(index)
     !% Return the atomic index for the specified entry in the abundances structure.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: index
 
@@ -697,7 +697,7 @@ contains
 
   subroutine Abundances_Allocate_Elemental_Values(self)
     !% Ensure that the {\normalfont \ttfamily elementalValue} array in an {\normalfont \ttfamily abundances} is allocated.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type(abundances), intent(inout) :: self
 
@@ -748,7 +748,8 @@ contains
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
     !% Return the metallicity of the {\normalfont \ttfamily self} structure.
-    use Galacticus_Error
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class  (abundances), intent(in   )           :: self
     integer            , intent(in   ), optional :: metallicityType
@@ -758,13 +759,13 @@ contains
     call Abundances_Initialize
 
     Abundances_Get_Metallicity=self%metallicityValue
-    
+
     if (present(metallicityType)) then
        metallicityTypeActual=metallicityType
     else
        metallicityTypeActual=metallicityTypeLinearByMass
     end if
-    
+
     select case (metallicityTypeActual)
     case (metallicityTypeLinearByMass)
        ! Do nothing, this is what we compute by default.
@@ -786,8 +787,9 @@ contains
 
   subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
     !% Set the metallicity of the {\normalfont \ttfamily self} structure to {\normalfont \ttfamily metallicity}.
-    use Galacticus_Error
-    use Atomic_Data
+    use :: Atomic_Data                     , only : Atomic_Abundance       , normalizationMetals
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class           (abundances), intent(inout)           :: self
     double precision            , intent(in   )           :: metallicity
@@ -909,6 +911,7 @@ contains
 
   double precision function Abundances_Hydrogen_Mass_Fraction(self)
     !% Returns the mass fraction of hydrogen.
+    use :: Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, hydrogenByMassSolar, metallicitySolar
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision            , parameter     :: massFractionMinimum=0.7d0
@@ -923,6 +926,7 @@ contains
 
   double precision function Abundances_Helium_Mass_Fraction(self)
     !% Returns the mass fraction of helium.
+    use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, heliumByMassSolar, metallicitySolar
     implicit none
     class(abundances), intent(in   ) :: self
 
@@ -936,6 +940,7 @@ contains
 
   double precision function Abundances_Hydrogen_Number_Fraction(self)
     !% Returns the number fraction of hydrogen.
+    use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
@@ -951,6 +956,7 @@ contains
 
   double precision function Abundances_Helium_Number_Fraction(self)
     !% Returns the mass fraction of helium.
+    use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
@@ -967,7 +973,8 @@ contains
   subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time,outputInstance)
     !% Store an abundances object in the output buffers.
-    use Multi_Counters
+    use :: Kind_Numbers  , only : kind_int8
+    use :: Multi_Counters, only : multiCounter
     implicit none
     class           (abundances    )                , intent(in   ) :: self
     double precision                                , intent(in   ) :: time
@@ -977,7 +984,7 @@ contains
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter  )                , intent(in   ) :: outputInstance
     !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, outputInstance
-    
+
     doubleProperty=doubleProperty+1
     doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue
     if (elementsCount > 0) then
@@ -989,12 +996,11 @@ contains
 
   subroutine Abundances_Post_Output(self,time)
     !% Perform post-output processing of abundances objects.
-    use Multi_Counters
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision            , intent(in   ) :: time
     !GCC$ attributes unused :: self, time
-    
+
     return
   end subroutine Abundances_Post_Output
 
@@ -1005,7 +1011,7 @@ contains
     integer                     , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision            , intent(in   ) :: time
     !GCC$ attributes unused :: self, integerPropertyCount, time
-    
+
     doublePropertyCount=doublePropertyCount+propertyCount
     return
   end subroutine Abundances_Output_Count
@@ -1024,7 +1030,7 @@ contains
     double precision                                 , intent(in   ) :: unitsInSI
     integer                                                          :: iElement
     !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
-    
+
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'Metals'
     doublePropertyComments(doubleProperty)=trim(comment)//' [Metals]'
@@ -1054,5 +1060,5 @@ contains
     end if
     return
   end function Abundances_Non_Static_Size_Of
-  
+
 end module Abundances_Structure

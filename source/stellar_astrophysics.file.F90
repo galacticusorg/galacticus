@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar astrophysics class in which the stellar properties are read from file and interpolated.
-  
-  use Numerical_Interpolation_2D_Irregular
+
+  use :: Numerical_Interpolation_2D_Irregular, only : interp2dIrregularObject
 
   !# <stellarAstrophysics name="stellarAstrophysicsFile">
   !#  <description>A stellar astrophysics class in which the stellar properties are read from file and interpolated.</description>
@@ -59,7 +59,7 @@
      procedure :: lifetime    => fileLifetime
      procedure :: read        => fileRead
   end type stellarAstrophysicsFile
-  
+
   interface stellarAstrophysicsFile
      !% Constructors for the {\normalfont \ttfamily file} stellar astrophysics class.
      module procedure fileConstructorParameters
@@ -73,13 +73,13 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily file} stellar astrophysics class which takes a parameter list as input.
-    use Galacticus_Paths
-    use Input_Parameters
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarAstrophysicsFile)                :: self
     type(inputParameters        ), intent(inout) :: parameters
     type(varying_string         )                :: fileName
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
@@ -95,8 +95,8 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
-    use Memory_Management
-    use Atomic_Data
+    use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
+    use :: Memory_Management, only : allocateArray
     implicit none
     type     (stellarAstrophysicsFile)                :: self
     character(len=*                  ), intent(in   ) :: fileName
@@ -112,15 +112,16 @@ contains
     self%readDone                     =.false.
     return
   end function fileConstructorInternal
-  
+
   subroutine fileRead(self)
     !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
-    use Memory_Management
-    use FoX_DOM
-    use Galacticus_Error
-    use ISO_Varying_String
-    use IO_XML
-    use Atomic_Data
+    use :: Atomic_Data       , only : Atomic_Short_Label
+    use :: FoX_DOM           , only : destroy                          , extractDataContent, getElementsByTagname, getLength, &
+          &                           item                             , node              , nodeList            , parseFile
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String
+    use :: Memory_Management , only : allocateArray
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     type            (node                   ), pointer       :: doc              , datum                   , &
@@ -170,7 +171,7 @@ contains
           if (getLength(propertyList) == 1) self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
           if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
        end do
-    end do    
+    end do
     ! Find number of elements for which some yield data is available.
     self%countElement       =count (self%countYieldElement > 0)
     countYieldElementMaximum=maxval(self%countYieldElement    )
@@ -265,12 +266,13 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    self%readDone=.true. 
+    self%readDone=.true.
     return
   end subroutine fileRead
-  
+
   double precision function fileMassInitial(self,lifetime,metallicity)
     !% Return the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
+    use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: lifetime, metallicity
@@ -291,6 +293,7 @@ contains
 
   double precision function fileLifetime(self,massInitial,metallicity)
     !% Return the lifetime of a star (in Gyr) given an {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: massInitial, metallicity
@@ -310,6 +313,7 @@ contains
 
   double precision function fileMassEjected(self,massInitial,metallicity)
     !% Return the mass ejected during the lifetime of a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: massInitial, metallicity
@@ -332,6 +336,7 @@ contains
 
   double precision function fileMassYield(self,massInitial,metallicity,atomIndex)
     !% Return the mass of metals yielded by a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)           :: self
     double precision                         , intent(in   )           :: massInitial , metallicity

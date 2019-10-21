@@ -21,7 +21,7 @@
 
 module Node_Component_Mass_Flow_Statistics_Standard
   !% Implements the standard mass flow statistics component.
-  use Cooling_Rates
+  use :: Cooling_Rates, only : coolingRateClass
   implicit none
   private
   public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init , Node_Component_Mass_Flow_Statistics_Standard_Scale_Set    , &
@@ -58,7 +58,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize(globalParameters_)
     !% Initializes the standard mass flow statistics component.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -78,8 +78,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard mass flow statistics module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
+    use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -94,7 +94,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit()
     !% Uninitializes the tree node standard mass flow statistics module.
-    use Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
     implicit none
 
     if (defaultMassFlowStatisticsComponent%standardIsActive()) then
@@ -108,8 +108,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the mass flow statistics component by creating components in nodes and computing formation times.
-    use Galacticus_Nodes                         , only : treeNode, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, defaultMassFlowStatisticsComponent
-    use Dark_Matter_Halo_Mass_Accretion_Histories
+    use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode
     implicit none
     type (treeNode                       ), pointer, intent(inout) :: node
     class(nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
@@ -130,7 +129,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, propertyTypeInactive, defaultMassFlowStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type     (treeNode                       ), pointer, intent(inout) :: node
     logical                                            , intent(in   ) :: odeConverged
@@ -139,7 +139,7 @@ contains
     integer                                   , intent(in   )          :: propertyType
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -160,7 +160,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the massFlowStatistics component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMassFlowStatistics, nodeComponentBasic, nodeComponentMassFlowStatisticsStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode
     implicit none
     type            (treeNode                       ), pointer, intent(inout) :: node
     double precision                                 , parameter              :: scaleMassRelative =1.0d-6
@@ -184,9 +184,9 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset mass flow statistics at output time.
+    use            :: Galacticus_Nodes, only : nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes, only : treeNode, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard
-    use            :: Kind_Numbers
+    use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type            (treeNode                       ), intent(inout), pointer :: node
     integer         (kind=kind_int8                 ), intent(in   )          :: treeIndex
@@ -194,7 +194,7 @@ contains
     logical                                          , intent(in   )          :: nodePassesFilter
     class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
-    
+
     ! Return immediately if we are not to reset mass flow statistics at output time.
     if (.not.massFlowStatisticsResetOnOutput) return
 
@@ -203,7 +203,7 @@ contains
     ! Ensure that it is of the standard class.
     select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
-       call massFlowStatistics%cooledMassSet(0.0d0) 
+       call massFlowStatistics%cooledMassSet(0.0d0)
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output

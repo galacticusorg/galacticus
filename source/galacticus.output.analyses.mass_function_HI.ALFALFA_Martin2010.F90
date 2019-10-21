@@ -19,8 +19,7 @@
 
 !% Contains a module which implements an ALFALFA HI mass function output analysis class.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010">
   !#  <description>An ALFALFA HI mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -39,9 +38,9 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Output_Analysis_Molecular_Ratios
-    use Cosmology_Parameters            , only : cosmologyParametersClass, cosmologyParameters
+    use :: Cosmology_Parameters            , only : cosmologyParameters         , cosmologyParametersClass
+    use :: Input_Parameters                , only : inputParameter              , inputParameters
+    use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio, outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010)                              :: self
     type            (inputParameters                              ), intent(inout)               :: parameters
@@ -127,11 +126,15 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use Output_Analysis_Molecular_Ratios
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersClass                       , cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterISMMass
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorClass, outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Molecular_Ratios      , only : outputAnalysisMolecularRatioClass
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010  )                              :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target       :: cosmologyFunctions_
@@ -140,7 +143,7 @@ contains
     class           (gravitationalLensingClass                      ), intent(in   ), target       :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass              ), intent(in   ), target       :: outputAnalysisMolecularRatio_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target       :: outputAnalysisDistributionOperatorRandomError_
-    double precision                                                 , intent(in   )               :: sizeSourceLensing 
+    double precision                                                 , intent(in   )               :: sizeSourceLensing
     double precision                                                 , intent(in   ), dimension(:) :: systematicErrorPolynomialCoefficient
     integer                                                          , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )               :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum

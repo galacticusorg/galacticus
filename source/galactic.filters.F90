@@ -21,9 +21,9 @@
 
 module Galactic_Filters
   !% Provides an object that implements galactic filters.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>galacticFilter</name>
   !#  <descriptiveName>Galactic Filter</descriptiveName>
@@ -36,7 +36,7 @@ module Galactic_Filters
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
   type, public :: filterList
      class(galacticFilterClass), pointer :: filter_ => null()
      type (filterList         ), pointer :: next    => null()

@@ -55,7 +55,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Preset_Initialize(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic, nodeComponentSpinPreset
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, nodeComponentSpinPreset, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     class           (nodeComponentSpin )               , pointer :: spinParent , spin
@@ -91,7 +91,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spin_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the preset implementation of the spin component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset, defaultSpinComponent, propertyTypeInactive
+    use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpin, nodeComponentSpinPreset, propertyTypeInactive, &
+          &                         treeNode
     implicit none
     type     (treeNode         ), intent(inout), pointer :: node
     logical                     , intent(in   )          :: odeConverged
@@ -100,7 +101,7 @@ contains
     integer                     , intent(in   )          :: propertyType
     class    (nodeComponentSpin)               , pointer :: spin
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
@@ -121,7 +122,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Preset_Scale_Set(node)
     !% Set scales for properties in the preset implementation of the spin component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset
+    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinPreset, treeNode
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentSpin)               , pointer :: spin
@@ -143,8 +144,8 @@ contains
   subroutine Node_Component_Spin_Preset_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
-    use Galacticus_Error
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset, nodeComponentBasic
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, nodeComponentSpinPreset, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

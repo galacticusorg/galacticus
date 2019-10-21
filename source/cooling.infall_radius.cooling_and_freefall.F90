@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
-  
-  use Cooling_Radii , only : coolingRadiusClass , coolingRadius
-  use Freefall_Radii, only : freefallRadiusClass, freefallRadius
+
+  use :: Cooling_Radii , only : coolingRadius , coolingRadiusClass
+  use :: Freefall_Radii, only : freefallRadius, freefallRadiusClass
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
   !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
@@ -46,7 +46,7 @@ contains
 
   function coolingFreefallConstructorParameters(parameters) result(self)
     !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -64,7 +64,7 @@ contains
 
   function coolingFreefallConstructorInternal(coolingRadius_,freefallRadius_) result(self)
     !% Internal constructor for the cooling radius infall radii class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                        :: self
     class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_

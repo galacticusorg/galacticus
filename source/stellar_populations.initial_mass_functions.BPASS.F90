@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.
-  
+
   !# <initialMassFunction name="initialMassFunctionBPASS">
   !#  <description>A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function bpassConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bpass} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionBPASS)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionBPASS()
     return
   end function bpassConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.10d0,+0.50d0,+1.20d2], &
          &                                                                         exponent=[-1.30d0,-2.35d0        ]  &
          &                                                                        )
-    return    
+    return
   end function bpassConstructorInternal
 
   function bpassLabel(self)

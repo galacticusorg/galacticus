@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a null N-body data operator.
-  
+
   !# <nbodyOperator name="nbodyOperatorNull">
   !#  <description>A null N-body data operator.</description>
   !# </nbodyOperator>
@@ -38,12 +38,12 @@ contains
 
   function nullConstructorParameters(parameters) result (self)
     !% Constructor for the ``null'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorNull)                :: self
     type   (inputParameters  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=nbodyOperatorNull()
     return
   end function nullConstructorParameters

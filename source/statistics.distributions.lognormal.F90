@@ -44,13 +44,13 @@ contains
   function logNormalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DLogNormal)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: mean      , variance  , &
          &                                                              limitLower, limitUpper
-    
+
     !# <inputParameter>
     !#   <name>mean</name>
     !#   <cardinality>1</cardinality>
@@ -83,7 +83,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function logNormalConstructorParameters
-  
+
   function logNormalConstructorInternal(mean,variance,limitLower,limitUpper) result(self)
     !% Constructor for ``normal'' 1D distribution function class.
     type            (distributionFunction1DLogNormal)                          :: self

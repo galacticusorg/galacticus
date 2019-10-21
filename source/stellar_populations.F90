@@ -21,12 +21,13 @@
 
 module Stellar_Populations
   !% Implements a class for stellar populations.
-  use Hashes
-  use Abundances_Structure
-  use Stellar_Population_Spectra
+  use            :: Abundances_Structure      , only : abundances
+  use            :: Hashes                    , only : integerSizeTScalarHash
+  use, intrinsic :: ISO_C_Binding             , only : c_size_t
+  use            :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>stellarPopulation</name>
   !#  <descriptiveName>Stellar Populations</descriptiveName>
@@ -85,12 +86,12 @@ module Stellar_Populations
   type   (integerSizeTScalarHash) :: descriptors
   logical                         :: descriptorsInitialized=.false.
   integer(c_size_t              ) :: uniqueID_             =0_c_size_t
-  
+
 contains
 
   subroutine stellarPopulationUniqueIDAssign(self)
     !% Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(stellarPopulationClass), intent(inout) :: self
     type (varying_string        )                :: hashedDescriptor
@@ -110,5 +111,5 @@ contains
     !$omp end critical(stellarPopulationUniqueIDAssign)
     return
   end subroutine stellarPopulationUniqueIDAssign
-  
+
 end module Stellar_Populations

@@ -21,10 +21,10 @@
 
 program Test_Multi_Counters
   !% Tests of multi-counters.
+  use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use, intrinsic :: ISO_C_Binding
-  use               Unit_Tests
-  use               Multi_Counters
-  use Galacticus_Display
+  use            :: Multi_Counters    , only : multiCounter
+  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type   (multiCounter)                   :: counter1, counter2
   logical              , dimension(2,5,3) :: state
@@ -33,7 +33,7 @@ program Test_Multi_Counters
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Multi-counters")
 

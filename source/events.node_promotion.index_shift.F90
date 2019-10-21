@@ -41,8 +41,8 @@ contains
   subroutine Node_Promotion_Index_Shift(thisNode)
     !% Shifts the index of {\normalfont \ttfamily thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
     !% through the tree.
-    use Input_Parameters
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
+    use :: Input_Parameters, only : globalParameters, inputParameter
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(treeNode)               , pointer :: parentNode

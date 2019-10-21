@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a hot mode accretion fraction rate property extractor class.
 
-  use Accretion_Halos, only : accretionHalo, accretionHaloClass
+  use :: Accretion_Halos, only : accretionHalo, accretionHaloClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode">
   !#  <description>A hot mode accretion fraction property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorFractionAccretionHotMode
 
 contains
-  
+
   function fractionAccretionHotModeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
@@ -78,17 +78,17 @@ contains
     !# <objectDestructor name="self%accretionHalo_"/>
     return
   end subroutine fractionAccretionHotModeDestructor
-  
+
   double precision function fractionAccretionHotModeExtract(self,node,instance)
     !% Implement a {\normalfont \ttfamily fractionAccretionHotMode} property extractor.
-    use Accretion_Halos, only : accretionModeHot, accretionModeTotal
+    use :: Accretion_Halos, only : accretionModeHot, accretionModeTotal
     implicit none
     class           (nodePropertyExtractorFractionAccretionHotMode), intent(inout)           :: self
     type            (treeNode                                     ), intent(inout), target   :: node
     type            (multiCounter                                 ), intent(inout), optional :: instance
     double precision                                                                         :: accretionRateHot, accretionRateTotal
     !GCC$ attributes unused :: instance
-    
+
     accretionRateHot  =self%accretionHalo_%accretionRate(node,accretionModeHot  )
     accretionRateTotal=self%accretionHalo_%accretionRate(node,accretionModeTotal)
     if (accretionRateTotal /= 0.0d0) then
@@ -133,7 +133,7 @@ contains
 
   integer function fractionAccretionHotModeType(self)
     !% Return the type of the {\normalfont \ttfamily fractionAccretionHotMode} property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
     !GCC$ attributes unused :: self

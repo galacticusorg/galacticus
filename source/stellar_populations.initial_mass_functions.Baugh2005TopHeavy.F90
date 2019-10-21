@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
-  
+
   !# <initialMassFunction name="initialMassFunctionBaugh2005TopHeavy">
   !#  <description>A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function baugh2005TopHeavyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily baugh2005TopHeavy} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionBaugh2005TopHeavy()
     return
   end function baugh2005TopHeavyConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.15d0,+1.25d2], &
          &                                                                         exponent=[-1.00d0        ]  &
          &                                                                        )
-    return    
+    return
   end function baugh2005TopHeavyConstructorInternal
 
   function baugh2005TopHeavyLabel(self)

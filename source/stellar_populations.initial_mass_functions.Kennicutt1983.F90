@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
-  
+
   !# <initialMassFunction name="initialMassFunctionKennicutt1983">
   !#  <description>A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function kennicutt1983ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionKennicutt1983)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionKennicutt1983()
     return
   end function kennicutt1983ConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.10d0,+1.00d0,+2.00d0,+1.25d2], &
          &                                                                         exponent=[-1.25d0,-2.00d0,-2.30d0        ]  &
          &                                                                        )
-    return    
+    return
   end function kennicutt1983ConstructorInternal
 
   function kennicutt1983Label(self)

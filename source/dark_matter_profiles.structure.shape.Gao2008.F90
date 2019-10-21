@@ -19,7 +19,7 @@
 
   !% An implementation of dark matter halo profile shapes  using the \cite{gao_redshift_2008} algorithm.
 
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <darkMatterProfileShape name="darkMatterProfileShapeGao2008">
   !#  <description>Dark matter halo shape parameters are computed using the algorithm of \cite{gao_redshift_2008}.</description>
@@ -41,15 +41,15 @@
   end interface darkMatterProfileShapeGao2008
 
 contains
-  
+
   function gao2008ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile
     !% shape class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileShapeGao2008)                :: self
     type (inputParameters              ), intent(inout) :: parameters
-    class(criticalOverdensityClass     ), pointer       :: criticalOverdensity_     
+    class(criticalOverdensityClass     ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
 
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -66,7 +66,7 @@ contains
     !% shape class.
     implicit none
     type (darkMatterProfileShapeGao2008)                        :: self
-    class(criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_     
+    class(criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables=" *criticalOverdensity_, *cosmologicalMassVariance_"/>
 
@@ -77,7 +77,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily gao2008} dark matter halo profile shape class.
     implicit none
     type(darkMatterProfileShapeGao2008), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%criticalOverdensity_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
@@ -90,23 +90,23 @@ contains
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
     !% where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node
     double precision                               , parameter              :: nuMaximum=3.907d0
     class           (nodeComponentBasic           )               , pointer :: basic
     double precision                                                        :: nu
-    
+
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
     nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-         &  /self%cosmologicalMassVariance_%rootVariance(                       basic%mass())
+         &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
     if (nu < nuMaximum) then
        gao2008Shape=0.155d0+0.0095d0*nu**2
     else
        gao2008Shape=0.300d0
-    end if    
+    end if
     return
   end function gao2008Shape

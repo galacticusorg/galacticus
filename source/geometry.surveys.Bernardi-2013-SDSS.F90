@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
-  
-  use Galacticus_Paths
+
 
   !# <surveyGeometry name="surveyGeometryBernardi2013SDSS">
   !#  <description>Implements the geometry of the SDSS survey of \cite{bernardi_massive_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
+     private
    contains
      procedure :: fieldCount                => bernardi2013SDSSFieldCount
      procedure :: distanceMaximum           => bernardi2013SDSSDistanceMaximum
@@ -47,20 +47,19 @@ contains
 
   function bernardi2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{bernardi_massive_2013} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     ! Build the object.
     self=surveyGeometryBernardi2013SDSS()
     return
   end function bernardi2013SDSSConstructorParameters
-  
+
   function bernardi2013SDSSConstructorInternal() result (self)
     !% Default constructor for the \cite{bernardi_massive_2013} conditional mass function class.
-    use Input_Parameters
     implicit none
     type(surveyGeometryBernardi2013SDSS) :: self
 
@@ -73,14 +72,14 @@ contains
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     bernardi2013SDSSFieldCount=1
     return
   end function bernardi2013SDSSFieldCount
 
   double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -117,9 +116,10 @@ contains
     bernardi2013SDSSAngularPowerMaximumDegree=bernardi2013SDSSAngularPowerMaximumL
     return
   end function bernardi2013SDSSAngularPowerMaximumDegree
-  
+
   function bernardi2013SDSSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
@@ -128,12 +128,13 @@ contains
     bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
     return
   end function bernardi2013SDSSMangleDirectory
-  
+
   subroutine bernardi2013SDSSMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
-    use File_Utilities  , only : File_Lock_Initialize   , File_Lock, File_Unlock, File_Exists, lockDescriptor
-    use System_Command  , only : System_Command_Do
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: File_Utilities  , only : File_Exists            , File_Lock, File_Lock_Initialize, File_Unlock, &
+          &                         lockDescriptor
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: System_Command  , only : System_Command_Do
     implicit none
     class  (surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
     type   (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
@@ -160,13 +161,13 @@ contains
 
   logical function bernardi2013SDSSPointIncluded(self,point,mass)
     !% Return true if a point is included in the survey geometry.
-    use Vectors
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Units, only : degree
+    use :: Vectors                  , only : Vector_Magnitude
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)               :: self
     double precision                                , intent(in   ), dimension(3) :: point
     double precision                                , intent(in   )               :: mass
-    double precision                                                              :: pointDistance, rightAscension, & 
+    double precision                                                              :: pointDistance, rightAscension, &
          &                                                                           declination
 
     ! Get the distance to the point.

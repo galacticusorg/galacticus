@@ -19,13 +19,13 @@
 
   !% Implements the standard class for evolving merger trees.
 
-  use Galacticus_Nodes          , only : treeNode
-  use Kind_Numbers              , only : kind_int8
-  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
-  use Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
-  use Galactic_Structure_Solvers, only : galacticStructureSolver , galacticStructureSolverClass
-  use Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver   , mergerTreeNodeEvolverClass
-  
+  use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use :: Galactic_Structure_Solvers, only : galacticStructureSolver , galacticStructureSolverClass
+  use :: Galacticus_Nodes          , only : treeNode
+  use :: Kind_Numbers              , only : kind_int8
+  use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
+  use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver   , mergerTreeNodeEvolverClass
+
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
      type   (deadlockList  ), pointer :: next      => null()
@@ -33,7 +33,7 @@
      integer(kind=kind_int8)          :: treeIndex
      type   (varying_string)          :: lockType
   end type deadlockList
-  
+
   !# <mergerTreeEvolver name="mergerTreeEvolverStandard">
   !#  <description>The standard merger tree evolver.</description>
   !# </mergerTreeEvolver>
@@ -86,7 +86,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} merger tree evolver class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolverStandard    )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -96,7 +96,7 @@ contains
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
     logical                                                        :: allTreesExistAtFinalTime , dumpTreeStructure
     double precision                                               :: timestepHostRelative     , timestepHostAbsolute
-    
+
     !# <inputParameter>
     !#   <name>allTreesExistAtFinalTime</name>
     !#   <cardinality>1</cardinality>
@@ -160,7 +160,7 @@ contains
     self%deadlockHeadNode => null()
     return
   end function standardConstructorInternal
-  
+
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard}m erger tree evolver class.
     implicit none
@@ -175,19 +175,17 @@ contains
 
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
-    !$ use OMP_Lib
-    use Galacticus_Nodes                  , only : nodeEvent                         , nodeComponentBasic, interruptTask, nodeEventBranchJumpInterTree, &
-         &                                         nodeEventSubhaloPromotionInterTree
-    use Merger_Tree_Timesteps             , only : timestepTask
-    use Merger_Trees_Evolve_Node
-    use Merger_Trees_Initialize
-    use Merger_Trees_Dump
-    use Galacticus_Error
-    use Galacticus_Display
-    use Input_Parameters
-    use String_Handling
-    use Merger_Trees_Evolve_Deadlock_Status
-    use Merger_Tree_Walkers    
+    use    :: Galacticus_Display                 , only : Galacticus_Display_Indent   , Galacticus_Display_Message        , Galacticus_Display_Unindent, Galacticus_Verbosity_Level
+    use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
+    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic         , nodeEvent                  , &
+          &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
+    use    :: Merger_Tree_Timesteps              , only : timestepTask
+    use    :: Merger_Tree_Walkers                , only : mergerTreeWalkerAllNodes
+    use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
+    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting  , deadlockStatusIsSuspendable
+    use    :: Merger_Trees_Initialize            , only : Merger_Tree_Initialize
+    !$ use :: OMP_Lib
+    use    :: String_Handling                    , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard )                    , intent(inout) :: self
     integer                                     , optional          , intent(  out) :: status
@@ -356,7 +354,7 @@ contains
                 nodesRemain=treeWalker%next(node)
                 treeWalkLoop: do while (associated(node))
                    ! Get the basic component of the node.
-                   basic => node%basic()    
+                   basic => node%basic()
                    ! Count nodes in the tree.
                    nodesTotalCount=nodesTotalCount+1
                    ! Find the next node that we will process.
@@ -434,7 +432,7 @@ contains
                       ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).
                       interrupted=.true.
                       do while (interrupted.and.associated(node))
-                         interrupted=.false.                         
+                         interrupted=.false.
                          ! Find maximum allowed end time for this particular node.
                          if (statusDeadlock == deadlockStatusIsReporting) then
                             vMessage="node "
@@ -469,7 +467,7 @@ contains
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked
                          else
-                            ! Call routine to handle end of timestep processing.                            
+                            ! Call routine to handle end of timestep processing.
                             if (associated(timestepTask_).and.associated(node)) call timestepTask_(timestepSelf,currentTree,node,statusDeadlock)
                          end if
                       end do
@@ -498,7 +496,7 @@ contains
                                      call self%mergerTreeNodeEvolver_%promote(node)
                                      ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
                                      ! parent as the next node to evolve, and flag that our next node has been identified.
-                                     nodeNext      => nodeParent                                  
+                                     nodeNext      => nodeParent
                                      nextNodeFound =  .true.
                                   end if
                                end select
@@ -535,11 +533,11 @@ contains
                       end if
                    end if evolveCondition
                    ! Step to the next node to consider.
-                   node => nodeNext                   
+                   node => nodeNext
                 end do treeWalkLoop
                 ! Output tree progress information.
-                if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-                   if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+               ! if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
+                 !  if (Galacticus_Verbosity_Level() >= verbosityLevel) then
                       write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
                       call Galacticus_Display_Indent(message,verbosityLevel)
                       write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
@@ -550,8 +548,8 @@ contains
                       call Galacticus_Display_Message(message,verbosityLevel)
                       call Galacticus_Display_Unindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount
-                   end if
-                end if
+                !   end if
+              !  end if
                 ! Report on current tree if deadlocked.
                 if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
              end if
@@ -574,7 +572,7 @@ contains
                 ! Tree appears to be deadlocked. Check if it is suspendable.
                 if (statusDeadlock == deadlockStatusIsSuspendable) then
                    ! Tree is suspendable, so do not attempt to process further, but simply return and flag it for suspension.
-                   suspendTree  =.true.                   
+                   suspendTree  =.true.
                    return
                 else
                    ! Tree is truly deadlocked. Switch to reporting mode and do one more pass through the tree.
@@ -594,14 +592,13 @@ contains
 
   recursive function standardTimeEvolveTo(self,node,timeEnd,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
-    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentSatellite, nodeEvent, treeEvent, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
-    use Merger_Tree_Timesteps   , only : timestepTask
-    use Merger_Trees_Evolve_Node
-    use Input_Parameters
-    use Galacticus_Error
-    use Galacticus_Display
-    use String_Handling
-    use Evolve_To_Time_Reports
+    use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use :: Galacticus_Display    , only : Galacticus_Display_Indent         , Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo
+    use :: Galacticus_Error      , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite    , nodeEvent                  , nodeEventBranchJumpInterTree, &
+          &                               nodeEventSubhaloPromotionInterTree, treeEvent                 , treeNode
+    use :: Merger_Tree_Timesteps , only : timestepTask
+    use :: String_Handling       , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard    ), intent(inout)                    :: self
     double precision                                                                  :: evolveToTime
@@ -609,7 +606,7 @@ contains
     double precision                               , intent(in   )                    :: timeEnd
     type            (treeNode                     )                         , pointer :: nodeSatellite                    , nodeSibling
     procedure       (timestepTask                 ), intent(  out)          , pointer :: timestepTask_
-    class           (*                            ), intent(  out)          , pointer :: timestepSelf 
+    class           (*                            ), intent(  out)          , pointer :: timestepSelf
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
@@ -619,14 +616,13 @@ contains
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    type            (treeNode                     )                         , pointer :: nodeLockStep
-    type            (varying_string               )                                   :: lockTypeStep
     double precision                                                                  :: expansionFactor                  , expansionTimescale, &
          &                                                                               hostTimeLimit                    , time              , &
          &                                                                               timeEarliest                     , evolveToTimeStep
     character       (len=9                        )                                   :: timeFormatted
-    type            (varying_string               )                                   :: message
-    
+    type            (varying_string               ), save                             :: message
+    !$omp threadprivate(message)
+
     ! Initially set to the global end time.
     evolveToTime=timeEnd
     if (report) call Evolve_To_Time_Report("start (target): ",evolveToTime)
@@ -676,7 +672,7 @@ contains
           end do
           if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
        case (.false.)
-          ! Find current expansion timescale. 
+          ! Find current expansion timescale.
           if (self%timestepHostRelative > 0.0d0) then
              expansionFactor     =        self%cosmologyFunctions_%expansionFactor(time           )
              expansionTimescale  =  1.0d0/self%cosmologyFunctions_%expansionRate  (expansionFactor)
@@ -741,12 +737,10 @@ contains
     end if
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLockStep,lockTypeStep)
+    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
-       evolveToTime                    =  evolveToTimeStep
-       timestepTask_                   => timestepTaskInternal
-       if (present(nodeLock)) nodeLock => nodeLockStep
-       if (present(lockType)) lockType =  lockTypeStep
+       evolveToTime  =  evolveToTimeStep
+       timestepTask_ => timestepTaskInternal
     else
        timestepTask_ => null()
        timestepSelf  => null()
@@ -754,7 +748,7 @@ contains
     if (report) call Galacticus_Display_Unindent("done")
     ! Also ensure that the timestep doesn't exceed any event attached to the node.
     event => node%event
-    do while (associated(event))      
+    do while (associated(event))
        if (max(event%time,time) <= evolveToTime) then
           if (present(nodeLock)) nodeLock => event%node
           if (present(lockType)) then
@@ -855,8 +849,8 @@ contains
 
   subroutine standardDeadlockOutputTree(self,timeEnd)
     !% Output the deadlocked nodes in {\normalfont \ttfamily dot} format.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use String_Handling
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: String_Handling , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard), intent(inout) :: self
     double precision                           , intent(in   ) :: timeEnd
@@ -971,8 +965,7 @@ contains
 
   subroutine standardNodeEventsPerform(self,tree,node,statusDeadlock)
     !% Perform any events associated with {\normalfont \ttfamily node}.
-    use Galacticus_Nodes                   , only : nodeComponentBasic, nodeEvent
-    use Merger_Trees_Evolve_Deadlock_Status
+    use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, nodeEvent, treeNode
     implicit none
     class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
@@ -984,11 +977,11 @@ contains
     double precision                                             :: timeNode      , timeEventEarliest
     logical                                                      :: mergerTreeEvolverDone
     !GCC$ attributes unused :: self, tree
-    
+
     ! Get the current time.
     basic    => node %basic()
     timeNode =  basic%time ()
-    ! Find the current earliest event.    
+    ! Find the current earliest event.
     event => node%event
     timeEventEarliest=huge(1.0d0)
     do while (associated(event))
@@ -1032,7 +1025,7 @@ contains
 
   subroutine standardTreeEventsPerform(tree,statusDeadlock)
     !% Perform any events associated with {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes, only : treeEvent
+    use :: Galacticus_Nodes, only : mergerTree, treeEvent
     implicit none
     type            (mergerTree), intent(inout), target  :: tree
     integer                     , intent(inout)          :: statusDeadlock

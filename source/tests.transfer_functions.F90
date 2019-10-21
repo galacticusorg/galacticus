@@ -21,12 +21,12 @@
 
 program Tests_Transfer_Functions
   !% Tests transfer function calculations.
-  use Unit_Tests           , only : Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
-  use Transfer_Functions   , only : transferFunctionEisensteinHu1999
-  use Cosmology_Parameters , only : cosmologyParametersSimple
-  use Cosmology_Functions  , only : cosmologyFunctionsMatterLambda
-  use Dark_Matter_Particles, only : darkMatterParticleCDM
-  use Galacticus_Display   , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
+  use :: Cosmology_Functions  , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters , only : cosmologyParametersSimple
+  use :: Dark_Matter_Particles, only : darkMatterParticleCDM
+  use :: Galacticus_Display   , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
+  use :: Transfer_Functions   , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests           , only : Assert                          , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (cosmologyParametersSimple       )               :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda  )               :: cosmologyFunctions_

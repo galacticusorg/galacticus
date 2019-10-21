@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a property extractor class for the rotation curve at a set of radii.
-  use Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
   !#  <description>A property extractor class for the rotation curve at a set of radii.</description>
@@ -52,10 +52,10 @@
   end interface nodePropertyExtractorRotationCurve
 
 contains
-  
+
   function rotationCurveConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily rotationCurve} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (inputParameters                   ), intent(inout)               :: parameters
@@ -88,7 +88,7 @@ contains
 
   function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
-    use Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
+    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (varying_string                    ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -129,20 +129,20 @@ contains
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     rotationCurveElementCount=self%elementCount_
     return
   end function rotationCurveElementCount
-  
+
   function rotationCurveExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily rotationCurve} property extractor.
-    use Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
-    use Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
-    use Galactic_Structure_Options          , only : massTypeGalactic                        , componentTypeAll
-    use Galactic_Structure_Radii_Definitions, only : radiusTypeRadius                        , radiusTypeVirialRadius      , radiusTypeDarkMatterScaleRadius , radiusTypeDiskRadius          , &
-         &                                           radiusTypeSpheroidRadius                , radiusTypeDiskHalfMassRadius, radiusTypeSpheroidHalfMassRadius, radiusTypeGalacticMassFraction, &
-         &                                           radiusTypeGalacticLightFraction
-    use Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentSpheroid       , nodeComponentDisk
+    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiusTypeVirialRadius
+    use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
     double precision                                     , dimension(:) , allocatable :: rotationCurveExtract
     class           (nodePropertyExtractorRotationCurve), intent(inout), target      :: self
@@ -203,7 +203,7 @@ contains
     end do
     return
   end function rotationCurveExtract
-  
+
   function rotationCurveNames(self,time)
     !% Return the names of the {\normalfont \ttfamily rotationCurve} properties.
     implicit none
@@ -221,7 +221,7 @@ contains
     end do
     return
   end function rotationCurveNames
-  
+
   function rotationCurveDescriptions(self,time)
     !% Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
     implicit none
@@ -239,11 +239,11 @@ contains
     end do
     return
   end function rotationCurveDescriptions
-  
+
   function rotationCurveUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily rotationCurve} properties in the SI system.
-    use Numerical_Constants_Prefixes    , only : kilo
-    use Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                    , allocatable  , dimension(:) :: rotationCurveUnitsInSI
     class           (nodePropertyExtractorRotationCurve), intent(inout)               :: self
@@ -259,10 +259,10 @@ contains
     end do
     return
   end function rotationCurveUnitsInSI
-  
+
   integer function rotationCurveType(self)
     !% Return the type of the {\normalfont \ttfamily rotationCurve} properties.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRotationCurve), intent(inout) :: self
     !GCC$ attributes unused :: self

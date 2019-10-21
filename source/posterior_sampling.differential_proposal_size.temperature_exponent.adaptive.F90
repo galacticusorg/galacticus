@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
   !% is adaptive.
-  
+
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
   !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is adaptive.</description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
@@ -46,7 +46,7 @@ contains
   function adaptiveConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
     !% builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                 :: self
     type            (inputParameters                                 ), intent(inout)  :: parameters
@@ -118,7 +118,7 @@ contains
          &                                                                               gradientMinimum, gradientMaximum
     integer                                                           , intent(in   ) :: updateCount
     !# <constructorAssign variables="exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount"/>
-    
+
     self%exponentCurrent=exponentInitial
     self%lastUpdateCount=0
     return
@@ -126,10 +126,11 @@ contains
 
 double precision function adaptiveExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
   !% Return the adaptive differential evolution proposal size temperature exponent.
-  use MPI_Utilities
-  use ISO_Varying_String
-  use Galacticus_Display
-  use String_Handling
+  use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                         verbosityInfo
+  use :: ISO_Varying_String
+  use :: MPI_Utilities     , only : mpiSelf
+  use :: String_Handling   , only : operator(//)
   implicit none
   class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive), intent(inout)                                  :: self
   class           (posteriorSampleStateClass                       ), intent(inout)                                  :: simulationState
@@ -142,7 +143,7 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
   character       (len=8                                           )                                                 :: label
   type            (varying_string                                  )                                                 :: message
   !GCC$ attributes unused :: simulationState
-  
+
   ! Should we consider updating the exponent?
   levelCount=size(temperedStates)
   if     (                                                                                               &
@@ -170,7 +171,7 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
           &            -sum (logTemperatures   )**2                   &
           &            /dble(levelCount        )                      &
           &          )
-     ! Report. 
+     ! Report.
      if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
         message='Tempered acceptance rate report after '
         message=message//temperedStates(levelCount)%count()//' tempered steps:'

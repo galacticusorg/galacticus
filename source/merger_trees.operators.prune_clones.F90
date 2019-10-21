@@ -39,7 +39,7 @@ contains
 
   function pruneClonesConstructorParameters(parameters)
     !% Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
@@ -54,17 +54,17 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine pruneClonesDestructor
 
   subroutine pruneClonesOperate(self,tree)
     !% Perform a clone pruning operation on a merger tree.
-    use Merger_Trees_Pruning_Utilities
-    use Numerical_Comparison
-    use Merger_Tree_Walkers
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Unlink_Parent
+    use :: Numerical_Comparison          , only : Values_Agree
     implicit none
     class(mergerTreeOperatorPruneClones), intent(inout), target :: self
     type (mergerTree                   ), intent(inout), target :: tree

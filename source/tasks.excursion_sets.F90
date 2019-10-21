@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use Excursion_Sets_Barriers
-  use Excursion_Sets_First_Crossings
-  use Halo_Mass_Functions
-  use Power_Spectra
-  use Cosmological_Density_Field
+  use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions           , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters          , only : cosmologyParametersClass
+  use :: Excursion_Sets_Barriers       , only : excursionSetBarrierClass
+  use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
+  use :: Halo_Mass_Functions           , only : haloMassFunctionClass
+  use :: Power_Spectra                 , only : powerSpectrumClass
 
   !# <task name="taskExcursionSets">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
@@ -57,10 +57,9 @@ contains
 
   function excursionSetsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
-    use Galacticus_HDF5
-    use Node_Components
-    use Input_Parameters
-    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize
     implicit none
     type            (taskExcursionSets             )                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -114,7 +113,7 @@ contains
     !#   <description>The number of points per decade of mass at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
     !#   <cardinality>1</cardinality>
@@ -138,7 +137,7 @@ contains
     !#   <description>The number of points per decade of time at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
     !#   <cardinality>1</cardinality>
@@ -146,7 +145,7 @@ contains
     !#   <description>The HDF5 output group within which to write excursion set solution data.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
@@ -212,16 +211,16 @@ contains
     class           (powerSpectrumClass            ), intent(in   ), target :: powerSpectrum_
     integer                                         , intent(in   )         :: massesPerDecade           , timesPerDecade
     double precision                                , intent(in   )         :: massMaximum               , massMinimum   , &
-         &                                                                     timeMinimum               , timeMaximum                     
+         &                                                                     timeMinimum               , timeMaximum
     type            (varying_string                ), intent(in   )         :: outputGroup
     !# <constructorAssign variables="massMinimum, massMaximum, massesPerDecade, timeMinimum, timeMaximum, timesPerDecade, outputGroup, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *haloMassFunction_, *excursionSetBarrier_, *excursionSetFirstCrossing_, *powerSpectrum_"/>
 
     return
   end function excursionSetsConstructorInternal
-  
+
   subroutine excursionSetsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily excursionSets} task class.
-    use Node_Components, only : Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskExcursionSets), intent(inout) :: self
 
@@ -239,21 +238,21 @@ contains
 
   subroutine excursionSetsPerform(self,status)
     !% Compute and output the halo mass function.
-    use Numerical_Constants_Math
-    use Memory_Management
-    use Galacticus_Display
-    use Numerical_Ranges
-    use IO_HDF5
-    use Galacticus_HDF5
-    use Galacticus_Error        , only : errorStatusSuccess
-    use Galacticus_Nodes        , only : treeNode
+    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Galacticus_HDF5         , only : galacticusOutputFile
+    use :: Galacticus_Nodes        , only : treeNode
+    use :: IO_HDF5                 , only : hdf5Object
+    use :: Memory_Management       , only : allocateArray            , deallocateArray
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
     implicit none
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
     double precision                   , allocatable  , dimension(:    ) :: mass                    , time                    , &
-         &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  wavenumber
     double precision                   , allocatable  , dimension(:,:  ) :: barrier                 , firstCrossingProbability, &
+         &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  massFunctionDifferential
     double precision                   , allocatable  , dimension(:,:,:) :: firstCrossingRate
     integer                                                              :: iMass                   , jMass                   , &
@@ -262,7 +261,7 @@ contains
     type            (treeNode         )                                  :: node
     double precision                                                     :: varianceProgenitor
     type            (hdf5Object       )                                  :: outputGroup
-    
+
     call Galacticus_Display_Indent('Begin task: excursion sets')
 #ifdef USEMPI
     ! Indicate that all MPI processes are coordinated in their work.
@@ -273,9 +272,9 @@ contains
     massCount=max(int(dble(self%massesPerDecade)*log10(self%massMaximum/self%massMinimum))+1,2)
     ! Allocate arrays.
     call allocateArray(mass                    ,[massCount                    ])
-    call allocateArray(variance                ,[massCount                    ])
+    call allocateArray(variance                ,[massCount          ,timeCount])
     call allocateArray(wavenumber              ,[massCount                    ])
-    call allocateArray(powerSpectrumValue      ,[massCount                    ])
+    call allocateArray(powerSpectrumValue      ,[massCount          ,timeCount])
     call allocateArray(time                    ,[                    timeCount])
     call allocateArray(barrier                 ,[massCount          ,timeCount])
     call allocateArray(firstCrossingProbability,[massCount          ,timeCount])
@@ -289,24 +288,24 @@ contains
     do iMass=1,massCount
        do iTime=1,timeCount
           if (iTime == 1) then
-             wavenumber           (iMass      )=+(                                                                                     &
-                  &                               +3.0d0                                                                               &
-                  &                               *                                                                        mass(iMass) &
-                  &                               /4.0d0                                                                               &
-                  &                               /Pi                                                                                  &
-                  &                               /self%cosmologyParameters_%densityCritical()                                         &
-                  &                               /self%cosmologyParameters_%OmegaMatter    ()                                         &
+             wavenumber           (iMass      )=+(                                                                                    &
+                  &                               +3.0d0                                                                              &
+                  &                               *                                                           mass      (iMass      ) &
+                  &                               /4.0d0                                                                              &
+                  &                               /Pi                                                                                 &
+                  &                               /self%cosmologyParameters_%densityCritical()                                        &
+                  &                               /self%cosmologyParameters_%OmegaMatter    ()                                        &
                   &                              )**(-1.0d0/3.0d0)
-             powerSpectrumValue   (iMass      )=self%powerSpectrum_            %power       (wavenumber(iMass)                                                 )
-             variance             (iMass      )=self%cosmologicalMassVariance_ %rootVariance(                              mass(iMass)                         )**2
           end if
-          barrier                 (iMass,iTime)=self%excursionSetBarrier_      %barrier     (variance  (iMass),time(iTime)            ,node,rateCompute=.false.)
-          firstCrossingProbability(iMass,iTime)=self%excursionSetFirstCrossing_%probability (variance  (iMass),time(iTime)            ,node                    )
-          massFunctionDifferential(iMass,iTime)=self%haloMassFunction_         %differential(                  time(iTime),mass(iMass),node                    )
+          powerSpectrumValue      (iMass      ,iTime)=self%powerSpectrum_            %power       (wavenumber=wavenumber(iMass      )                                      ,time=time(iTime)                              )
+          variance                (iMass      ,iTime)=self%cosmologicalMassVariance_ %rootVariance(mass      =mass      (iMass      )                                      ,time=time(iTime)                              )**2
+          barrier                 (iMass      ,iTime)=self%excursionSetBarrier_      %barrier     (variance  =variance  (iMass,iTime)                                      ,time=time(iTime),node=node,rateCompute=.false.)
+          firstCrossingProbability(iMass      ,iTime)=self%excursionSetFirstCrossing_%probability (variance  =variance  (iMass,iTime)                                      ,time=time(iTime),node=node                    )
+          massFunctionDifferential(iMass      ,iTime)=self%haloMassFunction_         %differential(mass      =mass      (iMass      )                                      ,time=time(iTime),node=node                    )
           ! Compute halo branching rates.
           do jMass=1,iMass-1
-             varianceProgenitor                   =self%cosmologicalMassVariance_ %rootVariance(mass    (jMass)                                    )**2
-             firstCrossingRate (iMass,jMass,iTime)=self%excursionSetFirstCrossing_%rate        (variance(iMass),varianceProgenitor,time(iTime),node)
+             varianceProgenitor                      =self%cosmologicalMassVariance_ %rootVariance(mass      =mass      (jMass      )                                      ,time=time(iTime)                              )**2
+             firstCrossingRate    (iMass,jMass,iTime)=self%excursionSetFirstCrossing_%rate        (variance  =variance  (iMass,iTime),varianceProgenitor=varianceProgenitor,time=time(iTime),node=node                    )
           end do
        end do
     end do

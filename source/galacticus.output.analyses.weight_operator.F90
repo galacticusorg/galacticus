@@ -21,10 +21,10 @@
 
 module Output_Analysis_Weight_Operators
   !% Provides a class that implements operators on weights for on-the-fly analyses.
-  use               Galacticus_Nodes, only : treeNode
+  use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
   private
-  
+
   !# <functionClass>
   !#  <name>outputAnalysisWeightOperator</name>
   !#  <descriptiveName>Output Analysis Weight Operator</descriptiveName>

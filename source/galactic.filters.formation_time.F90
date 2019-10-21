@@ -43,12 +43,12 @@ contains
 
   function formationTimeConstructorParameters(parameters) result(self)
     !% Constructor for the ``formationTime'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterFormationTime)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: timeRecent
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>timeRecent</name>
@@ -75,7 +75,7 @@ contains
 
   logical function formationTimePasses(self,node)
     !% Implement a filter which rejects halos that formed too recently.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     class(galacticFilterFormationTime), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

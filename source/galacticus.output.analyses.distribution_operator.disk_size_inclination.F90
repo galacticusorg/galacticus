@@ -19,8 +19,8 @@
 
   !% Contains a module which implements the effects of inclination on disk size in an output analysis distribution operator class.
 
-  use Tables
- 
+  use :: Tables, only : table1D, table1DLinearLinear
+
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
   !#  <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
   !# </outputAnalysisDistributionOperator>
@@ -43,12 +43,12 @@
   ! Module-scope variables used in root finding and integrations.
   double precision :: diskSizeInclntnXIntegrate, diskSizeInclntnAngle
   !$omp threadprivate(diskSizeInclntnXIntegrate,diskSizeInclntnAngle)
-  
+
 contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
     !% Constructor for the ``diskSizeInclination'' output analysis distribution operator operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
@@ -60,13 +60,13 @@ contains
 
   function diskSizeInclinationConstructorInternal() result(self)
     !% Internal constructor for the ``diskSizeInclination'' output analysis distribution operator class.
-    use Root_Finder
-    use Numerical_Constants_Math
-    use Table_Labels
-    use File_Utilities
-    use IO_HDF5
-    use ISO_Varying_String
-    use Galacticus_Paths
+    use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Lock_Initialize         , File_Unlock, &
+          &                           lockDescriptor
+    use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
+    use :: IO_HDF5           , only : hdf5Access               , hdf5Object
+    use :: ISO_Varying_String
+    use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     type            (outputAnalysisDistributionOperatorDiskSizeInclntn)                            :: self
     double precision                                                   , parameter                 :: inclinationAngleEpsilon=1.0d-3
@@ -87,7 +87,7 @@ contains
          &                                  extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                 )
     call File_Lock_Initialize(lockFileDescriptor)
-    fileName=galacticusPath(pathTypeDataStatic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
+    fileName=galacticusPath(pathTypeDataDynamic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
        call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
@@ -136,12 +136,12 @@ contains
     call self%inclinationTable%reverse(self%sizeTable)
     return
   end function diskSizeInclinationConstructorInternal
-  
+
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.
-    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
-    use Numerical_Constants_Math
+    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate
     implicit none
     double precision                            , intent(in   ) :: xHalf
     double precision                                            :: integralHalf
@@ -157,9 +157,9 @@ contains
 
   double precision function diskSizeInclntnIntegrandX(x)
     !% Integral for half-light radius.
-    use Numerical_Integration
-    use Numerical_Constants_Math
-    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate
     implicit none
     double precision                            , intent(in   ) :: x
     type            (fgsl_function             )                :: integrandFunction
@@ -177,7 +177,7 @@ contains
     implicit none
     double precision, intent(in   ) :: phi
 
-    diskSizeInclntnIntegrandPhi=exp(-diskSizeInclntnXIntegrate*sqrt((sin(phi)/cos(diskSizeInclntnAngle))**2+cos(phi)**2))  
+    diskSizeInclntnIntegrandPhi=exp(-diskSizeInclntnXIntegrate*sqrt((sin(phi)/cos(diskSizeInclntnAngle))**2+cos(phi)**2))
     return
   end function diskSizeInclntnIntegrandPhi
 
@@ -194,7 +194,7 @@ contains
     double precision                                                                                                          :: ratioLogarithmicMinimum         , ratioLogarithmicMaximum
     integer                                                                                                                   :: i
     !GCC$ attributes unused :: outputIndex, propertyType, node
-    
+
     do i=1,size(propertyValueMinimum)
        ratioLogarithmicMinimum            =min(0.0d0,propertyValueMinimum(i)-propertyValue)
        ratioLogarithmicMaximum            =min(0.0d0,propertyValueMaximum(i)-propertyValue)
@@ -206,7 +206,7 @@ contains
 
   function diskSizeInclinationOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a disk size inclination output analysis distribution operator.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution

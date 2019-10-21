@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryDavidzon2013VIPERS">
   !#  <description>Implements the geometry of the VIPERS survey of \cite{davidzon_vimos_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryDavidzon2013VIPERS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum , binDistanceMaximum
@@ -56,13 +56,13 @@ contains
 
   function davidzon2013VIPERSConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{davidzon_vimos_2013} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryDavidzon2013VIPERS)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     integer                                                  :: redshiftBin
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
@@ -80,10 +80,9 @@ contains
 
   function davidzon2013VIPERSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{davidzon_vimos_2013} mass function class.
-    use Galacticus_Error
-    use Input_Parameters
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions        , only : cosmologyFunctionsClass
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryDavidzon2013VIPERS)                        :: self
     integer                                           , intent(in   )         :: redshiftBin
@@ -127,13 +126,13 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine davidzon2013VIPERSDestructor
-  
+
   integer function davidzon2013VIPERSFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     davidzon2013VIPERSFieldCount=davidzon2013VIPERSFields
     return
   end function davidzon2013VIPERSFieldCount
@@ -145,21 +144,21 @@ contains
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
   end function davidzon2013VIPERSDistanceMinimum
 
   double precision function davidzon2013VIPERSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
     !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
-    
+
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -181,7 +180,7 @@ contains
 
   double precision function davidzon2013VIPERSVolumeMaximum(self,mass,field)
     !% Compute the maximum volume within which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
@@ -203,21 +202,22 @@ contains
 
   function davidzon2013VIPERSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
     !GCC$ attributes unused :: self
-    
+
     davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
     return
   end function davidzon2013VIPERSMangleDirectory
-  
+
   subroutine davidzon2013VIPERSMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS)                           , intent(inout) :: self
     type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
-    
+
     allocate(mangleFiles(3))
     mangleFiles=                                                       &
          &      [                                                      &
@@ -233,8 +233,8 @@ contains
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     davidzon2013VIPERSAngularPowerMaximumDegree=davidzon2013AngularPowerMaximumL
     return
   end function davidzon2013VIPERSAngularPowerMaximumDegree
-  
+

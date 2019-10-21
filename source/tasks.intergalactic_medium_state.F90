@@ -17,10 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions                  , only : cosmologyFunctions              , cosmologyFunctionsClass
-  use Output_Times                         , only : outputTimes                     , outputTimesClass
-  use Intergalactic_Medium_State           , only : intergalacticMediumStateClass   , intergalacticMediumState
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use :: Cosmology_Functions                  , only : cosmologyFunctions              , cosmologyFunctionsClass
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use :: Intergalactic_Medium_State           , only : intergalacticMediumState        , intergalacticMediumStateClass
+  use :: Output_Times                         , only : outputTimes                     , outputTimesClass
 
   !# <task name="taskIntergalacticMediumState">
   !#  <description>A task which outputs the state of the intergalactic medium.</description>
@@ -48,7 +48,7 @@ contains
 
   function intergalacticMediumStateConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (taskIntergalacticMediumState         )                :: self
     type (inputParameters                      ), intent(inout) :: parameters
@@ -65,7 +65,7 @@ contains
     !#   <description>The HDF5 output group within which to write intergalactic medium state data.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     !# <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
     !# <objectBuilder class="intergalacticMediumState"         name="intergalacticMediumState_"         source="parameters"/>
@@ -78,7 +78,7 @@ contains
          &                            intergalacticMediumFilteringMass_  &
          &                           )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"              /> 
+    !# <objectDestructor name="cosmologyFunctions_"              />
     !# <objectDestructor name="outputTimes_"                     />
     !# <objectDestructor name="intergalacticMediumState_"        />
     !# <objectDestructor name="intergalacticMediumFilteringMass_"/>
@@ -104,7 +104,7 @@ contains
 
     return
   end function intergalacticMediumStateConstructorInternal
-  
+
   subroutine intergalacticMediumStateDestructor(self)
     !% Destructor for the {\normalfont \ttfamily intergalacticMediumState} task class.
     implicit none
@@ -116,14 +116,14 @@ contains
     !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     return
   end subroutine intergalacticMediumStateDestructor
-  
+
   subroutine intergalacticMediumStatePerform(self,status)
     !% Output \gls{igm} state to the \glc\ output file.
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: IO_HDF5           , only : hdf5Object               , hdf5Access
-    use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use            :: Galacticus_Error  , only : errorStatusSuccess
+    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: IO_HDF5           , only : hdf5Access               , hdf5Object
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: String_Handling   , only : operator(//)
     implicit none
     class           (taskIntergalacticMediumState), intent(inout), target       :: self

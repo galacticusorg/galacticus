@@ -51,12 +51,12 @@ contains
   function stochasticDifferentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationStochasticDffrntlEvltn)                :: self
     type            (inputParameters                                ), intent(inout) :: parameters
     double precision                                                                 :: temperatureScale
-    
+
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureScale</name>
@@ -69,7 +69,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function stochasticDifferentialEvolutionConstructorParameters
-  
+
   function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
     !% Internal constructor for the ``stochasticDifferentialEvolution'' simulation class.
     implicit none
@@ -107,9 +107,9 @@ contains
 
 logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
   !% Return whether or not to accept a proposal.
-  use Pseudo_Random
-  use MPI_Utilities
-  use Galacticus_Error
+  use :: Galacticus_Error              , only : Galacticus_Error_Report
+  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
+  use :: Pseudo_Random                 , only : pseudoRandom
   implicit none
   class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
   double precision                                                 , intent(in   ) :: logPosterior                , logPosteriorProposed         , &
@@ -132,7 +132,7 @@ logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior
   class default
      temperatureConvergenceFactor=0.0d0
      call Galacticus_Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
-  end select  
+  end select
   ! Set the chain temperature to the root-variance of the difference between the current and proposed likelihoods (which is
   ! characteristic amount by which we expect them to differ due to random fluctuations). Multiply by a user-specified factor to
   ! allow control over the temperature.

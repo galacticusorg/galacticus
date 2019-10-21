@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
-  
-  use IO_HDF5
-  use Cosmological_Density_Field
+
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: IO_HDF5                   , only : hdf5Object
 
   !# <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
   !#  <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).</description>
@@ -41,26 +41,25 @@
      module procedure sussingHDF5ConstructorParameters
      module procedure sussingHDF5ConstructorInternal
   end interface mergerTreeImporterSussingHDF5
- 
+
 contains
 
   function sussingHDF5ConstructorParameters(parameters) result(self)
     !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeImporterSussingHDF5)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
     !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
-    !# <inputParametersValidate source="parameters"/>    
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end function sussingHDF5ConstructorParameters
 
   function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
-    use Input_Parameters
     implicit none
     type            (mergerTreeImporterSussingHDF5)                              :: self
     class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
@@ -80,7 +79,7 @@ contains
 
   subroutine sussingHDF5Destructor(self)
     !% Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
-    use Memory_Management
+    use :: IO_HDF5, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
@@ -94,13 +93,14 @@ contains
 
   subroutine sussingHDF5Open(self,fileName)
     !% Validate a {\normalfont \ttfamily sussing} HDF5 format merger tree file.
-    use Numerical_Comparison
-    use Numerical_Constants_Astronomical
-    use Galacticus_Display
-    use Galacticus_Error
-    use String_Handling
-    use File_Utilities
-    use Memory_Management
+    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use :: Galacticus_Display              , only : Galacticus_Display_Message, verbosityWarn
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access
+    use :: Memory_Management               , only : allocateArray             , deallocateArray
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeImporterSussingHDF5), intent(inout)             :: self
     type            (varying_string               ), intent(in   )             :: fileName
@@ -113,7 +113,7 @@ contains
          &                                                                        localOmegaBaryon        , fileOmegaBaryon      , &
          &                                                                        fileOmegaCDM            , fileLittleH0         , &
          &                                                                        fileOmegaDE             , fileSigma8
-    
+
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
     localLittleH0   =self%cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
     localOmegaMatter=self%cosmologyParameters_     %OmegaMatter    (                  )
@@ -209,19 +209,15 @@ contains
 
   subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
+    use            :: Arrays_Search     , only : Search_Indexed
+    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                      verbosityWorking
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Display
-    use Galacticus_Error
-    use Kind_Numbers
-    use String_Handling
-    use Sort
-    use File_Utilities
-    use Memory_Management
-    use Arrays_Search
-    use Array_Utilities
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use String_Handling
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray             , deallocateArray
+    use            :: Sort              , only : Sort_Index_Do
+    use            :: String_Handling   , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussingHDF5), intent(inout)                              :: self
     integer  (kind_int8                    ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices      , nodeTreeIndices
@@ -275,7 +271,7 @@ contains
        snapshot    =self%snapshots%openGroup(char(snapshotName))
        call snapshot%readAttribute('NSnapHalo',nodeCountSnapshot,allowPseudoScalar=.true.)
        if (nodeCountSnapshot > 0) then
-          ! Read units.          
+          ! Read units.
           call snapshot%readTable('SnapHaloProp','name' ,propertyNames    )
           call snapshot%readTable('SnapHaloProp','units',propertyUnitsText)
           do j=1,size(propertyNames)
@@ -312,7 +308,7 @@ contains
                 end if
              end select
           end do
-          ! Read halo properties.          
+          ! Read halo properties.
           call snapshot%readTable('SnapHalo','HaloID'  ,propertyLongInteger)
           self%nodes(nodeCount+1:nodeCount+nodeCountSnapshot)%nodeIndex            =     propertyLongInteger
           call snapshot%readTable('SnapHalo','hostHalo',propertyLongInteger)
@@ -385,7 +381,7 @@ contains
             &   self%valueIsBad(self%nodes(j)%spin3D(3)) &
             & ) then
           self%spinsAvailableValue=.false.
-          exit          
+          exit
        end if
     end do
     ! For halos with no host, assign them to be self-hosting.
@@ -422,14 +418,14 @@ contains
        if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Galacticus_Error_Report('mismatch in halo ID lookup'//{introspection:location})
        if (mergerTreeDescendentIndices(i) < 0) then
           self%nodes(iHalo)%descendentIndex=-1
-       else          
+       else
           self%nodes(iHalo)%descendentIndex=mergerTreeHaloIndices(mergerTreeDescendentIndices(i)+1-haloIndexOffset)
        end if
     end do
     call deallocateArray(mergerTreeHaloIndices      )
     call deallocateArray(mergerTreeDescendentIndices)
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
-    call Galacticus_Display_Unindent     ('done',verbosityWorking)    
+    call Galacticus_Display_Unindent     ('done',verbosityWorking)
     call Galacticus_Display_Indent ('Locating descendants',verbosityWorking)
     do i=1,nodeCountTrees
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(nodeCountTrees)),i==1,verbosityWorking)
@@ -442,7 +438,7 @@ contains
        end if
     end do
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
-    call Galacticus_Display_Unindent     ('done',verbosityWorking)    
+    call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Indicate that tree indices were not assigned.
     treeIndicesAssigned    =.false.
     ! Indicate that branch jump checks are quired.
@@ -455,13 +451,14 @@ contains
 
     function decodeUnits(unitString)
       !% Decode a textual unit definition and construct an importer units object from it.
-      use Galacticus_Display
-      use Galacticus_Error
+      use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
+      use :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar
+      use :: Numerical_Constants_Prefixes    , only : kilo
       implicit none
       type     (importerUnits)                :: decodeUnits
       character(len=*        ), intent(in   ) :: unitString
       character(len=32       )                :: unitWork
-      
+
       ! Check for trailing question mark.
       if (unitString(len_trim(unitString):len_trim(unitString)) == "?") then
          unitWork=trim(unitString(1:len_trim(unitString)-1))
@@ -488,5 +485,5 @@ contains
       end if
       return
     end function decodeUnits
-    
+
   end subroutine sussingHDF5Load

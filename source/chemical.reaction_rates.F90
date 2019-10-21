@@ -21,11 +21,11 @@
 
 module Chemical_Reaction_Rates
   !% Provides a class implementing chemical reaction rates.
-  use Chemical_Abundances_Structure
-  use Radiation_Fields
-  use Galacticus_Nodes             , only : treeNode
+  use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Galacticus_Nodes             , only : treeNode
+  use :: Radiation_Fields             , only : radiationFieldClass
   private
-  
+
   !# <functionClass>
   !#  <name>chemicalReactionRate</name>
   !#  <descriptiveName>Chemical Reaction Rates</descriptiveName>
@@ -37,10 +37,10 @@ module Chemical_Reaction_Rates
   !#   <pass>yes</pass>
   !#   <argument>double precision                     , intent(in   ) :: temperature</argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensity</argument>
-  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>               
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#   <argument>type            (chemicalAbundances ), intent(inout) :: chemicalRates</argument>
   !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Chemical_Reaction_Rates

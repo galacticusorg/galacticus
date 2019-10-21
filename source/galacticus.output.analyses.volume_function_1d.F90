@@ -20,17 +20,16 @@
 !% Contains a module which implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
 !% mass function) output analysis class.
 
-  !$ use            OMP_Lib
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Node_Property_Extractors
-  use               Output_Analysis_Property_Operators
-  use               Output_Analysis_Weight_Operators
-  use               Output_Analysis_Distribution_Operators
-  use               Output_Analysis_Distribution_Normalizers
-  use               Output_Analyses_Options
-  use               Galactic_Filters
-  use               Output_Times
+  use               :: Galactic_Filters                        , only : galacticFilterClass
+  use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
+  use               :: ISO_Varying_String
+  use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
+  !$ use            :: OMP_Lib
+  use               :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerClass
+  use               :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
+  use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
+  use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
+  use               :: Output_Times                            , only : outputTimesClass
 
   !# <outputAnalysis name="outputAnalysisVolumeFunction1D">
   !#  <description>A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.</description>
@@ -96,9 +95,10 @@ contains
 
   function volumeFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``volumeFunction1D'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Input_Parameters       , only : inputParameter                                , inputParameters
+    use :: Memory_Management      , only : allocateArray
+    use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                              :: self
     type            (inputParameters                          ), intent(inout)               :: parameters
@@ -125,7 +125,7 @@ contains
          &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
     logical                                                                                  :: xAxisIsLog                           , yAxisIsLog                       , &
          &                                                                                      likelihoodNormalize
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
@@ -247,7 +247,7 @@ contains
     !#   <description>A units for the distribution in the SI system.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCenter</name>
     !#   <source>parameters</source>
@@ -320,7 +320,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -404,8 +404,10 @@ contains
 
   function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
-    use Galacticus_Error , only : Galacticus_Error_Report
-    use Memory_Management
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Memory_Management       , only : allocateArray
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                                          :: self
     type            (varying_string                           ), intent(in   )                           :: label                                , comment                          , &
@@ -494,7 +496,7 @@ contains
   subroutine volumeFunction1DDestructor(self)
     !% Destructor for  the ``volumeFunction1D'' output analysis class.
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%nodePropertyExtractor_"     />
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_"      />
     !# <objectDestructor name="self%outputAnalysisPropertyUnoperator_"    />
@@ -507,10 +509,12 @@ contains
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine volumeFunction1DDestructor
-  
+
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
     !% Implement a volumeFunction1D output analysis.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
+    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     type            (treeNode                      ), intent(inout)                 :: node
@@ -529,8 +533,7 @@ contains
     ! Filter this node.
     if (.not.self%galacticFilter_%passes(node)) return
     ! Allocate work arrays.
-    allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount              ))
-    allocate(covariance  (                    self%binCount                 ,self%binCount))
+    allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount))
     ! Extract the property from the node.
     propertyType             =self%nodePropertyExtractor_%type    (    )
     propertyQuantity         =self%nodePropertyExtractor_%quantity(    )
@@ -574,6 +577,7 @@ contains
        end if
     else
        ! Construct contribution to the covariance matrix assuming Poisson statistics.
+       allocate(covariance(self%binCount,self%binCount))
        forall(j=1:self%binCount)
           forall(k=j:self%binCount)
              covariance(j,k)=+distribution(j  ) &
@@ -587,17 +591,18 @@ contains
             & +self%functionCovariance  &
             & +             covariance
        !$ call OMP_Unset_Lock(self%accumulateLock)
+       deallocate(covariance)
     end if
     ! Deallocate workspace.
     deallocate(distribution)
-    deallocate(covariance  )
     return
   end subroutine volumeFunction1DAnalyze
 
   subroutine volumeFunction1DReduce(self,reduced)
     !% Implement a volumeFunction1D output analysis reduction.
-    use Galacticus_Error
-    implicit none
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
+   implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
     class(outputAnalysisClass           ), intent(inout) :: reduced
 
@@ -619,8 +624,8 @@ contains
 
   subroutine volumeFunction1DFinalize(self)
     !% Implement a volumeFunction1D output analysis finalization.
-    use IO_HDF5
-    use Galacticus_HDF5
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
     type (hdf5Object                    )                :: analysesGroup        , analysisGroup, &
@@ -672,13 +677,16 @@ contains
     end if
     call    analysisGroup%close         (                                                                                                                                                                                )
     call    analysesGroup%close         (                                                                                                                                                                                )
-    !$ call hdf5Access%unset()    
+    !$ call hdf5Access%unset()
     return
   end subroutine volumeFunction1DFinalize
 
   subroutine volumeFunction1DFinalizeAnalysis(self)
     !% Compute final covariances and normalize.
-    use MPI_Utilities
+#ifdef USEMPI
+    use :: MPI_Utilities          , only : mpiSelf
+#endif
+    use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout) :: self
     double precision                                , parameter     :: weightFractionMaximum=0.99d0
@@ -717,8 +725,7 @@ contains
                         &  *sqrt(                                    &
                         &         self%weightSquaredMainBranch(i,m)  &
                         &        *self%weightSquaredMainBranch(j,m)  &
-                        &       )                                    &
-                        &  /weightMainBranchTotal
+                        &       )
                 end do
              end do
           end if
@@ -738,10 +745,10 @@ contains
     end do
     return
   end subroutine volumeFunction1DFinalizeAnalysis
-    
+
   subroutine volumeFunction1DResults(self,binCenter,functionValue,functionCovariance)
     !% Implement a volumeFunction1D output analysis finalization.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisVolumeFunction1D)                             , intent(inout)           :: self
     double precision                                , allocatable, dimension(:  ), intent(inout), optional :: binCenter         , functionValue
@@ -780,7 +787,7 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                        )                                :: residual
     type            (matrix                        )                                :: covariance
-    
+
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.

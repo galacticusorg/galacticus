@@ -61,7 +61,7 @@
     <massTreeMinimum value="1.0e12"/>
   </mergerTreeBuildMassesMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <blackHoleWindEfficiency value="0.001"/>
   <treeNodeMethodBlackHole value="standard"/>
@@ -85,7 +85,7 @@
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e10"/>
   </mergerTreeMassResolutionMethod>
@@ -102,7 +102,7 @@
   </stellarPopulationMethod>
 
   <virialOrbitMethod value="benson2005"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
@@ -123,8 +123,8 @@
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <starFormationHistoryMethod value="metallicitySplit">
-    <countMetallicities value="0"  />
-    <timeStep           value="1.0"/>
+    <countMetallicities value="0"/>
+    <timeStep value="1.0"/>
   </starFormationHistoryMethod>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <mergerRemnantSizeMethod value="cole2000">

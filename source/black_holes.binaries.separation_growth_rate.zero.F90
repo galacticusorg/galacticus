@@ -30,7 +30,7 @@
    contains
      procedure :: growthRate => zeroGrowthRate
   end type blackHoleBinarySeparationGrowthRateZero
-  
+
   interface blackHoleBinarySeparationGrowthRateZero
      !% Constructors for the {\normalfont \ttfamily zero} black hole binary separation growth rate class.
      module procedure zeroConstructorParameters
@@ -41,12 +41,12 @@ contains
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} black hole binary separation growth rate class which takes a parameter
     !% set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinarySeparationGrowthRateZero)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=blackHoleBinarySeparationGrowthRateZero()
     return
   end function zeroConstructorParameters
@@ -57,7 +57,7 @@ contains
     class(blackHoleBinarySeparationGrowthRateZero), intent(inout) :: self
     class(nodeComponentBlackHole                 ), intent(inout) :: blackHole
     !GCC$ attributes unused :: self, blackHole
-    
+
     zeroGrowthRate=0.0d0
     return
   end function zeroGrowthRate

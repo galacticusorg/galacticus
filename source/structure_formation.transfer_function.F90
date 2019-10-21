@@ -22,7 +22,7 @@
 module Transfer_Functions
   !% Provides an object that implements transfer functions.
   private
-  
+
   !# <functionClass>
   !#  <name>transferFunction</name>
   !#  <descriptiveName>Transfer Function</descriptiveName>

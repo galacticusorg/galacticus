@@ -51,14 +51,16 @@ sub Parse_Declarations {
 			my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
 			$attributesText =~ s/^\s*,\s*//
 			    if  ( $attributesText );
-			my @attributes = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
-			my @variables  = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1);
+			my @attributes    = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
+			my @variables     = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1                );
+			my @variableNames = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 0, lowerCase => 0);
 			$declaration = {
-			    intrinsic  => $intrinsic  ,
-			    type       => $type       ,
-			    openMP     => $openMP     ,
-			    attributes => \@attributes,
-			    variables  => \@variables 
+			    intrinsic     => $intrinsic     ,
+			    type          => $type          ,
+			    openMP        => $openMP        ,
+			    attributes    => \@attributes   ,
+			    variables     => \@variables    ,
+			    variableNames => \@variableNames
 			};
 			$isDeclaration = 1;
 		    }

@@ -20,13 +20,13 @@
 program Tests_Bug745815
   !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
   !% walk.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Galacticus_Nodes   , only : treeNode, treeNodeList, mergerTree, treeNode
-  use Kind_Numbers
-  use Merger_Tree_Walkers
-  use Galacticus_Display
+  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Nodes   , only : mergerTree                    , treeNode              , treeNodeList
+  use :: ISO_Varying_String
+  use :: Input_Parameters   , only : inputParameters
+  use :: Kind_Numbers       , only : kind_int8
+  use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type   (varying_string          )          :: parameterFile
   type   (treeNodeList            )          :: nodes        (5)
@@ -38,7 +38,7 @@ program Tests_Bug745815
   type   (mergerTreeWalkerAllNodes)          :: treeWalker
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)  
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
 
@@ -75,7 +75,7 @@ program Tests_Bug745815
 
   ! Set the base node of our tree.
   tree%baseNode => nodes(1)%node
-  
+
   ! Walk the tree, with satellites.
   nodeFound=.false.
   treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.false.)

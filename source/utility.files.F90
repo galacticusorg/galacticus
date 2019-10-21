@@ -24,9 +24,9 @@
 
 module File_Utilities
   !% Implements various file-related utilities.
-  use, intrinsic :: ISO_C_Binding
-  use ISO_Varying_String
-  !$ use OMP_Lib
+  use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
+  use               :: ISO_Varying_String, only : varying_string
+  !$ use            :: OMP_Lib
   implicit none
   private
   public :: Count_Lines_in_File, File_Exists    , File_Lock_Initialize, File_Lock       , &
@@ -130,6 +130,7 @@ contains
 
   logical function File_Exists_VarStr(FileName)
     !% Checks for existance of file {\normalfont \ttfamily FileName} (version for varying string argument).
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: FileName
 
@@ -148,6 +149,7 @@ contains
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
     !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
+    use :: ISO_Varying_String, only : char
     implicit none
     type     (varying_string), intent(in   )           :: in_file
     character(len=1         ), intent(in   ), optional :: comment_char
@@ -162,7 +164,7 @@ contains
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
     !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   )           :: in_file
     character(len=1), intent(in   ), optional :: comment_char
@@ -199,6 +201,7 @@ contains
 
   subroutine File_Lock(fileName,lock,lockIsShared)
     !% Place a lock on a file.
+    use :: ISO_Varying_String, only : trim, assignment(=)
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
@@ -215,20 +218,25 @@ contains
     return
   end subroutine File_Lock
 
-  subroutine File_Unlock(lock)
+  subroutine File_Unlock(lock,sync)
     !% Remove a lock from a file.
-    use Galacticus_Error
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
-    type   (lockDescriptor), intent(inout) :: lock
-    integer                                :: fileUnit, errorStatus
+    type   (lockDescriptor), intent(inout)           :: lock
+    logical                , intent(in   ), optional :: sync
+    integer                                          :: fileUnit, errorStatus
+    !# <optionalArgument name="sync" defaultsTo=".true." />
 
+    if (sync_) then
+       open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
+       if (errorStatus == 0) then
+          if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
+          close(fileUnit)
+       end if
+    end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-    open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
-    if (errorStatus == 0) then
-       if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
-       close(fileUnit)
-    end if
     ! Then release the per-thread lock.
     !$ call OMP_Unset_Lock(lock%threadLock)
     return
@@ -236,8 +244,8 @@ contains
 
   function Executable_Find(executableName)
     !% Return the full path to the executable of the given name.
-    use ISO_Varying_String
-    use String_Handling
+    use :: ISO_Varying_String
+    use :: String_Handling   , only : String_Count_Words, String_Split_Words, char
     implicit none
     type     (varying_string)                            :: Executable_Find
     character(len=*         ), intent(in   )             :: executableName
@@ -258,13 +266,13 @@ contains
     return
 
   contains
-    
+
     subroutine Get_Paths(pathsLength)
       !% Retrieve the {\normalfont \ttfamily PATH} environment variable.
       implicit none
       integer                     , intent(in   ) :: pathsLength
       character(len=pathsLength+1)                :: pathsName
-      
+
       ! Get the paths.
       call Get_Environment_Variable("PATH",value=pathsName)
       ! Store the paths.
@@ -276,16 +284,18 @@ contains
 
   subroutine Directory_Make_VarStr(pathName)
     !% Make the given directory path. Will create intermediate directories in the path if necessary.
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: pathName
 
     call Directory_Make(char(pathName))
     return
   end subroutine Directory_Make_VarStr
-  
+
   subroutine Directory_Make_Char(pathName)
     !% Make the given directory path. Will create intermediate directories in the path if necessary.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : var_str                , trim
     implicit none
     character(len=*), intent(in   ) :: pathName
     integer  (c_int)                :: status
@@ -308,9 +318,10 @@ contains
     !$omp end critical(mkdir)
     return
   end subroutine Directory_Make_Char
-  
+
   function File_Path_VarStr(fileName)
     !% Returns the path to the file.
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string)                :: File_Path_VarStr
     type(varying_string), intent(in   ) :: fileName
@@ -318,9 +329,10 @@ contains
     File_Path_VarStr=File_Path(char(fileName))
     return
   end function File_Path_VarStr
-  
+
   function File_Path_Char(fileName)
     !% Returns the path to the file.
+    use :: ISO_Varying_String, only : char, index, extract, assignment(=)
     implicit none
     type     (varying_string)                :: File_Path_Char
     character(len=*         ), intent(in   ) :: fileName
@@ -332,9 +344,10 @@ contains
     end if
     return
   end function File_Path_Char
-  
+
   function File_Name(fileName)
     !% Returns the path to the file.
+    use :: ISO_Varying_String, only : varying_string, assignment(=), extract, index
     implicit none
     type     (varying_string)                :: File_Name
     character(len=*         ), intent(in   ) :: fileName
@@ -346,12 +359,15 @@ contains
     end if
     return
   end function File_Name
-  
+
   function File_Name_Temporary(fileRootName,path) result(fileName)
     !% Returns the path to the file.
-    !$ use OMP_Lib
-    use    MPI_Utilities
-    use    String_Handling
+#ifdef USEMPI
+    use    :: MPI_Utilities     , only : mpiSelf
+#endif
+    !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use    :: ISO_Varying_String, only : varying_string , operator(//)      , assignment(=), var_str
+    use    :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string)                          :: fileName
     character(len=*         ), intent(in   )           :: fileRootName
@@ -368,7 +384,7 @@ contains
        end if
        fileName=fileName//trim(fileRootName)//"."//GetPID()
        !$ if (OMP_In_Parallel()) fileName=fileName//"."//OMP_Get_Thread_Num()
-#ifdef MPI
+#ifdef USEMPI
        fileName=fileName//"."//mpiSelf%rankLabel()
 #endif
        fileName=fileName//"."//i
@@ -378,20 +394,22 @@ contains
 
   subroutine File_Remove_VarStr(fileName)
     !% Remove a file.
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: fileName
 
     call File_Remove_Char(char(fileName))
     return
   end subroutine File_Remove_VarStr
-  
+
   subroutine File_Remove_Char(fileName)
     !% Remove a file.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     character(len=*), intent(in   ) :: fileName
     integer  (c_int)                :: status
-    
+
     if (File_Exists(fileName)) then
        status=unlink_C(trim(fileName)//char(0))
        if (status /= 0) call Galacticus_Error_Report('failed to remove file "'//trim(fileName)//'"'//{introspection:location})
@@ -401,11 +419,12 @@ contains
 
   subroutine File_Rename(nameOld,nameNew)
     !% Remove a file.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : trim                   , operator(//), char
     implicit none
     type   (varying_string), intent(in   ) :: nameOld, nameNew
     integer(c_int         )                :: status
-    
+
     status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
     return
@@ -413,7 +432,8 @@ contains
 
   function File_Name_Expand(fileNameIn) result(fileNameOut)
     !% Expands placeholders for Galacticus paths in file names.
-    use Galacticus_Paths
+    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
+    use :: ISO_Varying_String, only : assignment(=) , replace
     implicit none
     type     (varying_string)                :: fileNameOut
     character(len=*         ), intent(in   ) :: fileNameIn
@@ -424,5 +444,5 @@ contains
     fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",galacticusPath(pathTypeDataDynamic),every=.true.)
     return
   end function File_Name_Expand
-  
+
 end module File_Utilities

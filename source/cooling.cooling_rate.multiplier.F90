@@ -19,7 +19,7 @@
 
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
 
-  
+
   !# <coolingRate name="coolingRateMultiplier">
   !#  <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
   !# </coolingRate>
@@ -43,7 +43,7 @@ contains
 
   function multiplierConstructorParameters(parameters) result(self)
     !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateMultiplier)                :: self
     type            (inputParameters      ), intent(inout) :: parameters

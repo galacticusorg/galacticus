@@ -19,17 +19,9 @@
 
   !% Contains a module which implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
   !% objects binned by some property) output analysis class.
-  
+
   use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Node_Property_Extractors
-  use               Output_Analysis_Property_Operators
-  use               Output_Analysis_Weight_Operators
-  use               Output_Analysis_Distribution_Operators
-  use               Output_Analysis_Distribution_Normalizers
-  use               Output_Analyses_Options
-  use               Output_Times
-  use               Galactic_Filters
+  use            :: ISO_Varying_String
 
   !# <outputAnalysis name="outputAnalysisScatterFunction1D">
   !#  <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>
@@ -42,6 +34,7 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
      !% A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
+     private
      type            (varying_string              )                              :: label                       , comment                          , &
           &                                                                         propertyLabel               , propertyComment                  , &
           &                                                                         scatterLabel                , scatterComment                   , &
@@ -56,7 +49,7 @@
      logical                                                                     :: finalized                   , likelihoodNormalize              , &
           &                                                                         xAxisIsLog                  , yAxisIsLog
    contains
-     final     ::                  scatterFunction1DDestructor 
+     final     ::                  scatterFunction1DDestructor
      procedure :: analyze       => scatterFunction1DAnalyze
      procedure :: finalize      => scatterFunction1DFinalize
      procedure :: reduce        => scatterFunction1DReduce
@@ -73,19 +66,20 @@ contains
 
   function scatterFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``scatterFunction1D'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Input_Parameters       , only : inputParameter                                , inputParameters
+    use :: Memory_Management      , only : allocateArray
+    use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisScatterFunction1D        )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass   ), pointer                     :: nodePropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass             ), pointer                     :: nodePropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_     , &
          &                                                                                    outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
-    class           (outputTimesClass                       ), pointer                     :: outputTimes_ 
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
     double precision                                         , dimension(:  ), allocatable :: binCenter                            , outputWeight                          , &
          &                                                                                    scatterValueTarget                   , scatterCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: scatterCovarianceTarget
@@ -226,7 +220,7 @@ contains
     !#   <description>A units for the scatter in the SI system.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCenter</name>
     !#   <source>parameters</source>
@@ -299,7 +293,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>scatterCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -357,7 +351,7 @@ contains
     !#        &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
     !#        &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
     !#        &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;                      
+    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
     !#        &amp;                        likelihoodNormalize                                                                          , &amp;
     !#        &amp;                        xAxisLabel                                                                                   , &amp;
     !#        &amp;                        yAxisLabel                                                                                   , &amp;
@@ -385,7 +379,8 @@ contains
 
   function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
     !% Constructor for the ``scatterFunction1D'' output analysis class for internal use.
-    use Memory_Management
+    use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
+    use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass  , weightOperatorList
     implicit none
     type            (outputAnalysisScatterFunction1D        )                                          :: self
     type            (varying_string                         ), intent(in   )                           :: label                                       , comment                                      , &
@@ -516,7 +511,7 @@ contains
     !# <objectDestructor name="self%meanSquaredFunction"/>
     return
   end subroutine scatterFunction1DDestructor
-  
+
   subroutine scatterFunction1DAnalyze(self,node,iOutput)
     !% Implement a scatterFunction1D output analysis.
     implicit none
@@ -532,7 +527,7 @@ contains
 
   subroutine scatterFunction1DReduce(self,reduced)
     !% Implement a scatterFunction1D output analysis reduction.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout) :: self
     class(outputAnalysisClass            ), intent(inout) :: reduced
@@ -585,8 +580,8 @@ contains
 
   subroutine scatterFunction1DFinalize(self)
     !% Implement a {\normalfont \ttfamily scatterFunction1D} output analysis finalization.
-    use IO_HDF5        , only : hdf5Object          , hdf5Access
-    use Galacticus_HDF5, only : galacticusOutputFile
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout) :: self
     type (hdf5Object                     )                :: analysesGroup, analysisGroup, &
@@ -638,15 +633,15 @@ contains
     end if
     call    analysisGroup%close         (                                                                                                                                                                     )
     call    analysesGroup%close         (                                                                                                                                                                     )
-    !$ call hdf5Access%unset()    
+    !$ call hdf5Access%unset()
     return
   end subroutine scatterFunction1DFinalize
 
   double precision function scatterFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a scatterFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
     double precision                                 , allocatable  , dimension(:,:) :: scatterCovarianceCombined
@@ -667,7 +662,7 @@ contains
        scatterCovarianceCombined=+self%scatterCovariance       &
             &                    +self%scatterCovarianceTarget
        residual                 = scatterValueDifference
-       covariance               = scatterCovarianceCombined 
+       covariance               = scatterCovarianceCombined
        ! Compute the log-likelihood.
        scatterFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
        if (self%likelihoodNormalize)                                                      &

@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
-  use Cosmological_Density_Field
-  use Excursion_Sets_First_Crossings
+  use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
+  use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
 
   !# <haloMassFunction name="haloMassFunctionPressSchechter">
   !#  <description>The halo mass function is computed from the function given by \cite{press_formation_1974}.</description>
@@ -27,7 +27,7 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
      !% A halo mass function class using the model of \cite{press_formation_1974}.
      private
-     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
+     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
      class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
     contains
      final     ::                 pressSchechterDestructor
@@ -44,7 +44,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionPressSchechter)                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -57,17 +57,17 @@ contains
     !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
     self=haloMassFunctionPressSchechter(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="cosmologyParameters_"      />
-   !# <objectDestructor name="cosmologicalMassVariance_" />
-   !# <objectDestructor name="excursionSetFirstCrossing_"/>
-   return
+    !# <objectDestructor name="cosmologyParameters_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_" />
+    !# <objectDestructor name="excursionSetFirstCrossing_"/>
+    return
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
-    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
     class(excursionSetFirstCrossingClass), target, intent(in   ) :: excursionSetFirstCrossing_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_"/>
@@ -88,23 +88,23 @@ contains
 
   double precision function pressSchechterDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout)           :: self
-    double precision                                , intent(in   )           :: time , mass    
+    double precision                                , intent(in   )           :: time , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                                          :: alpha, variance
 
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
-    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass              ))
-    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass              ) **2
+    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass,time))
+    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass,time) **2
     if (variance > 0.0d0) then
-       pressSchechterDifferential=+2.0d0                                                                                      &
-            &                     *   self%cosmologyParameters_      %OmegaMatter                    (                  )     &
-            &                     *   self%cosmologyParameters_      %densityCritical                (                  )     &
-            &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time,node)     &
-            &                     /mass**2                                                                                    &
-            &                     *alpha                                                                                      &
+       pressSchechterDifferential=+2.0d0                                                                  &
+            &                     *   self%cosmologyParameters_      %OmegaMatter    (                  ) &
+            &                     *   self%cosmologyParameters_      %densityCritical(                  ) &
+            &                     *   self%excursionSetFirstCrossing_%probability    (variance,time,node) &
+            &                     /mass**2                                                                &
+            &                     *alpha                                                                  &
             &                     *variance
     else
        pressSchechterDifferential=+0.0d0

@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a merger tree masses class which uses a fixed mass for trees.
-  use Cosmology_Parameters
-  use Dark_Matter_Halo_Scales
-  
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
   !#  <description>A merger tree masses class which uses a fixed mass for trees.</description>
   !# </mergerTreeBuildMasses>
@@ -41,15 +41,15 @@
      module procedure fixedMassConstructorParameters
      module procedure fixedMassConstructorInternal
   end interface mergerTreeBuildMassesFixedMass
-  
+
 contains
 
   function fixedMassConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
     !% input.
-    use Input_Parameters
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Input_Parameters , only : inputParameter         , inputParameters
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self
     type            (inputParameters               ), intent(inout)             :: parameters
@@ -59,7 +59,7 @@ contains
     class           (darkMatterHaloScaleClass      ), pointer                   :: darkMatterHaloScale_
     double precision                                                            :: massIntervalFractional
     integer                                                                     :: fixedHalosCount
-    
+
     fixedHalosCount=-1
     if (parameters%isPresent('massTree' )) then
        if     (                                                                  &
@@ -152,7 +152,7 @@ contains
     class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), intent(in   ), target       :: darkMatterHaloScale_
     !# <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_"/>
-    
+
     return
   end function fixedMassConstructorInternal
 
@@ -165,14 +165,14 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
     return
   end subroutine fixedMassDestructor
-  
+
   subroutine fixedMassConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
-    use Root_Finder
-    use Galacticus_Calculations_Resets
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
-    use Memory_Management
-    use Sort
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
+    use :: Memory_Management             , only : allocateArray
+    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
+    use :: Sort                          , only : Sort_Do
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -183,7 +183,7 @@ contains
     class           (nodeComponentBasic            ), pointer                                  :: basic
     integer                                                                                    :: indexStart , i
     !GCC$ attributes unused :: weight
-    
+
     node  => treeNode      (                 )
     basic => node    %basic(autoCreate=.true.)
     call basic%timeSet            (time)
@@ -236,14 +236,14 @@ contains
        end if
        indexStart=+self%treeCount(i)+indexStart
     end do
-    return 
+    return
 
   contains
 
     double precision function massEnclosed(massTree)
       !% Root finding function used to set the halo mass given the halo radius.
-      use Galactic_Structure_Enclosed_Masses
-      use Galactic_Structure_Options
+      use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+      use :: Galactic_Structure_Options        , only : massTypeDark
       implicit none
       double precision, intent(in   ) :: massTree
 

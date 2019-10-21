@@ -23,8 +23,8 @@
 module Posterior_Sampling_Prop_Size_Temp_Exp
   !% Implements algorithms for the temperature exponent of proposal size in tempered differential evolution
   !% algorithms.
-  use Posterior_Sampling_State
-  use Posterior_Sampling_Convergence
+  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+  use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
 
   !# <functionClass>

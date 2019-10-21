@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a gravitational lensing output analysis distribution operator class. 
+!% Contains a module which implements a gravitational lensing output analysis distribution operator class.
 
-  !$use OMP_Lib
-  use Gravitational_Lensing
-  use Locks
-  use Output_Times
-  
+  use    :: Gravitational_Lensing, only : gravitationalLensingClass
+  use    :: Locks                , only : ompReadWriteLock
+  !$ use :: OMP_Lib
+  use    :: Output_Times         , only : outputTimesClass
+
   type :: grvtnlLnsngTransferMatrix
      double precision, allocatable, dimension(:,:) :: matrix
   end type grvtnlLnsngTransferMatrix
@@ -60,14 +60,14 @@ contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
     !% Constructor for the ``gravitational lensing'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (gravitationalLensingClass                    ), pointer       :: gravitationalLensing_
     class           (outputTimesClass                             ), pointer       :: outputTimes_
     double precision                                                               :: sizeSource
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>sizeSource</name>
@@ -116,10 +116,10 @@ contains
     !# <objectDestructor name="self%outputTimes_"         />
     return
   end subroutine grvtnlLnsngDestructor
-  
+
   function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
@@ -134,13 +134,12 @@ contains
     call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function grvtnlLnsngOperateScalar
-  
+
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
-    use Memory_Management
-    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
-    use Output_Analyses_Options
+    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: Memory_Management    , only : allocateArray
+    use :: Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
@@ -174,7 +173,7 @@ contains
                 else
                    j=1; grvtnLnsngK=l
                 end if
-                integrationReset=.true.                               
+                integrationReset=.true.
                 self       %transfer_(outputIndex)%matrix(j,grvtnLnsngK)=          &
                      & +Integrate(                                                 &
                      &                               propertyValueMinimum     (j), &
@@ -214,8 +213,8 @@ contains
 
     double precision function magnificationCDFIntegrand(propertyValue)
       !% Integrand over the gravitational lensing magnification cumulative distribution.
-      use Output_Analyses_Options
-      use Galacticus_Error
+      use :: Galacticus_Error       , only : Galacticus_Error_Report
+      use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeMagnitude
       implicit none
       double precision, intent(in   ) :: propertyValue
       double precision                :: ratioMinimum , ratioMaximum
@@ -234,7 +233,7 @@ contains
          ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(grvtnLnsngK)-propertyValue))
       case default
          call Galacticus_Error_Report('unknown property type'//{introspection:location})
-      end select      
+      end select
       ! Compute the lensing CDF across this range of magnifications.
       magnificationCDFIntegrand=                                                     &
            & max(                                                                    &

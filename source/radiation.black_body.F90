@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a class for blackbody radiation fields.
-  
+
   !# <radiationField name="radiationFieldBlackBody">
   !#  <description>A radiation field class for blackbody fields.</description>
   !# </radiationField>
@@ -50,7 +50,7 @@ contains
 
   function blackBodyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily blackBody} radiation field class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiationFieldBlackBody)                :: self
     type            (inputParameters        ), intent(inout) :: parameters
@@ -78,17 +78,18 @@ contains
 
     return
   end function blackBodyConstructorInternal
-  
+
   double precision function blackBodyFlux(self,wavelength,node)
     !% Return the flux of a blackBody radiation field.
-    use Thermodynamics_Radiation
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Prefixes, only : centi
+    use :: Numerical_Constants_Units   , only : ergs
+    use :: Thermodynamics_Radiation    , only : Blackbody_Emission, radianceTypeFrequency
     implicit none
     class           (radiationFieldBlackBody), intent(inout) :: self
     double precision                         , intent(in   ) :: wavelength
     type            (treeNode               ), intent(inout) :: node
     !GCC$ attributes unused :: node
-    
+
     blackBodyFlux=+centi**2                                                               &
          &        /ergs                                                                   &
          &        *Blackbody_Emission(wavelength,self%temperature_,radianceTypeFrequency)

@@ -21,10 +21,10 @@
 
 program Test_Inoue2014
   !% Tests the \cite{inoue_updated_2014} algorithm for IGM absorption.
-  use Unit_Tests
-  use Stellar_Population_Spectra_Postprocess
-  use Numerical_Constants_Atomic
-  use Galacticus_Display
+  use :: Galacticus_Display                    , only : Galacticus_Verbosity_Level_Set                , verbosityStandard
+  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorInoue2014
+  use :: Unit_Tests                            , only : Assert                                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+          &                                             compareLessThanOrEqual
   implicit none
   type            (stellarPopulationSpectraPostprocessorInoue2014)               :: postprocessor
   integer                                                                        :: inoueUnit        , ioStatus        , i
@@ -34,7 +34,7 @@ program Test_Inoue2014
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Inoue et al. (2014) IGM attenuation model")
   ! Compare our calculation of attenuation with that from Inoue's own code and record the maximum error. The file read below was

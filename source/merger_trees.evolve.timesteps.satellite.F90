@@ -39,12 +39,12 @@ contains
 
   function satelliteConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
-    
+
     !# <inputParameter>
     !#   <name>timeOffsetMaximumAbsolute</name>
     !#   <cardinality>1</cardinality>
@@ -70,7 +70,7 @@ contains
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-    use Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -82,29 +82,29 @@ contains
 
   double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
-    use Galacticus_Nodes      , only : nodeComponentBasic, nodeComponentSatellite
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
+    use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
+    use :: ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepSatellite), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout), target  :: node
-    procedure       (timestepTask                     ), intent(  out), pointer :: task
-    class           (*                                ), intent(  out), pointer :: taskSelf
-    logical                                            , intent(in   )          :: report
-    type            (treeNode                         ), intent(  out), pointer :: lockNode
-    type            (varying_string                   ), intent(  out)          :: lockType
-    type            (treeNode                         )               , pointer :: nodeHost
-    class           (nodeComponentBasic               )               , pointer :: basicHost             , basic
-    class           (nodeComponentSatellite           )               , pointer :: satellite
-    double precision                                                            :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
-         &                                                                         timeUntilMerging
+    class           (mergerTreeEvolveTimestepSatellite), intent(inout), target            :: self
+    type            (treeNode                         ), intent(inout), target            :: node
+    procedure       (timestepTask                     ), intent(  out), pointer           :: task
+    class           (*                                ), intent(  out), pointer           :: taskSelf
+    logical                                            , intent(in   )                    :: report
+    type            (treeNode                         ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                   ), intent(  out)         , optional :: lockType
+    type            (treeNode                         )               , pointer           :: nodeHost
+    class           (nodeComponentBasic               )               , pointer           :: basicHost             , basic
+    class           (nodeComponentSatellite           )               , pointer           :: satellite
+    double precision                                                                      :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
+         &                                                                                   timeUntilMerging
 
     ! By default set a huge timestep so that this class has no effect,
-    satelliteTimeEvolveTo =  huge(0.0d0)
-    task                  => null(     )
-    taskSelf              => null(     )
-    lockNode              => null(     )
-    lockType              =  ""
+    satelliteTimeEvolveTo           =  huge(0.0d0)
+    task                            => null(     )
+    taskSelf                        => null(     )
+    if (present(lockNode)) lockNode => null(     )
+    if (present(lockType)) lockType =  ""
     ! If not limiting timesteps return.
     if (.not.self%limitTimesteps) return
     ! Find the time of merging.
@@ -114,7 +114,7 @@ contains
     if (timeUntilMerging < 0.0d0) return
     ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
     basic => node%basic()
-    mergeTargetTimeOffsetMaximum=min(&
+    mergeTargetTimeOffsetMaximum=min(                                 &
          &                           +self%timeOffsetMaximumAbsolute, &
          &                           +self%timeOffsetMaximumRelative  &
          &                           *(                               &
@@ -129,14 +129,14 @@ contains
     if (basicHost%time() < mergeTargetTimeMinimum .and. associated(nodeHost%parent)) then
        ! Do not set an end of timestep task in this case - we want to wait for the merge target to catch up before triggering a
        ! merger.
-       satelliteTimeEvolveTo =  max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)+basic%time()
-       lockNode              => nodeHost
-       lockType              =  "satellite (host)"
-       if (report) call Evolve_To_Time_Report("satellite (host): ",satelliteTimeEvolveTo)
+       satelliteTimeEvolveTo           =  max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)+basic%time()
+       if (present(lockNode)) lockNode => nodeHost
+       if (present(lockType)) lockType =  "satellite (host)"
+       if (        report   ) call Evolve_To_Time_Report("satellite (host): ",satelliteTimeEvolveTo)
     else
        ! Set return value if our timestep is smaller than current one.
-       lockNode              => nodeHost
-       lockType              =  "satellite (self)"
+       if (present(lockNode)) lockNode              => nodeHost
+       if (present(lockType)) lockType              =  "satellite (self)"
        satelliteTimeEvolveTo =  timeUntilMerging+basic%time()
        ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
        ! evolved before merging.
@@ -151,10 +151,10 @@ contains
 
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use Merger_Trees_Evolve_Deadlock_Status
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Display
+    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: ISO_Varying_String
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: String_Handling                    , only : operator(//)
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
@@ -166,7 +166,7 @@ contains
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
     !GCC$ attributes unused :: self, tree
-    
+
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['

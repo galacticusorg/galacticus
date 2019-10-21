@@ -20,15 +20,15 @@
 !+    Contributions to this file made by: Arya Farahi, Andrew Benson.
 
   !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
-  
+
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksExtendedSchmidt">
   !#  <description>The extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksExtendedSchmidt
      !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
      private
-     integer         (kind_int8) :: lastUniqueID                       
-     logical                     :: factorsComputed                    
+     integer         (kind_int8) :: lastUniqueID
+     logical                     :: factorsComputed
      double precision            :: normalization  , exponentGas         , &
           &                         exponentStars  , hydrogenMassFraction
    contains
@@ -57,13 +57,13 @@ contains
 
   function extendedSchmidtConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
     double precision                                                                     :: normalization, exponentGas, &
          &                                                                                  exponentStars
-    
+
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <cardinality>1</cardinality>
@@ -101,7 +101,7 @@ contains
 
   function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
     !% Internal constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate from disks class.
-    use Numerical_Constants_Prefixes
+    use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
     double precision                                                     , intent(in   ) :: normalization, exponentGas, &
@@ -120,17 +120,17 @@ contains
 
   subroutine extendedSchmidtAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
 
     call calculationResetEvent%attach(self,extendedSchmidtCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine extendedSchmidtAutoHook
-  
+
   subroutine extendedSchmidtDestructor(self)
     !% Destructor for the extendedSchmidt cooling radius class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
 
@@ -158,10 +158,10 @@ contains
     !% \end{equation}
     !% where $A=${\normalfont \ttfamily [normalization]} and $N_1=${\normalfont \ttfamily
     !% [exponentGas]}. $N_2=${\normalfont \ttfamily [exponentStars]}.
-    use Abundances_Structure
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use Galacticus_Nodes                    , only : nodeComponentDisk
+    use :: Abundances_Structure                , only : abundances
+    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
+    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
     implicit none
     class           (starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
     type            (treeNode                                           ), intent(inout) :: node

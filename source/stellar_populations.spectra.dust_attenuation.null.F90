@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of zero dust attenuation of stellar spectra.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
   !#  <description>Returns a zero dust attenuation.</description>
   !# </stellarSpectraDustAttenuation>
@@ -38,12 +38,12 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Default constructor for the ``zero'' stellar spectra dust attenuation class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarSpectraDustAttenuationZero)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=stellarSpectraDustAttenuationZero()
    return
   end function zeroConstructorParameters
@@ -55,7 +55,7 @@ contains
     double precision                                   , intent(in   ) :: wavelength      , age, &
          &                                                                vBandAttenuation
     !GCC$ attributes unused :: self, wavelength, age, vBandAttenuation
-    
+
     zeroAttenuation=0.0d0
     return
   end function zeroAttenuation

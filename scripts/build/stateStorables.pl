@@ -9,6 +9,7 @@ use Galacticus::Build::SourceTree;
 use List::ExtraUtils;
 use Data::Dumper;
 use Storable;
+use Fortran::Utils;
 
 # Builds a list of classes which support store/restore of their state.
 # Andrew Benson (10-April-2018)
@@ -36,9 +37,24 @@ foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocati
     # Extract a functionClass directives from this file.
     unless ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $functionClassFileName > $updateTime  ) {
 	delete($storablesPerFile->{$fileIdentifier});
+	# Look for modules in this file.
+	my @modules;
+	open(my $code,$functionClassFileName);
+	do {
+	    my ($rawLine, $processedLine, $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($code,$rawLine,$processedLine,$bufferedComments);
+	    if ( my @matches = ( $processedLine =~ $Fortran::Utils::unitOpeners{'module'}->{'regEx'} ) ) {
+		push(@modules,$matches[$Fortran::Utils::unitOpeners{'module'}->{'unitName'}]);
+	    }
+	} until ( eof($code) );
+	close($code);
 	foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClass') ) {
-	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClasses'        }},$functionClass->{'name'}."Class");
-	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClassDirectives'}},$functionClass->{'name'}        );
+	    my $functionClassDescriptor;
+	    $functionClassDescriptor->{'name'  } = $functionClass->{'name'}."Class";
+	    $functionClassDescriptor->{'module'} = $modules[0]
+		if ( scalar(@modules) == 1 );
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClasses'        }},$functionClassDescriptor);
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClassDirectives'}},$functionClass->{'name'});
 	}
     }
     # Iterate over functionClasses in this file.
@@ -105,9 +121,18 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
 	# Walk to the next node in the tree.
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
-    # Process any stateSotrable directives.
+    # Process any stateStorable directives.
     foreach my $directiveNode ( @directiveNodes ) {
 	my $directive = $directiveNode->{'directive'};
+	my $moduleName;
+	my $parentNode = $directiveNode;
+	while ( $parentNode ) {
+	    if ( $parentNode->{'type'} eq "module" && $parentNode->{'opener'} =~ m/^module\s+([a-zA-Z0-9_]+)/ ) {
+		$moduleName = $1;
+		last;
+	    }
+	    $parentNode = $parentNode->{'parent'};
+	}
 	# Scan all known classes, finding all which derive from the base class.
 	foreach my $className ( sort(keys(%classes)) ) {
 	    my $matches         = 0;
@@ -119,7 +144,7 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
 		}
 		$parentClassName = $classes{$parentClassName}->{'extends'};
 	    }
-	    push(@{$storablesPerFile->{$fileIdentifier}->{'stateStorables'}},{type => $className, class => $directive->{'class'}})
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'stateStorables'}},{type => $className, class => $directive->{'class'}, module => $moduleName})
 		if ( $matches );
 	}
     }

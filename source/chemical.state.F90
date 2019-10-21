@@ -21,9 +21,9 @@
 
 module Chemical_States
   !% Provides a class implementing the chemical state.
-  use Abundances_Structure
-  use Radiation_Fields
-  use Chemical_Abundances_Structure
+  use :: Abundances_Structure         , only : abundances
+  use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Radiation_Fields             , only : radiationFieldClass
   private
 
   !# <functionClass>

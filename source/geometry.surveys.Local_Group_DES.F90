@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the DES survey for Local Group dwarfs.
-  
-  use Galacticus_Paths
+
 
   !# <surveyGeometry name="surveyGeometryLocalGroupDES">
   !#  <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES
+     private
      double precision :: distanceMaximumSurvey
    contains
      procedure :: fieldCount                => localGroupDESFieldCount
@@ -47,12 +47,12 @@ contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
     !% Constructor for the {\normalfont \ttfamily localGroupDES} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: distanceMaximumSurvey
-    
+
     !# <inputParameter>
     !#   <name>distanceMaximumSurvey</name>
     !#   <source>parameters</source>
@@ -60,12 +60,12 @@ contains
     !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)
     !# <inputParametersValidate source="parameters"/>
     return
   end function localGroupDESConstructorParameters
-  
+
   function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
     !% Internal constructor for the {\normalfont \ttfamily localGroupDES} survey geometry class.
     implicit none
@@ -82,14 +82,14 @@ contains
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     localGroupDESFieldCount=1
     return
   end function localGroupDESFieldCount
 
   double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
     double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -102,7 +102,7 @@ contains
     ! https://ui.adsabs.harvard.edu/abs/2015ApJ...813..109D) - with galaxies where the efficiency was 1 excluded (since by
     ! necessity the efficiency is truncated at 1), and then solving for distance as a function of mass for the point at which the
     ! detection efficiency is 90%.
-    localGroupDESDistanceMaximum=min(11.3d-3*(mass/100.0d0)**0.48d0,self%distanceMaximumSurvey) 
+    localGroupDESDistanceMaximum=min(11.3d-3*(mass/100.0d0)**0.48d0,self%distanceMaximumSurvey)
     return
   end function localGroupDESDistanceMaximum
 
@@ -115,9 +115,10 @@ contains
     localGroupDESAngularPowerMaximumDegree=localGroupDESAngularPowerMaximumL
     return
   end function localGroupDESAngularPowerMaximumDegree
-  
+
   function localGroupDESMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     type (varying_string             )                :: localGroupDESMangleDirectory
@@ -126,7 +127,7 @@ contains
     localGroupDESMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/darkEnergySurvey/"
     return
   end function localGroupDESMangleDirectory
-  
+
   subroutine localGroupDESMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none

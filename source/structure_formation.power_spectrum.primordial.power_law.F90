@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% A primordial power spectrum class which provides a power-law power spectrum.
-  
+
   !# <powerSpectrumPrimordial name="powerSpectrumPrimordialPowerLaw">
   !#  <description>
   !#   Implements a power-law primordial power spectrum, possibly with a running index. It is defined by
@@ -49,7 +49,6 @@ contains
 
   function powerLawConstructorParameters(parameters)
     !% Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
-    use Galacticus_Display
     implicit none
     type(powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters

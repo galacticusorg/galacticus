@@ -19,8 +19,8 @@
 
 !% An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
 
-  use Mass_Distributions
-  use Hot_Halo_Mass_Distributions_Core_Radii
+  use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
+  use :: Mass_Distributions                    , only : massDistributionBetaProfile
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
   !#  <description>Provides a $\beta$-profile implementation of the hot halo mass distribution class.</description>
@@ -61,10 +61,10 @@ contains
   function betaProfileConstructorParameters(parameters) result(self)
     !% Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
     !% parameter set.
-    use Galacticus_Error
-    use Array_Utilities
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -97,7 +97,7 @@ contains
        end if
        !$omp end critical(betaProfileInitialized)
     end if
-    
+
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <cardinality>1</cardinality>
@@ -112,7 +112,7 @@ contains
     !# <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
     return
   end function betaProfileConstructorParameters
-  
+
   function betaProfileConstructorInternal(beta,hotHaloMassDistributionCoreRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
     implicit none
@@ -123,7 +123,7 @@ contains
 
     return
   end function betaProfileConstructorInternal
-  
+
   subroutine betaProfileDestructor(self)
     !% Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
     implicit none
@@ -135,7 +135,7 @@ contains
 
   subroutine betaProfileInitialize(self,node)
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -163,7 +163,7 @@ contains
 
   double precision function betaProfileDensity(self,node,radius)
     !% Return the density in a single-betaProfile hot halo mass distribution.
-    use Coordinates
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -178,7 +178,7 @@ contains
 
   double precision function betaProfileDensityLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
-    use Coordinates
+    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -190,10 +190,10 @@ contains
     betaProfileDensityLogSlope=self%distribution%densityGradientRadial(position,logarithmic=.true.)
     return
   end function betaProfileDensityLogSlope
-  
+
   double precision function betaProfileEnclosedMass(self,node,radius)
     !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
     type            (treeNode                          ), intent(inout), target  :: node
@@ -209,10 +209,10 @@ contains
     end if
     return
   end function betaProfileEnclosedMass
-  
+
   double precision function betaProfileRadialMoment(self,node,moment,radius)
     !% Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -239,7 +239,7 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
-    use Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

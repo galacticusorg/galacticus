@@ -29,12 +29,12 @@
    contains
      procedure :: rate => verner1996Rate
   end type atomicRecombinationRateRadiativeVerner1996
-  
+
   interface atomicRecombinationRateRadiativeVerner1996
      !% Constructors for the {\normalfont \ttfamily verner1996} atomic radiative recombination class.
      module procedure verner1996ConstructorParameters
   end interface atomicRecombinationRateRadiativeVerner1996
-  
+
   ! Arrays to hold coefficients of fitting functions.
   double precision :: verner1996CoefficientsIron  (3,10   ), verner1996FitCoefficients(2,30,30), &
        &              verner1996FitCoefficientsNew(4,30,30)
@@ -536,15 +536,15 @@
   data(verner1996CoefficientsIron  (3,i    ),i=1,10) /5.77d-02,6.15d-02,6.22d-02,6.02d-02,5.79d-02,5.65d-02,5.49d-02,5.10d-02,5.07d-02,5.22d-02/
 
 contains
-  
+
   function verner1996ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily verner1996} atomic radiative recombination class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=atomicRecombinationRateRadiativeVerner1996()
     return
   end function verner1996ConstructorParameters
@@ -565,8 +565,8 @@ contains
     !% \end{itemize}
     !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner. The ionization state
     !% passed to this function should be that of the atom/ion post recombination.
-    use Galacticus_Error
-    implicit none    
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
     class           (atomicRecombinationRateRadiativeVerner1996), intent(inout)           :: self
     integer                                                     , intent(in   )           :: atomicNumber     , ionizationState
     double precision                                            , intent(in   )           :: temperature
@@ -586,7 +586,7 @@ contains
          &                                                                                   logTemperature
     !GCC$ attributes unused :: self
     !# <optionalArgument name="level" defaultsTo="recombinationCaseA" />
-    
+
     ! Set zero rate by default.
     verner1996Rate=0.0d0
     ! If temperature is unphysical, return.
@@ -738,6 +738,6 @@ contains
     case default
        ! Recombination coefficient for an individual level was requested. We can not compute it, so report an error.
        call Galacticus_Error_Report('coefficients for individual levels are not available'//{introspection:location})
-    end select    
+    end select
     return
   end function verner1996Rate

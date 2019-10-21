@@ -35,16 +35,16 @@
   end interface ramPressureStrippingDisksNull
 
 contains
-  
+
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} timescale for star formation feedback in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(ramPressureStrippingDisksNull)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=ramPressureStrippingDisksNull()
     return
   end function nullConstructorParameters
@@ -55,7 +55,7 @@ contains
     class(ramPressureStrippingDisksNull), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     nullRateMassLoss=0.0d0
     return
   end function nullRateMassLoss

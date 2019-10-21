@@ -21,9 +21,9 @@
 
 module Tidal_Stripping_Mass_Loss_Rate_Spheroids
   !% Provides a class that implements calculations of tidal stripping in spheroids.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>tidalStrippingSpheroids</name>
   !#  <descriptiveName>Tidal stripping in spheroids</descriptiveName>
@@ -36,5 +36,5 @@ module Tidal_Stripping_Mass_Loss_Rate_Spheroids
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Tidal_Stripping_Mass_Loss_Rate_Spheroids

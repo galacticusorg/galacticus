@@ -46,7 +46,7 @@ contains
   function voightConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DVoight)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -104,7 +104,7 @@ contains
     double precision                    , intent(in   ), optional :: limitLower, limitUpper
     double precision                                              :: cdfLower  , cdfUpper
     !# <constructorAssign variables="gamma, mu, sigma"/>
-    
+
     self    %limitLowerExists=.false.
     self    %limitUpperExists=.false.
     self    %cdfAtLowerLimit =0.0d0
@@ -129,8 +129,8 @@ contains
 
   double precision function voightDensity(self,x)
     !% Return the density of a Voight distribution.
-    use Numerical_Constants_Math
-    use Error_Functions
+    use :: Error_Functions         , only : Faddeeva
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DVoight), intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -157,9 +157,9 @@ contains
 
   double precision function voightCumulative(self,x)
     !% Return the cumulative probability of a Voight distribution.
-    use Numerical_Constants_Math
-    use Hypergeometric_Functions
-    use Error_Functions
+    use :: Error_Functions         , only : Error_Function
+    use :: Hypergeometric_Functions, only : Hypergeometric_pFq
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DVoight), intent(inout)               :: self
     double precision                              , intent(in   )               :: x

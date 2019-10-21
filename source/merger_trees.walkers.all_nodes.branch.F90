@@ -52,17 +52,17 @@ contains
 
   function allNodesBranchParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class which takes a parameter set as input.
-    use Galacticus_Error
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                :: self
     type(inputParameters               ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
-    
+
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function allNodesBranchParameters
-  
+
   function allNodesBranchInternal(branchHead) result(self)
     !% Internal constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class.
     implicit none
@@ -74,7 +74,7 @@ contains
     self%nodesRemain_ = .true.
     return
   end function allNodesBranchInternal
-  
+
   logical function allNodesBranchNext(self,node)
     !% This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree branch
     !% to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
@@ -150,4 +150,4 @@ contains
     end do
     return
   end subroutine allNodesBranchDescend
-  
+

@@ -19,8 +19,8 @@
 
   !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
 
-  use Cooling_Radii, only : coolingRadiusClass, coolingRadius
-  
+  use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
+
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
   !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
   !# </coolingInfallRadius>
@@ -44,7 +44,7 @@ contains
 
   function coolingRadiusConstructorParameters(parameters) result(self)
     !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingInfallRadiusCoolingRadius)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
@@ -59,7 +59,7 @@ contains
 
   function coolingRadiusConstructorInternal(coolingRadius_) result(self)
     !% Internal constructor for the cooling radius infall radii class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (coolingInfallRadiusCoolingRadius)                        :: self
     class(coolingRadiusClass              ), intent(in   ), target :: coolingRadius_

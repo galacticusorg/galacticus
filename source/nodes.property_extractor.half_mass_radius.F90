@@ -39,29 +39,29 @@
   end interface nodePropertyExtractorRadiusHalfMass
 
 contains
-  
+
   function radiusHalfMassConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily radiusHalfMass} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorRadiusHalfMass)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=nodePropertyExtractorRadiusHalfMass()
     return
   end function radiusHalfMassConstructorParameters
-  
+
   double precision function radiusHalfMassExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
-    use Galactic_Structure_Options        , only : massTypeStellar
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : massTypeStellar
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout)           :: self
     type (treeNode                           ), intent(inout), target   :: node
     type (multiCounter                       ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance
-    
+
     radiusHalfMassExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
     return
   end function radiusHalfMassExtract
@@ -90,7 +90,7 @@ contains
 
   double precision function radiusHalfMassUnitsInSI(self)
     !% Return the units of the last isolated redshift property in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -101,7 +101,7 @@ contains
 
   integer function radiusHalfMassType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
     !GCC$ attributes unused :: self

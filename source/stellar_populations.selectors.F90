@@ -21,12 +21,12 @@
 
 module Stellar_Population_Selectors
   !% Implements a class for selecting stellar populations.
-  use Galacticus_Nodes    , only : nodeComponent
-  use Abundances_Structure, only : abundances
-  use Stellar_Populations , only : stellarPopulationClass
+  use :: Abundances_Structure, only : abundances
+  use :: Galacticus_Nodes    , only : nodeComponent
+  use :: Stellar_Populations , only : stellarPopulationClass
   implicit none
   private
-  
+
   !# <functionClass>
   !#  <name>stellarPopulationSelector</name>
   !#  <descriptiveName>Stellar Population Selectors</descriptiveName>
@@ -46,5 +46,5 @@ module Stellar_Population_Selectors
   !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
-  
+
 end module Stellar_Population_Selectors

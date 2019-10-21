@@ -19,6 +19,8 @@
 
   !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
 
+  use :: Posterior_Sampling_Prop_Size_Temp_Exp, only : posteriorSampleDffrntlEvltnPrpslSzTmpExpClass
+
   !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
   !#  <description>A posterior sampling simulation class which implements a tempered differential evolution algorithm.</description>
   !# </posteriorSampleSimulation>
@@ -69,7 +71,7 @@ contains
   function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationTemperedDffrntlEvltn)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -77,7 +79,7 @@ contains
     integer                                                                        :: temperingLevelCount                      , untemperedStepCount, &
          &                                                                            stepsPerLevel
     double precision                                                               :: temperatureMaximum
-    
+
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>untemperedStepCount</name>
@@ -144,9 +146,10 @@ contains
     call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
     return
   end function temperedDifferentialEvolutionConstructorInternal
-  
+
   subroutine temperedDifferentialEvolutionInitialize(self,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
     !% Finished initialization of tempered differential evolution simulation objects during construction.
+    use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)         :: self
     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), intent(in   ), target :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
@@ -186,7 +189,7 @@ contains
     !# <objectDestructor name="self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
     return
   end subroutine temperedDifferentialEvolutionDestructor
-  
+
   logical function temperedDifferentialEvolutionLogging(self)
     !% Specifies whether or not the current state should be logged to file during differential evolution.
     implicit none
@@ -198,10 +201,11 @@ contains
 
   subroutine temperedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use MPI_Utilities
-    use Galacticus_Display
-    use String_Handling
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                           verbosityInfo
+    use :: ISO_Varying_String
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -241,7 +245,7 @@ contains
           self%temperingLevelMonotonic=self%temperingLevelMonotonic+1
           levelChanged                =.true.
           ! Check if we've finished tempering and switch back to untempered evolution is so.
-          if (self%temperingLevelMonotonic > 2*self%temperingLevelCount-1) self%temperingLevelMonotonic=0 
+          if (self%temperingLevelMonotonic > 2*self%temperingLevelCount-1) self%temperingLevelMonotonic=0
        end if
     end if
     ! Check for change in level.
@@ -334,8 +338,7 @@ contains
 
   logical function temperedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
     !% Return whether or not to accept a proposal.
-    use Pseudo_Random
-    use MPI_Utilities
+    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &

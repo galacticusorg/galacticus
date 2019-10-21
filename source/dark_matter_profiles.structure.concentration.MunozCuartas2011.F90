@@ -18,9 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo profile concentrations using the \cite{munoz-cuartas_redshift_2011} algorithm.
-  
-  use Cosmology_Functions
-  use Cosmology_Parameters
+
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
@@ -37,11 +39,11 @@
      class(cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
      class(cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      type (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMONFW                ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type (darkMatterProfileDMONFW             ), pointer :: darkMatterProfileDMODefinition_  => null()
    contains
-     final     ::                                munozCuartas2011Destructor
-     procedure :: concentration               => munozCuartas2011Concentration
-     procedure :: densityContrastDefinition   => munozCuartas2011DensityContrastDefinition
+     final     ::                                   munozCuartas2011Destructor
+     procedure :: concentration                  => munozCuartas2011Concentration
+     procedure :: densityContrastDefinition      => munozCuartas2011DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => munozCuartas2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationMunozCuartas2011
 
@@ -55,7 +57,7 @@ contains
 
   function munozCuartas2011ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationMunozCuartas2011)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
@@ -70,10 +72,10 @@ contains
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function munozCuartas2011ConstructorParameters
-  
+
   function munozCuartas2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
     type (darkMatterProfileConcentrationMunozCuartas2011    )                         :: self
     class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
@@ -95,7 +97,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
@@ -106,7 +108,8 @@ contains
   double precision function munozCuartas2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), target  :: node
@@ -118,7 +121,7 @@ contains
          &                                                                                      concentrationLogarithmic           , haloMassLogarithmic           , &
          &                                                                                      redshift
     !GCC$ attributes unused :: self
-    
+
     ! Get required objects.
     basic => node%basic()
     ! Compute the concentration.
@@ -141,7 +144,7 @@ contains
     munozCuartas2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function munozCuartas2011DensityContrastDefinition
-  
+
   function munozCuartas2011DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{munoz-cuartas_redshift_2011} algorithm.

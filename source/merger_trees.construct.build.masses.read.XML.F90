@@ -33,19 +33,19 @@
      module procedure readXMLConstructorParameters
      module procedure readXMLConstructorInternal
   end interface mergerTreeBuildMassesReadXML
-  
+
 contains
 
   function readXMLConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily readXML} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassesReadXML)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     type            (varying_string              )                :: fileName
     double precision                                              :: massIntervalFractional
-    
+
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <cardinality>1</cardinality>
@@ -79,9 +79,9 @@ contains
 
   subroutine readXMLRead(self,mass,weight)
     !% Read merger tree masses from file.
-    use FoX_DOM
-    use Galacticus_Error
-    use IO_XML
+    use :: FoX_DOM         , only : destroy                , getDocumentElement   , node           , parseFile
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Array_Read         , XML_Array_Read_Static, XML_Path_Exists
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self
     double precision                              , intent(  out), allocatable, dimension(:) :: mass, weight
@@ -101,4 +101,4 @@ contains
     !$omp end critical (FoX_DOM_Access)
     return
   end subroutine readXMLRead
-  
+

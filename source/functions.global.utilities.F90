@@ -28,17 +28,17 @@ contains
 
   subroutine Functions_Global_Set()
     !% Set pointers to all global functions.
-    use Functions_Global
+    use :: Functions_Global
     !# <include directive="functionGlobal" type="moduleUse">
     include 'functionGlobal.modules.inc'
     !# </include>
     implicit none
-    
+
     !# <include directive="functionGlobal" type="functionGlobalEstablish" >
     include 'functionGlobal.establish.inc'
     !# </include>
     return
   end subroutine Functions_Global_Set
-  
+
 end module Functions_Global_Utilities
 

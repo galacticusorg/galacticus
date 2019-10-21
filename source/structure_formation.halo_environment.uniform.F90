@@ -26,13 +26,14 @@
      !% A uniform halo environment class.
      private
    contains
-     procedure :: overdensityLinear    => uniformOverdensityLinear
-     procedure :: overdensityNonLinear => uniformOverdensityNonLinear
-     procedure :: environmentRadius    => uniformEnvironmentRadius
-     procedure :: environmentMass      => uniformEnvironmentMass
-     procedure :: pdf                  => uniformPDF
-     procedure :: cdf                  => uniformCDF
-     procedure :: overdensityLinearSet => uniformOverdensityLinearSet
+     procedure :: overdensityLinear             => uniformOverdensityLinear
+     procedure :: overdensityLinearGradientTime => uniformOverdensityLinearGradientTime
+     procedure :: overdensityNonLinear          => uniformOverdensityNonLinear
+     procedure :: environmentRadius             => uniformEnvironmentRadius
+     procedure :: environmentMass               => uniformEnvironmentMass
+     procedure :: pdf                           => uniformPDF
+     procedure :: cdf                           => uniformCDF
+     procedure :: overdensityLinearSet          => uniformOverdensityLinearSet
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
@@ -44,7 +45,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(haloEnvironmentUniform)                :: self
     type(inputParameters       ), intent(inout) :: parameters
@@ -65,6 +66,17 @@ contains
     uniformOverdensityLinear=0.0d0
     return
   end function uniformOverdensityLinear
+
+  double precision function uniformOverdensityLinearGradientTime(self,node)
+    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+
+    uniformOverdensityLinearGradientTime=0.0d0
+    return
+  end function uniformOverdensityLinearGradientTime
 
   double precision function uniformOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
@@ -99,7 +111,7 @@ contains
 
   double precision function uniformPDF(self,overdensity)
     !% Return the PDF of the environmental overdensity.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
@@ -127,7 +139,7 @@ contains
 
   subroutine uniformOverdensityLinearSet(self,node,overdensity)
     !% Return the CDF of the environmental overdensity.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node

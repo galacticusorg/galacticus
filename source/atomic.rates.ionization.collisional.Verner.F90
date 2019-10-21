@@ -29,12 +29,12 @@
    contains
      procedure :: rate => verner1996Rate
   end type atomicIonizationRateCollisionalVerner1996
-  
+
   interface atomicIonizationRateCollisionalVerner1996
      !% Constructors for the {\normalfont \ttfamily verner1996} atomic collisional ionization class.
      module procedure verner1996ConstructorParameters
   end interface atomicIonizationRateCollisionalVerner1996
-  
+
   ! Arrays to store coefficients of collisional ionization rate fitting functions.
   double precision :: verner1996FitCoefficient(5,28,28)
   integer          :: i
@@ -452,7 +452,7 @@ contains
   function verner1996ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily verner1996} atomic collisional ionization class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicIonizationRateCollisionalVerner1996)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
@@ -468,8 +468,8 @@ contains
     !% \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
     !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner. The ionization state passed to
     !% this function should be that of the atom/ion prior to ionization.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use :: Numerical_Constants_Units   , only : electronVolt
     implicit none
     class           (atomicIonizationRateCollisionalVerner1996), intent(inout) :: self
     integer                                                    , intent(in   ) :: atomicNumber  , ionizationState

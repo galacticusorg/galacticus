@@ -21,10 +21,10 @@
 
 program Test_Differentiation
   !% Tests that numerical differentiation functions work.
-  use Galacticus_Display            , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use Unit_Tests                    , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
-  use Numerical_Differentiation     , only : differentiator
-  use Test_Differentiation_Functions, only : function1
+  use :: Galacticus_Display            , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Differentiation     , only : differentiator
+  use :: Test_Differentiation_Functions, only : function1
+  use :: Unit_Tests                    , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                         , parameter            :: countStep      =10
   double precision                , dimension(countStep) :: x              =[0.0d0,0.1d0,0.3d0,0.5d0,0.7d0,0.9d0,1.1d0,1.3d0,1.5d0,1.7d0], y

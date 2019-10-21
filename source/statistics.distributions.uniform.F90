@@ -45,12 +45,12 @@ contains
   function uniformConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily uniform} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DUniform)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     double precision                                               :: limitLower, limitUpper
-    
+
     !# <inputParameter>
     !#   <name>limitLower</name>
     !#   <cardinality>1</cardinality>
@@ -75,7 +75,7 @@ contains
     type            (distributionFunction1DUniform)                :: self
     double precision                               , intent(in   ) :: limitLower, limitUpper
     !# <constructorAssign variables="limitLower, limitUpper"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function uniformConstructorInternal
@@ -130,7 +130,7 @@ contains
 
   double precision function uniformInverse(self,p)
     !% Return the inverse of a uniform distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DUniform), intent(inout), target :: self
     double precision                               , intent(in   )         :: p

@@ -19,7 +19,7 @@
 
   !% Contains a module which implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
   !% group finders.
- 
+
   !# <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
   !#  <description>An N-body dark matter halo mass error class which uses a fit appropriate for friends-of-friends group finders.</description>
   !# </nbodyHaloMassError>
@@ -39,12 +39,12 @@ contains
 
   function nbodyHaloMassErrorFriendsOfFriendsParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsParameters
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: massParticle
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>massParticle</name>

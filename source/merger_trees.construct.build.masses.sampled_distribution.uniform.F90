@@ -34,13 +34,13 @@
      module procedure sampledDistributionUniformConstructorParameters
      module procedure sampledDistributionUniformConstructorInternal
   end interface mergerTreeBuildMassesSampledDistributionUniform
-  
+
 contains
 
   function sampledDistributionUniformConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform)                :: self
     type(inputParameters                                ), intent(inout) :: parameters
@@ -65,14 +65,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
     return
   end subroutine sampledDistributionUniformDestructor
-  
+
   subroutine sampledDistributionUniformSampleCMF(self,x)
     !% Generate a uniform sample of points from the merger tree mass distribution.
-    use Numerical_Ranges
+    use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionUniform), intent(inout)               :: self
     double precision                                                 , intent(  out), dimension(:) :: x

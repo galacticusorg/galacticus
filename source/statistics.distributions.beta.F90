@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a beta density 1D distibution function.
-  
+
   !# <distributionFunction1D name="distributionFunction1DBeta">
   !#  <description>A beta 1D distribution function class.</description>
   !# </distributionFunction1D>
@@ -44,13 +44,13 @@
   class           (distributionFunction1DBeta), pointer :: betaSelf
   double precision                                      :: betaP
   !$omp threadprivate(betaSelf,betaP)
-  
+
 contains
 
   function betaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily beta} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DBeta)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
@@ -66,7 +66,7 @@ contains
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <cardinality>1</cardinality>
-    !#   <description>The $\beta parameter of the beta distribution function.</description>
+    !#   <description>The $\beta$ parameter of the beta distribution function.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -80,14 +80,14 @@ contains
     type            (distributionFunction1DBeta)                :: self
     double precision                            , intent(in   ) :: alpha, beta
     !# <constructorAssign variables="alpha, beta"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function betaConstructorInternal
 
   double precision function betaDensity(self,x)
     !% Return the density of a beta distribution.
-    use Beta_Functions, only : Beta_Function
+    use :: Beta_Functions, only : Beta_Function
     implicit none
     class           (distributionFunction1DBeta), intent(inout) :: self
     double precision                            , intent(in   ) :: x
@@ -104,7 +104,7 @@ contains
 
   double precision function betaCumulative(self,x)
     !% Return the cumulative probability of a beta distribution.
-    use Beta_Functions, only : Beta_Function_Incomplete_Normalized
+    use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
     implicit none
     class           (distributionFunction1DBeta), intent(inout) :: self
     double precision                            , intent(in   ) :: x
@@ -121,8 +121,8 @@ contains
 
   double precision function betaInverse(self,p)
     !% Return the inverse of a beta distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Root_Finder     , only : rootFinder
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Root_Finder     , only : rootFinder
     implicit none
     class           (distributionFunction1DBeta), intent(inout), target :: self
     double precision                            , intent(in   )         :: p
@@ -148,7 +148,7 @@ contains
        betaSelf    => self
        betaP       =  p
        betaInverse =  finder%find(rootRange=[0.0d0,1.0d0])
-    end if    
+    end if
     return
   end function betaInverse
 
@@ -160,7 +160,7 @@ contains
     betaRoot=betaSelf%cumulative(x)-betaP
     return
   end function betaRoot
-  
+
   double precision function betaMinimum(self)
     !% Return the minimum value of a beta distribution.
     implicit none

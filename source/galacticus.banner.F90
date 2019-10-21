@@ -29,10 +29,10 @@ contains
 
   subroutine Galacticus_Banner_Show
     !% Displays the \glc\ banner.
+    use :: Galacticus_Display, only : Galacticus_Verbosity_Level, verbositySilent
 #ifdef USEMPI
-    use MPI_Utilities
+    use :: MPI_Utilities     , only : mpiSelf
 #endif
-    use Galacticus_Display
     implicit none
 #ifdef USEMPI
     if (mpiSelf%rank() == 0) then

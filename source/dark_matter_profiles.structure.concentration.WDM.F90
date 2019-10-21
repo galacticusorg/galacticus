@@ -22,7 +22,7 @@
   !% An implementation of warm dark matter halo profile concentrations using the
   !% \cite{schneider_non-linear_2012} modifier.
 
-  use Transfer_Functions
+  use :: Transfer_Functions, only : transferFunctionClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDM">
   !#  <description>Dark matter halo concentrations are computed using the modifier of \cite{schneider_non-linear_2012}.</description>
@@ -51,7 +51,7 @@ contains
 
   function wdmConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationWDM  )                :: self
     type (inputParameters                    ), intent(inout) :: parameters
@@ -74,7 +74,7 @@ contains
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: cdmConcentration
     class(transferFunctionClass              ), intent(in   ), target :: transferFunction_
     !# <constructorAssign variables="*cdmConcentration, *transferFunction_"/>
-    
+
     return
   end function wdmConstructorInternal
 
@@ -91,7 +91,7 @@ contains
   double precision function wdmConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node

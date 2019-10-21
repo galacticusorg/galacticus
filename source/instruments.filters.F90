@@ -23,8 +23,8 @@
 
 module Instruments_Filters
   !% Implements calculations of filter response curves.
-  use ISO_Varying_String
-  use FGSL              , only : fgsl_interp_accel, fgsl_interp
+  use :: FGSL              , only : fgsl_interp, fgsl_interp_accel
+  use :: ISO_Varying_String
   implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
@@ -100,17 +100,18 @@ contains
 
   subroutine Filter_Response_Load(filterName)
     !% Load a filter response curve.
-    use Memory_Management
-    use Galacticus_Error
-    use FoX_dom
-    use Galacticus_Paths
-    use IO_XML
-    use String_Handling
-    use HII_Region_Emission_Lines
-    use Galacticus_HDF5
-    use IO_HDF5
-    use Numerical_Constants_Units
-    use File_Utilities
+    use :: File_Utilities           , only : File_Exists
+    use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , extractDataContent, &
+          &                                  node                   , parseFile                        , inException       , getExceptionCode
+    use :: Galacticus_Error         , only : Galacticus_Error_Report
+    use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
+    use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
+    use :: HII_Region_Emission_Lines, only : emissionLineWavelength
+    use :: IO_HDF5                  , only : hdf5Access             , hdf5Object
+    use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
+    use :: Numerical_Constants_Units, only : angstromsPerMeter
+    use :: String_Handling          , only : String_Split_Words     , operator(//)
     implicit none
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
@@ -196,10 +197,10 @@ contains
             &  0.0d0                                                                                                      &
             & ]
     else if (extract(filterName,1,21)=="emissionLineContinuum") then
-       ! Construct a top-hat filter for calculating equivalent width of specified emission line. 
+       ! Construct a top-hat filter for calculating equivalent width of specified emission line.
        ! From filter name extract line name (to determine central wavelength) and resolution.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
-       ! Check whether filter is centered on emission line or is offset and extract wavelength 
+       ! Check whether filter is centered on emission line or is offset and extract wavelength
        ! and resolution accordingly
        word=char(specialFilterWords(1))
        if (word=="emissionLineContinuumCentral") then
@@ -207,7 +208,7 @@ contains
           centralWavelength=emissionLineWavelength(word)
           word=char(specialFilterWords(3))
           read (word,*) resolution
-       else if (word=="emissionLineContinuumBracketed") then          
+       else if (word=="emissionLineContinuumBracketed") then
           word=char(specialFilterWords(3))
           read (word,*) centralWavelength
           word=char(specialFilterWords(4))
@@ -310,7 +311,7 @@ contains
     !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
     !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
     !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     integer         , intent(in   ) :: filterIndex
     double precision, intent(in   ) :: wavelength
@@ -326,7 +327,7 @@ contains
 
   double precision function Filter_Vega_Offset(filterIndex)
     !% Return the Vega to AB magnitude offset for the specified filter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 
@@ -337,7 +338,7 @@ contains
 
   double precision function Filter_Wavelength_Effective(filterIndex)
     !% Return the effective wavelength for the specified filter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 

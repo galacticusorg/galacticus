@@ -29,7 +29,7 @@ contains
 
   double precision function Ideal_Gas_Jeans_Length(temperature,density)
     !% Return the Jeans length (in Mpc) for gas of given temperature and density).
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: density, temperature
 
@@ -39,8 +39,10 @@ contains
 
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
     !% Return the sound speed (in km/s) for an ideal gas of given {\normalfont \ttfamily temperature} and (optionally) {\normalfont \ttfamily meanAtomicMass}.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
+    use :: Numerical_Constants_Atomic      , only : atomicMassUnit
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   )           :: temperature
     double precision, intent(in   ), optional :: meanAtomicMass

@@ -25,21 +25,23 @@ module OpenMP_Utilities
   public :: OpenMP_Critical_Wait_Times
 
 contains
-  
+
   !# <hdfPreCloseTask>
   !#  <unitName>OpenMP_Critical_Wait_Times</unitName>
   !# </hdfPreCloseTask>
   subroutine OpenMP_Critical_Wait_Times()
     !% Outputs collected data on OpenMP critical section wait times.
-    use OpenMP_Utilities_Data
-    use Galacticus_HDF5
-    use ISO_Varying_String
-    use IO_HDF5
+#ifdef OMPPROFILE
+    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: IO_HDF5              , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String
+    use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime
+#endif
     implicit none
 #ifdef OMPPROFILE
     type(hdf5Object) :: waitTimeGroup, waitTimeDataset, metaDataGroup
     include 'openMPCriticalSections.enumerate.inc'
-    
+
     ! If no data was collected, simply return.
     if (all(criticalSectionWaitTime == 0.0d0)) return
     ! Open output group.

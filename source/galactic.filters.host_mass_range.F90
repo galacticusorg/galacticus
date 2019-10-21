@@ -40,7 +40,7 @@ contains
 
   function hostMassRangeConstructorParameters(parameters) result(self)
     !% Constructor for the ``hostMassRange'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterHostMassRange)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
 
   logical function hostMassRangePasses(self,node)
     !% Implement a filter which passes nodes with host halo basic mass in a specified range.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticFilterHostMassRange), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

@@ -38,7 +38,7 @@ contains
 
   function nullConstructorParameters(parameters)
     !% Constructor for the ``null'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorNull)                :: nullConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
@@ -50,7 +50,7 @@ contains
 
   integer function nullType(self)
     !% Return the type of the null property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeUnknown
     implicit none
     class(nodePropertyExtractorNull), intent(inout) :: self
     !GCC$ attributes unused :: self

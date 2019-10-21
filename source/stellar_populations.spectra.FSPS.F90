@@ -19,8 +19,8 @@
 
 !% Implements a stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
 
-  use Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass, initialMassFunction
-  
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction, initialMassFunctionClass
+
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
   !#  <description>Provides stellar population spectra utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later re-use.</description>
   !# </stellarPopulationSpectra>
@@ -40,7 +40,7 @@
   end interface stellarPopulationSpectraFSPS
 
 contains
-  
+
   function fspsConstructorParameters(parameters) result(self)
     !% Constructor for the FSPS stellar spectra class which takes a parameter set as input.
     implicit none
@@ -63,20 +63,20 @@ contains
     !# <objectDestructor name="initialMassFunction_"/>
     return
   end function fspsConstructorParameters
-  
+
   function fspsConstructorInternal(forceZeroMetallicity,initialMassFunction_) result(self)
     !% Internal constructor for the FSPS stellar spectra class.
-    use Galacticus_Paths
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type   (stellarPopulationSpectraFSPS)                        :: self
     logical                              , intent(in   )         :: forceZeroMetallicity
     class  (initialMassFunctionClass    ), intent(in   ), target :: initialMassFunction_
     !# <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
-    
+
     self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v2.5_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
-  
+
   subroutine fspsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily FSPS} stellar population class.
     implicit none
@@ -88,10 +88,10 @@ contains
 
   subroutine fspsReadFile(self)
     !% Ensure that the requested stellar population has been generated.
-    use IO_HDF5
-    use File_Utilities
-    use Tables
-    use Interfaces_FSPS
+    use :: File_Utilities , only : File_Exists
+    use :: IO_HDF5        , only : hdf5Access                  , hdf5Object
+    use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
+    use :: Tables         , only : table1D
     implicit none
     class  (stellarPopulationSpectraFSPS), intent(inout) :: self
     class  (table1D                     ), allocatable   :: imf

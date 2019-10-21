@@ -21,8 +21,8 @@
 
 module Posterior_Sample_Differential_Proposal_Size
   !% Implements algorithms for the proposal size in differential evolution algorithms.
-  use Posterior_Sampling_State
-  use Posterior_Sampling_Convergence
+  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+  use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
 
   !# <functionClass>

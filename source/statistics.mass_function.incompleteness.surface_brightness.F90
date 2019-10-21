@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of incompleteness assuming a normal distribution of surface brightnesses.
-  
+
   !# <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness">
   !#  <description>Computes incompleteness assuming a normal distribution of surface brightnesses.</description>
   !# </massFunctionIncompleteness>
@@ -39,10 +39,10 @@
   end interface massFunctionIncompletenessSurfaceBrightness
 
 contains
-  
+
   function surfaceBrightnessConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily surfaceBrightness} incompleteness class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massFunctionIncompletenessSurfaceBrightness)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -86,10 +86,10 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     self=massFunctionIncompletenessSurfaceBrightness(limit,zeroPoint,slope,offset,scatter)
-    !# <inputParametersValidate source="parameters"/>  
+    !# <inputParametersValidate source="parameters"/>
     return
   end function surfaceBrightnessConstructorParameters
-  
+
   function surfaceBrightnessConstructorInternal(limit,zeroPoint,slope,offset,scatter) result(self)
     !% Internal constructor for the ``surface brightness'' incompleteness class.
     implicit none
@@ -97,14 +97,14 @@ contains
     double precision                                             , intent(in   ) :: limit  , zeroPoint, &
          &                                                                          slope  , offset   , &
          &                                                                          scatter
-    !# <constructorAssign variables="limit, zeroPoint, slope, offset, scatter"/> 
+    !# <constructorAssign variables="limit, zeroPoint, slope, offset, scatter"/>
 
     return
   end function surfaceBrightnessConstructorInternal
 
   double precision function surfaceBrightnessCompleteness(self,mass)
     !% Return the completeness.
-    use Error_Functions
+    use :: Error_Functions, only : Error_Function
     implicit none
     class           (massFunctionIncompletenessSurfaceBrightness), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass
@@ -120,7 +120,7 @@ contains
          &                          +     self%limit                 &
          &                          -          surfaceBrightnessMean &
          &                         )                                 &
-         &                        /       self%scatter    
+         &                        /       self%scatter
     surfaceBrightnessCompleteness=+0.5d0                             &
          &                        *(                                 &
          &                          +1.0d0                           &

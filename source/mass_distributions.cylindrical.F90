@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an abstract mass distribution class for cylindrically symmetric distributions.
-  
+
   !# <massDistribution name="massDistributionCylindrical" abstract="yes">
   !#  <description>An abstract mass distribution class for cylindrically symmetric distributions.</description>
   !# </massDistribution>
@@ -100,7 +100,7 @@
        !% Interface for cylindrically symmetric mass distribution surface density radial moment functions.
        import massDistributionCylindrical
        class           (massDistributionCylindrical), intent(inout)           :: self
-       double precision                             , intent(in   )           :: moment 
+       double precision                             , intent(in   )           :: moment
        double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
        logical                                      , intent(  out), optional :: isInfinite
      end function cylindricalSurfaceDensityRadialMoment

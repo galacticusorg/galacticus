@@ -19,27 +19,29 @@
 
 !% Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.
 
-  !$ use OMP_Lib
-  use Locks
-  use Power_Spectra_Nonlinear
-  use Cosmology_Parameters
-  use Cosmology_Functions
+  use    :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use    :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use    :: Locks                  , only : ompReadWriteLock
+  !$ use :: OMP_Lib
+  use    :: Power_Spectra_Nonlinear, only : powerSpectrumNonlinearClass
+  use    :: Tables                 , only : table1DGeneric             , table1DLogarithmicLinear
 
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
-  type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
-     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_ => null()
+  type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
+     private
+     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_    => null()
+     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_     => null()
      class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()
-     logical                                                :: tableInitialized        , cdfInitialized
+     logical                                                :: tableInitialized                 , cdfInitialized
      !$ type         (ompReadWriteLock           )          :: lock
      type            (table1DGeneric             )          :: convergencePDF
      type            (table1DLogarithmicLinear   )          :: magnificationCDFTable
-     double precision                                       :: redshiftPrevious         , convergenceEmptyBeam                , &
-          &                                                    convergenceVariance      , convergenceScale                    , &
-          &                                                    convergenceVarianceScaled, convergenceDistributionNormalization, &
-          &                                                    aConvergence             , omegaConvergence                    , &
+     double precision                                       :: redshiftPrevious                 , convergenceEmptyBeam                , &
+          &                                                    convergenceVariance              , convergenceScale                    , &
+          &                                                    convergenceVarianceScaled        , convergenceDistributionNormalization, &
+          &                                                    aConvergence                     , omegaConvergence                    , &
           &                                                    scaleSourcePrevious
    contains
      !@ <objectMethods>
@@ -84,14 +86,14 @@ contains
 
   function takahashi2011ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gravitationalLensingTakahashi2011)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(powerSpectrumNonlinearClass      ), pointer       :: powerSpectrumNonlinear_
-    
+
     !# <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
     !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
@@ -102,7 +104,7 @@ contains
     !# <objectDestructor name="powerSpectrumNonlinear_"/>
     return
   end function takahashi2011ConstructorParameters
-  
+
   function takahashi2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_) result(self)
     !% Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
     implicit none
@@ -129,7 +131,7 @@ contains
     !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
     return
   end subroutine takahashi2011Destructor
-  
+
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
     !% \cite{takahashi_probability_2011} formalism.
@@ -166,7 +168,7 @@ contains
     end if
     return
   end function takahashi2011MagnificationPDF
-  
+
   double precision function takahashi2011MagnificationCDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
     !% \cite{takahashi_probability_2011} formalism.
@@ -215,13 +217,13 @@ contains
       !% Integral for the magnification probability distribution function.
       implicit none
       double precision, intent(in   ) :: magnification
-      
+
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
       return
     end function magnificationPDFIntegrand
-    
+
   end function takahashi2011MagnificationCDF
-  
+
   double precision function takahashi2011MagnificationDistribution(self,magnification)
     !% The gravitational lensing magnification distribution from \cite[][eq.~11]{takahashi_probability_2011}.
     implicit none
@@ -230,7 +232,7 @@ contains
     double precision                                   , parameter     :: magnificationZeroPoint=3.0d0
     double precision                                   , parameter     :: convergenceZeroPoint  =1.0d0-1.0d0/sqrt(magnificationZeroPoint)
     double precision                                                   :: convergence
-    
+
     if (magnification <= 0.0d0) then
        takahashi2011MagnificationDistribution=0.0d0
     else
@@ -275,7 +277,7 @@ contains
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
     double precision                                   , intent(in   ) :: convergence
     double precision                                                   :: scaledConvergence
-    
+
     scaledConvergence=convergence/self%convergenceScale
     if (scaledConvergence <= -1.0d0) then
        takahashi2011ConvergenceDistribution=+0.0d0
@@ -310,21 +312,20 @@ contains
     end if
     return
   end function takahashi2011ConvergenceDistribution
-  
+
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
     !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
+    use            :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
+    use            :: File_Utilities       , only : Directory_Make              , File_Exists
+    use            :: Galacticus_Error     , only : Galacticus_Error_Report
+    use            :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
+    use            :: IO_HDF5              , only : hdf5Access                  , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use            :: Numerical_Integration
-    use            :: Numerical_Ranges
-    use            :: Numerical_Comparison
-    use            :: Root_Finder
-    use            :: Galacticus_Error
-    use            :: Galacticus_Paths
-    use            :: IO_HDF5
-    use            :: File_Utilities
-    use            :: Table_Labels
-    use            :: System_Command
+    use            :: Numerical_Comparison , only : Values_Differ
+    use            :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use            :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
+    use            :: Root_Finder          , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use            :: Table_Labels         , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource
@@ -580,12 +581,12 @@ contains
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
       return
     end function magnificationPDFIntegrand
-    
+
     double precision function convergencePdfParameterSolver(a)
       !% Root function used in finding equivalent circular orbits.
       implicit none
       double precision, intent(in   ) :: a
-      
+
       self%aConvergence    =a
       integrationReset     =.true.
       convergencePdfMoment1=Integrate(                                        &
@@ -616,11 +617,11 @@ contains
       end if
       return
     end function convergencePdfParameterSolver
-    
+
     double precision function emptyBeamConvergenceIntegrand(redshiftLens)
       !% Integral for gravitational lensing convergence in an empty beam.
-      use Numerical_Constants_Physical
-      use Numerical_Constants_Prefixes
+      use :: Numerical_Constants_Physical, only : speedLight
+      use :: Numerical_Constants_Prefixes, only : kilo
       implicit none
       double precision, intent(in   ) :: redshiftLens
       double precision                :: distanceComovingLens
@@ -655,12 +656,12 @@ contains
            &                        /  distanceComovingSource
       return
     end function emptyBeamConvergenceIntegrand
-    
+
     double precision function convergenceVarianceIntegrand(redshiftLens)
       !% Integral for variance in the gravitational lensing convergence.
-      use Numerical_Constants_Physical
-      use Numerical_Constants_Prefixes
-      use Numerical_Constants_Math
+      use :: Numerical_Constants_Math    , only : Pi
+      use :: Numerical_Constants_Physical, only : speedLight
+      use :: Numerical_Constants_Prefixes, only : kilo
       implicit none
       double precision                            , intent(in   ) :: redshiftLens
       double precision                            , parameter     :: wavenumberDynamicRange      =1.0d-6
@@ -669,7 +670,7 @@ contains
            &                                                         lensingPower                       , logWavenumberMinimum
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
-      
+
       ! Find cosmic time at this redshift.
       timeLens            =self%cosmologyFunctions_%cosmicTime                 (              &
            &               self%cosmologyFunctions_%expansionFactorFromRedshift (             &
@@ -719,13 +720,13 @@ contains
            &                        *lensingPower
       return
     end function convergenceVarianceIntegrand
-    
+
     double precision function convergenceVariancePowerSpectrumIntegrand(logWavenumber)
       !% Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
       implicit none
       double precision, intent(in   ) :: logWavenumber
       double precision                :: wavenumber
-      
+
       ! Compute integrand.
       wavenumber=exp(logWavenumber)
       convergenceVariancePowerSpectrumIntegrand=wavenumber**2*self%powerSpectrumNonLinear_%value(wavenumber,timeLens)

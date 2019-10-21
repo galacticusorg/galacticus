@@ -20,7 +20,7 @@
   !% Implements a satellite merging timescale class which applies the \cite{villalobos_improved_2013} modifier to another selected
   !% satellite merging time class.
 
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
   !#  <description>Computes the merging timescale using the method of \cite{villalobos_improved_2013} to modify another merging timescale method.</description>
@@ -47,7 +47,7 @@ contains
 
   function villalobos2013ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesVillalobos2013)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
@@ -98,9 +98,8 @@ contains
 
   double precision function villalobos2013TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
-    use Galacticus_Nodes   , only : nodeComponentBasic
-    use Cosmology_Functions
-    use Kepler_Orbits
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
     class           (satelliteMergingTimescalesVillalobos2013), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

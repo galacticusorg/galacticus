@@ -40,12 +40,12 @@ contains
 
   function gaussianConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
     double precision                                                            :: mean      , rootVariance
-    
+
     !# <inputParameter>
     !#   <name>mean</name>
     !#   <cardinality>1</cardinality>
@@ -71,7 +71,7 @@ contains
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
     double precision                                            , intent(in   ) :: mean, rootVariance
     !# <constructorAssign variables="mean, rootVariance"/>
-    
+
     return
   end function gaussianConstructorInternal
 

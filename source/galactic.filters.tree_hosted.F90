@@ -38,7 +38,7 @@ contains
 
   function treeHostedConstructorParameters(parameters) result(self)
     !% Constructor for the ``treeHosted'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterTreeHosted)                :: self
     type(inputParameters       ), intent(inout) :: parameters

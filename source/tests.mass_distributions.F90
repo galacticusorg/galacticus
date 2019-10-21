@@ -21,12 +21,13 @@
 
 program Test_Mass_Distributions
   !% Tests mass distributions.
-  use Galacticus_Error
-  use Unit_Tests
-  use Mass_Distributions
-  use Coordinates
-  use Numerical_Constants_Math
-  use Galacticus_Display
+  use :: Coordinates             , only : assignment(=)                 , coordinateSpherical
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error        , only : Galacticus_Error_Report
+  use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass , massDistributionHernquist, massDistributionSersic, &
+          &                               massDistributionSpherical
+  use :: Numerical_Constants_Math, only : Pi
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group     , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass), allocatable                 :: massDistribution_
   integer                                , parameter                   :: sersicTableCount          =8
@@ -47,7 +48,7 @@ program Test_Mass_Distributions
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
-  
+
   ! Hernquist profile.
   call Unit_Tests_Begin_Group("Hernquist profile")
   allocate(massDistributionHernquist :: massDistribution_)

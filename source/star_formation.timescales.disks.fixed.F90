@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a fixed timescale for star formation in galactic disks.
-  
+
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksFixed">
   !#  <description>A fixed timescale for star formation in galactic disks.</description>
   !# </starFormationTimescaleDisks>
@@ -41,7 +41,7 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} timescale for star formation in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleDisksFixed)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters

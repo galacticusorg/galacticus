@@ -22,7 +22,7 @@
 
 module Satellite_Merging_Mass_Movements
   !% Implements a class for determining how mass is moved around as a consequence of a satellite merging event.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -40,7 +40,7 @@ module Satellite_Merging_Mass_Movements
   !#   <argument>logical          , intent(  out) :: mergerIsMajor                                                                               </argument>
   !#  </method>
   !# </functionClass>
-  
+
   !# <enumeration>
   !#  <name>destinationMerger</name>
   !#  <description>Enumeration of possible destinations for mass in mergers.</description>

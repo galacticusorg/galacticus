@@ -21,11 +21,11 @@
 
 program Test_Interpolation
   !% Tests that numerical interpolation code works correctly.
-  use Unit_Tests
-  use Numerical_Interpolation
-  use FGSL                   , only : fgsl_interp, fgsl_interp_accel
-  use Table_Labels
-  use Galacticus_Display
+  use :: FGSL                   , only : fgsl_interp                   , fgsl_interp_accel
+  use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Interpolation, only : Interpolate                   , Interpolate_Derivative
+  use :: Table_Labels           , only : extrapolationTypeExtrapolate  , extrapolationTypeFix
+  use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (fgsl_interp      )                 :: interpolationObject
   type            (fgsl_interp_accel)                 :: interpolationAccelerator

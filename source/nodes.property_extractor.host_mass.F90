@@ -39,22 +39,22 @@
   end interface nodePropertyExtractorMassHost
 
 contains
-  
+
   function massHostConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily massHost} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassHost)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=nodePropertyExtractorMassHost()
     return
   end function massHostConstructorParameters
 
   double precision function massHostExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (nodePropertyExtractorMassHost), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
@@ -97,7 +97,7 @@ contains
 
   double precision function massHostUnitsInSI(self)
     !% Return the units of the host halo mass in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -108,7 +108,7 @@ contains
 
   integer function massHostType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self
     !GCC$ attributes unused :: self

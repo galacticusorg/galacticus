@@ -30,24 +30,24 @@ module Satellites_Merging_Output
 
   ! Options controlling output.
   logical :: outputSatelliteMergers        , outputSatelliteMergersMainBranchOnly
-  
+
 contains
-  
+
   !# <satelliteMergerTask>
   !#  <unitName>Satellite_Merging_Output</unitName>
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Output(node)
     !% Outputs properties of merging nodes.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
-    use Galacticus_HDF5
-    use IO_HDF5
-    use Input_Parameters
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: Input_Parameters, only : globalParameters    , inputParameter
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: host
     class(nodeComponentBasic)               , pointer :: basic       , basicHost
     type (hdf5Object        )                         :: mergersGroup
-    
+
     ! Initialize the module if necessary.
     if (.not.initialized) then
        !$omp critical (Satellite_Merging_Output_Initialize)
@@ -86,7 +86,7 @@ contains
     basicHost => host%basic()
     ! Open the group to which satellite mergers should be written.
     call hdf5Access%set()
-    mergersGroup=galacticusOutputFile%openGroup("satelliteMergers","Satellite mergers data.")    
+    mergersGroup=galacticusOutputFile%openGroup("satelliteMergers","Satellite mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([node              %index()],"indexSatellite","Index of the satellite."               ,appendTo=.true.)
     call mergersGroup%writeDataset([host              %index()],"indexHost"     ,"Index of the satellite."               ,appendTo=.true.)

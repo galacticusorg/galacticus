@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
-  
+
   !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
   !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is fixed.</description>
   !# </posteriorSampleDffrntlEvltnProposalSize>
@@ -41,12 +41,12 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeFixed)                 :: self
     type            (inputParameters                             ), intent(inout)  :: parameters
     double precision                                                               :: proposalSize
-    
+
     !# <inputParameter>
     !#   <name>proposalSize</name>
     !#   <cardinality>1</cardinality>
@@ -65,10 +65,10 @@ contains
     type            (posteriorSampleDffrntlEvltnProposalSizeFixed)                :: self
     double precision                                              , intent(in   ) :: proposalSize
     !# <constructorAssign variables="proposalSize"/>
-    
+
     return
   end function fixedConstructorInternal
-  
+
   double precision function fixedGamma(self,simulationState,simulationConvergence)
     !% Return the current state.
     implicit none

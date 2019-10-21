@@ -19,8 +19,8 @@
 
   !% Implementation of halo bias using the algorithm of \cite{sheth_ellipsoidal_2001}.
 
-  use Cosmological_Density_Field
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+
   !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
@@ -29,13 +29,13 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasSheth2001
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::               sheth2001Destructor
      procedure :: biasByMass => sheth2001BiasByMass
   end type darkMatterHaloBiasSheth2001
-  
+
   interface darkMatterHaloBiasSheth2001
      !% Constructors for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
      module procedure sheth2001ConstructorParameters
@@ -46,7 +46,7 @@ contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sheth2001} dark matter halo mass bias which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasSheth2001)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
@@ -65,9 +65,9 @@ contains
   function sheth2001ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
     implicit none
-    type (darkMatterHaloBiasSheth2001)                        :: self
-    class(criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
-    class(cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
+    type (darkMatterHaloBiasSheth2001  )                        :: self
+    class(criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
 
     return
@@ -95,7 +95,7 @@ contains
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =self%cosmologicalMassVariance_%rootVariance(               mass)
+    sigma        =self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
     nu           =+deltaCritical                                                   &
          &        /sigma
     ! Compute halo bias.

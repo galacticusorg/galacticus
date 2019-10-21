@@ -21,10 +21,10 @@
 
 program Test_Make_Ranges
   !% Tests that numerical range making code works correctly.
-  use Unit_Tests
-  use Numerical_Ranges
-  use Array_Utilities
-  use Galacticus_Display
+  use :: Array_Utilities   , only : Array_Reverse
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Ranges  , only : Make_Range                    , rangeTypeLinear       , rangeTypeLogarithmic
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision, dimension(1:11) :: range1
   double precision, dimension(0:10) :: range2

@@ -97,7 +97,7 @@
     <initialMassFunctionMethod value="chabrier2001"/>
     <stellarPopulationSelectorMethod value="fixed"/>
     <intergalacticMediumStateMethod value="recFast"/>
-    <linearGrowthMethod value="simple"/>
+    <linearGrowthMethod value="collisionlessMatter"/>
     <mergerTreeBuilderMethod value="cole2000">
       <accretionLimit value="0.1"/>
       <branchIntervalStep value="true"/>

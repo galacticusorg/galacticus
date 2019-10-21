@@ -21,11 +21,11 @@
 
 module Star_Formation_Histories
   !% Implements a class for computation and output of star formation histories for galaxies.
-  use            :: Galacticus_Nodes    , only : treeNode
   use            :: Abundances_Structure, only : abundances
+  use            :: Galacticus_Nodes    , only : treeNode
   use            :: Histories           , only : history
-  use            :: Kind_Numbers        , only : kind_int8
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
+  use            :: Kind_Numbers        , only : kind_int8
   implicit none
   private
 
@@ -34,7 +34,7 @@ module Star_Formation_Histories
   !#  <descriptiveName>Star Formation Histories</descriptiveName>
   !#  <description>
   !#    Class providing recording and output of star formation histories.
-  !#    
+  !#
   !#    Conventionally, star formation histories are output as follows:
   !#    \begin{verbatim}
   !#    HDF5 "galacticus.hdf5" {

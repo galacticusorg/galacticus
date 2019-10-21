@@ -21,7 +21,7 @@
      class(taskClass    ), pointer :: task_
      type (multiTaskList), pointer :: next  => null()
   end type multiTaskList
-  
+
   !# <task name="taskMulti">
   !#  <description>A task which performs multiple other tasks.</description>
   !# </task>
@@ -46,7 +46,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (taskMulti      )                :: self
     type   (inputParameters), intent(inout) :: parameters
@@ -67,7 +67,7 @@ contains
     end do
     return
   end function multiConstructorParameters
-  
+
   function multiConstructorInternal(tasks) result(self)
     !% Internal constructor for the {\normalfont \ttfamily multi} task class.
     implicit none
@@ -83,7 +83,7 @@ contains
     end do
     return
   end function multiConstructorInternal
-  
+
   subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} task class.
     implicit none
@@ -104,11 +104,11 @@ contains
 
   subroutine multiPerform(self,status)
     !% Perform all tasks.
-    use Galacticus_Display
-    use Galacticus_Error  , only : errorStatusSuccess
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : errorStatusSuccess
     implicit none
     class  (taskMulti    ), intent(inout), target   :: self
-    integer               , intent(  out), optional :: status 
+    integer               , intent(  out), optional :: status
     type   (multiTaskList), pointer                 :: task_
 
     call Galacticus_Display_Indent('Begin multiple tasks')
@@ -140,7 +140,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} task class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(taskMulti    ), intent(inout) :: self
     class(taskClass    ), intent(inout) :: destination
@@ -157,7 +157,7 @@ contains
           allocate(taskNew_)
           if (associated(taskDestination_)) then
              taskDestination_%next       => taskNew_
-             taskDestination_            => taskNew_             
+             taskDestination_            => taskNew_
           else
              destination          %tasks => taskNew_
              taskDestination_            => taskNew_
@@ -165,7 +165,7 @@ contains
           allocate(taskNew_%task_,mold=task_%task_)
           !# <deepCopy source="task_%task_" destination="taskNew_%task_"/>
           task_ => task_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

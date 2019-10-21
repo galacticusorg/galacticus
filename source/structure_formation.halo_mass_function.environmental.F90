@@ -20,8 +20,7 @@
 !% Contains a module which implements a dark matter halo mass function class which handles the transition through the environment
 !% mass scale.
 
-  use Cosmological_Density_Field
-  
+
   !# <haloMassFunction name="haloMassFunctionEnvironmental">
   !#  <description>
   !#   The halo mass function is computed by handling the transition though the environment mass scale.
@@ -46,14 +45,14 @@ contains
   function environmentalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily environmental} halo mass function class which takes a parameter set as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionEnvironmental)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(haloMassFunctionClass        ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
     class(haloEnvironmentClass         ), pointer       :: haloEnvironment_
     class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
-    
+
     !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
     !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
     !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
@@ -79,7 +78,7 @@ contains
     self%timeMatching=-1.0d0
     return
   end function environmentalConstructorInternal
- 
+
   double precision function environmentalDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     implicit none

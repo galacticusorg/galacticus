@@ -22,7 +22,7 @@
 module Cosmology_Functions
   !% Provides an object that implements cosmological functions.
   private
- 
+
   !# <functionClass>
   !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
@@ -196,7 +196,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: redshift</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self  
+  !#    !GCC$ attributes unused :: self
   !#    cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)
   !#   </code>
   !#  </method>

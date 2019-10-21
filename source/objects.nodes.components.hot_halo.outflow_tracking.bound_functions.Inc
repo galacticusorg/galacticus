@@ -21,7 +21,7 @@
 
 subroutine Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate(self,massRemovalRate)
   !% Handle instances where mass is removed from the the outflow tracking hot halo component
-  !% class.  
+  !% class.
   implicit none
   class           (nodeComponentHotHaloOutflowTracking), intent(inout) :: self
   double precision                                     , intent(in   ) :: massRemovalRate

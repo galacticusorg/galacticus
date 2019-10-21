@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic disks.
-  
+
   !# <starFormationFeedbackDisks name="starFormationFeedbackDisksFixed">
   !#  <description>A fixed fraction outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
@@ -40,8 +40,8 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the fixed fraction star formation feedback in disks class which takes a parameter set as input.
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (starFormationFeedbackDisksFixed)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -66,14 +66,14 @@ contains
     type            (starFormationFeedbackDisksFixed)                :: self
     double precision                                 , intent(in   ) :: fraction
 
-    !# <constructorAssign variables="fraction"/>    
+    !# <constructorAssign variables="fraction"/>
     return
   end function fixedConstructorInternal
 
   double precision function fixedOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily
     !% node}. Assumes a fixed ratio of outflow rate to star formation rate.
-    use Stellar_Feedback
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationFeedbackDisksFixed), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

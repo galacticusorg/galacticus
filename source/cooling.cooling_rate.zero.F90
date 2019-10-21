@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a zero cooling rate class.
-  
+
   !# <coolingRate name="coolingRateZero">
   !#  <description>A cooling rate class in which the cooling rate is always zero.</description>
   !# </coolingRate>
@@ -38,7 +38,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the zero cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingRateZero)                :: self
     type(inputParameters), intent(inout) :: parameters

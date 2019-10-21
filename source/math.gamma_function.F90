@@ -30,7 +30,7 @@ contains
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
     !% Computes the incomplete gamma function.
-    use FGSL, only : FGSL_SF_Gamma_Inc_Q
+    use :: FGSL, only : FGSL_SF_Gamma_Inc_Q
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -40,7 +40,7 @@ contains
 
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
     !% Computes the complementary incomplete gamma function.
-    use FGSL, only : FGSL_SF_Gamma_Inc_P
+    use :: FGSL, only : FGSL_SF_Gamma_Inc_P
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -59,7 +59,7 @@ contains
 
   double precision function Gamma_Function_Logarithmic(argument)
     !% Computes the logarithm of the gamma function.
-    use FGSL, only : FGSL_SF_lnGamma
+    use :: FGSL, only : FGSL_SF_lnGamma
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -69,9 +69,9 @@ contains
 
   double precision function Inverse_Gamma_Function_Incomplete_Complementary(a,P)
     !% Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
-    use ISO_Varying_String
-    use Incomplete_Gamma
-    use Galacticus_Error
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Incomplete_Gamma  , only : GamInv
     implicit none
     double precision                , intent(in   ) :: P         , a
     integer                                         :: errorState

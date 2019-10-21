@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
-  
+
   !# <initialMassFunction name="initialMassFunctionKroupa2001">
   !#  <description>A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.</description>
   !# </initialMassFunction>
@@ -39,12 +39,12 @@ contains
 
   function kroupa2001ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kroupa2001} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionKroupa2001)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=initialMassFunctionKroupa2001()
     return
   end function kroupa2001ConstructorParameters
@@ -58,7 +58,7 @@ contains
          &                                                                         mass    =[+0.01d0,+0.08d0,+0.50d0,+1.00d0,+1.25d2], &
          &                                                                         exponent=[-0.30d0,-1.80d0,-2.70d0,-2.30d0        ]  &
          &                                                                        )
-    return    
+    return
   end function kroupa2001ConstructorInternal
 
   function kroupa2001Label(self)

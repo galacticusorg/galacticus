@@ -21,8 +21,8 @@
 
 module Node_Component_Dynamics_Statistics_Bars
   !% Implements tracking of dynamics statistics related to bars.
-  use Dark_Matter_Halo_Scales
-  use Galactic_Dynamics_Bar_Instabilities
+  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
+  use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   implicit none
   private
   public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute       , Node_Component_Dynamics_Statistics_Bars_Output    , &
@@ -76,11 +76,11 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(globalParameters_)
     !% Initializes the tree node standard disk methods module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
-    
+
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
        !# <inputParameter>
        !#   <name>dynamicsStatisticsBarsFrequency</name>
@@ -100,8 +100,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk profile module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -117,7 +117,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
-    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
@@ -132,9 +132,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard disk node mass rate of change.
-    use Galacticus_Error
-    use Galacticus_Nodes, only : treeNode                           , nodeComponentBasic                , nodeComponentDynamicsStatistics, interruptTask, &
-         &                       nodeComponentDynamicsStatisticsBars, defaultDynamicsStatisticsComponent
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent , interruptTask, nodeComponentBasic, nodeComponentDynamicsStatistics, &
+          &                         nodeComponentDynamicsStatisticsBars, treeNode
     implicit none
     type            (treeNode                       ), intent(inout), pointer      :: node
     logical                                          , intent(in   )               :: odeConverged
@@ -179,12 +179,11 @@ contains
 
   subroutine Node_Component_Dynamics_Statistics_Bars_Record(node)
     !% Record the bar dynamical state of a satellite galaxy.
-    use Numerical_Interpolation
-    use Numerical_Constants_Math
-    use Satellite_Orbits
-    use Kepler_Orbits
-    use Galacticus_Nodes        , only : treeNode                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSatellite, &
-         &                               nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars
+    use :: Galacticus_Nodes        , only : nodeComponentBasic                              , nodeComponentDisk , nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars, &
+          &                                 nodeComponentSatellite                          , treeNode
+    use :: Kepler_Orbits           , only : keplerOrbit
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Satellite_Orbits        , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     type            (treeNode                       ), intent(inout), pointer :: node
     class           (nodeComponentBasic             )               , pointer :: basic
@@ -196,7 +195,7 @@ contains
     double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
          &                                                                       adiabaticRatio         , velocityPericenter                         , &
          &                                                                       radiusPericenter
-    
+
     ! Get components.
     basic              => node%basic             (                 )
     dynamicsStatistics => node%dynamicsStatistics(autoCreate=.true.)
@@ -224,13 +223,14 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the dynamical histories of galaxies to \glc\ output file.
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Galacticus_Nodes                , only : nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars, treeNode
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_HDF5
-    use            :: Galacticus_Nodes                , only : treeNode, nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars
-    use            :: Numerical_Constants_Astronomical
-    use            :: String_Handling
     use            :: ISO_Varying_String
-    use            :: IO_HDF5
+    use            :: Kind_Numbers                    , only : kind_int8
+    use            :: Numerical_Constants_Astronomical, only : gigaYear
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     type            (treeNode                       ), intent(inout), pointer      :: node
     integer         (kind=c_size_t                  ), intent(in   )               :: iOutput
@@ -245,7 +245,7 @@ contains
          &                                                                            dynamics                 , tree                , &
          &                                                                            dataset
     !GCC$ attributes unused :: nodePassesFilter
-    
+
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then
        ! Get the dynamics statistics component.
@@ -279,7 +279,7 @@ contains
           call tree   %writeDataset  (dataValues,char(adiabaticRatioDatasetName),"[]"              ,datasetReturned=dataset)
           call dataset%writeAttribute(gigaYear                                  ,"unitsInSI"                               )
           call dataset%close         (                                                                                     )
-          ! Close groups. 
+          ! Close groups.
           call tree    %close()
           call dynamics%close()
           call output  %close()

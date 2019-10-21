@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{charlot_simple_2000}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCharlotFall2000">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -119,8 +119,8 @@ contains
     !% Return true since attenuation is age-dependent in the \cite{charlot_simple_2000} dust attenuation model.
     implicit none
     class(stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
-    !GCC$ attributes unused :: self    
-    
+    !GCC$ attributes unused :: self
+
     charlotFall2000IsAgeDependent=.true.
     return
   end function charlotFall2000IsAgeDependent

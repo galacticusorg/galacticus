@@ -19,12 +19,13 @@
 
 !% Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.
 
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryHearin2014SDSS">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: distanceMinimumLimit, distanceMaximumLimit   , &
           &                                                massPrevious        , distanceMaximumPrevious
@@ -48,7 +49,7 @@ contains
 
   function hearin2014SDSSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{hearin_dark_2013} conditional mass function class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (surveyGeometryHearin2014SDSS)                :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -56,17 +57,17 @@ contains
 
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    ! Build the object. 
+    ! Build the object.
     self=surveyGeometryHearin2014SDSS(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function hearin2014SDSSConstructorParameters
-  
+
   function hearin2014SDSSConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the \cite{hearin_dark_2013} conditional mass function class.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type (surveyGeometryHearin2014SDSS)                        :: self
     class(cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
@@ -98,7 +99,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine hearin2014SDSSDestructor
-  
+
   double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
@@ -106,7 +107,7 @@ contains
     double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
     !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
-    
+
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
   end function hearin2014SDSSDistanceMinimum
@@ -118,7 +119,7 @@ contains
     double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
     !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
-    
+
     if (mass /= self%massPrevious)                                                                                 &
          & self%distanceMaximumPrevious=min(                                                                       &
          &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &

@@ -33,7 +33,7 @@
      procedure :: sample       => deltaFunctionSample
      procedure :: distribution => deltaFunctionDistribution
   end type haloSpinDistributionDeltaFunction
-  
+
   interface haloSpinDistributionDeltaFunction
      !% Constructors for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
      !% distribution class.
@@ -46,7 +46,7 @@ contains
   function deltaFunctionConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(haloSpinDistributionDeltaFunction)                :: deltaFunctionConstructorParameters
     type(inputParameters                  ), intent(inout) :: parameters
@@ -95,19 +95,19 @@ contains
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: node
-    
+
     deltaFunctionSample=self%spin
     return
   end function deltaFunctionSample
 
   double precision function deltaFunctionDistribution(self,node)
     !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     deltaFunctionDistribution=0.0d0
     call Galacticus_Error_Report('distribution function can not be evaluated'//{introspection:location})
     return

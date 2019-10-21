@@ -19,10 +19,10 @@
 
   !% An implementation of halo profile concentrations using the algorithm of \cite{schneider_structure_2015}.
 
-  use Cosmological_Density_Field
-  use Cosmology_Functions
-  use Root_Finder
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Root_Finder               , only : rootFinder
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{schneider_structure_2015}.</description>
   !# </darkMatterProfileConcentration>
@@ -36,9 +36,9 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                                schneider2015Destructor
-    procedure :: concentration               => schneider2015Concentration
-    procedure :: densityContrastDefinition   => schneider2015DensityContrastDefinition
+    final     ::                                   schneider2015Destructor
+    procedure :: concentration                  => schneider2015Concentration
+    procedure :: densityContrastDefinition      => schneider2015DensityContrastDefinition
     procedure :: darkMatterProfileDMODefinition => schneider2015DarkMatterProfileDefinition
  end type darkMatterProfileConcentrationSchneider2015
 
@@ -53,13 +53,13 @@
   double precision                                                       :: schneider2015MassReferencePrevious, schneider2015TimeCollapseReference            , &
        &                                                                    schneider2015Time                 , schneider2015ReferenceCollapseMassRootPrevious
   !$omp threadprivate(schneider2015Self,schneider2015MassReferencePrevious,schneider2015TimeCollapseReference,schneider2015Time,schneider2015ReferenceCollapseMassRootPrevious)
-  
+
 contains
 
  function schneider2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type (darkMatterProfileConcentrationSchneider2015)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
@@ -71,12 +71,12 @@ contains
     !# <inputParameter>
     !#   <name>massFractionFormation</name>
     !#   <source>parameters</source>
-    !#   <variable>self%massFractionFormation</variable>    
+    !#   <variable>self%massFractionFormation</variable>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
-    !# </inputParameter>    
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileConcentration" name="self%referenceConcentration"             source="referenceParameters"/>
     !# <objectBuilder class="criticalOverdensity"            name="self%referenceCriticalOverdensity"       source="referenceParameters"/>
     !# <objectBuilder class="criticalOverdensity"            name="self%         criticalOverdensity_"      source=         "parameters"/>
@@ -98,7 +98,7 @@ contains
     class(cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
     class(cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
     !# <constructorAssign variables="*referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
-    
+
     return
   end function schneider2015ConstructorInternal
 
@@ -116,12 +116,13 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"              />
     return
   end subroutine schneider2015Destructor
-  
+
   double precision function schneider2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     !% \cite{schneider_structure_2015}.
-    use Galacticus_Nodes        , only : nodeComponentBasic
-    use Numerical_Constants_Math
+    use :: Galacticus_Nodes        , only : nodeComponentBasic       , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Root_Finder             , only : rangeExpandMultiplicative
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
@@ -130,24 +131,32 @@ contains
          &                                                                                   massReferenceMaximum       =1.0d20
     double precision                                                                      :: mass                                                        , &
          &                                                                                   collapseCriticalOverdensity       , timeCollapse            , &
-         &                                                                                   massReference                     , variance 
-      
+         &                                                                                   massReference                     , variance                , &
+         &                                                                                   timeNow
+
     ! Get the basic component and the halo mass and time.
     basic             => node %basic()
     mass              =  basic%mass ()
     schneider2015Time =  basic%time ()
-    ! Find critical overdensity at collapse for this node.
-    variance=max(                                                                                  &
-         &       +0.0d0                                                                          , &
-         &       +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation)**2  &
-         &       -self%cosmologicalMassVariance_%rootVariance(mass                           )**2  &
+    ! Find critical overdensity at collapse for this node. The critical overdensity at collapse is scaled by a factor
+    ! σ(M,t₀)/σ(M,t) because the definition of critical overdensity in Galacticus does not include the 1/D(t) factor that is
+    ! included in the definition used by Schneider et al. (2015).
+    timeNow =self%cosmologyFunctions_%cosmicTime(1.0d0)
+    variance=max(                                                                                                    &
+         &       +0.0d0                                                                                            , &
+         &       +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation,schneider2015Time)**2  &
+         &       -self%cosmologicalMassVariance_%rootVariance(mass                           ,schneider2015Time)**2  &
          &      )
-    collapseCriticalOverdensity=+sqrt(                                                &
-         &                            +Pi                                             &
-         &                            /2.0d0                                          &
-         &                            *variance                                       &
-         &                           )                                                &
-         &                      +self%criticalOverdensity_%value(time=schneider2015Time,mass=mass)
+    collapseCriticalOverdensity=+(                                                                               &
+         &                        +sqrt(                                                                         &
+         &                              +Pi                                                                      &
+         &                              /2.0d0                                                                   &
+         &                              *variance                                                                &
+         &                             )                                                                         &
+         &                        +self%criticalOverdensity_     %value       (time=schneider2015Time,mass=mass) &
+         &                       )                                                                               &
+         &                      *  self%cosmologicalMassVariance_%rootVariance(time=timeNow          ,mass=mass) &
+         &                      /  self%cosmologicalMassVariance_%rootVariance(time=schneider2015Time,mass=mass)
     ! Compute the corresponding epoch of collapse.
     timeCollapse                      =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
@@ -178,28 +187,28 @@ contains
     call basic%massSet(mass         )
     return
   end function schneider2015Concentration
-  
+
   double precision function schneider2015ReferenceCollapseMassRoot(massReference)
     !% Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
     !% \cite{schneider_structure_2015}.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: massReference
     double precision                :: variance
 
     if (massReference /= schneider2015MassReferencePrevious) then
        schneider2015MassReferencePrevious            =+massReference
-       variance                                      =max(                                                                                                                             &
-            &                                             +0.0d0                                                                                                                     , &
-            &                                             +schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference*schneider2015Self%massFractionFormation)**2  &
-            &                                             -schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference                                        )**2  &
+       variance                                      =max(                                                                                                                                               &
+            &                                             +0.0d0                                                                                                                                       , &
+            &                                             +schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference*schneider2015Self%massFractionFormation,schneider2015Time)**2  &
+            &                                             -schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference                                        ,schneider2015Time)**2  &
             &                                            )
-       schneider2015ReferenceCollapseMassRootPrevious=+sqrt(                                                                                                                           &
-            &                                               +Pi                                                                                                                        &
-            &                                               /2.0d0                                                                                                                     &
-            &                                               *variance                                                                                                                  &
-            &                                              )                                                                                                                           &
-            &                                         +schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015Time                 ,mass=massReference)                &
+       schneider2015ReferenceCollapseMassRootPrevious=+sqrt(                                                                                                                                             &
+            &                                               +Pi                                                                                                                                          &
+            &                                               /2.0d0                                                                                                                                       &
+            &                                               *variance                                                                                                                                    &
+            &                                              )                                                                                                                                             &
+            &                                         +schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015Time                 ,mass=massReference)                                  &
             &                                         -schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015TimeCollapseReference,mass=massReference)
     end if
     schneider2015ReferenceCollapseMassRoot=schneider2015ReferenceCollapseMassRootPrevious
@@ -216,15 +225,14 @@ contains
     schneider2015DensityContrastDefinition => self%referenceConcentration%densityContrastDefinition()
     return
   end function schneider2015DensityContrastDefinition
-  
+
   function schneider2015DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{schneider_structure_2015} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
- 
+
     schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDMODefinition()
     return
   end function schneider2015DarkMatterProfileDefinition

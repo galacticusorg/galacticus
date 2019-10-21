@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a class for null radiation fields.
-  
+
   !# <radiationField name="radiationFieldNull">
   !#  <description>A radiation field class for null fields.</description>
   !# </radiationField>
@@ -38,7 +38,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} radiation field class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(radiationFieldNull)                :: self
     type(inputParameters   ), intent(inout) :: parameters

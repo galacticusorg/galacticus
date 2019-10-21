@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a file-based transfer function class.
-  
-  use Tables
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+
+  use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use :: Tables              , only : table1DGeneric
 
   !# <transferFunction name="transferFunctionFile">
   !#  <description>
@@ -159,7 +159,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Constructor for the file transfer function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (transferFunctionFile    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -209,15 +209,14 @@ contains
 
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
-    use Input_Parameters
-    use IO_HDF5
-    use Numerical_Comparison
-    use Array_Utilities
-    use Galacticus_Error
-    use Galacticus_Display
-    use Table_Labels
-    use File_Utilities
-    use FGSL                , only : FGSL_Interp_cSpline
+    use :: Cosmology_Parameters, only : cosmologyParametersSimple
+    use :: FGSL                , only : FGSL_Interp_cSpline
+    use :: File_Utilities      , only : File_Name_Expand
+    use :: Galacticus_Display  , only : Galacticus_Display_Message
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: IO_HDF5             , only : hdf5Access                        , hdf5Object
+    use :: Numerical_Comparison, only : Values_Differ
+    use :: Table_Labels        , only : enumerationExtrapolationTypeEncode
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
@@ -235,7 +234,7 @@ contains
     type            (hdf5Object              )                            :: fileObject                     , parametersObject         , &
          &                                                                   extrapolationObject            , wavenumberObject         , &
          &                                                                   darkMatterGroup
-    
+
     ! Open and read the HDF5 data file.
     call hdf5Access%set()
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
@@ -287,7 +286,7 @@ contains
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
-    transferLogarithmic  =log(transfer  )   
+    transferLogarithmic  =log(transfer  )
     ! Create the table.
     call self%transfer%create  (                                                    &
          &                      wavenumberLogarithmic                             , &
@@ -338,12 +337,12 @@ contains
     !% Compute the mass corresponding to the wavenumber at which the transfer function is
     !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
     !% this implementation.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionFile), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
     !GCC$ attributes unused :: self
-    
+
     fileHalfModeMass=0.0d0
     if (present(status)) then
        status=errorStatusFail

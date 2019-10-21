@@ -19,12 +19,12 @@
 
   !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
 
-  use Models_Likelihoods
-  use Posterior_Sampling_Convergence
-  use Posterior_Sampling_Stopping_Criteria
-  use Posterior_Sampling_State
-  use Posterior_Sampling_State_Initialize
-  use Model_Parameters
+  use :: Model_Parameters                    , only : modelParameterList
+  use :: Models_Likelihoods                  , only : posteriorSampleLikelihoodClass
+  use :: Posterior_Sampling_Convergence      , only : posteriorSampleConvergenceClass
+  use :: Posterior_Sampling_State            , only : posteriorSampleStateClass
+  use :: Posterior_Sampling_State_Initialize , only : posteriorSampleStateInitializeClass
+  use :: Posterior_Sampling_Stopping_Criteria, only : posteriorSampleStoppingCriterionClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
   !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
@@ -65,17 +65,18 @@
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal
   end interface posteriorSampleSimulationParticleSwarm
-  
+
 contains
-  
+
   function particleSwarmConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use MPI_Utilities
-    use String_Handling
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
+    use :: String_Handling   , only : operator(//)
     implicit none
     type            (posteriorSampleSimulationParticleSwarm        )                              :: self
     type            (inputParameters                               ), intent(inout)               :: parameters
@@ -302,15 +303,13 @@ contains
 
   subroutine particleSwarmSimulate(self)
     !% Perform a particle swarm simulation.
-    use MPI_Utilities
-    use Pseudo_Random
-    use Galacticus_Error
-    use Galacticus_Display
-    use String_Handling
-    use Models_Likelihoods_Constants
-    use Kind_Numbers
-    use File_Utilities              , only : File_Remove, File_Exists
-    use Error_Functions
+    use :: File_Utilities              , only : File_Exists              , File_Remove
+    use :: Galacticus_Display          , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: MPI_Utilities               , only : mpiBarrier               , mpiSelf
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Pseudo_Random               , only : pseudoRandom
+    use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)                               :: self
     double precision                                        , dimension(self%parameterCount)              :: stateVector                    , positionMinimum                  , &
@@ -318,7 +317,7 @@ contains
          &                                                                                                   velocityMaximum                , stateBestPersonal                , &
          &                                                                                                   stateBestGlobal                , stateVectorInteractive
     double precision                                        , dimension(:,:)                , allocatable :: stateVectors
-    double precision                                        , dimension(:  )                , allocatable :: logPosteriorsAll               , logLikelihoodVariancesAll 
+    double precision                                        , dimension(:  )                , allocatable :: logPosteriorsAll               , logLikelihoodVariancesAll
     real                                                                                                  :: timePreEvaluate                , timePostEvaluate                 , &
          &                                                                                                   timeEvaluate                   , timeEvaluatePrevious
     double precision                                                                                      :: timeEvaluateInitial            , logPosterior                     , &
@@ -389,7 +388,7 @@ contains
     logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
     logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
     ! Compute maximum velocities.
-    do i=1,self%parameterCount     
+    do i=1,self%parameterCount
        positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%priorMinimum()
        positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%priorMaximum()
        velocityMaximum(i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
@@ -414,14 +413,14 @@ contains
        close(logFileUnit)
     else
        ! Simulation is not being resumed, so set an initial velocity for the particle.
-       do i=1,self%parameterCount     
+       do i=1,self%parameterCount
           velocityParticle(i)=(2.0d0*randomNumberGenerator%uniformSample()-1.0d0)*velocityMaximum(i)
        end do
     end if
     ! Begin the simulation.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
     open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-    isConverged=.false. 
+    isConverged=.false.
     do while (                                                                                                                  &
          &          self%posteriorSampleState_            %count(                                               ) < self%stepsMaximum &
          &    .and.                                                                                                             &
@@ -574,13 +573,14 @@ contains
 
   subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
+    use            :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               Models_Likelihoods_Constants
-    use               MPI_Utilities
-    use               Sort
-    use               Galacticus_Error
-    use               Galacticus_Display
-    use               Kind_Numbers
+    use            :: Kind_Numbers                , only : kind_int4
+    use            :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
+    use            :: Model_Parameters            , only : modelParameterListLogPrior
+    use            :: Models_Likelihoods_Constants, only : logImpossible
+    use            :: Sort                        , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)               :: self
     class           (posteriorSampleStateClass             ), intent(inout)               :: posteriorSampleState_

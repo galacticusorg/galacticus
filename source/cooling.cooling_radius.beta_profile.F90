@@ -19,15 +19,15 @@
 
   !% Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that cooling
   !% time scales as inverse density.
-  
-  use Kind_Numbers
-  use Cosmology_Functions          , only : cosmologyFunctions, cosmologyFunctionsClass
-  use Dark_Matter_Halo_Scales
-  use Cooling_Times_Available
-  use Cooling_Times
-  use Hot_Halo_Temperature_Profiles    
-  use Hot_Halo_Mass_Distributions
-  use Radiation_Fields
+
+  use :: Cooling_Times                , only : coolingTimeClass
+  use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
+  use :: Kind_Numbers                 , only : kind_int8
+  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
 
   !# <coolingRadius name="coolingRadiusBetaProfile">
   !#  <description>
@@ -89,7 +89,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !% Constructor for the $\beta$-profile cooling radius class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRadiusBetaProfile      )                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -119,13 +119,14 @@ contains
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the $\beta$-profile cooling radius class.
-    use Galacticus_Nodes             , only : defaultHotHaloComponent
-    use ISO_Varying_String
-    use Galacticus_Error
-    use Array_Utilities
-    use String_Handling
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
+    use :: Abundances_Structure         , only : Abundances_Property_Count         , abundances
+    use :: Array_Utilities              , only : operator(.intersection.)
+    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
+    use :: Galacticus_Error             , only : Galacticus_Component_List         , Galacticus_Error_Report
+    use :: Galacticus_Nodes             , only : defaultHotHaloComponent
+    use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionBetaProfile
+    use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileVirial
+    use :: ISO_Varying_String
     implicit none
     type (coolingRadiusBetaProfile      )                        :: self
     class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
@@ -189,25 +190,25 @@ contains
     end select
     return
   end function betaProfileConstructorInternal
-  
+
   subroutine betaProfileAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
 
     call calculationResetEvent%attach(self,betaProfileCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine betaProfileAutoHook
-  
+
   subroutine betaProfileDestructor(self)
     !% Destructor for the $\beta$-profile cooling radius class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusBetaProfile), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%coolingTimeAvailable_"     /> 
+    !# <objectDestructor name="self%coolingTimeAvailable_"     />
     !# <objectDestructor name="self%coolingTime_"              />
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
@@ -231,11 +232,10 @@ contains
 
   double precision function betaProfileRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
-    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
-    use Hot_Halo_Mass_Distributions
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -284,7 +284,7 @@ contains
        densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius)
        coolingTimeZero =self%coolingTime_              %time   (temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
        coolingTimeOuter=self%coolingTime_              %time   (temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
-       if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then 
+       if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then
           ! Cooling radius is static.
           self%radiusGrowthRateStored=0.0d0
        else
@@ -308,11 +308,10 @@ contains
 
   double precision function betaProfileRadius(self,node)
     !% Return the cooling radius in the $\beta$-profile model.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
-    use Hot_Halo_Mass_Distributions
-    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target  :: self
     type            (treeNode                ), intent(inout), target  :: node
@@ -363,7 +362,7 @@ contains
        if (coolingTimeOuter < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=outerRadius
-       else if (coolingTimeZero > timeAvailable) then 
+       else if (coolingTimeZero > timeAvailable) then
           ! Gas at zero radius can not cool.
           self%radiusStored=0.0d0
        else

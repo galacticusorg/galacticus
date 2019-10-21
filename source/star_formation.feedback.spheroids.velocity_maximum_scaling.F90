@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.
-  
-  use Math_Exponentiation
-  use Cosmology_Functions
-  use Dark_Matter_Profiles_DMO
+
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.</description>
@@ -29,13 +29,13 @@
   type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsVlctyMxSclng
      !% Implementation of an outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.
      private
-     double precision                                   :: fraction               , exponentRedshift            , &
-          &                                                exponentVelocity       , normalization               , &
-          &                                                velocityPrevious       , velocityFactor              , &
-          &                                                expansionFactorPrevious, expansionFactorFactor
-     type            (fastExponentiator      )          :: velocityExponentiator  , expansionFactorExponentiator
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                     :: fraction                         , exponentRedshift            , &
+          &                                                  exponentVelocity                 , normalization               , &
+          &                                                  velocityPrevious                 , velocityFactor              , &
+          &                                                  expansionFactorPrevious          , expansionFactorFactor
+     type            (fastExponentiator        )          :: velocityExponentiator            , expansionFactorExponentiator
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_     => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
    contains
      final     ::                vlctyMxSclngDestructor
      procedure :: outflowRate => vlctyMxSclngOutflowRate
@@ -52,14 +52,14 @@ contains
   function vlctyMxSclngConstructorParameters(parameters) result(self)
     !% Constructor for the velocity maximum scaling fraction star formation feedback in spheroids class which takes a parameter set as
     !% input.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsVlctyMxSclng)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
-    double precision                                                            :: fraction            , exponentRedshift, &
+    double precision                                                            :: fraction             , exponentRedshift, &
          &                                                                         exponentVelocity
     class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                    ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                 ), pointer       :: darkMatterProfileDMO_
 
     !# <inputParameter>
     !#   <name>fraction</name>
@@ -85,24 +85,24 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=starFormationFeedbackSpheroidsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_" />
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function vlctyMxSclngConstructorParameters
 
   function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the halo scaling star formation feedback from spheroids class.
-    use Stellar_Feedback
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     type            (starFormationFeedbackSpheroidsVlctyMxSclng)                        :: self
     double precision                                            , intent(in   )         :: fraction                     , exponentRedshift, &
          &                                                                                 exponentVelocity
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                    ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                 ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                            , parameter             :: velocityNormalization=200.0d0
 
     !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
@@ -125,15 +125,15 @@ contains
     !% Destructor for the velocity maximum scaling feedback from star formation in spheroids class.
     implicit none
     type(starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
-  
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_" />
+
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine vlctyMxSclngDestructor
-  
+
   double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -145,13 +145,13 @@ contains
     ! Get the basic component.
     basic              => node             %basic()
     ! Get virial velocity and expansion factor.
-    velocityMaximum=self%darkMatterProfileDMO_ %circularVelocityMaximum(node        )
-    expansionFactor=self%cosmologyFunctions_%expansionFactor        (basic%time())
+    velocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(node        )
+    expansionFactor=self%cosmologyFunctions_  %expansionFactor        (basic%time())
     ! Compute the velocity factor.
     if (velocityMaximum /= self%velocityPrevious) then
        self%velocityPrevious       =                                                     velocityMaximum
        self%velocityFactor         =      self%velocityExponentiator       %exponentiate(velocityMaximum)
-    end if    
+    end if
     ! Compute the expansion-factor factor.
     if (expansionFactor /= self%expansionFactorPrevious) then
        self%expansionFactorPrevious=                                                     expansionFactor

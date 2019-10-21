@@ -17,18 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions       , only : cosmologyFunctions          , cosmologyFunctionsClass
-  use Cosmology_Parameters      , only : cosmologyParameters         , cosmologyParametersClass
-  use Conditional_Mass_Functions, only : conditionalMassFunction     , conditionalMassFunctionClass
-  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-  use Dark_Matter_Profiles_DMO      , only : darkMatterProfileDMO           , darkMatterProfileDMOClass
+  use :: Conditional_Mass_Functions, only : conditionalMassFunction     , conditionalMassFunctionClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions          , cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters         , cosmologyParametersClass
+  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
 
   !# <task name="taskHaloModelGenerate">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloModelGenerate
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
-     private 
+     private
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
@@ -49,12 +49,12 @@
   end interface taskHaloModelGenerate
 
 contains
-  
+
   function haloModelGenerateConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameters             , inputParameter
-    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
-    use Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type            (taskHaloModelGenerate            )                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -125,7 +125,7 @@ contains
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloModelGenerateConstructorParameters
-  
+
   function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
     implicit none
@@ -144,7 +144,7 @@ contains
 
   subroutine haloModelGenerateDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloModelGenerate} task class.
-    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskHaloModelGenerate), intent(inout) :: self
 
@@ -160,23 +160,19 @@ contains
 
   subroutine haloModelGeneratePerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.
-    use ISO_Varying_String
-    use Memory_Management
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Galacticus_Error
-    use Galacticus_Display
-    use Geometry_Surveys
-    use IO_HDF5
-    use IO_IRATE
-    use Pseudo_Random
-    use Root_Finder
-    use String_Handling
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Galacticus_Calculations_Resets
-    use Galacticus_Nodes                   , only : treeNode                  , nodeComponentBasic          , nodeComponentDarkMatterProfile
-    use Conditional_Mass_Functions         , only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
+    use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral              , haloModelGalaxyTypeSatellite
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : massTypeDark
+    use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
+    use :: Galacticus_Display                , only : Galacticus_Display_Indent               , Galacticus_Display_Message    , Galacticus_Display_Unindent
+    use :: Galacticus_Error                  , only : errorStatusSuccess
+    use :: Galacticus_Nodes                  , only : nodeComponentBasic                      , nodeComponentDarkMatterProfile, treeNode
+    use :: IO_IRATE                          , only : irate
+    use :: ISO_Varying_String
+    use :: Numerical_Constants_Math          , only : Pi
+    use :: Pseudo_Random                     , only : pseudoRandom
+    use :: Root_Finder                       , only : rangeExpandMultiplicative               , rootFinder
+    use :: String_Handling                   , only : operator(//)
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
@@ -256,7 +252,7 @@ contains
             &             -self%conditionalMassFunction_%massFunction(haloMass(iHalo),self%massMaximum,haloModelGalaxyTypeCentral)
        ! Test for inclusion.
        if (randomSequence%uniformSample() <= probabilityCentral) then
-          ! Sample central galaxy mass.        
+          ! Sample central galaxy mass.
           xCentral  =randomSequence%uniformSample()*probabilityCentral
           massGalaxy=finderCentral%find(rootGuess=self%massMinimum)
           call galaxyAdd(massGalaxy,haloPosition(:,iHalo),haloVelocity(:,iHalo))
@@ -272,7 +268,7 @@ contains
           call profile%scaleSet             (self%darkMatterProfileScaleRadius_%radius(node ))
           call Galacticus_Calculations_Reset(                                          node  )
           do iSatellite=1,satelliteNumberActual
-             ! Sample satellite galaxy mass.        
+             ! Sample satellite galaxy mass.
              xSatellite               =     randomSequence%uniformSample()*satelliteNumberMean
              massGalaxy               =finderSatellite%find(rootGuess=self%massMinimum)
              ! Sample galaxy radial position.
@@ -292,7 +288,7 @@ contains
                   &                      sin(satelliteTheta)*cos(satellitePhi)                                , &
                   &                      cos(satelliteTheta)                                                    &
                   &                     ]                                                                       &
-                  &                    +haloPosition(:,iHalo)           
+                  &                    +haloPosition(:,iHalo)
              ! Periodicalize the satellite position.
              do iAxis=1,3
                 do while (satellitePosition(iAxis) < 0.0d0)
@@ -363,6 +359,7 @@ contains
 
     subroutine galaxyAdd(mass,position,velocity)
       !% Add a galaxy to the output buffers.
+      use :: Memory_Management, only : allocateArray, deallocateArray
       implicit none
       double precision, intent(in   )                 :: mass
       double precision, intent(in   ), dimension(3  ) :: position                     , velocity
@@ -397,7 +394,7 @@ contains
       galaxyPosition(:,galaxyCount)=position
       galaxyVelocity(:,galaxyCount)=velocity
       ! Record the lowest mass halo populated.
-      populatedHaloMassMinimum=min(haloMass(iHalo),populatedHaloMassMinimum)           
+      populatedHaloMassMinimum=min(haloMass(iHalo),populatedHaloMassMinimum)
       return
     end subroutine galaxyAdd
 
@@ -406,7 +403,7 @@ contains
   logical function haloModelGenerateRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskHaloModelGenerate), intent(inout) :: self    
+    class(taskHaloModelGenerate), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     haloModelGenerateRequiresOutputFile=.false.

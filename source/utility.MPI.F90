@@ -22,12 +22,11 @@
 module MPI_Utilities
   !% Implements useful MPI utilities.
 #ifdef USEMPI
-  use               :: MPI_F08
+  use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
 #endif
-  !$ use            :: Locks
-  use   , intrinsic :: ISO_C_Binding
-  use               :: ISO_Varying_String
-  use               :: Galacticus_Error
+  !$ use            :: Locks             , only : ompLock
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
+  use               :: ISO_Varying_String, only : varying_string
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
 
@@ -204,7 +203,7 @@ module MPI_Utilities
           &                         mpiGatherScalar     , mpiGatherInt1D         , &
           &                         mpiGatherIntScalar
   end type mpiObject
-  
+
   ! Declare an object for interaction with MPI.
   type(mpiObject) :: mpiSelf
 
@@ -241,7 +240,7 @@ module MPI_Utilities
   interface mpiCounter
      module procedure counterConstructor
   end interface mpiCounter
-  
+
   ! Record of whether we're running under MPI or not.
   logical            :: mpiIsActiveValue=.false.
 
@@ -254,9 +253,12 @@ contains
   subroutine mpiInitialize(mpiThreadingRequired)
     !% Initialize MPI.
 #ifdef USEMPI
-    use Memory_Management
-    use Galacticus_Error
-    use Hashes
+    use :: MPI               , only : MPI_Max_Processor_Name , MPI_Thread_Funneled, MPI_Thread_Single, MPI_Comm_World, &
+         &                            MPI_Character
+    use :: Memory_Management , only : allocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Hashes            , only : integerScalarHash
+    use :: ISO_Varying_String, only : assignment(=)          , operator(==)
 #endif
     implicit none
     integer                              , optional    , intent(in   ) :: mpiThreadingRequired
@@ -264,10 +266,10 @@ contains
     integer                                                            :: i                   , iError             , &
          &                                                                mpiThreadingProvided, processorNameLength, &
          &                                                                iProcess
-    character(len=MPI_MAX_PROCESSOR_NAME), dimension(1)                :: processorName
-    character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable   :: processorNames
+    character(len=MPI_Max_Processor_Name), dimension(1)                :: processorName
+    character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
     type     (integerScalarHash         )                              :: processCount
-    !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_THREAD_FUNNELED" />
+    !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
 
     if (mpiThreadingRequired_ == MPI_Thread_Single) then
        call MPI_Init              (                                           iError)
@@ -292,7 +294,7 @@ contains
     end forall
     ! Get processor names from all processes.
     allocate(processorNames(0:mpiSelf%countValue-1))
-    call MPI_AllGather(processorName,MPI_MAX_PROCESSOR_NAME,MPI_Character,processorNames,MPI_MAX_PROCESSOR_NAME,MPI_Character,MPI_Comm_World,iError)
+    call MPI_AllGather(processorName,MPI_Max_Processor_Name,MPI_Character,processorNames,MPI_Max_Processor_Name,MPI_Character,MPI_Comm_World,iError)
     ! Count processes per node.
     call processCount%initialize()
     do iProcess=0,mpiSelf%countValue-1
@@ -310,7 +312,7 @@ contains
           if (trim(processorNames(iProcess)) == processCount%key(i)) mpiSelf%nodeAffinities(iProcess)=i
        end do
     end do
-    deallocate(processorNames)    
+    deallocate(processorNames)
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
 #else
@@ -318,14 +320,14 @@ contains
 #endif
     return
   end subroutine mpiInitialize
-  
+
   subroutine mpiFinalize()
     !% Finalize MPI.
 #ifdef USEMPI
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer :: iError
-    
+
     call MPI_Finalize(iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to finalize MPI'//{introspection:location})
     ! Record that MPI is inactive.
@@ -333,34 +335,36 @@ contains
 #endif
     return
   end subroutine mpiFinalize
-  
+
   subroutine mpiBarrier()
     !% Block until all MPI processes are synchronized.
 #ifdef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: MPI             , only : MPI_Barrier            , MPI_Comm_World
     implicit none
     integer :: iError
-    
+
     call MPI_Barrier(MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI barrier failed'//{introspection:location})
 #endif
     return
   end subroutine mpiBarrier
-  
+
   logical function mpiIsActive(self)
     !% Return true if MPI is active.
     implicit none
     class(mpiObject), intent(in   ) :: self
     !GCC$ attributes unused :: self
- 
+
     mpiIsActive=mpiIsActiveValue
     return
   end function mpiIsActive
-  
+
   logical function mpiIsMaster(self)
     !% Return true if this is the master process.
     implicit none
     class(mpiObject), intent(in   ) :: self
-    
+
 #ifdef USEMPI
     mpiIsMaster=(.not.self%isActive() .or. self%rank() == 0)
 #else
@@ -369,12 +373,15 @@ contains
 #endif
     return
   end function mpiIsMaster
-  
+
   integer function mpiGetRank(self)
     !% Return MPI rank.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class(mpiObject), intent(in   ) :: self
-    
+
 #ifdef USEMPI
     mpiGetRank=self%rankValue
 #else
@@ -384,10 +391,13 @@ contains
 #endif
     return
   end function mpiGetRank
-  
+
   function mpiGetRankLabel(self)
     !% Return MPI rank label.
-    use ISO_Varying_String
+    use :: ISO_Varying_String, only : assignment(=)
+#ifndef USEMPI
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+#endif
     implicit none
     type     (varying_string)                :: mpiGetRankLabel
     class    (mpiObject     ), intent(in   ) :: self
@@ -409,12 +419,15 @@ contains
 #endif
     return
   end function mpiGetRankLabel
-  
+
   integer function mpiGetCount(self)
     !% Return MPI count.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class(mpiObject), intent(in   ) :: self
-    
+
 #ifdef USEMPI
     mpiGetCount=self%countValue
 #else
@@ -424,12 +437,15 @@ contains
 #endif
     return
   end function mpiGetCount
-  
+
   integer function mpiGetNodeCount(self)
     !% Return count of nodes used by MPI.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class(mpiObject), intent(in   ) :: self
-    
+
 #ifdef USEMPI
     mpiGetNodeCount=self%nodeCountValue
 #else
@@ -439,16 +455,19 @@ contains
 #endif
     return
   end function mpiGetNodeCount
-  
+
   integer function mpiGetNodeAffinity(self,rank)
     !% Return node affinity of given MPI process.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class  (mpiObject), intent(in   )           :: self
     integer           , intent(in   ), optional :: rank
 #ifdef USEMPI
     integer                                     :: rankActual
 #endif
-    
+
 #ifdef USEMPI
     rankActual=self%rank()
     if (present(rank)) rankActual=rank
@@ -460,13 +479,17 @@ contains
 #endif
     return
   end function mpiGetNodeAffinity
-  
+
   function mpiGetHostAffinity(self)
     !% Return host affinity of this MPI process.
+    use :: ISO_Varying_String, only : assignment(=)
+#ifndef USEMPI
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+#endif
     implicit none
     type (varying_string)                :: mpiGetHostAffinity
     class(mpiObject     ), intent(in   ) :: self
-    
+
 #ifdef USEMPI
     mpiGetHostAffinity=self%hostName
 #else
@@ -476,9 +499,14 @@ contains
 #endif
     return
   end function mpiGetHostAffinity
-  
+
   logical function mpiMessageWaiting(self,from,tag)
     !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Status             , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe, &
+         &                          MPI_Comm_World
+#endif
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mpiObject ), intent(in   )           :: self
     integer            , intent(in   ), optional :: from         , tag
@@ -504,6 +532,13 @@ contains
 
   function mpiRequestData1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI_F08         , only : MPI_Request            , MPI_Status , MPI_Wait      , MPI_ISend     , &
+         &                          MPI_Recv               , MPI_Integer, MPI_Any_Source, MPI_Comm_World, &
+         &                          MPI_Double_Precision
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                           :: self
     integer                    , intent(in   ), dimension(                            :) :: requestFrom
@@ -584,6 +619,13 @@ contains
 
   function mpiRequestData2D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI_F08         , only : MPI_Request            , MPI_Status , MPI_Wait      , MPI_ISend     , &
+         &                          MPI_Recv               , MPI_Integer, MPI_Any_Source, MPI_Comm_World, &
+         &                          MPI_Double_Precision
+#endif
     implicit none
     class           (mpiObject  ), intent(in   )                                                                   :: self
     integer                      , intent(in   ), dimension(                                                    :) :: requestFrom
@@ -594,12 +636,12 @@ contains
     integer                                     , dimension(                                                    1) :: requester       , requestedBy
     type            (MPI_Request)               , dimension(                                 0: self%countValue-1) :: requestFromID
     type            (MPI_Request), allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
-    type            (MPI_Status )                                                                                  :: messageStatus 
+    type            (MPI_Status )                                                                                  :: messageStatus
     integer                                                                                                        :: i               , iError       , &
          &                                                                                                            iRequest        , j            , &
          &                                                                                                            receivedFrom
 #endif
-    
+
 #ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -664,6 +706,12 @@ contains
 
   function mpiRequestDataInt1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI_F08         , only : MPI_Request            , MPI_Status    , MPI_Wait      , MPI_ISend, &
+         &                          MPI_Recv  , MPI_Integer, MPI_Any_Source, MPI_Comm_World
+#endif
     implicit none
     class  (mpiObject  ), intent(in   )                                           :: self
     integer             , intent(in   ), dimension(                            :) :: requestFrom
@@ -679,7 +727,7 @@ contains
          &                                                                           iRequest        , j            , &
          &                                                                           receivedFrom
 #endif
-    
+
 #ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -744,6 +792,12 @@ contains
 
   function mpiRequestDataLogical1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI_F08         , only : MPI_Request            , MPI_Status , MPI_Wait      , MPI_ISend     , &
+         &                          MPI_Recv               , MPI_Logical, MPI_Any_Source, MPI_Comm_World
+#endif
     implicit none
     class  (mpiObject  ), intent(in   )                                           :: self
     integer             , intent(in   ), dimension(                            :) :: requestFrom
@@ -759,7 +813,7 @@ contains
          &                                                                           iRequest        , j            , &
          &                                                                           receivedFrom
 #endif
-    
+
 #ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -824,7 +878,10 @@ contains
 
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Integer, MPI_Sum, MPI_Comm_World
+#endif
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
     integer           , intent(in   ), dimension( :          )           :: array
@@ -834,7 +891,7 @@ contains
     integer                          , dimension(size(array))            :: maskedArray
     integer                                                              :: iError        , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
@@ -855,6 +912,9 @@ contains
 
   integer function mpiSumScalarInt(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
     integer           , intent(in   )                         :: scalar
@@ -876,6 +936,10 @@ contains
 
   function mpiSumArrayDouble(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
@@ -885,7 +949,7 @@ contains
     double precision                          , dimension(size(array))            :: maskedArray
     integer                                                                       :: iError           , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
@@ -903,9 +967,13 @@ contains
 #endif
     return
   end function mpiSumArrayDouble
-  
+
   function mpiSumArrayTwoDouble(self,array,mask)
     !% Sum an rank-2 double array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                                           :: self
     double precision           , intent(in   ), dimension( :               , :               )           :: array
@@ -915,7 +983,7 @@ contains
     double precision                          , dimension(size(array,dim=1),size(array,dim=2))            :: maskedArray
     integer                                                                                               :: iError           , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
@@ -933,9 +1001,13 @@ contains
 #endif
     return
   end function mpiSumArrayTwoDouble
-  
+
   function mpiSumArrayThreeDouble(self,array,mask)
     !% Sum an rank-3 double array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                                                             :: self
     double precision           , intent(in   ), dimension( :               , :               , :               )           :: array
@@ -945,7 +1017,7 @@ contains
     double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
     integer                                                                                                                :: iError                , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
@@ -963,9 +1035,12 @@ contains
 #endif
     return
   end function mpiSumArrayThreeDouble
-  
+
   double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
@@ -973,7 +1048,7 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%sum([scalar],mask)
     mpiSumScalarDouble=array(1)
@@ -987,6 +1062,10 @@ contains
 
   function mpiAverageArray(self,array,mask)
     !% Average an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
@@ -996,7 +1075,7 @@ contains
     double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError         , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
@@ -1020,7 +1099,9 @@ contains
   function mpiMedianArray(self,array,mask)
     !% Find the median of an array over all processes, returning it to all processes.
 #ifdef USEMPI
-    use Sort
+    use :: Sort            , only : Sort_Do
+#else
+    use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                                   :: self
@@ -1032,7 +1113,7 @@ contains
     integer                                   , dimension(1:2                        )           :: indexMedian
     integer                                                                                      :: i             , activeCount
 #endif
-    
+
 #ifdef USEMPI
     ! Get count of active process.
     if (present(mask)) then
@@ -1071,6 +1152,9 @@ contains
 
   double precision function mpiAverageScalar(self,scalar,mask)
     !% Find the maximum values of a scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
@@ -1078,7 +1162,7 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%average([scalar],mask)
     mpiAverageScalar=array(1)
@@ -1092,6 +1176,10 @@ contains
 
   function mpiMaxvalArray(self,array,mask)
     !% Find the maximum values of an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Max, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
@@ -1120,6 +1208,9 @@ contains
 
   double precision function mpiMaxvalScalar(self,scalar,mask)
     !% Find the maximum values of a scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
@@ -1127,7 +1218,7 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%maxval([scalar],mask)
     mpiMaxvalScalar=array(1)
@@ -1141,6 +1232,10 @@ contains
 
   function mpiMaxloc(self,array,mask)
     !% Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_2Double_Precision, MPI_MaxLoc, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
     double precision           , intent(in   ), dimension( :            )           :: array
@@ -1150,7 +1245,7 @@ contains
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
 #endif
-    
+
 #ifdef USEMPI
     ! Find the maximum over all processes.
     arrayIn(1,:)=array
@@ -1171,6 +1266,10 @@ contains
 
   function mpiMinvalArray(self,array,mask)
     !% Find the minimum values of an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Min, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
@@ -1180,7 +1279,7 @@ contains
     double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
 #endif
-    
+
 #ifdef USEMPI
    ! Find the minimum over all processes.
     maskedArray=array
@@ -1199,6 +1298,10 @@ contains
 
   function mpiMinvalIntArray(self,array,mask)
     !% Find the minimum values of an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI, only : MPI_AllReduce, MPI_Integer, MPI_Min, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     integer                    , intent(in   ), dimension( :          )           :: array
@@ -1208,7 +1311,7 @@ contains
     integer                                   , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
 #endif
-    
+
 #ifdef USEMPI
    ! Find the minimum over all processes.
     maskedArray=array
@@ -1224,9 +1327,12 @@ contains
 #endif
     return
   end function mpiMinvalIntArray
-  
+
   double precision function mpiMinvalScalar(self,scalar,mask)
     !% Find the minimum values of a scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
@@ -1234,7 +1340,7 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%minval([scalar],mask)
     mpiMinvalScalar=array(1)
@@ -1248,6 +1354,9 @@ contains
 
   integer function mpiMinvalIntScalar(self,scalar,mask)
     !% Find the minimum values of a scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     integer                    , intent(in   )                         :: scalar
@@ -1255,7 +1364,7 @@ contains
 #ifdef USEMPI
     integer                                   , dimension(1)           :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%minval([scalar],mask)
     mpiMinvalIntScalar=array(1)
@@ -1269,6 +1378,10 @@ contains
 
   function mpiMinloc(self,array,mask)
     !% Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_2Double_Precision, MPI_MinLoc, MPI_Comm_World
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
     double precision           , intent(in   ), dimension( :            )           :: array
@@ -1278,7 +1391,7 @@ contains
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
 #endif
-    
+
 #ifdef USEMPI
     ! Find the minimum over all processes.
     arrayIn(1,:)=array
@@ -1299,8 +1412,10 @@ contains
 
   logical function mpiAnyLogicalScalar(self,boolean,mask)
     !% Return true if any of the given booleans is true over all processes.
-#ifdef USEMPI
-    use Galacticus_Error
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI             , only : MPI_AllReduce          , MPI_Logical, MPI_LOr, MPI_Comm_World
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1327,8 +1442,10 @@ contains
 
   logical function mpiAllLogicalScalar(self,boolean,mask)
     !% Return true if all of the given booleans are true over all processes.
-#ifdef USEMPI
-    use Galacticus_Error
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#else
+    use :: MPI             , only : MPI_AllReduce          , MPI_Logical, MPI_LAnd, MPI_Comm_World
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1355,6 +1472,9 @@ contains
 
   function mpiGatherScalar(self,scalar)
     !% Gather a scalar from all processes, returning it as a 1-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                :: self
     double precision           , intent(in   )                :: scalar
@@ -1362,7 +1482,7 @@ contains
 #ifdef USEMPI
     double precision           , dimension(1,self%countValue) :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherScalar=array(1,:)
@@ -1373,9 +1493,12 @@ contains
 #endif
     return
   end function mpiGatherScalar
-  
+
   function mpiGather1D(self,array)
     !% Gather a 1-D array from all processes, returning it as a 2-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                         :: self
     double precision           , intent(in   ), dimension(          :                ) :: array
@@ -1393,6 +1516,9 @@ contains
 
   function mpiGather2D(self,array)
     !% Gather a 1-D array from all processes, returning it as a 2-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                                                 :: self
     double precision           , intent(in   ), dimension(                :,                :                ) :: array
@@ -1410,6 +1536,9 @@ contains
 
   function mpiGatherIntScalar(self,scalar)
     !% Gather an integre scalar from all processes, returning it as a 1-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class           (mpiObject), intent(in   )                :: self
     integer                    , intent(in   )                :: scalar
@@ -1417,7 +1546,7 @@ contains
 #ifdef USEMPI
     integer                    , dimension(1,self%countValue) :: array
 #endif
-    
+
 #ifdef USEMPI
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherIntScalar=array(1,:)
@@ -1428,9 +1557,12 @@ contains
 #endif
     return
   end function mpiGatherIntScalar
-  
+
   function mpiGatherInt1D(self,array)
     !% Gather an integer 1-D array from all processes, returning it as a 2-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class  (mpiObject), intent(in   )                                         :: self
     integer           , intent(in   ), dimension(          :                ) :: array
@@ -1448,8 +1580,12 @@ contains
 
   function counterConstructor() result(self)
     !% Constructor for MPI counter class.
-    use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr
+#ifdef USEMPI
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use            :: MPI_F08         , only : MPI_Win_Create         , MPI_Address_Kind, MPI_Info_Null, MPI_Comm_World, &
+         &                                     MPI_TypeClass_Integer  , MPI_SizeOf      , MPI_Type_Match_Size
+#endif
     implicit none
     type   (mpiCounter      ) :: self
 #ifdef USEMPI
@@ -1494,14 +1630,18 @@ contains
 
   function counterIncrement(self)
     !% Increment an MPI counter.
-    use Galacticus_Error
+#ifdef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+         &                          MPI_Address_Kind       , MPI_Sum
+#endif
     implicit none
     integer(c_size_t  )                :: counterIncrement
     class  (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
     integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
     integer                            :: iError
-    
+
     counterIn=1
     !$ call self%ompLock_%  set()
     call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
@@ -1521,16 +1661,20 @@ contains
     return
   end function counterIncrement
 
- function counterGet(self)
+  function counterGet(self)
     !% Return the current value of an MPI counter.
-    use Galacticus_Error
+#ifdef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+    &                               MPI_Address_Kind
+#endif
     implicit none
     integer(c_size_t  )                :: counterGet
     class  (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
     integer(c_size_t  ), dimension(1)  :: counterOut
     integer                            :: iError
-    
+
     !$ call self%ompLock_%  set()
     call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'           //{introspection:location})

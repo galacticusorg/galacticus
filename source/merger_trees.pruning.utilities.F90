@@ -29,8 +29,8 @@ contains
 
   subroutine Merger_Tree_Prune_Clean_Branch(node)
     !% Cleans pointers in a branch about to be pruned to avoid dangling pointer problems during tree evolution.
-    use Galacticus_Nodes   , only : treeNode
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes   , only : treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
     implicit none
     type(treeNode                      ), pointer, intent(inout) :: node
     type(treeNode                      ), pointer                :: workNode  , mergeeNode, &
@@ -59,7 +59,7 @@ contains
 
   subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned,preservePrimaryProgenitor)
     !% Unlink a parent node from a tree branch which is about to be pruned.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type   (treeNode          ), pointer, intent(inout) :: node              , parentNode
     logical                             , intent(in   ) :: parentWillBePruned, preservePrimaryProgenitor
@@ -103,13 +103,13 @@ contains
 
   subroutine Merger_Tree_Prune_Uniqueify_IDs(tree)
     !% Ensure that nodes cloned during tree pruning have unique IDs.
-    use Galacticus_Nodes   , only : mergerTree, treeNode
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes   , only : mergerTree                   , treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     type(mergerTree                   ), target , intent(in   ) :: tree
     type(treeNode                     ), pointer                :: node
     type(mergerTreeWalkerIsolatedNodes)                         :: treeWalker
-    
+
     ! Iterate over trees.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
@@ -117,5 +117,5 @@ contains
     end do
     return
   end subroutine Merger_Tree_Prune_Uniqueify_IDs
-  
+
 end module Merger_Trees_Pruning_Utilities

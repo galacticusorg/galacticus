@@ -20,8 +20,8 @@
   !% An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
   !% assigned positions.
 
-  use Dark_Matter_Halo_Scales
-  
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !# <satelliteOrphanDistribution name="satelliteOrphanDistributionTraceDarkMatter">
   !#  <description>An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.</description>
   !# </satelliteOrphanDistribution>
@@ -41,13 +41,13 @@
      module procedure traceDarkMatterConstructorParameters
      module procedure traceDarkMatterConstructorInternal
   end interface satelliteOrphanDistributionTraceDarkMatter
-  
+
 contains
 
   function traceDarkMatterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class which takes a parameter
     !% list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -75,7 +75,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
     return
   end subroutine traceDarkMatterDestructor
@@ -94,8 +94,8 @@ contains
 
   double precision function traceDarkMatterInverseCMFRadial(self,node,fraction)
     !% Return the radial coordinate within which the given {\normalfont \ttfamily fraction} of orphan satellites are found.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeAll                        , massTypeDark
     implicit none
     class           (satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node

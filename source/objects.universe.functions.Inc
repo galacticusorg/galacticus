@@ -24,7 +24,7 @@ function universeCreateEvent(self) result (newEvent)
   implicit none
   class(universe     ), intent(inout) :: self
   type (universeEvent), pointer       :: newEvent, thisEvent
-  
+
   allocate(newEvent)
   nullify(newEvent%next)
   !$omp atomic
@@ -48,7 +48,7 @@ subroutine universeRemoveEvent(self,event)
   class  (universe     ), intent(inout) :: self
   type   (universeEvent), intent(in   ) :: event
   type   (universeEvent), pointer       :: lastEvent, nextEvent, thisEvent
-  
+
   ! Destroy the event.
   lastEvent => null()
   thisEvent => self%event

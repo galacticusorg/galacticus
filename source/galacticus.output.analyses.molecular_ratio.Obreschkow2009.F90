@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a molecular ratio class that assumes the model of \cite{obreschkow_simulation_2009}.
-  
+
   !# <outputAnalysisMolecularRatio name="outputAnalysisMolecularRatioObreschkow2009">
   !#  <description>A high-pass filter analysis property operator class.</description>
   !# </outputAnalysisMolecularRatio>
@@ -44,7 +44,7 @@ contains
 
   function obreschkow2009ConstructorParameters(parameters) result(self)
     !% Constructor for the ``obreschkow2009'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(outputAnalysisMolecularRatioObreschkow2009)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
@@ -135,7 +135,6 @@ contains
 
   function obreschkow2009ConstructorInternal(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter) result (self)
     !% Internal constructor for the ``obreschkow2009'' output analysis distribution operator class.
-    use Input_Parameters
     implicit none
     type            (outputAnalysisMolecularRatioObreschkow2009)                :: self
     double precision                                            , intent(in   ) :: K     , fSigma , &
@@ -149,9 +148,9 @@ contains
 
   double precision function obreschkow2009Ratio(self,massISM,node)
     !% Compute the molecular fraction in the {\normalfont \ttfamily obreschkow2009} class.
+    use            :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes                , only : nodeComponentDisk
-    use            :: Numerical_Constants_Astronomical
+    use            :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
     implicit none
     class           (outputAnalysisMolecularRatioObreschkow2009), intent(inout) :: self
     double precision                                            , intent(in   ) :: massISM
@@ -180,7 +179,7 @@ contains
             &     *massStellar &
             &    )             &
             &   /diskRadius**4 &
-            &  )**self%beta       
+            &  )**self%beta
        if (molecularRatioCentral > 0.0d0) then
           obreschkow2009Ratio=+1.0d0                                &
                &              /(                                    &

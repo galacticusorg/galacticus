@@ -22,7 +22,7 @@
 module Tasks
   !% Provides a class that implements general tasks to be performed by \glc.
   private
-  
+
   !# <functionClass>
   !#  <name>task</name>
   !#  <descriptiveName>Tasks</descriptiveName>

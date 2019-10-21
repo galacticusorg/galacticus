@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a 1D Cauchy distibution function.
-  
+
   !# <distributionFunction1D name="distributionFunction1DCauchy">
   !#  <description>A 1D Cauchy distibution function.</description>
   !# </distributionFunction1D>
@@ -44,7 +44,7 @@ contains
   function cauchyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cauchy} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DCauchy)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
@@ -68,10 +68,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function cauchyConstructorParameters
-  
+
   function cauchyConstructorProbability(median,limit,probability) result(self)
     !% Constructor for ``cauchy'' 1D distribution function class.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self
     double precision                              , intent(in   ) :: median     , limit, &
          &                                                           probability
@@ -85,14 +85,14 @@ contains
     type            (distributionFunction1DCauchy)                :: self
     double precision                              , intent(in   ) :: median, scale
     !# <constructorAssign variables="median, scale"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function cauchyConstructorInternal
 
   double precision function cauchyDensity(self,x)
     !% Return the density of a Cauchy distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -103,7 +103,7 @@ contains
 
   double precision function cauchyCumulative(self,x)
     !% Return the cumulative probability of a Cauchy distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -114,8 +114,8 @@ contains
 
   double precision function cauchyInverse(self,p)
     !% Return the inverse of a Cauchy distribution.
-    use Galacticus_Error
-    use Numerical_Constants_Math
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout), target :: self
     double precision                              , intent(in   )         :: p

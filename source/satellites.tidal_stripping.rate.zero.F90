@@ -20,9 +20,8 @@
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
   !% Implementation of a satellite tidal stripping class in which the stripping rate is always zero.
-  
-  use Dark_Matter_Halo_Scales
-  
+
+
   !# <satelliteTidalStripping name="satelliteTidalStrippingZero">
   !#  <description>A satellite tidal stripping class in which the stripping rate is always zero.</description>
   !# </satelliteTidalStripping>
@@ -39,10 +38,10 @@
   end interface satelliteTidalStrippingZero
 
 contains
-  
+
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} satellite tidal stripping class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteTidalStrippingZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
@@ -58,8 +57,8 @@ contains
     class(satelliteTidalStrippingZero), intent(inout)         :: self
     type (treeNode                   ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
-    
+
     zeroMassLossRate=0.0d0
     return
   end function zeroMassLossRate
-  
+

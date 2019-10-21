@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a 1D Student-t distribution function.
-  
+
   !# <distributionFunction1D name="distributionFunction1DStudentT">
   !#  <description>A 1D Student-t distibution function.</description>
   !# </distributionFunction1D>
@@ -43,7 +43,7 @@ contains
   function studentTConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily studentT} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DStudentT)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -60,20 +60,20 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function studentTConstructorParameters
-  
+
   function studentTConstructorInternal(degreesOfFreedom) result(self)
     !% Constructor for ``studentT'' 1D distribution function class.
     type            (distributionFunction1DStudentT)                :: self
     double precision                                , intent(in   ) :: degreesOfFreedom
     !# <constructorAssign variables="degreesOfFreedom"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function studentTConstructorInternal
 
   double precision function studentTDensity(self,x)
     !% Return the density of a Student-t distribution.
-    use FGSL, only : FGSL_Ran_tDist_PDF
+    use :: FGSL, only : FGSL_Ran_tDist_PDF
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -84,7 +84,7 @@ contains
 
   double precision function studentTCumulative(self,x)
     !% Return the cumulative probability of a Student-t distribution.
-    use FGSL, only : FGSL_CDF_tDist_P
+    use :: FGSL, only : FGSL_CDF_tDist_P
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -95,8 +95,8 @@ contains
 
   double precision function studentTInverse(self,p)
     !% Return the cumulative probability of a Student-t distribution.
-    use Galacticus_Error
-    use FGSL            , only : FGSL_CDF_tDist_Pinv
+    use :: FGSL            , only : FGSL_CDF_tDist_Pinv
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DStudentT), intent(inout), target :: self
     double precision                                , intent(in   )         :: p

@@ -19,7 +19,7 @@
 
   !% Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
 
-  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverSimple">
   !#  <description>A simple solver for galactic structure (self-gravity of baryons is ignored).</description>
@@ -47,7 +47,7 @@ contains
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} galactic structure solver class which takes a
     !% parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticStructureSolverSimple)                :: self
     type   (inputParameters              ), intent(inout) :: parameters
@@ -76,13 +76,14 @@ contains
     logical                               , intent(in   )         :: useFormationHalo
     class  (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="useFormationHalo, *darkMatterProfileDMO_"/>
-   
+
     return
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
+          &                     satelliteMergerEvent
     implicit none
     class(galacticStructureSolverSimple), intent(inout) :: self
 
@@ -95,7 +96,7 @@ contains
 
   subroutine simpleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily simple} galactic structure solver class.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverSimple), intent(inout) :: self
 
@@ -109,7 +110,7 @@ contains
 
   subroutine simpleSolveHook(self,node)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -122,10 +123,10 @@ contains
     end select
     return
   end subroutine simpleSolveHook
-  
+
   subroutine simpleSolvePreDeriativeHook(self,node,propertyType)
     !% Hookable wrapper around the solver.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -140,10 +141,10 @@ contains
     end select
     return
   end subroutine simpleSolvePreDeriativeHook
-  
+
   subroutine simpleSolve(self,node)
     !% Solve for the structure of galactic components.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     !# </include>
@@ -183,7 +184,7 @@ contains
     return
 
   contains
-    
+
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !% Solve for the equilibrium radius of the given component.
       implicit none
@@ -214,6 +215,6 @@ contains
     class(galacticStructureSolverSimple), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     return
   end subroutine simpleRevert

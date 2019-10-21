@@ -39,7 +39,7 @@ contains
 
   subroutine Get_Argument_Varying_String(argumentNumber,varStrArgument)
     !% Reads a varying string command line argument.
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     integer                  , intent(in   ) :: argumentNumber
     type     (varying_string), intent(  out) :: varStrArgument
@@ -53,7 +53,7 @@ contains
 
   subroutine Get_Temporary_String(argumentNumber,varStrArgument,argumentLength)
     !% Reads a command line argument into a temporary string of the correct length, and returns it as a varying string.
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     integer                      , intent(in   ) :: argumentLength    , argumentNumber
     type     (varying_string    ), intent(  out) :: varStrArgument

@@ -21,7 +21,7 @@
 
 module Satellite_Merging_Remnant_Sizes
   !% Implements a class for calculations of merger remnant sizes.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -38,7 +38,7 @@ module Satellite_Merging_Remnant_Sizes
   !#   <argument>double precision          , intent(  out) :: radius, velocityCircular, angularMomentumSpecific</argument>
   !#  </method>
   !# </functionClass>
-  
+
   ! Value indicating that there was no change in the remnant spheroid size.
   double precision, parameter, public :: remnantNoChange=-1.0d0
 

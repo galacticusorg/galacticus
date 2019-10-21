@@ -28,13 +28,13 @@ contains
 
   subroutine Points_Prune(points,mask)
     !% Prune a set of points.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, allocatable, dimension(:,:), intent(inout) :: points
     logical                      , dimension(:  ), intent(in   ) :: mask
     double precision, allocatable, dimension(:,:)                :: pointsTmp
     integer                                                      :: pointsCount, i
-    
+
     pointsCount=count(mask)
     call Move_Alloc(points,pointsTmp)
     call allocateArray(points,[3,pointsCount])
@@ -48,7 +48,7 @@ contains
     call deallocateArray(pointsTmp)
     return
   end subroutine Points_Prune
-  
+
   subroutine Points_Translate(points,shift,periodicLength)
     !% Apply a simple translation to a set of points.
     implicit none
@@ -56,7 +56,7 @@ contains
     double precision, dimension(:  ), intent(in   ) :: shift
     double precision, optional      , intent(in   ) :: periodicLength
     integer                                         :: i             , j
-    
+
     forall(i=1:size(points,dim=2))
        points(:,i)=points(:,i)+shift
     end forall
@@ -74,10 +74,10 @@ contains
     end if
     return
   end subroutine Points_Translate
-  
+
   subroutine Points_Replicate(points,periodicLength,replicantStart,replicantEnd)
     !% Apply a simple translation to a set of points.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, dimension(:,:), allocatable, intent(inout) :: points
     integer         , dimension(3  )             , intent(in   ) :: replicantStart  , replicantEnd
@@ -86,7 +86,7 @@ contains
     integer                                                      :: i               , j           , &
          &                                                          k               , l           , &
          &                                                          replicationCount, pointsCount
-    
+
     pointsCount=size(points,dim=2)
     call Move_Alloc(points,pointsTmp)
     call allocateArray(points,[3,pointsCount*product(replicantEnd-replicantStart+1)])
@@ -105,10 +105,10 @@ contains
     call deallocateArray(pointsTmp)
     return
   end subroutine Points_Replicate
-  
+
   subroutine Points_Rotate(points,axis,angle)
     !% Apply a rotation to a set of points.
-    use Vectors
+    use :: Vectors, only : Vector_Magnitude
     implicit none
     double precision, dimension(:,:), intent(inout) :: points
     double precision, dimension(3  ), intent(in   ) :: axis
@@ -147,12 +147,12 @@ contains
     end do
     return
   end subroutine Points_Rotate
-  
+
   subroutine Points_Survey_Geometry(points,surveyGeometry_,mass)
     !% Select a set of points that lie within a given survey geometry
-    use Geometry_Surveys
-    use Galacticus_Display
-    use Memory_Management
+    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Geometry_Surveys  , only : surveyGeometryClass
+    use :: Memory_Management , only : allocateArray             , deallocateArray
     implicit none
     double precision                     , allocatable, dimension(:,:), intent(inout) :: points
     class           (surveyGeometryClass)                             , intent(inout) :: surveyGeometry_
@@ -188,5 +188,5 @@ contains
     call deallocateArray(pointsTmp)
     return
   end subroutine Points_Survey_Geometry
-  
+
 end module Points

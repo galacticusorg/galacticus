@@ -23,7 +23,7 @@ module Halo_Model_Projected_Correlations
   !% Implements calculations of projected correlation functions using the halo model.
   private
   public :: Halo_Model_Projected_Correlation
-  
+
   abstract interface
      double precision function integrandWeight(x)
        double precision, intent(in   ) :: x
@@ -38,7 +38,6 @@ contains
        &                                      cosmologyFunctions_                         , &
        &                                      surveyGeometry_                             , &
        &                                      darkMatterHaloScale_                        , &
-       &                                      linearGrowth_                               , &
        &                                      haloMassFunction_                           , &
        &                                      darkMatterProfileDMO_                       , &
        &                                      darkMatterHaloBias_                         , &
@@ -53,42 +52,40 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use FGSL                                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
-    use Memory_Management
-    use Galacticus_Error
-    use Geometry_Surveys
-    use Galacticus_Nodes                        , only : treeNode     , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
-    use Cosmology_Functions
-    use Conditional_Mass_Functions
-    use Numerical_Integration
-    use Node_Component_Dark_Matter_Profile_Scale
-    use Dark_Matter_Halo_Scales
-    use Numerical_Ranges
-    use Numerical_Constants_Math
-    use Power_Spectra
-    use FFTLogs
-    use Tables
-    use Table_Labels
-    use Linear_Growth
-    use Halo_Mass_Functions
-    use Dark_Matter_Profile_Scales              , only : darkMatterProfileScaleRadiusClass
-    use Dark_Matter_Halo_Biases
-    use Dark_Matter_Profiles_DMO
+    use :: Conditional_Mass_Functions, only : conditionalMassFunctionClass
+    use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+    use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass
+    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+    use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
+    use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
+    use :: FFTLogs                   , only : FFTLog                           , fftLogForward                 , fftLogSine
+    use :: FGSL                      , only : FGSL_Integ_Gauss61               , fgsl_function                 , fgsl_integration_workspace
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
+    use :: Geometry_Surveys          , only : surveyGeometryClass
+    use :: Halo_Mass_Functions       , only : haloMassFunctionClass
+    use :: Linear_Growth             , only : linearGrowthClass
+    use :: Memory_Management         , only : allocateArray
+    use :: Numerical_Constants_Math  , only : Pi
+    use :: Numerical_Integration     , only : Integrate                        , Integrate_Done
+    use :: Numerical_Ranges          , only : Make_Range                       , rangeTypeLogarithmic
+    use :: Power_Spectra             , only : powerSpectrumClass
+    use :: Table_Labels              , only : extrapolationTypeExtrapolate
+    use :: Tables                    , only : table1DLogarithmicLinear
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
     class           (powerSpectrumClass                 ), intent(inout)                                             :: powerSpectrum_
     class           (cosmologyFunctionsClass            ), intent(inout)                                             :: cosmologyFunctions_
     class           (surveyGeometryClass                ), intent(inout)                                             :: surveyGeometry_
     class           (darkMatterHaloScaleClass           ), intent(inout)                                             :: darkMatterHaloScale_
-    class           (linearGrowthClass                  ), intent(inout)                                             :: linearGrowth_
     class           (haloMassFunctionClass              ), intent(inout)                                             :: haloMassFunction_
     class           (darkMatterProfileDMOClass          ), intent(inout)                                             :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass            ), intent(inout)                                             :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass  ), intent(inout)                                             :: darkMatterProfileScaleRadius_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned
     double precision                                     , intent(in   )                                             :: projectedCorrelationFunctionMassMinimum     , projectedCorrelationFunctionMassMaximum    , &
-         &                                                                                                                projectedCorrelationFunctionHaloMassMinimum , projectedCorrelationFunctionHaloMassMaximum, &
-         &                                                                                                                projectedCorrelationFunctionLineOfSightDepth
+         &                                                                                                              projectedCorrelationFunctionHaloMassMinimum , projectedCorrelationFunctionHaloMassMaximum, &
+         &                                                                                                              projectedCorrelationFunctionLineOfSightDepth
     logical                                              , intent(in   )                                             :: projectedCorrelationFunctionHalfIntegral
     double precision                                     , intent(  out), dimension(size(projectedSeparationBinned)) :: projectedCorrelationBinned
     type            (treeNode                           ), pointer                                                   :: node
@@ -174,7 +171,7 @@ contains
             & *surveyGeometry_%solidAngle(iField)
        call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Iterate over wavenumbers.
-       do iWavenumber=1,wavenumberCount 
+       do iWavenumber=1,wavenumberCount
           ! Integrate the one-halo term.
           integrationReset    =.true.
           powerSpectrumOneHalo        (iWavenumber)=                              &
@@ -216,12 +213,11 @@ contains
        powerSpectrumOneHalo=powerSpectrumOneHalo/volume
        powerSpectrumTwoHalo=powerSpectrumTwoHalo/volume
        do iWavenumber=1,wavenumberCount
-          powerSpectrumTotal(iWavenumber)=(                                                  &
-               &                           +powerSpectrumOneHalo(           iWavenumber )    &
-               &                           +powerSpectrum_%power(wavenumber(iWavenumber))    &
-               &                           *powerSpectrumTwoHalo(           iWavenumber )**2 &
-               &                          )                                                  &
-               &                          /galaxyDensity                                 **2
+          powerSpectrumTotal(iWavenumber)=(                                       &
+               &                           +powerSpectrumOneHalo(iWavenumber )    &
+               &                           +powerSpectrumTwoHalo(iWavenumber )**2 &
+               &                          )                                       &
+               &                          /galaxyDensity                      **2
        end do
        ! Fourier transform to get the correlation function.
        call allocateArray(correlation,shape(wavenumber))
@@ -285,7 +281,7 @@ contains
        projectedCorrelationBinned=0.0d0
     end if
 
-  contains  
+  contains
 
     double precision function projectionIntegrandWeight(separation)
       !% The weight function applied to the correlation function when integrating to get the projected correlation function.
@@ -311,7 +307,8 @@ contains
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
       !% Time integrand for the one-halo term in the power spectrum.
-      use Galacticus_Display
+      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+      use :: Galacticus_Error  , only : errorStatusSuccess
       implicit none
       double precision                            , intent(in   ) :: timePrime
       type            (fgsl_function             )                :: integrandFunctionTime
@@ -347,7 +344,8 @@ contains
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
       !% Integrand for the one-halo term in the power spectrum.
-      use Galacticus_Calculations_Resets
+      use :: Conditional_Mass_Functions    , only : haloModelGalaxyTypeCentral   , haloModelGalaxyTypeSatellite
+      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
       double precision                :: darkMatterProfileKSpace, numberCentrals   , &
@@ -381,7 +379,7 @@ contains
               & +haloMassFunction_%differential(time,massHalo) &
               & *(                                             &
               &   +darkMatterProfileKSpace                     &
-              &   *2.0d0                                       & 
+              &   *2.0d0                                       &
               &   *numberCentrals                              &
               &   *numberSatellites                            &
               &   +darkMatterProfileKSpace**2                  &
@@ -393,7 +391,8 @@ contains
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
       !% Time integrand for the two-halo term in the power spectrum.
-      use Galacticus_Display
+      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+      use :: Galacticus_Error  , only : errorStatusSuccess
       implicit none
       double precision                            , intent(in   ) :: timePrime
       type            (fgsl_function             )                :: integrandFunctionTime
@@ -406,20 +405,20 @@ contains
       call basic%timeSet                             (time)
       call basic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
-      powerSpectrumTwoHaloTimeIntegrand=                                                  &
-           & +Integrate(                                                                  &
-           &            projectedCorrelationFunctionHaloMassMinimum                     , &
-           &            projectedCorrelationFunctionHaloMassMaximum                     , &
-           &            powerSpectrumTwoHaloIntegrand                                   , &
-           &            integrandFunctionTime                                           , &
-           &            integrationWorkspaceTime                                        , &
-           &            toleranceRelative                          =1.0d-2              , &
-           &            reset                                      =integrationResetTime, &
-           &            integrationRule                            =FGSL_Integ_Gauss61  , &
-           &            errorStatus                                =errorStatus           &
-           &           )                                                                  &
-           & *linearGrowth_      %value                    (time)                         &
-           & *cosmologyFunctions_%comovingVolumeElementTime(time)
+      powerSpectrumTwoHaloTimeIntegrand=                                                         &
+           & +Integrate(                                                                         &
+           &            projectedCorrelationFunctionHaloMassMinimum                            , &
+           &            projectedCorrelationFunctionHaloMassMaximum                            , &
+           &            powerSpectrumTwoHaloIntegrand                                          , &
+           &            integrandFunctionTime                                                  , &
+           &            integrationWorkspaceTime                                               , &
+           &            toleranceRelative                          =1.0d-2                     , &
+           &            reset                                      =integrationResetTime       , &
+           &            integrationRule                            =FGSL_Integ_Gauss61         , &
+           &            errorStatus                                =errorStatus                  &
+           &           )                                                                         &
+           & *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))  &
+           & *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
          call Galacticus_Display_Message('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
@@ -430,11 +429,11 @@ contains
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
       !% Integrand for the two-halo term in the power spectrum.
-      use Galacticus_Calculations_Resets
+      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
       double precision                :: wavenumberMaximum
-      
+
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)

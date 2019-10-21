@@ -22,7 +22,6 @@
 module ODE_Solver
   !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
   use, intrinsic :: ISO_C_Binding
-  use ODE_Solver_Error_Codes
   implicit none
   private
   public :: ODE_Solve, ODE_Solver_Free
@@ -38,19 +37,20 @@ module ODE_Solver
 
   ! Integrand function.
   procedure(odesTemplate), pointer :: currentODEs
-  integer  (c_size_t    )          :: currentODENumber       
+  integer  (c_size_t    )          :: currentODENumber
   !$omp threadprivate(currentODEs,currentODENumber)
-  
+
 contains
 
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
-    use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: FGSL            , only : FGSL_Well_Defined       , FGSL_ODEiv_Step_Alloc  , FGSL_ODEiv_Step_RKCK  , FGSL_ODEiv_Control_Scaled_New, &
-         &                                     FGSL_ODEiv_Control_y_New, FGSL_ODEiv_Evolve_Alloc, FGSL_ODEiv_System_Init, FGSL_ODEiv_Evolve_Apply      , &
-         &                                     FGSL_Success            , fgsl_odeiv_step        , fgsl_odeiv_control    , fgsl_odeiv_evolve            , &
-         &                                     fgsl_odeiv_system
+    use            :: FGSL                  , only : FGSL_ODEiv_Control_Scaled_New, FGSL_ODEiv_Control_y_New, FGSL_ODEiv_Evolve_Alloc, FGSL_ODEiv_Evolve_Apply, &
+          &                                          FGSL_ODEiv_Step_Alloc        , FGSL_ODEiv_Step_RKCK    , FGSL_ODEiv_System_Init , FGSL_Success           , &
+          &                                          FGSL_Well_Defined            , fgsl_odeiv_control      , fgsl_odeiv_evolve      , fgsl_odeiv_step        , &
+          &                                          fgsl_odeiv_system
+    use            :: Galacticus_Error      , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding         , only : c_ptr                        , c_size_t
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX               , odeSolverInterrupt
     implicit none
     double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
     integer                             , intent(in   )           :: yCount
@@ -69,7 +69,7 @@ contains
     double precision                                              :: h                              , x                              , x1Internal
     logical                                                       :: forwardEvolve                  , resetActual
     type            (c_ptr             )                          :: parameterPointer
-    
+
     ! Store the current ODE function (and system size) so that we can restore it on exit. This allows the ODE function to be
     ! called recursively.
     previousODEs      => currentODEs
@@ -124,7 +124,7 @@ contains
 
   function odesWrapper(x,y,dydx,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} ODE functions.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(kind=c_int   )                              :: odesWrapper
     real   (kind=c_double), value                       :: x
@@ -132,15 +132,15 @@ contains
     real   (kind=c_double), dimension(*)                :: dydx
     type   (     c_ptr   ), value                       :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
-    
+
     odesWrapper=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
     return
   end function odesWrapper
-    
+
   subroutine ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
     !% Free up workspace allocated to ODE solving.
-    use FGSL, only : FGSL_ODEiv_Evolve_Free, FGSL_ODEiv_Control_Free, FGSL_ODEiv_Step_Free, FGSL_ODEiv_System_Free, &
-         &           fgsl_odeiv_step       , fgsl_odeiv_control     , fgsl_odeiv_evolve   , fgsl_odeiv_system
+    use :: FGSL, only : FGSL_ODEiv_Control_Free, FGSL_ODEiv_Evolve_Free, FGSL_ODEiv_Step_Free, FGSL_ODEiv_System_Free, &
+          &             fgsl_odeiv_control     , fgsl_odeiv_evolve     , fgsl_odeiv_step     , fgsl_odeiv_system
     implicit none
     type(fgsl_odeiv_step   ), intent(inout) :: odeStepper
     type(fgsl_odeiv_control), intent(inout) :: odeController

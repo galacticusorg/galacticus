@@ -41,12 +41,12 @@ contains
 
   function linearConstructorParameters(parameters) result(self)
     !% Constructor for the linear excursion set class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetBarrierLinear)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
     double precision                                           :: coefficientConstant, coefficientLinear
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>coefficientConstant</name>
@@ -77,7 +77,7 @@ contains
     type            (excursionSetBarrierLinear)                :: self
     double precision                           , intent(in   ) :: coefficientConstant, coefficientLinear
     !# <constructorAssign variables="coefficientConstant, coefficientLinear"/>
-    
+
     return
   end function linearConstructorInternal
 

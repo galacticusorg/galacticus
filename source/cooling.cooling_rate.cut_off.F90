@@ -19,9 +19,9 @@
 
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
 
-  use Cosmology_Functions    , only : cosmologyFunctionsClass , cosmologyFunctions
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
-  
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+
   !# <coolingRate name="coolingRateCutOff">
   !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.</description>
   !# </coolingRate>
@@ -59,7 +59,7 @@ contains
 
   function cutOffConstructorParameters(parameters) result(self)
     !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateCutOff       )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -69,7 +69,7 @@ contains
     double precision                                          :: velocityCutOff      , redshiftCutOff
     logical                                                   :: useFormationNode
     type            (varying_string          )                :: whenCutOff
-    
+
     !# <inputParameter>
     !#   <name>useFormationNode</name>
     !#   <defaultValue>.false.</defaultValue>
@@ -128,7 +128,7 @@ contains
 
   function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingRate_) result(self)
     !% Internal constructor for the cut off cooling rate class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coolingRateCutOff       )                        :: self
     double precision                          , intent(in   )         :: velocityCutOff      , timeCutOff
@@ -156,7 +156,7 @@ contains
   double precision function cutOffRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
     !% before/after a given epoch and below a given virial velocity.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (coolingRateCutOff ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node

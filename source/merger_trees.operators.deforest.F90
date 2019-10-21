@@ -39,12 +39,12 @@ contains
 
   function deforestConstructorParameters(parameters)
     !% Constructor for the deforestation merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
     type(inputParameters           ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     deforestConstructorParameters=mergerTreeOperatorDeforest()
     return
   end function deforestConstructorParameters
@@ -54,14 +54,14 @@ contains
     implicit none
     type(mergerTreeOperatorDeforest), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine deforestDestructor
 
   subroutine deforestOperate(self,tree)
     !% Perform a deforestation operation on a merger tree.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeOperatorDeforest), intent(inout), target :: self
     type            (mergerTree                ), intent(inout), target :: tree
@@ -106,4 +106,4 @@ contains
     end do
     return
   end subroutine deforestOperate
-  
+

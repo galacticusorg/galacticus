@@ -23,10 +23,11 @@
   !#  <description>A identity modifier for power spectra in the halo model of clustering.</description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierIdentity
+     private
    contains
      procedure :: modify => identityModify
   end type haloModelPowerSpectrumModifierIdentity
-  
+
   interface haloModelPowerSpectrumModifierIdentity
      !% Constructors for the {\normalfont \ttfamily identity} halo model power spectrum modifier class.
      module procedure identityConstructorParameters
@@ -37,7 +38,7 @@ contains
   function identityConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily identity} hot halo outflow reincorporation class which takes a parameter
     !% set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(haloModelPowerSpectrumModifierIdentity)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
@@ -57,7 +58,7 @@ contains
     double precision                                        , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                        , intent(in   )                , optional :: mass
     !GCC$ attributes unused :: self, wavenumber, term, powerSpectrum, mass
-    
+
     ! Do nothing, except to set covariance to zero.
     if (present(powerSpectrumCovariance)) powerSpectrumCovariance=0.0d0
     return

@@ -42,14 +42,14 @@ contains
 
   function haloFormationConstructorParameters(parameters) result(self)
     !% Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
-    use Galacticus_Nodes, only : defaultFormationTimeComponent
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
          & call Galacticus_Error_Report                                                                                        &
@@ -79,11 +79,11 @@ contains
     haloFormationTimeAvailableIncreaseRate=1.0d0
     return
   end function haloFormationTimeAvailableIncreaseRate
-  
+
   double precision function haloFormationTimeAvailable(self,node)
     !% Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

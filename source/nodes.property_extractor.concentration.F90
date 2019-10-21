@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a concentration output analysis property extractor class.
 
-  use Virial_Density_Contrast
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorConcentration">
   !#  <description>A concentration output analysis property extractor class.</description>
@@ -51,7 +51,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !% Constructor for the ``concentration'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorConcentration)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -66,12 +66,11 @@ contains
 
   function concentrationConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``concentration'' output analysis property extractor class.
-    use Input_Parameters
     implicit none
     type (nodePropertyExtractorConcentration)         :: self
     class(virialDensityContrastClass        ), target :: virialDensityContrast_
     !# <constructorAssign variables="*virialDensityContrast_"/>
-    
+
     return
   end function concentrationConstructorInternal
 
@@ -83,11 +82,11 @@ contains
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine concentrationDestructor
-  
+
   double precision function concentrationExtract(self,node,instance)
     !% Implement a concentration output analysis.
-    use Dark_Matter_Profile_Mass_Definitions
-    use Galacticus_Nodes                    , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (nodePropertyExtractorConcentration), intent(inout)           :: self
     type            (treeNode                          ), intent(inout), target   :: node
@@ -143,7 +142,7 @@ contains
 
   integer function concentrationType(self)
     !% Return the type of the concentration property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorConcentration), intent(inout) :: self
     !GCC$ attributes unused :: self

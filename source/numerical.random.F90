@@ -21,10 +21,10 @@
 
 module Pseudo_Random
   !% Implements pseudo-random numbers.
-  use FGSL, only : fgsl_rng        , fgsl_long       , FGSL_Well_Defined, FGSL_RNG_Alloc, &
-       &           FGSL_RNG_Default, FGSL_RNG_Set    , FGSL_RNG_Free    , FGSL_Obj_C_Ptr, &
-       &           FGSL_RNG_Uniform, FGSL_Ran_Poisson, FGSL_Ran_Gaussian, FGSL_Rng_FRead, &
-       &           FGSL_Rng_Clone  , fgsl_file       , FGSL_Rng_FWrite
+  use :: FGSL, only : FGSL_Obj_C_Ptr, FGSL_RNG_Alloc  , FGSL_RNG_Default , FGSL_RNG_Free    , &
+          &           FGSL_RNG_Set  , FGSL_RNG_Uniform, FGSL_Ran_Gaussian, FGSL_Ran_Poisson , &
+          &           FGSL_Rng_Clone, FGSL_Rng_FRead  , FGSL_Rng_FWrite  , FGSL_Well_Defined, &
+          &           fgsl_file     , fgsl_long       , fgsl_rng
   implicit none
   private
 
@@ -86,7 +86,7 @@ module Pseudo_Random
      !% Constructors for the pseudoRandom class.
      module procedure pseudoRandomConstructor
   end interface pseudoRandom
-  
+
   logical                 :: Seed_Is_Set=.false.
   integer                 :: randomSeed
   integer(kind=fgsl_long) :: randomSeedC=-1
@@ -96,7 +96,7 @@ contains
 
   subroutine pseudoRandomInitialize()
     !% Initialize pseudo-random number sequence generators.
-    use Input_Parameters
+    use :: Input_Parameters, only : globalParameters, inputParameter
     implicit none
 
     ! Read in the random number seed if necessary.
@@ -119,10 +119,10 @@ contains
   end subroutine pseudoRandomInitialize
 
   subroutine pseudoRandomReset(pseudoSequenceObject,reset,ompThreadOffset,mpiRankOffset,incrementSeed)
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI    , only : MPI_Comm_Rank, MPI_Comm_World
 #endif
+    !$ use :: OMP_Lib
     implicit none
 #ifdef USEMPI
     integer                                    :: mpiRank             , iError
@@ -180,7 +180,7 @@ contains
     !% Destroy the pseudo-sequence wrapper classs.
     implicit none
     type(pseudoRandom), intent(inout) :: self
-    
+
     if (.not.self%pseudoSequenceReset) call pseudoRandomFree(self%pseudoSequence)
     return
   end subroutine pseudoRandomDestructor

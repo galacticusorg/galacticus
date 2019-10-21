@@ -21,11 +21,12 @@
 
 !% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 
-  use, intrinsic :: ISO_C_Binding
-  use            :: FGSL                   , only : fgsl_interp_accel
-  use            :: Excursion_Sets_Barriers
-  use            :: File_Utilities
-  use            :: Cosmology_Functions
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
+  use :: File_Utilities            , only : lockDescriptor
+  use :: FGSL                      , only : fgsl_interp_accel
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
   !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.</description>
@@ -33,41 +34,45 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi
      !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
      private
-     class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_                     => null()
-     class           (excursionSetBarrierClass), pointer                       :: excursionSetBarrier_                    => null()
+     class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_                      => null()
+     class           (excursionSetBarrierClass     ), pointer                       :: excursionSetBarrier_                     => null()
+     class           (cosmologicalMassVarianceClass), pointer                       :: cosmologicalMassVariance_                => null()
      ! Variables used in tabulation the first crossing function.
-     double precision                                                          :: timeMaximum                                      , timeMinimum                         , &
-          &                                                                       varianceMaximum                         
-     integer                                                                   :: timeTableCount                                   , varianceTableCount
-     double precision                          , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
-     double precision                          , allocatable, dimension(:  )   :: timeTable                                        , varianceTable
-     double precision                                                          :: varianceTableStep
-     logical                                                                   :: tableInitialized                        
-     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTime                     , interpolationAcceleratorVariance
-     logical                                                                   :: interpolationResetTime                           , interpolationResetVariance          
+     double precision                                                               :: timeMaximum                                       , timeMinimum                                , &
+          &                                                                            varianceMaximum
+     integer                                                                        :: timeTableCount                                    , varianceTableCount
+     double precision                               , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
+     double precision                               , allocatable, dimension(:  )   :: timeTable                                         , varianceTable
+     double precision                                                               :: varianceTableStep
+     logical                                                                        :: tableInitialized                                  , fileNameInitialized
+     type            (fgsl_interp_accel            )                                :: interpolationAcceleratorTime                      , interpolationAcceleratorVariance
+     logical                                                                        :: interpolationResetTime                   =  .true., interpolationResetVariance          =.true.
      ! Variables used in tabulation the first crossing rate function.
-     double precision                                                          :: timeMaximumRate                                  , timeMinimumRate                     , &
-          &                                                                       varianceMaximumRate                     
-     integer                                                                   :: timeTableCountRate                               , varianceTableCountRate              , &
-          &                                                                       varianceTableCountRateBase
-     double precision                          , allocatable, dimension(:,:,:) :: firstCrossingTableRate
-     double precision                          , allocatable, dimension(:,:  ) :: nonCrossingTableRate
-     double precision                          , allocatable, dimension(:    ) :: timeTableRate                                    , varianceTableRate                   , &
-          &                                                                       varianceTableRateBase
-     logical                                                                   :: tableInitializedRate                    
-     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTimeRate                 , interpolationAcceleratorVarianceRate, &
-          &                                                                       interpolationAcceleratorVarianceRateBase
-     logical                                                                   :: interpolationResetTimeRate                       , interpolationResetVarianceRate      , &
-          &                                                                       interpolationResetVarianceRateBase      
+     double precision                                                               :: timeMaximumRate                                   , timeMinimumRate                            , &
+          &                                                                            varianceMaximumRate
+     integer                                                                        :: timeTableCountRate                                , varianceTableCountRate                     , &
+          &                                                                            varianceTableCountRateBase
+     double precision                               , allocatable, dimension(:,:,:) :: firstCrossingTableRate
+     double precision                               , allocatable, dimension(:,:  ) :: nonCrossingTableRate
+     double precision                               , allocatable, dimension(:    ) :: timeTableRate                                     , varianceTableRate                          , &
+          &                                                                            varianceTableRateBase
+     logical                                                                        :: tableInitializedRate
+     type            (fgsl_interp_accel            )                                :: interpolationAcceleratorTimeRate                  , interpolationAcceleratorVarianceRate       , &
+          &                                                                            interpolationAcceleratorVarianceRateBase
+     logical                                                                        :: interpolationResetTimeRate                = .true., interpolationResetVarianceRate      =.true., &
+          &                                                                            interpolationResetVarianceRateBase        =.true.
      ! File name used to store tabulations.
-     type            (varying_string          )                                :: fileName
-     logical                                                                   :: useFile
+     type            (varying_string               )                                :: fileName
+     logical                                                                        :: useFile
+     ! Tabulation resolutions.
+     integer                                                                        :: varianceNumberPerUnitProbability                  , varianceNumberPerUnit                      , &
+          &                                                                            timeNumberPerDecade                               , varianceNumberPerDecade
      ! The fractional step in time used to compute barrier crossing rates.
-     double precision                                                          :: timeStepFractional
+     double precision                                                               :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
-     double precision                                                          :: timeRatePrevious                                 , varianceRatePrevious
-     double precision                                       , dimension(0:1)   :: hTimeRate                                        , hVarianceRate
-     integer         (c_size_t                )                                :: iTimeRate                                        , iVarianceRate
+     double precision                                                               :: timeRatePrevious                                  , varianceRatePrevious
+     double precision                                            , dimension(0:1)   :: hTimeRate                                         , hVarianceRate
+     integer         (c_size_t                     )                                :: iTimeRate                                         , iVarianceRate
    contains
      !@ <objectMethods>
      !@   <object>excursionSetFirstCrossingFarahi</object>
@@ -95,15 +100,22 @@
      !@     <arguments></arguments>
      !@     <description>Write excursion set solutions to file.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileNameInitialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize the file name for storing excursion set data.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                    farahiDestructor
-     procedure :: probability     => farahiProbability
-     procedure :: rate            => farahiRate
-     procedure :: rateNonCrossing => farahiRateNonCrossing
-     procedure :: rateTabulate    => farahiRateTabulate
-     procedure :: fileRead        => farahiFileRead
-     procedure :: fileWrite       => farahiFileWrite
-     procedure :: varianceRange   => farahiVarianceRange
+     final     ::                       farahiDestructor
+     procedure :: probability        => farahiProbability
+     procedure :: rate               => farahiRate
+     procedure :: rateNonCrossing    => farahiRateNonCrossing
+     procedure :: rateTabulate       => farahiRateTabulate
+     procedure :: fileRead           => farahiFileRead
+     procedure :: fileWrite          => farahiFileWrite
+     procedure :: fileNameInitialize => farahiFileNameInitialize
+     procedure :: varianceRange      => farahiVarianceRange
   end type excursionSetFirstCrossingFarahi
 
   interface excursionSetFirstCrossingFarahi
@@ -112,27 +124,27 @@
      module procedure farahiConstructorInternal
   end interface excursionSetFirstCrossingFarahi
 
-  ! Parameters controlling tabulation range and granularity.
-  integer                         , parameter :: farahiVarianceNumberPerUnitProbability=1000
-  integer                         , parameter :: farahiTimeNumberPerDecade             =  10    , farahiVarianceNumberPerDecade=400    , &
-       &                                         farahiVarianceNumberPerUnit           =  40
-  double precision                , parameter :: farahiRateRedshiftMaximum             =  30.0d0, farahiRateRedshiftMinimum    =  0.0d0
+  ! Parameters controlling tabulation range
+  double precision                , parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
 
   ! Lock used for file access.
   type            (lockDescriptor)            :: farahiFileLock
-  logical                                     :: farahiFileLockInitialized              =.false.
+  logical                                     :: farahiFileLockInitialized=.false.
 
 contains
 
   function farahiConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetFirstCrossingFarahi)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class           (excursionSetBarrierClass       ), pointer       :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
     double precision                                                 :: timeStepFractional
+    integer                                                          :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
+         &                                                              timeNumberPerDecade             , varianceNumberPerDecade
     type            (varying_string                 )                :: fileName
 
     !# <inputParameter>
@@ -151,29 +163,62 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
-    self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_)
+    !# <inputParameter>
+    !#   <name>varianceNumberPerUnitProbability</name>
+    !#   <defaultValue>1000</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per unit variance for first crossing probabilities.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>varianceNumberPerUnit</name>
+    !#   <defaultValue>40</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per unit variance for first crossing rates.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>varianceNumberPerDecade</name>
+    !#   <defaultValue>400</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per decade of progenitor variance for first crossing rates.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeNumberPerDecade</name>
+    !#   <defaultValue>10</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !#   <description>The number of points to tabulate per decade of time.</description>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="excursionSetBarrier_"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="excursionSetBarrier_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function farahiConstructorParameters
 
-  function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
+  function farahiConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Galacticus_Display
-    use System_Command
-    use File_Utilities
+    use :: File_Utilities, only : File_Lock_Initialize
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
+    integer                                          , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
+         &                                                                      timeNumberPerDecade             , varianceNumberPerDecade
     type            (varying_string                 ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass       ), intent(in   ), target :: excursionSetBarrier_
-    !# <constructorAssign variables="timeStepFractional, fileName, *cosmologyFunctions_, *excursionSetBarrier_"/>
+    class           (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="timeStepFractional, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, timeNumberPerDecade, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
 
     self%tableInitialized                  =.false.
     self%interpolationResetTime            =.true.
@@ -184,23 +229,15 @@ contains
     self%interpolationResetVarianceRateBase=.true.
     self%timeMaximum                       =-huge(0.0d0)
     self%timeMinimum                       =+huge(0.0d0)
-    self%varianceMaximum                   =-huge(0.0d0)
+    self%varianceMaximum                   =      0.0d0
     self%timeMaximumRate                   =-huge(0.0d0)
     self%timeMinimumRate                   =+huge(0.0d0)
     self%varianceMaximumRate               =-huge(0.0d0)
     self%timeRatePrevious                  =-huge(0.0d0)
     self%varianceRatePrevious              =-huge(0.0d0)
     self%useFile                           =(self%fileName /= 'none')
-    ! Build an automatic file name based on the descriptor for this object.
-    if (self%fileName == "auto") then
-       self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
-       call Galacticus_Display_Message('excursion set data will be read from/written to "'//char(self%fileName)//'"',verbosityWorking)
-    end if
-    ! Expand file name.
-    self%fileName=File_Name_Expand(char(self%fileName))
-    ! Ensure directory exists.
-    call System_Command_Do("mkdir -p `dirname "//char(self%fileName)//"`")
-    ! Initialize file lock.    
+    self%fileNameInitialized               =.not.self%useFile
+    ! Initialize file lock.
     if (.not.farahiFileLockInitialized) then
        !$omp critical(farahiFileLockInitialize)
        if (.not.farahiFileLockInitialized) then
@@ -212,14 +249,33 @@ contains
     return
   end function farahiConstructorInternal
 
+  subroutine farahiFileNameInitialize(self)
+    use :: Galacticus_Paths, only : galacticusPath  , pathTypeDataDynamic
+    use :: File_Utilities  , only : File_Name_Expand, Directory_Make     , File_Path
+    implicit none
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+
+    if (self%fileNameInitialized) return
+    ! Build an automatic file name based on the descriptor for this object.
+    if (self%fileName == "auto") &
+         & self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+    ! Expand file name.
+    self%fileName=File_Name_Expand(char(self%fileName))
+    ! Ensure directory exists.
+    call Directory_Make(File_Path(self%fileName))
+    self%fileNameInitialized=.true.
+    return
+  end subroutine farahiFileNameInitialize
+
   subroutine farahiDestructor(self)
-    !% Destructor for the Farahi excursion set first crossing class.    
-    use Numerical_Interpolation, only : Interpolate_Done
+    !% Destructor for the Farahi excursion set first crossing class.
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(excursionSetFirstCrossingFarahi), intent(inout) :: self
-    
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    !# <objectDestructor name="self%excursionSetBarrier_" />
+
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%excursionSetBarrier_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance        ,reset=self%interpolationResetVariance        )
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime            ,reset=self%interpolationResetTime            )
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
@@ -230,13 +286,15 @@ contains
 
   double precision function farahiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
     double precision                                 , intent(in   )                 :: variance                     , time
@@ -259,6 +317,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
+       call self%fileNameInitialize()
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -291,7 +350,7 @@ contains
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
+       self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
        if (self%tableInitialized) then
           self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
           self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
@@ -299,7 +358,7 @@ contains
           self%timeMinimum=                                                                     0.5d0*time
           self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
        end if
-       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
+       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
        call allocateArray(self%timeTable                    ,[                          self%timeTableCount]                  )
        call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount,self%timeTableCount],lowerBounds=[0,1])
@@ -469,7 +528,7 @@ contains
 
   double precision function farahiRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
     double precision                                 , intent(in   )  :: variance           , varianceProgenitor, &
@@ -496,7 +555,7 @@ contains
     if (time /= self%timeRatePrevious) then
        self%timeRatePrevious    =time
        self%iTimeRate           =Interpolate_Locate                 (self%timeTableRate        ,self%interpolationAcceleratorTimeRate        ,time                       ,reset=self%interpolationResetTimeRate        )
-       self%hTimeRate           =Interpolate_Linear_Generate_Factors(self%timeTableRate        ,self%iTimeRate     ,time    )
+       self%hTimeRate           =Interpolate_Linear_Generate_Factors(self%timeTableRate        ,self%iTimeRate                               ,time                                                                     )
     end if
     ! Get interpolation in variance.
     if (variance /= self%varianceRatePrevious) then
@@ -538,7 +597,7 @@ contains
 
   double precision function farahiRateNonCrossing(self,variance,time,node)
    !% Return the rate for excursion set non-crossing.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
     double precision                                 , intent(in   ) :: time , variance
@@ -574,23 +633,27 @@ contains
 
   subroutine farahiRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Memory_Management
-    use Galacticus_Display
-    use Kind_Numbers
-    use Error_Functions
-    use MPI_Utilities
+    use :: Error_Functions        , only : erfApproximate
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management      , only : allocateArray              , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
     type            (treeNode                       ), intent(inout)               :: node
     double precision                                 , parameter                   :: varianceMinimumDefault    =1.0d-2
     double precision                                 , parameter                   :: varianceTolerance         =1.0d-6
+    double precision                                 , parameter                   :: massLarge                 =1.0d16
     real            (kind=kind_quad                 ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
          &                                                                            varianceTableRateQuad            , barrierTableRateQuad
     double precision                                                               :: barrierRateTest
     class           (excursionSetBarrierClass       ), pointer                     :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass  ), pointer                     :: cosmologicalMassVariance_
 #ifdef USEMPI
     integer                                                                        :: taskCount
 #endif
@@ -598,18 +661,20 @@ contains
     integer         (c_size_t                       )                              :: loopCount                        , loopCountTotal
     integer                                                                        :: i                                , iTime                    , &
          &                                                                            iVariance                        , j
-    double precision                                                               :: timeProgenitor                   , varianceMinimumRate
+    double precision                                                               :: timeProgenitor                   , varianceMinimumRate      , &
+         &                                                                            massProgenitor
     character       (len=6                          )                              :: label
     type            (varying_string                 )                              :: message
     real            (kind=kind_quad                 )                              :: crossingFraction                 , effectiveBarrierInitial  , &
          &                                                                            sigma1f                          , varianceTableStepRate    , &
-         &                                                                            barrier
+         &                                                                            barrier                          , growthFactorEffective
     logical                                                                        :: locked
-    
+
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitializedRate) then
+       call self%fileNameInitialize()
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -645,32 +710,40 @@ contains
        if (self%tableInitializedRate) then
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1
+          self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1
        else
           self%timeMinimumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMaximum))
           self%timeMaximumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMinimum))
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1,2)
+          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1,2)
        end if
        ! Set the default minimum variance.
        varianceMinimumRate       =varianceMinimumDefault
-       ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of sqrt[10])
-       ! than the effective barrier height at zero variance for the minimum and maximum times that we must consider.
-       allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
+       ! the effective barrier height at zero variance for the minimum and maximum times that we must consider. We use some
+       ! suitably large mass to estimate the growth of fluctuations on large scales (since we can't assume infinitely large
+       ! scales).
+       allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+       allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+       !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+       !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+       growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
+            &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
        varianceMinimumRate            =min(                                                                                                                      &
             &                              +varianceMinimumRate                                                                                                , &
             &                              +1.0d-2                                                                                                               &
             &                              *(                                                                                                                    &
             &                                +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)  &
+            &                                *dble(growthFactorEffective)                                                                                        &
             &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
             &                               )**2                                                                                                                 &
             &                             )
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !# <objectDestructor name="excursionSetBarrier_"     />
+       !# <objectDestructor name="cosmologicalMassVariance_"/>
        self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
-       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(farahiVarianceNumberPerDecade))+1
-       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(farahiVarianceNumberPerUnit))
+       self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
+       self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
        call allocateArray(self%varianceTableRate     ,[1+self%varianceTableCountRate                                                          ],lowerBounds=[0    ])
        call allocateArray(self%varianceTableRateBase ,[                              1+self%varianceTableCountRateBase                        ],lowerBounds=[0    ])
        call allocateArray(self%timeTableRate         ,[                                                                self%timeTableCountRate]                    )
@@ -726,10 +799,12 @@ contains
        ! is initialized and covers the whole range we are intereseted in.
        barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
        barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,barrierTableRateQuad) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
-       allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
-       call allocateArray(barrierTableRateQuad,[1+self%varianceTableCountRate],lowerBounds=[0])
+       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+       allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+       allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+       !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+       !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+       call allocateArray(barrierTableRateQuad,[self%varianceTableCountRate])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
           if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
@@ -749,8 +824,12 @@ contains
              end if
 #endif
              ! Construct the barrier table.
-             do i=0,self%varianceTableCountRate
-                barrierTableRateQuad(i)=excursionSetBarrier_%barrier(real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.)
+             do i=1,self%varianceTableCountRate
+                massProgenitor         =+cosmologicalMassVariance_%mass        (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
+                growthFactorEffective  =+cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,self%timeTableRate(iTime)                        ) &
+                     &                  /cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,     timeProgenitor                              )
+                barrierTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
+                     &                  *growthFactorEffective
              end do
              !$omp atomic
              loopCount=loopCount+1_c_size_t
@@ -847,7 +926,8 @@ contains
                &                                 /self%timeStepFractional
        end do
        !$omp end do
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !# <objectDestructor name="excursionSetBarrier_"     />
+       !# <objectDestructor name="cosmologicalMassVariance_"/>
        call deallocateArray(barrierTableRateQuad)
        !$omp end parallel
        ! Deallocate work arrays.
@@ -894,12 +974,12 @@ contains
 
   subroutine farahiFileRead(self)
     !% Read tabulated data on excursion set first crossing probabilities from file.
-    use IO_HDF5
-    use File_Utilities
-    use Memory_Management
-    use Numerical_Interpolation
-    use Galacticus_Display
-    use ISO_Varying_String
+    use :: File_Utilities         , only : File_Exists              , File_Name_Expand
+    use :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
+    use :: IO_HDF5                , only : hdf5Access               , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management      , only : allocateArray            , deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
@@ -908,9 +988,11 @@ contains
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
     type            (varying_string                 )                                  :: message
     character       (len=32                         )                                  :: label
-    
+
+    ! Initialize file name.
+    call self%fileNameInitialize()
     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(File_Name_Expand(char(self%fileName)))) return
+    if (.not.File_Exists(char(self%fileName))) return
     ! Open the data file.
     !$ call hdf5Access%set()
     call dataFile%openFile(char(self%fileName))
@@ -948,13 +1030,14 @@ contains
        self%interpolationResetVariance=.true.
        self%interpolationResetTime    =.true.
        ! Report.
-       message=var_str('read excursion set first crossing probability from: ')//File_Name_Expand(char(self%fileName))
+       message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
        call Galacticus_Display_Indent  (message,verbosityWorking)
        write (label,'(e12.6)') self%timeMinimum
        message=var_str('    time minimum: ')//label//' Gyr'
        call Galacticus_Display_Message (message,verbosityWorking)
        write (label,'(e12.6)') self%timeMaximum
        message=var_str('    time maximum: ')//label//' Gyr'
+       call Galacticus_Display_Message (message,verbosityWorking)
        write (label,'(e12.6)') self%varianceMaximum
        message=var_str('variance maximum: ')//label
        call Galacticus_Display_Message (message,verbosityWorking)
@@ -1004,7 +1087,7 @@ contains
        self%interpolationResetVarianceRateBase=.true.
        self%interpolationResetTimeRate        =.true.
        ! Report.
-       message=var_str('read excursion set first crossing rates from: ')//File_Name_Expand(char(self%fileName))
+       message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
        call Galacticus_Display_Indent  (message,verbosityWorking)
        write (label,'(e12.6)') self%timeMinimumRate
        message=var_str('    time minimum: ')//label//' Gyr'
@@ -1025,14 +1108,16 @@ contains
 
   subroutine farahiFileWrite(self)
     !% Write tabulated data on excursion set first crossing probabilities to file.
-    use HDF5
-    use IO_HDF5
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
     type (hdf5Object                     )                :: dataFile, dataGroup
 
     ! Don't write anything if neither table is initialized.
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
+    ! Initialize file name.
+    call self%fileNameInitialize()
     ! Open the data file.
     !$ call hdf5Access%set()
     call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
@@ -1091,7 +1176,7 @@ contains
           rangeValues(iRange)=exp(log(rangeMinimum)                          +log(rangeMaximum                           /rangeMinimum                           )*fractionRange)
        else
           rangeValues(iRange)=   (    rangeMinimum**(1.0d0+integrandExponent)+   (rangeMaximum**(1.0d0+integrandExponent)-rangeMinimum**(1.0d0+integrandExponent))*fractionRange)**(1.00/(1.0d0+integrandExponent))
-       end if       
+       end if
     end do
     return
   end function farahiVarianceRange

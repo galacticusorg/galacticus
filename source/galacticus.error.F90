@@ -21,12 +21,11 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
+  use            :: FGSL              , only : FGSL_Char             , FGSL_Error_Handler_Init, FGSL_Failure , FGSL_Name    , &
+          &                                    FGSL_Set_Error_Handler, FGSL_StrError          , FGSL_StrMax  , FGSL_Success , &
+          &                                    FGSL_eDom             , FGSL_eRange            , FGSL_eUndrFlw, FGSL_eZeroDiv, &
+          &                                    fgsl_error_handler_t
   use, intrinsic :: ISO_C_Binding
-  use            :: HDF5
-  use            :: Semaphores
-  use            :: FGSL              , only : FGSL_Success           , FGSL_Failure, FGSL_eDom  , FGSL_eRange  , FGSL_eZeroDiv         , FGSL_eUndrFlw, &
-       &                                       fgsl_error_handler_t   , FGSL_Char   , FGSL_StrMax, FGSL_StrError, FGSL_Set_Error_Handler, FGSL_Name    , &
-       &                                       FGSL_Error_Handler_Init
   use            :: ISO_Varying_String
   implicit none
   private
@@ -51,7 +50,7 @@ module Galacticus_Error
      subroutine H5Close_C() bind(c,name='H5Close_C')
      end subroutine H5Close_C
   end interface
-  
+
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
   integer, parameter, public :: errorStatusSuccess     =FGSL_Success  ! Success.
@@ -64,12 +63,12 @@ module Galacticus_Error
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400
-  
+
   ! GSL error status.
   logical             :: abortOnErrorGSL=.true.
   integer(kind=c_int) :: errorStatusGSL
   !$omp threadprivate(abortOnErrorGSL,errorStatusGSL)
-  
+
   ! Type used to accumulate warning messages.
   type :: warning
      type(varying_string)          :: message
@@ -79,7 +78,7 @@ module Galacticus_Error
   ! Record of warnings.
   type   (warning), pointer :: warningList
   logical                   :: warningsFound=.false.
-  
+
 contains
 
   subroutine Galacticus_Error_Report_VarStr(message)
@@ -93,7 +92,11 @@ contains
 
   subroutine Galacticus_Error_Report_Char(message)
     !% Display an error message.
-    !$ use OMP_Lib
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
+#endif
     implicit none
     character(len=*), intent(in   ) :: message
     integer                         :: error
@@ -130,7 +133,7 @@ contains
 
   subroutine Galacticus_Warn_Char(message)
     !% Display a warning message.
-    use Galacticus_Display
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
     implicit none
     character(len=*  ), intent(in   ) :: message
     type     (warning), pointer       :: newWarning
@@ -177,7 +180,7 @@ contains
     !$omp end critical (Galacticus_Warn)
     return
   end subroutine Galacticus_Warn_Review
-  
+
   subroutine Galacticus_Error_Handler_Register()
     !% Register signal handlers.
     implicit none
@@ -197,9 +200,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGINT()
     !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI       , only : MPI_COmm_Rank           , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -242,9 +249,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -253,7 +264,7 @@ contains
     character(len=128) :: hostName
     logical            :: flag
 #endif
-    
+
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -287,9 +298,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -332,9 +347,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGBUS()
     !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -377,9 +396,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGILL()
     !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI       , only : MPI_Comm_Rank           , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -422,8 +445,9 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use MPI
+    use :: Semaphores, only : Semaphore_Post_On_Error
+#ifndef UNCLEANEXIT
+    use :: HDF5      , only : H5Close_F
 #endif
     implicit none
     integer :: error
@@ -441,9 +465,13 @@ contains
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI
+    use    :: MPI, only : MPI_Initialized, MPI_Comm_Rank, MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib
+#ifndef UNCLEANEXIT
+    use    :: Semaphores, only : Semaphore_Post_On_Error
+    use    :: HDF5      , only : H5Close_F
 #endif
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line
@@ -454,7 +482,7 @@ contains
     character(len=128                       )        :: hostName
     logical                                          :: flag
 #endif
-    
+
     if (abortOnErrorGSL) then
        message=FGSL_StrError(errorNumber)
        write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
@@ -516,10 +544,10 @@ contains
     Galacticus_GSL_Error_Status=errorStatusGSL
     return
   end function Galacticus_GSL_Error_Status
-  
+
   function Galacticus_Component_List(className,componentList)
-    !% Construct a message describing which implementations of a component class provide required functionality. 
-    use String_Handling
+    !% Construct a message describing which implementations of a component class provide required functionality.
+    use :: String_Handling, only : String_Join, char
     implicit none
     type     (varying_string)                                           :: Galacticus_Component_List
     character(len=*         ), intent(in   )                            :: className

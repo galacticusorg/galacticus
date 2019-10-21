@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger trees outputter class which combines multiple other outputters.
-  
+
   type, public :: multiOutputterList
      class(mergerTreeOutputterClass), pointer :: outputter_ => null()
      type (multiOutputterList      ), pointer :: next       => null()
   end type multiOutputterList
-  
+
   !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
   !#  <description>A merger tree outputter which combines multiple other outputters.</description>
   !# </mergerTreeOutputter>
@@ -49,7 +49,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multi} merger tree outputter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOutputterMulti)                :: self
     type   (inputParameters         ), intent(inout) :: parameters
@@ -70,7 +70,7 @@ contains
     end do
     return
   end function multiConstructorParameters
-  
+
   function multiConstructorInternal(outputters) result(self)
     !% Internal constructor for the {\normalfont \ttfamily multi} outputter class.
     implicit none
@@ -86,7 +86,7 @@ contains
     end do
     return
   end function multiConstructorInternal
-  
+
   subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} outputter class.
     implicit none
@@ -139,7 +139,7 @@ contains
 
   subroutine multiReduce(self,reduced)
     !% Reduce over the outputter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: reduced
@@ -162,7 +162,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: destination
@@ -179,7 +179,7 @@ contains
           allocate(outputterNew_)
           if (associated(outputterDestination_)) then
              outputterDestination_%next       => outputterNew_
-             outputterDestination_            => outputterNew_             
+             outputterDestination_            => outputterNew_
           else
              destination          %outputters => outputterNew_
              outputterDestination_            => outputterNew_
@@ -187,7 +187,7 @@ contains
           allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
           !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
           outputter_ => outputter_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

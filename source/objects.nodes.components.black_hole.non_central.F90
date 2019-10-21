@@ -21,10 +21,10 @@
 
 module Node_Component_Black_Hole_Noncentral
   !% Implement black hole tree node methods.
-  use Dark_Matter_Halo_Scales
-  use Black_Hole_Binary_Recoil_Velocities
-  use Black_Hole_Binary_Mergers
-  use Black_Hole_Binary_Separations
+  use :: Black_Hole_Binary_Mergers          , only : blackHoleBinaryMergerClass
+  use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
+  use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
+  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Noncentral_Rate_Compute       , Node_Component_Black_Hole_Noncentral_Scale_Set        , &
@@ -49,14 +49,14 @@ module Node_Component_Black_Hole_Noncentral
   !#   </property>
   !#  </properties>
   !# </component>
-  
+
   ! Objects used by this component.
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
   class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
   !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
-  
+
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleBlackHoleInteraction
 
@@ -75,7 +75,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Black_Hole_Noncentral_Initialize(globalParameters_)
     !% Initializes the noncentral black hole component module.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -96,8 +96,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -115,7 +115,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
-    use Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
@@ -132,8 +132,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent, propertyTypeInactive, interruptTask
+    use :: Galacticus_Nodes            , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
+          &                                     treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     logical                                 , intent(inout)          :: interrupt
@@ -257,7 +258,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Noncentral_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleSizeRelative=1.0d-4
@@ -291,7 +292,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
     !% Merge two black holes.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
@@ -341,8 +342,8 @@ contains
 
   subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
-    use Numerical_Constants_Physical
-    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBasic
+    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentBasic    )               , pointer :: basic
@@ -424,7 +425,7 @@ contains
     velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
     velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
     ! Determine whether the ejected black hole is actualy ejected.
-    removeEjected=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)    
+    removeEjected=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)
     ! Determine whether the binary black hole is ejected.
     removeBinary=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityBinary,newBinaryBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.true. )
     ! Remove the binary black hole from the list if required.
@@ -444,9 +445,9 @@ contains
 
   logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
     !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
-    use Galactic_Structure_Potentials
-    use Galactic_Structure_Options
-    use Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
+    use :: Galacticus_Nodes             , only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: recoilVelocity        , radius
@@ -476,5 +477,5 @@ contains
          &  -      potentialHaloSelf
     return
   end function Node_Component_Black_Hole_Noncentral_Recoil_Escapes
-  
+
 end module Node_Component_Black_Hole_Noncentral

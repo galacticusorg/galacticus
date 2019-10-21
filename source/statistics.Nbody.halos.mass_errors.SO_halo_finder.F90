@@ -20,9 +20,9 @@
 !% Contains a module which implements an N-body dark matter halo mass error class which
 !% implements a model for errors in spherical overdensity halo finders.
 
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
-  use Dark_Matter_Profiles_DMO   , only : darkMatterProfileDMOClass  , darkMatterProfileDMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
   !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
   !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
   !# </nbodyHaloMassError>
@@ -30,9 +30,9 @@
      !% An N-body halo mass error class which implements a model for errors in spherical
      !% overdensity halo finders.
      private
-     double precision                                    :: massParticle
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                     :: massParticle
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::                    soHaloFinderDestructor
      procedure :: errorFractional => soHaloFinderErrorFractional
@@ -49,13 +49,13 @@ contains
 
   function soHaloFinderParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nbodyHaloMassErrorSOHaloFinder)                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class(darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
-    double precision :: massParticle
+    type            (nbodyHaloMassErrorSOHaloFinder)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
+    double precision                                                :: massParticle
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -65,12 +65,12 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=nbodyHaloMassErrorSOHaloFinder(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"  />
+    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function soHaloFinderParameters
 
@@ -79,10 +79,10 @@ contains
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
     class           (darkMatterHaloScaleClass      ), target, intent(in   ) :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass        ), target, intent(in   ) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass     ), target, intent(in   ) :: darkMatterProfileDMO_
     double precision                                        , intent(in   ) :: massParticle
     !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle"/>
-    
+
     return
   end function soHaloFinderInternal
 
@@ -91,15 +91,15 @@ contains
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine soHaloFinderDestructor
-  
+
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Numerical_Constants_Math, only : Pi
-    use Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -119,9 +119,9 @@ contains
     errorFractionalFixedSphere    =  +1.0d0               &
          &                           /sqrt(particleCount)
     ! Get the outer radius of the halo.
-    radiusHalo                    =  +self%darkMatterHaloScale_%virialRadius(node           )
+    radiusHalo                    =  +self%darkMatterHaloScale_ %virialRadius(node           )
     ! Get the density at the edge of the halo.
-    densityOuterRadius            =  +self%darkMatterProfileDMO_  %density     (node,radiusHalo)
+    densityOuterRadius            =  +self%darkMatterProfileDMO_%density     (node,radiusHalo)
     ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.
     densityRatioInternalToSurface =  +3.0d0                 &
          &                           *basic%mass()          &
@@ -144,10 +144,10 @@ contains
          &                                )
     return
   end function soHaloFinderErrorFractional
-  
+
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2
@@ -167,4 +167,4 @@ contains
     end if
     return
   end function soHaloFinderCorrelation
-  
+

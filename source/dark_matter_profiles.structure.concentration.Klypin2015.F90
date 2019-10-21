@@ -18,11 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
-  
-  use Tables
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
+
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Tables                    , only : table1DGeneric
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
@@ -40,16 +41,16 @@
      class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class  (virialDensityContrastClass   ), pointer :: virialDensityContrastDefinition_ => null()
-     type   (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type   (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
      integer                                         :: virialDensityContrast                     , fittingFunction
      type   (table1DGeneric               )          :: fitParameters
    contains
-     final     ::                                klypin2015Destructor
-     procedure :: concentration               => klypin2015Concentration
-     procedure :: densityContrastDefinition   => klypin2015DensityContrastDefinition
+     final     ::                                   klypin2015Destructor
+     procedure :: concentration                  => klypin2015Concentration
+     procedure :: densityContrastDefinition      => klypin2015DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => klypin2015DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationKlypin2015
-  
+
   interface darkMatterProfileConcentrationKlypin2015
      !% Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
      module procedure klypin2015ConstructorParameters
@@ -101,10 +102,10 @@
   !# </enumeration>
 
 contains
-  
+
   function klypin2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -133,11 +134,12 @@ contains
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function klypin2015ConstructorParameters
-  
+
   function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
-    use Table_Labels
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Table_Labels           , only : extrapolationTypeFix
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type   (darkMatterProfileConcentrationKlypin2015          )                        :: self
     integer                                                    , intent(in   )         :: sample
@@ -632,16 +634,16 @@ contains
     ! Build definitions.
     select case (self%virialDensityContrast)
     case (klypin2015DensityContrastFixed)
-       allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
        end select
     case (klypin2015DensityContrastVirial)
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.                                                     ,self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                                                          ,self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(self%darkMatterProfileDMODefinition_)
@@ -651,7 +653,7 @@ contains
     !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                            />
     return
   end function klypin2015ConstructorInternal
-  
+
   subroutine klypin2015Destructor(self)
     !% Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
     implicit none
@@ -662,15 +664,16 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Error
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
@@ -707,7 +710,7 @@ contains
             &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25)
        ! Find sigma.
-       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass())
+       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)
        b0            =self%fitParameters%interpolate(redshift,table=2)
@@ -735,7 +738,7 @@ contains
     end select
     return
   end function klypin2015Concentration
-  
+
   function klypin2015DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of concentration in the
     !% \cite{klypin_multidark_2014} algorithm.
@@ -753,7 +756,7 @@ contains
     implicit none
     class(darkMatterProfileDMOClass               ), pointer       :: klypin2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
- 
+
     klypin2015DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function klypin2015DarkMatterProfileDefinition

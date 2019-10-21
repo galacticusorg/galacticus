@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an Eddington-limited accretion disk.
-  
+
   !# <accretionDisks name="accretionDisksEddingtonLimited">
   !#  <description>An accretion disk class in which accretion is always Eddington-limited.</description>
   !# </accretionDisks>
@@ -42,8 +42,8 @@ contains
 
   function eddingtonLimitedConstructorParameters(parameters) result(self)
     !% Constructor for the Eddington-limited accretion disk class which takes a parameter set as input.
-    use Galacticus_Error
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (accretionDisksEddingtonLimited)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
     type            (accretionDisksEddingtonLimited)                :: self
     double precision                                , intent(in   ) :: efficiencyRadiation, efficiencyJet
 
-    !# <constructorAssign variables="efficiencyRadiation, efficiencyJet"/>    
+    !# <constructorAssign variables="efficiencyRadiation, efficiencyJet"/>
     return
   end function eddingtonLimitedConstructorInternal
 
@@ -94,9 +94,10 @@ contains
 
   double precision function eddingtonLimitedPowerJet(self,blackHole,accretionRateMass)
     !% Return the jet power of an Eddington-limited accretion disk.
-   use Black_Hole_Fundamentals
-    use Numerical_Constants_Physical
-     implicit none
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_Eddington_Accretion_Rate
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
+    implicit none
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , intent(in   ) :: accretionRateMass
@@ -104,7 +105,7 @@ contains
     double precision                                                :: accretionRateEddingtonLimited              , &
          &                                                             accretionRateEddingtonLimitedReduced       , &
          &                                                             rateFractional
-    
+
     accretionRateEddingtonLimited=+self%efficiencyJet                             &
          &                        *Black_Hole_Eddington_Accretion_Rate(blackHole)
     if (accretionRateMass > rateFractionalCutOff*accretionRateEddingtonLimited) then

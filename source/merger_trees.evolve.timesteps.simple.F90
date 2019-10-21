@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple">
   !#  <description>A merger tree evolution timestepping class which limits the step to a fraction of the current time or an absolute step, whichever is smaller.</description>
   !# </mergerTreeEvolveTimestep>
@@ -42,13 +42,13 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepSimple)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     double precision                                                :: timeStepAbsolute   , timeStepRelative
-    
+
     !# <inputParameter>
     !#   <name>timeStepRelative</name>
     !#   <cardinality>1</cardinality>
@@ -79,7 +79,7 @@ contains
     implicit none
     type            (mergerTreeEvolveTimestepSimple)                        :: self
     double precision                                , intent(in   )         :: timeStepAbsolute   , timeStepRelative
-    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="timeStepAbsolute, timeStepRelative, *cosmologyFunctions_"/>
 
     return
@@ -97,21 +97,21 @@ contains
   double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
-    use Galacticus_Nodes      , only : nodeComponentBasic
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
+    use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
+    use :: ISO_Varying_String
     implicit none
-    class           (mergerTreeEvolveTimestepSimple), intent(inout), target  :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    procedure       (timestepTask                  ), intent(  out), pointer :: task
-    class           (*                             ), intent(  out), pointer :: taskSelf
-    logical                                         , intent(in   )          :: report
-    type            (treeNode                      ), intent(  out), pointer :: lockNode
-    type            (varying_string                ), intent(  out)          :: lockType
-    class           (nodeComponentBasic            )               , pointer :: basic
-    double precision                                                         :: expansionFactor, timescaleExpansion, &
-         &                                                                      time
-    
+    class           (mergerTreeEvolveTimestepSimple), intent(inout), target            :: self
+    type            (treeNode                      ), intent(inout), target            :: node
+    procedure       (timestepTask                  ), intent(  out), pointer           :: task
+    class           (*                             ), intent(  out), pointer           :: taskSelf
+    logical                                         , intent(in   )                    :: report
+    type            (treeNode                      ), intent(  out), pointer, optional :: lockNode
+    type            (varying_string                ), intent(  out)         , optional :: lockType
+    class           (nodeComponentBasic            )               , pointer           :: basic
+    double precision                                                                   :: expansionFactor, timescaleExpansion, &
+         &                                                                                time
+
     ! Find current expansion timescale.
     basic => node%basic()
     if (self%timeStepRelative > 0.0d0) then
@@ -122,10 +122,10 @@ contains
     else
        simpleTimeEvolveTo =                                               self%timeStepAbsolute +basic%time()
     end if
-    task     => null()
-    taskSelf => null()
-    lockNode => node
-    lockType =  "simple"     
-    if (report) call Evolve_To_Time_Report("simple: ",simpleTimeEvolveTo)
+    task                            => null()
+    taskSelf                        => null()
+    if (present(lockNode)) lockNode => node
+    if (present(lockType)) lockType =  "simple"
+    if (        report   ) call Evolve_To_Time_Report("simple: ",simpleTimeEvolveTo)
     return
   end function simpleTimeEvolveTo

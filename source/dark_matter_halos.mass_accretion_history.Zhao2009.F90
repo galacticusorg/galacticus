@@ -19,16 +19,20 @@
 
   !% An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
 
-  use Cosmological_Density_Field
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions           , cosmologyFunctionsClass
+  use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
+
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
   !#  <description>Dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.</description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !% A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
    contains
      final     ::         zhao2009Destructor
      procedure :: time => zhao2009Time
@@ -45,51 +49,61 @@ contains
   function zhao2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class which takes a parameter
     !% set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
     class(criticalOverdensityClass                  ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass             ), pointer       :: cosmologicalMassVariance_
+    class(linearGrowthClass                         ), pointer       :: linearGrowth_
+    class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=darkMatterHaloMassAccretionHistoryZhao2009(criticalOverdensity_,cosmologicalMassVariance_)
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    self=darkMatterHaloMassAccretionHistoryZhao2009(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="criticalOverdensity_"     />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
     return
   end function zhao2009ConstructorParameters
 
-  function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                        :: self
     class(criticalOverdensityClass                  ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass             ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
-    
+    class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
+    class(cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_"/>
+
     return
   end function zhao2009ConstructorInternal
-    
+
   subroutine zhao2009Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%criticalOverdensity_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
     return
   end subroutine zhao2009Destructor
 
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use FGSL            , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-         &                       FGSL_Success
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use ODE_Solver
-    use Galacticus_Error
+    use :: FGSL            , only : FGSL_Success           , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
+          &                         fgsl_odeiv_system
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: ODE_Solver      , only : ODE_Solve
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -107,7 +121,7 @@ contains
     type            (fgsl_odeiv_evolve                         )                :: odeEvolver
     type            (fgsl_odeiv_system                         )                :: odeSystem
     logical                                                                     :: odeReset                      =.true.
-    
+
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
     baseMass=baseBasicComponent%mass()
@@ -116,7 +130,7 @@ contains
     if (mass > baseMass) call Galacticus_Error_Report('specified mass is in the future'//{introspection:location})
     ! Calculate quantities which remain fixed through the ODE.
     ! Get sigma(M) and its logarithmic derivative.
-    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,sigmaObserved,dSigmadMassLogarithmicObserved)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved)
     ! Compute sigma proxy.
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
     ! Compute critical overdensities for collapse.
@@ -136,7 +150,7 @@ contains
     return
 
   contains
-    
+
     integer function growthRateODEs(mass,nowTime,dNowTimedMass)
       !% System of differential equations to solve for the growth rate.
       implicit none
@@ -147,7 +161,7 @@ contains
            &                                           dSigmadMassLogarithmicNow, deltaCriticalNow               , &
            &                                           pNow                     , sNow                           , &
            &                                           sigmaNow                 , wNow
-      
+
       ! Trap unphysical cases.
       if (nowTime(1) <= 0.0d0 .or. nowTime(1) > baseTime .or. mass <= 0.0d0) then
          dNowTimedMass(1)=0.0d0
@@ -155,12 +169,19 @@ contains
          return
       end if
       ! Get sigma(M) and its logarithmic derivative.
-      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,sigmaNow,dSigmadMassLogarithmicNow)
+      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,nowTime(1),sigmaNow,dSigmadMassLogarithmicNow)
       ! Compute sigma proxy.
-      sNow=sigmaNow*10.0d0**dSigmadMassLogarithmicNow ! Equation 8 from Zhao et al. (2009).
+      sNow               =+sigmaNow                                                                                                                                          &
+           &              *10.0d0**dSigmadMassLogarithmicNow                                                                                                                 &
+           &              /                                                                  self%linearGrowth_      %value                               ( time=nowTime(1))   ! Equation 8 from Zhao et al. (2009).
       ! Compute critical overdensity for collapse.
-      deltaCriticalNow   =self%criticalOverdensity_%value       (time=nowTime(1),mass=mass)
-      dDeltaCriticaldtNow=self%criticalOverdensity_%gradientTime(time=nowTime(1),mass=mass)
+      deltaCriticalNow   =+self%criticalOverdensity_%value       (time=nowTime(1),mass=mass)/self%linearGrowth_      %value                               ( time=nowTime(1))
+      dDeltaCriticaldtNow=+self%criticalOverdensity_%gradientTime(time=nowTime(1),mass=mass)/self%linearGrowth_      %value                               ( time=nowTime(1)) &
+           &              -self%criticalOverdensity_%value       (time=nowTime(1),mass=mass)/self%linearGrowth_      %value                               ( time=nowTime(1)) &
+           &                                                                                *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=nowTime(1)) &
+           &                                                                                *self%cosmologyFunctions_%expansionRate                       (                  &
+           &                                                                                 self%cosmologyFunctions_%expansionFactor                      (time=nowTime(1)) &
+           &                                                                                                                                              )
       ! Compute w factor.
       wNow=deltaCriticalNow/sNow      ! Equation 7 from Zhao et al. (2009).
       ! Compute p factor.
@@ -172,5 +193,5 @@ contains
       ! Report success.
       growthRateODEs=FGSL_Success
     end function growthRateODEs
-    
+
   end function zhao2009Time

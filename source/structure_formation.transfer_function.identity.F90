@@ -32,6 +32,7 @@
      procedure :: logarithmicDerivative => identityLogarithmicDerivative
      procedure :: halfModeMass          => identityHalfModeMass
      procedure :: epochTime             => identityEpochTime
+     procedure :: descriptor            => identityDescriptor
   end type transferFunctionIdentity
 
   interface transferFunctionIdentity
@@ -44,8 +45,8 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the identity transfer function class which takes a parameter set as input.
-    use Input_Parameters   , only : inputParameter    , inputParameters
-    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (transferFunctionIdentity)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -69,12 +70,11 @@ contains
 
   function identityConstructorInternal(time) result(self)
     !% Internal constructor for the identity transfer function class.
-    use Input_Parameters
     implicit none
     type            (transferFunctionIdentity)                :: self
     double precision                          , intent(in   ) :: time
     !# <constructorAssign variables="time"/>
-    
+
     return
   end function identityConstructorInternal
 
@@ -113,7 +113,7 @@ contains
   double precision function identityHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     integer                          , intent(  out), optional :: status
@@ -136,3 +136,16 @@ contains
     identityEpochTime=self%time
     return
   end function identityEpochTime
+
+  subroutine identityDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class  (transferFunctionIdentity), intent(inout)           :: self
+    type   (inputParameters         ), intent(inout)           :: descriptor
+    logical                          , intent(in   ), optional :: includeMethod
+    !GCC$ attributes unused :: self
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
+    return
+  end subroutine identityDescriptor

@@ -19,10 +19,12 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{correa_accretion_2015} algorithm.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use Cosmological_Density_Field
-  use Linear_Growth
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Linear_Growth             , only : linearGrowthClass
+  use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
@@ -68,7 +70,7 @@ contains
     class           (linearGrowthClass                       ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass           ), pointer       :: cosmologicalMassVariance_
     double precision                                                          :: A
-    
+
     !# <inputParameter>
     !#   <name>A</name>
     !#   <source>parameters</source>
@@ -91,10 +93,11 @@ contains
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function correa2015ConstructorParameters
-  
+
   function correa2015ConstructorInternal(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationCorrea2015          )                         :: self
     double precision                                                    , intent(in   )          :: A
@@ -104,14 +107,14 @@ contains
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="A, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
-    
+
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
     return
   end function correa2015ConstructorInternal
 
@@ -119,7 +122,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily correa2015} dark matter profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%linearGrowth_"                   />
@@ -128,13 +131,13 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine correa2015Destructor
-  
+
   double precision function correa2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{correa_accretion_2015} algorithm.
-    use Dark_Matter_Halos_Correa2015
-    use Root_Finder
-    use Galacticus_Nodes            , only : nodeComponentBasic
+    use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
+    use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
+    use :: Root_Finder                 , only : rangeExpandMultiplicative                 , rootFinder
     implicit none
     class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
@@ -151,11 +154,11 @@ contains
     basic => node %basic()
     mass  =  basic%mass ()
     time  =  basic%time ()
-    ! Determine the base redshift. 
+    ! Determine the base redshift.
     expansionFactor=self%cosmologyFunctions_%expansionFactor            (time           )
     redshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(expansionFactor)
     ! Find the a~ and b~ parameters.
-    call Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,self%cosmologyFunctions_,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(concentrationSolver                  )
@@ -179,7 +182,7 @@ contains
            &                             f1           , f2               , &
            &                             densityInner , redshiftFormation
 
-      ! Evaluate left-hand side of eqn. 18 of Correa et al. (2015).      
+      ! Evaluate left-hand side of eqn. 18 of Correa et al. (2015).
       Y1                 =log(2.0d0              )-0.5d0
       Yc                 =log(1.0d0+concentration)-concentration/(1.0d0+concentration)
       f1                 =+Y1 &
@@ -233,7 +236,7 @@ contains
     class(virialDensityContrastClass              ), pointer       :: correa2015DensityContrastDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
    correa2015DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function correa2015DensityContrastDefinition

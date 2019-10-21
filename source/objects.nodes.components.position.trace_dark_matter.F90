@@ -21,7 +21,7 @@
 
 module Node_Component_Position_Trace_Dark_Matter
   !% Implements a preset position component.
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Position_Trace_Dark_Matter_Initialize         , Node_Component_Position_Trace_Dark_Matter_Thread_Initialize, &
@@ -46,16 +46,16 @@ module Node_Component_Position_Trace_Dark_Matter
   ! Objects used by this component.
   class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_
   !$omp threadprivate(darkMatterHaloScale_)
-  
+
 contains
-  
+
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Trace_Dark_Matter_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Position_Trace_Dark_Matter_Thread_Initialize(globalParameters_)
     !% Initializes the tree node scale dark matter profile module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -70,7 +70,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Position_Trace_Dark_Matter_Thread_Uninitialize()
     !% Uninitializes the tree node scale dark matter profile module.
-    use Galacticus_Nodes, only : defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
 
     if (defaultPositionComponent%traceDarkMatterIsActive()) then
@@ -84,12 +84,12 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Position_Trace_Dark_Matter_Initialize(node)
     !% Initialize the position of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, defaultPositionComponent
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentPosition)               , pointer :: position
-    
+
     if (.not.defaultPositionComponent%traceDarkMatterIsActive()) return
     position => node%position(autoCreate=.true.)
     select type (position)
@@ -109,12 +109,12 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Position_Trace_Dark_Matter_Update(node)
     !% Initialize the position of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, defaultPositionComponent
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentPosition)               , pointer :: position
-    
+
     if (.not.defaultPositionComponent%traceDarkMatterIsActive()) return
     position => node%position()
     select type (position)
@@ -128,8 +128,8 @@ contains
 
   subroutine Node_Component_Position_Trace_Dark_Matter_Assign(self,checkSatelliteStatus)
     !% Assign a position to a satellite.
-    use Galacticus_Nodes              , only : nodeComponentPositionTraceDarkMatter
-    use Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
+    use :: Galacticus_Nodes              , only : nodeComponentPositionTraceDarkMatter
+    use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
     implicit none
     class  (nodeComponentPositionTraceDarkMatter      ), intent(inout) :: self
     logical                                            , intent(in   ) :: checkSatelliteStatus

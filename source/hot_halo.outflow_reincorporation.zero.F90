@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
-  
+
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationZero">
   !#  <description>An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.</description>
   !# </hotHaloOutflowReincorporation>
@@ -39,7 +39,7 @@ contains
   function zeroConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class which takes a parameter set
     !% as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(hotHaloOutflowReincorporationZero)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
@@ -55,7 +55,7 @@ contains
     class(hotHaloOutflowReincorporationZero), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
-    
+
     zeroRate=0.0d0
     return
   end function zeroRate

@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a property extractor class for the projected density at a set of radii.
-  use Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !# <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
   !#  <description>A property extractor class for the projected density at a set of radii.</description>
@@ -54,12 +54,12 @@
   ! Module-scope variables used in integrands.
   double precision :: projectedDensityRadius
   !$omp threadprivate(projectedDensityRadius)
-  
+
 contains
-  
+
   function projectedDensityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily projectedDensity} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (inputParameters                      ), intent(inout)               :: parameters
@@ -92,7 +92,7 @@ contains
 
   function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
-    use Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
+    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -133,22 +133,22 @@ contains
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     projectedDensityElementCount=self%elementCount_
     return
   end function projectedDensityElementCount
-  
+
   function projectedDensityExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily projectedDensity} property extractor.
-    use Galactic_Structure_Densities        , only : Galactic_Structure_Density
-    use Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
-    use Galactic_Structure_Options          , only : massTypeGalactic                        , componentTypeAll
-    use Galactic_Structure_Radii_Definitions, only : radiusTypeRadius                        , radiusTypeVirialRadius      , radiusTypeDarkMatterScaleRadius , radiusTypeDiskRadius          , &
-         &                                           radiusTypeSpheroidRadius                , radiusTypeDiskHalfMassRadius, radiusTypeSpheroidHalfMassRadius, radiusTypeGalacticMassFraction, &
-         &                                           radiusTypeGalacticLightFraction
-    use Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentSpheroid       , nodeComponentDisk
-    use FGSL                                , only : fgsl_function                           , fgsl_integration_workspace
-    use Numerical_Integration               , only : Integrate                               , Integrate_Done
+    use :: FGSL                                , only : fgsl_function                           , fgsl_integration_workspace
+    use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiusTypeVirialRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Numerical_Integration               , only : Integrate                               , Integrate_Done
     implicit none
     double precision                                       , dimension(:) , allocatable :: projectedDensityExtract
     class           (nodePropertyExtractorProjectedDensity), intent(inout), target      :: self
@@ -161,7 +161,7 @@ contains
     type            (fgsl_function                        )                             :: integrandFunction
     type            (fgsl_integration_workspace           )                             :: integrationWorkspace
     integer                                                                             :: i
-    double precision                                                                    :: radiusVirial           , radiusOuter 
+    double precision                                                                    :: radiusVirial           , radiusOuter
     !GCC$ attributes unused :: time, instance
 
     allocate(projectedDensityExtract(self%elementCount_))
@@ -209,18 +209,18 @@ contains
             &                                                                        integrationWorkspace     , &
             &                                                      toleranceAbsolute=0.0d+0                   , &
             &                                                      toleranceRelative=1.0d-3                     &
-            &                                                     )          
+            &                                                     )
        call Integrate_Done(integrandFunction,integrationWorkspace)
        if (self%includeRadii)                                                                                   &
             & projectedDensityExtract((i-1)*self%step+2)=                            projectedDensityRadius
     end do
     return
-    
+
   contains
-    
+
     double precision function projectedDensityIntegrand(radius)
       !% Integrand function used for computing projected densities.
-      use Galactic_Structure_Densities, only : Galactic_Structure_Density
+      use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -248,7 +248,7 @@ contains
     end function projectedDensityIntegrand
 
   end function projectedDensityExtract
-  
+
   function projectedDensityNames(self,time)
     !% Return the names of the {\normalfont \ttfamily projectedDensity} properties.
     implicit none
@@ -266,7 +266,7 @@ contains
     end do
     return
   end function projectedDensityNames
-  
+
   function projectedDensityDescriptions(self,time)
     !% Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
     implicit none
@@ -284,10 +284,10 @@ contains
     end do
     return
   end function projectedDensityDescriptions
-  
+
   function projectedDensityUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily projectedDensity} properties in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                       , allocatable  , dimension(:) :: projectedDensityUnitsInSI
     class           (nodePropertyExtractorProjectedDensity), intent(inout)               :: self
@@ -303,10 +303,10 @@ contains
     end do
     return
   end function projectedDensityUnitsInSI
-  
+
   integer function projectedDensityType(self)
     !% Return the type of the {\normalfont \ttfamily projectedDensity} properties.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorProjectedDensity), intent(inout) :: self
     !GCC$ attributes unused :: self

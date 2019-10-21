@@ -21,7 +21,7 @@
 
 module String_Handling
   !% Implements various useful functionality for manipulating character strings.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   implicit none
   private
   public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
@@ -41,7 +41,7 @@ module String_Handling
   interface char
      module procedure Char_Logical
   end interface char
-  
+
   ! Maximum length of string needed to hold integer values.
   integer         , parameter :: maxIntegerSize=20
   character(len=5), parameter :: maxIntegerFormat='(i20)'
@@ -76,7 +76,7 @@ contains
     else
        separatorActual=charactersWhiteSpace
     end if
-    
+
     String_Count_Words=0
     inWord            =.false.
     inBracket         = 0
@@ -211,7 +211,7 @@ contains
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
     !% Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
-    use Kind_Numbers
+    use :: Kind_Numbers, only : kind_int8
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
     integer  (kind=kind_int8    ), intent(in   ) :: intVariable
@@ -445,5 +445,5 @@ contains
     end if
     return
   end function Char_Logical
-  
+
 end module String_Handling

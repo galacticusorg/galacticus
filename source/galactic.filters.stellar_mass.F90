@@ -43,7 +43,7 @@ contains
 
   function stellarMassConstructorParameters(parameters)
     !% Constructor for the ``stellarMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterStellarMass)                :: stellarMassConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
 
   logical function stellarMassPasses(self,node)
     !% Implement a  stellar mass high-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterStellarMass), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node

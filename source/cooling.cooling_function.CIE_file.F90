@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a cooling function class which interpolates in a tabulated cooling function read from file.
-  
-  use FGSL, only : fgsl_interp_accel
+
+  use :: FGSL, only : fgsl_interp_accel
 
   !# <coolingFunction name="coolingFunctionCIEFile">
   !#  <description>
@@ -114,7 +114,7 @@
   !#    \item[{\normalfont \ttfamily fixed}] The cooling function is held fixed at the value at the relevant limit.
   !#    \item[{\normalfont \ttfamily powerLaw}] The cooling function is extrapolated assuming a
   !#    power-law dependence beyond the relevant limit. This option is only allowed if the
-  !#    cooling function is everywhere positive.  
+  !#    cooling function is everywhere positive.
   !#   \end{description}
   !#   If the cooling function is everywhere positive the interpolation will be done in the
   !#   logarithm of temperature, metallicity\footnote{The exception is if the first cooling
@@ -137,7 +137,7 @@
      double precision                                                 :: firstNonZeroMetallicity
      double precision                   , allocatable, dimension(:)   :: metallicities                    , temperatures
      double precision                   , allocatable, dimension(:,:) :: coolingFunctionTable
-     logical                                                          :: resetMetallicity          =.true., resetTemperature            =.true.          
+     logical                                                          :: resetMetallicity          =.true., resetTemperature            =.true.
      type            (fgsl_interp_accel)                              :: acceleratorMetallicity           , acceleratorTemperature
      double precision                                                 :: temperaturePrevious              , metallicityPrevious                , &
           &                                                              temperatureSlopePrevious         , metallicitySlopePrevious           , &
@@ -190,11 +190,11 @@ contains
 
   function cieFileConstructorParameters(parameters)
     !% Constructor for the ``CIE file'' cooling function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters
-    
+
     if (.not.cieFileInitialized) then
        !$omp critical(cieFileInitialize)
        if (.not.cieFileInitialized) then
@@ -210,18 +210,18 @@ contains
        end if
        !$omp end critical(cieFileInitialize)
     end if
-    ! Construct the instance.    
+    ! Construct the instance.
     cieFileConstructorParameters=cieFileConstructorInternal(char(cieFileFileName))
     !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
-  
+
   function cieFileConstructorInternal(fileName)
     !% Internal constructor for the ``CIE file'' cooling function class.
     implicit none
     type     (coolingFunctionCIEFile)                :: cieFileConstructorInternal
     character(len=*                 ), intent(in   ) :: fileName
-    
+
     ! Read the file.
     cieFileConstructorInternal%fileName=fileName
     call cieFileConstructorInternal%readFile(fileName)
@@ -234,10 +234,10 @@ contains
     cieFileConstructorInternal%resetTemperature        =.true.
     return
   end function cieFileConstructorInternal
-  
+
   subroutine cieFileDestructor(self)
     !% Destructor for the ``CIE file'' cooling function class.
-    use Numerical_Interpolation
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(coolingFunctionCIEFile), intent(inout) :: self
 
@@ -255,11 +255,11 @@ contains
 
   double precision function cieFileCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Radiation_Fields
-    use               Chemical_Abundances_Structure
-    use               Table_Labels
+    use            :: Radiation_Fields             , only : radiationFieldClass
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
@@ -270,7 +270,7 @@ contains
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
     !GCC$ attributes unused :: chemicalDensities, radiation
-    
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -334,11 +334,11 @@ contains
   double precision function cieFileCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Chemical_Abundances_Structure
-    use               Radiation_Fields
-    use               Table_Labels
+    use            :: Radiation_Fields             , only : radiationFieldClass
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
@@ -349,7 +349,7 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-    
+
     ! Get the cooling function.
     coolingFunction=self%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Handle out of range temperatures.
@@ -434,9 +434,9 @@ contains
 
   double precision function cieFileCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Fields
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
@@ -444,7 +444,7 @@ contains
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass   ), intent(inout) :: radiation
     !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
-    
+
     ! Logarithmic slope is always 2 for a CIE cooling function.
     cieFileCoolingFunctionDensityLogSlope=2.0d0
     return
@@ -452,12 +452,12 @@ contains
 
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from a cooling function file.
-    use Galacticus_Error
-    use Galacticus_Display
-    use ISO_Varying_String
-    use IO_HDF5
-    use Table_Labels
-    use File_Utilities
+    use :: File_Utilities    , only : File_Name_Expand
+    use :: Galacticus_Display, only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access                        , hdf5Object
+    use :: ISO_Varying_String
+    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     character       (len=*                 ), intent(in   ) :: fileName
@@ -466,7 +466,7 @@ contains
     integer                                                 :: fileFormatVersion
     type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
          &                                                     temperatureDataset
-    
+
     call hdf5Access%set()
     ! Read the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
@@ -572,7 +572,7 @@ contains
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
+    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: metallicity , temperature

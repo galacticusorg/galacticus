@@ -22,7 +22,6 @@
 module Merger_Tree_State_Store
   !% Provides state store/restore functionality for merger trees.
   use, intrinsic :: ISO_C_Binding
-  use               Pseudo_Random
   public
 
   integer(c_size_t  ) :: treeStateStoreSequence=-1_c_size_t
@@ -35,8 +34,8 @@ contains
   !# </galacticusStateStoreTask>
   subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use, intrinsic :: ISO_C_Binding
     use            :: FGSL         , only : fgsl_file
+    use, intrinsic :: ISO_C_Binding
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID
@@ -52,15 +51,15 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use, intrinsic :: ISO_C_Binding
     use            :: FGSL         , only : fgsl_file
+    use, intrinsic :: ISO_C_Binding
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID
     type   (fgsl_file ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile, stateOperatorID
 
-    read (stateFile) treeStateStoreSequence   
+    read (stateFile) treeStateStoreSequence
     return
   end subroutine mergerTreeStateRestore
 

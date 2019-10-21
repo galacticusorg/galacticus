@@ -38,10 +38,10 @@
   end interface virialDensityContrastFriendsOfFriends
 
 contains
-  
+
   function friendsOfFriendsConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialDensityContrastFriendsOfFriends)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -70,18 +70,17 @@ contains
 
   function friendsOfFriendsConstructorInternal(linkingLength,densityRatio) result(self)
     !% Generic constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
-    use Input_Parameters
     implicit none
     type            (virialDensityContrastFriendsOfFriends), target        :: self
     double precision                                       , intent(in   ) :: linkingLength, densityRatio
     !# <constructorAssign variables="linkingLength, densityRatio"/>
-    
+
     return
   end function friendsOfFriendsConstructorInternal
 
   double precision function friendsOfFriendsDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass
@@ -97,7 +96,6 @@ contains
 
   double precision function friendsOfFriendsDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
-    use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass

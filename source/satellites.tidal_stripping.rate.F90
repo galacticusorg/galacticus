@@ -23,9 +23,9 @@
 
 module Satellite_Tidal_Stripping
   !% Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>satelliteTidalStripping</name>
   !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>

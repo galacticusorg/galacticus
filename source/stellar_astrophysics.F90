@@ -21,7 +21,7 @@
 
 module Stellar_Astrophysics
   !% Implements a class for calculations of stellar astrophysics.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   private
 
   !# <functionClass>

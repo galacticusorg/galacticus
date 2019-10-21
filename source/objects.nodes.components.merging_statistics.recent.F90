@@ -21,10 +21,10 @@
 
 module Node_Component_Merging_Statistics_Recent
   !% Implements the recent merging statistics component.
+  use            :: Dark_Matter_Halo_Scales                      , only : darkMatterHaloScaleClass
   use, intrinsic :: ISO_C_Binding
-  use            :: Dark_Matter_Halo_Scales
-  use            :: Output_Times
-  use            :: Node_Component_Merging_Statistics_Recent_Data
+  use            :: Node_Component_Merging_Statistics_Recent_Data, only : Node_Component_Merging_Statistics_Recent_Count
+  use            :: Output_Times                                 , only : outputTimesClass
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger        , &
@@ -71,14 +71,13 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Initialize(globalParameters_)
     !% Initializes the recent merging statistics component.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
     type(varying_string )                :: nodeRecentMajorMergerIntervalTypeText
-    
+
     !# <inputParameter>
     !#   <name>nodeMajorMergerFraction</name>
     !#   <cardinality>1</cardinality>
@@ -128,9 +127,10 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(globalParameters_)
     !% Initializes the tree node recent merging flow statistics module.
-    use Galacticus_Nodes , only : defaultMergingStatisticsComponent
-    use Input_Parameters
-    use Memory_Management
+    use :: Galacticus_Nodes                             , only : defaultMergingStatisticsComponent
+    use :: Input_Parameters                             , only : inputParameter                   , inputParameters
+    use :: Memory_Management                            , only : allocateArray
+    use :: Node_Component_Merging_Statistics_Recent_Data, only : mergingStatisticsRecentCount
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -153,12 +153,12 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize()
     !% Uninitializes the tree node recent merging flow statistics module.
-    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"/>
-       !# <objectDestructor name="outputTimes_"        />       
+       !# <objectDestructor name="outputTimes_"        />
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize
@@ -168,7 +168,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Merging_Statistics_Recent_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent, nodeComponentMergingStatisticsRecent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, nodeComponentMergingStatisticsRecent, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
@@ -189,9 +189,9 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Merging_Statistics_Recent_Node_Merger(node)
     !% Record any major merger of {\normalfont \ttfamily node}.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
-    use            :: Galacticus_Error
     implicit none
     type            (treeNode                      ), intent(inout)         , pointer :: node
     type            (treeNode                      )                        , pointer :: nodeDescendent
@@ -258,7 +258,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
@@ -289,7 +289,7 @@ contains
        &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
        &,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode)              , intent(inout), pointer :: node
     double precision                        , intent(in   )          :: time
@@ -298,7 +298,7 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
-    
+
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        integerProperty=integerProperty+1
        integerPropertyNames   (integerProperty)='mergingStatisticsRecentMajorMergerCount'
@@ -314,13 +314,13 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Node_Component_Merging_Statistics_Recent_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: doublePropertyCount, time
-    
+
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) integerPropertyCount=integerPropertyCount+1
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output_Count
@@ -332,9 +332,9 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerBuffer&
        &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics
-    use Kind_Numbers
-    use Multi_Counters
+    use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
+    use :: Kind_Numbers    , only : kind_int8
+    use :: Multi_Counters  , only : multiCounter
     implicit none
     double precision                                , intent(in   )                   :: time
     type            (treeNode                      ), intent(inout)         , pointer :: node
@@ -359,8 +359,7 @@ contains
 
   logical function Node_Component_Merging_Statistics_Recent_Matches(node)
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
-    use Galacticus_Nodes, only : treeNode                         , nodeComponentMergingStatistics, nodeComponentMergingStatisticsRecent, &
-         &                       defaultMergingStatisticsComponent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, nodeComponentMergingStatisticsRecent, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics

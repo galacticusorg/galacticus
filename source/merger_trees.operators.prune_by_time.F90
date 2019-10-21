@@ -31,7 +31,7 @@
      final     ::            pruneByTimeDestructor
      procedure :: operate => pruneByTimeOperate
   end type mergerTreeOperatorPruneByTime
-  
+
   interface mergerTreeOperatorPruneByTime
      !% Constructors for the prune-by-time merger tree operator class.
      module procedure pruneByTimeConstructorParameters
@@ -42,12 +42,12 @@ contains
 
   function pruneByTimeConstructorParameters(parameters)
     !% Constructor for the prune-by-time merger tree operator class which takes a parameter set as input.
-    use Cosmology_Functions
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
     type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-        
+
     !# <inputParameter>
     !#   <name>redshiftEarliest</name>
     !#   <source>parameters</source>
@@ -105,16 +105,16 @@ contains
     implicit none
     type(mergerTreeOperatorPruneByTime), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     ! Nothing to do.
     return
   end subroutine pruneByTimeDestructor
 
   subroutine pruneByTimeOperate(self,tree)
     !% Perform a prune-by-time operation on a merger tree.
-    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
-    use Merger_Trees_Pruning_Utilities
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
     implicit none
     class           (mergerTreeOperatorPruneByTime), intent(inout), target  :: self
     type            (mergerTree                   ), intent(inout), target  :: tree
@@ -127,7 +127,7 @@ contains
          &                                                                     timeNow           , timeParent  , &
          &                                                                     massAtTimeEarliest
     logical                                                                    nodesRemain
-    
+
     ! Iterate over nodes.
     treeWalker =mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     nodesRemain=treeWalker%next(nodeNext)
@@ -138,15 +138,15 @@ contains
        if (associated(node%parent)) then
           ! Get basic components.
           basic       => node       %basic()
-          basicParent => node%parent%basic()             
+          basicParent => node%parent%basic()
           ! Get the time of this node and its parent.
           timeNow   =basic  %time()
-          timeParent=basicParent%time()             
+          timeParent=basicParent%time()
           ! If the branch from node to parent spans the earliest time, insert a new node at that time.
           if (timeParent > self%timeEarliest .and. timeNow < self%timeEarliest) then
              ! Get masses of these halos.
              massNow   =basic  %mass()
-             massParent=basicParent%mass()   
+             massParent=basicParent%mass()
              if (node%isPrimaryProgenitor()) then
                 ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
                 ! growth rate of this node.

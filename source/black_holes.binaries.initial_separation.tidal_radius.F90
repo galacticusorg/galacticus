@@ -30,7 +30,7 @@
    contains
      procedure :: separationInitial => tidalRadiusSeparationInitial
   end type blackHoleBinaryInitialSeparationTidalRadius
-  
+
   interface blackHoleBinaryInitialSeparationTidalRadius
      !% Constructors for the {\normalfont \ttfamily tidalRadius} black hole binary initial radius class.
      module procedure tidalRadiusConstructorParameters
@@ -46,22 +46,22 @@ contains
   function tidalRadiusConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoild class which takes a parameter list as
     !% input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryInitialSeparationTidalRadius)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=blackHoleBinaryInitialSeparationTidalRadius()
     return
   end function tidalRadiusConstructorParameters
 
   double precision function tidalRadiusSeparationInitial(self,node,nodeHost)
     !% Returns an initial separation for a binary black holes through tidal disruption.
-    use Galactic_Structure_Options
-    use Galactic_Structure_Enclosed_Masses
-    use Root_Finder
-    use Galacticus_Nodes                  , only : nodeComponentBlackHole
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic
+    use :: Galacticus_Nodes                  , only : nodeComponentBlackHole          , treeNode
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
     implicit none
     class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout)         :: self
     type (treeNode                                   ), intent(inout), target :: nodeHost , node
@@ -69,7 +69,7 @@ contains
     type (rootFinder                                 ), save                  :: finder
     !$omp threadprivate(finder)
     !GCC$ attributes unused :: self
-    
+
     ! Assume zero separation by default.
     tidalRadiusSeparationInitial=0.0d0
     ! Get the black hole component.
@@ -108,11 +108,11 @@ contains
          &                                     )
     return
   end function tidalRadiusSeparationInitial
-  
+
   double precision function tidalRadiusRoot(radius)
     !% Root function used in solving for the radius of tidal disruption of a satellite galaxy.
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none
     double precision, intent(in   ) :: radius
 

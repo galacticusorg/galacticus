@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive
   !% distribution which scales with the range spanned by the sample states.
-  
+
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
   !#  <description>A posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive distribution which scales with the range spanned by the sample states..</description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
@@ -41,19 +41,19 @@ contains
   function adaptiveConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpAdaptive)                 :: self
     type(inputParameters                              ), intent(inout)  :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=posteriorSampleDffrntlEvltnRandomJumpAdaptive()
     return
   end function adaptiveConstructorParameters
-  
+
   function adaptiveSample(self,modelParameters_,simulationState)
     !% Sample from the random jump distribution.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (posteriorSampleDffrntlEvltnRandomJumpAdaptive)                                   , intent(inout) :: self
     type            (modelParameterList                           ), dimension(:)                     , intent(in   ) :: modelParameters_
@@ -70,4 +70,4 @@ contains
     end do
     return
   end function adaptiveSample
-  
+

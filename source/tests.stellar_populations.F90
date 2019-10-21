@@ -21,22 +21,22 @@
 
 program Test_Stellar_Populations
   !% Tests of stellar populations.
-  use Input_Parameters
-  use ISO_Varying_String
-  use Unit_Tests
-  use Galacticus_Display
-  use Galacticus_Paths
-  use Numerical_Constants_Astronomical
-  use Abundances_Structure
-  use Stellar_Populations_Initial_Mass_Functions
-  use Stellar_Astrophysics
-  use Stellar_Populations
-  use Stellar_Population_Spectra
-  use Stellar_Feedback
-  use Stellar_Astrophysics_Winds
-  use Stellar_Astrophysics_Tracks
-  use Supernovae_Type_Ia
-  use Supernovae_Population_III
+  use :: Abundances_Structure                      , only : abundances
+  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set         , verbosityWorking
+  use :: Galacticus_Paths                          , only : galacticusPath                         , pathTypeDataStatic
+  use :: ISO_Varying_String
+  use :: Input_Parameters                          , only : inputParameters
+  use :: Numerical_Constants_Astronomical          , only : metallicitySolar
+  use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
+  use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
+  use :: Stellar_Astrophysics_Winds                , only : stellarWindsLeitherer1992
+  use :: Stellar_Feedback                          , only : stellarFeedbackStandard
+  use :: Stellar_Population_Spectra                , only : stellarPopulationSpectraFSPS
+  use :: Stellar_Populations                       , only : stellarPopulationStandard
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
+  use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
+  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
+  use :: Unit_Tests                                , only : Assert                                 , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                                         , parameter :: ageMinimum               =0.0d0, ageMaximum=10.0d0
   type            (inputParameters                        ), target    :: parameters
@@ -109,7 +109,7 @@ program Test_Stellar_Populations
   yieldMetals =stellarPopulation_%yieldInstantaneous    ()
   call Assert('metal yield'      ,yieldMetals ,3.7d-2,relTol=1.0d-2)
   call Unit_Tests_End_Group  ()
-  call Unit_Tests_Finish     ()  
+  call Unit_Tests_Finish     ()
 end program Test_Stellar_Populations
 
 

@@ -40,7 +40,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -65,7 +65,7 @@ contains
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
     double precision                                            , intent(in   ) :: exponent
     !# <constructorAssign variables="exponent"/>
-    
+
     return
   end function powerLawConstructorInternal
 

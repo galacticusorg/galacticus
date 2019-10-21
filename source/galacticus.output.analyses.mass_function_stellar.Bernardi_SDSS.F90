@@ -19,8 +19,7 @@
 
 !% Contains a module which implements an output analyis class for the \cite{bernardi_massive_2013} stellar mass function.
 
-  use Gravitational_Lensing
-  
+
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarBernardi2013SDSS">
   !#  <description>A \cite{bernardi_massive_2013} stellar mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -39,7 +38,7 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarBernardi2013SDSS)                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
@@ -149,10 +148,14 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryBernardi2013SDSS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
     type            (outputAnalysisMassFunctionStellarBernardi2013SDSS  )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_

@@ -19,8 +19,6 @@
 
 !% Contains a module which implements a stellar mass function output analysis class.
 
-  use Gravitational_Lensing
-  
   !# <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS">
   !#  <description>An SDSS luminosity function output analysis class for the \cite{montero-dorta_sdss_2009} analysis.</description>
   !# </outputAnalysis>
@@ -40,7 +38,8 @@ contains
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionMonteroDorta2009SDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
+    use :: Input_Parameters     , only : inputParameter      , inputParameters
     implicit none
     type            (outputAnalysisLuminosityFunctionMonteroDorta2009SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
@@ -77,7 +76,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.01d0</defaultValue>
-    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})\right\}}].</defaultSource>
+    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The minimum random error for SDSS absolute magnitudes.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
@@ -87,7 +86,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.01d0</defaultValue>
-    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})\right\}}].</defaultSource>
+    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The minimum random error for SDSS absolute magnitudes.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
@@ -97,7 +96,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.01d0]</defaultValue>
-    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})\right\}}].</defaultSource>
+    !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The coefficients of the random error polynomial for SDSS absolute magnitudes.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
@@ -161,11 +160,15 @@ contains
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !% Constructor for the ``luminosityFunctionMonteroDorta2009SDSS'' output analysis class for internal use.
-    use Input_Parameters
-    use Galacticus_Paths
-    use Output_Analysis_Distribution_Operators
-    use Cosmology_Parameters
-    use Galacticus_Error
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Geometry_Surveys                      , only : surveyGeometryMonteroDorta2009SDSS
+    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
     type            (outputAnalysisLuminosityFunctionMonteroDorta2009SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
@@ -187,7 +190,7 @@ contains
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
     double precision                                                                                    :: errorPolynomialZeroPoint
-    
+
     ! Validate band, and set zero point for random error polynomial to be M* of the Schechter function fit.
     select case (band)
     case ('u')
@@ -243,7 +246,7 @@ contains
     !#     &amp;                                              randomErrorMaximum              , &amp;
     !#     &amp;                                              errorPolynomialZeroPoint        , &amp;
     !#     &amp;                                              randomErrorPolynomialCoefficient  &amp;
-    !#     &amp;                                             ) 
+    !#     &amp;                                             )
     !#  </constructor>
     !# </referenceConstruct>
     ! Build a gravitational lensing distribution operator.

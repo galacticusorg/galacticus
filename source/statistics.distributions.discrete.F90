@@ -20,7 +20,7 @@
 !% Contains a module that implements a class of discrete distributions.
 
 module Statistics_Distributions_Discrete
-  use Pseudo_Random
+  use :: Pseudo_Random, only : pseudoRandom
   private
 
   !# <functionClass>
@@ -62,7 +62,7 @@ module Statistics_Distributions_Discrete
   !#    <description>Return a random deviate from the distribution.</description>
   !#    <code>
   !#     logical          :: ompThreadOffset_, mpiRankOffset_
-  !#     double precision :: uniformRandom    
+  !#     double precision :: uniformRandom
   !#     ompThreadOffset_=.true.
   !#     mpiRankOffset_  =.true.
   !#     if (present(ompThreadOffset)) ompThreadOffset_=ompThreadOffset
@@ -102,5 +102,5 @@ module Statistics_Distributions_Discrete
   !#    <description>Returns the maximum possible value in the distribution.</description>
   !#  </method>
   !# </functionClass>
-  
+
 end module Statistics_Distributions_Discrete

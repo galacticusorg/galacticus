@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an analysis weight operator class which weights by a property value.
-  use Node_Property_Extractors
-  use Output_Analysis_Property_Operators
-  
+  use :: Node_Property_Extractors          , only : nodePropertyExtractorClass
+  use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass
+
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
   !#  <description>An analysis weight operator class which weights by a property value.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
      !% An weight operator class which weights by a property value.
      private
-     class(nodePropertyExtractorClass), pointer :: extractor_ => null()
-     class(outputAnalysisPropertyOperatorClass ), pointer :: operator_ => null()
+     class(nodePropertyExtractorClass         ), pointer :: extractor_ => null()
+     class(outputAnalysisPropertyOperatorClass), pointer :: operator_ => null()
    contains
      final     ::            propertyDestructor
      procedure :: operate => propertyOperate
@@ -44,13 +44,13 @@ contains
 
   function propertyConstructorParameters(parameters) result(self)
     !% Constructor for the ``property'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisWeightOperatorProperty)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
-    class(nodePropertyExtractorClass), pointer       :: extractor_
+    class(nodePropertyExtractorClass          ), pointer       :: extractor_
     class(outputAnalysisPropertyOperatorClass ), pointer       :: operator_
-    
+
     ! Check and read parameters.
     !# <objectBuilder class="nodePropertyExtractor" name="extractor_" source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="operator_"  source="parameters"/>
@@ -64,10 +64,11 @@ contains
 
   function propertyConstructorInternal(extractor_,operator_) result(self)
     !% Internal constructor for the ``property'' output analysis weight operator class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
     type (outputAnalysisWeightOperatorProperty)                        :: self
-    class(nodePropertyExtractorClass), intent(in   ), target :: extractor_
+    class(nodePropertyExtractorClass          ), intent(in   ), target :: extractor_
     class(outputAnalysisPropertyOperatorClass ), intent(in   ), target :: operator_
     !# <constructorAssign variables="*extractor_, *operator_"/>
 
@@ -89,10 +90,11 @@ contains
     !# <objectDestructor name="self%operator_" />
     return
   end subroutine propertyDestructor
-  
+
   double precision function propertyOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an property output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
+    use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisWeightOperatorProperty), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node

@@ -19,11 +19,11 @@
 
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
   !% another likelihood.
-  
-  use FGSL, only : FGSL_Size_T           , fgsl_matrix      , fgsl_permutation     , FGSL_Matrix_Free     , &
-       &           FGSL_Permutation_Free , FGSL_Int         , FGSL_Well_Defined    , FGSL_Matrix_Init     , &
-       &           FGSL_Permutation_Alloc, FGSL_Matrix_Align, FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet, &
-       &           FGSL_Double
+
+  use :: FGSL, only : FGSL_Double          , FGSL_Int        , FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet , &
+          &           FGSL_Matrix_Align    , FGSL_Matrix_Free, FGSL_Matrix_Init     , FGSL_Permutation_Alloc, &
+          &           FGSL_Permutation_Free, FGSL_Size_T     , FGSL_Well_Defined    , fgsl_matrix           , &
+          &           fgsl_permutation
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
@@ -72,7 +72,7 @@
 
   type(posteriorSampleLikelihoodGaussianRegression), pointer :: gaussianRegressionSelf
   !$omp threadprivate(gaussianRegressionSelf)
-  
+
   interface posteriorSampleLikelihoodGaussianRegression
      !% Constructors for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
      module procedure gaussianRegressionConstructorParameters
@@ -136,7 +136,7 @@ contains
   function gaussianRegressionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class which builds the object
     !% from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -226,11 +226,10 @@ contains
     !# <objectDestructor name="posteriorSampleLikelihood_"/>
     return
   end function gaussianRegressionConstructorParameters
-  
+
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_) result(self)
     !% Constructor for ``gaussianRegression'' posterior sampling likelihood class.
-    use File_Utilities
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self
     class           (posteriorSampleLikelihoodClass             ), intent(in   ), target :: posteriorSampleLikelihood_
@@ -268,17 +267,19 @@ contains
 
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
+    use            :: Dates_and_Times               , only : Formatted_Date_and_Time
+    use            :: Error_Functions               , only : Error_Function
+    use            :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                                  verbosityInfo
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
-    use Models_Likelihoods_Constants
-    use Memory_Management
-    use MPI_Utilities
-    use Galacticus_Display
-    use Galacticus_Error
-    use Error_Functions
-    use String_Handling
-    use Dates_and_Times
+    use            :: Linear_Algebra                , only : assignment(=)
+    use            :: MPI_Utilities                 , only : mpiSelf
+    use            :: Memory_Management             , only : allocateArray
+    use            :: Models_Likelihoods_Constants  , only : logImpossible
+    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
+    use            :: String_Handling               , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
@@ -310,7 +311,7 @@ contains
          &                                                                                            determinantSign                             , checksTotal          , &
          &                                                                                            failuresTotal                               , fileUnit             , &
          &                                                                                            correlationLength                           , l
-    double precision                                                                               :: separation                                  , likelihoodError      , & 
+    double precision                                                                               :: separation                                  , likelihoodError      , &
          &                                                                                            likelihoodEmulated                          , failureRateExpected
     logical                                                                                        :: likelihoodIsSimulated
     character       (len=8                                      )                                  :: label
@@ -414,13 +415,13 @@ contains
              stateCountAcceptChain=min(stateCountAccept,self%emulatorRebuildCount-j,stateCount(i))
              k=stateCount(i)
              l=0
-             do while (l < stateCountAcceptChain .and. k > 0)              
+             do while (l < stateCountAcceptChain .and. k > 0)
                 j                       =j                 +1
                 l                       =l                 +1
                 likelihoodsCombined(  j)=likelihoods(  k,i)
                 self%statesCombined(:,j)=states     (:,k,i)
                 if (k < stateCount(i)) states(:,k:stateCount(i)-1,i)=states(:,k+1:stateCount(i),i)
-                stateCount         (  i)=stateCount (    i)-1              
+                stateCount         (  i)=stateCount (    i)-1
                 k                       =k                 -correlationLength
              end do
           end do
@@ -449,7 +450,7 @@ contains
        call iterator1%reset()
        if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #2) ['//char(Formatted_Date_and_Time())//']')
        ! Compute sums over states.
-       do while (iterator1%iterate())        
+       do while (iterator1%iterate())
           self%likelihoodSums(iterator1%counter())=sum(workspace2D(:,iterator1%counter())*likelihoodsCombined)
           call iterator2%reset()
           do while (iterator2%iterate())
@@ -467,7 +468,7 @@ contains
        if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #4) ['//char(Formatted_Date_and_Time())//']')
        likelihoodsFitted=0.0d0
        call iterator1%reset()
-       do while (iterator1%iterate())    
+       do while (iterator1%iterate())
           workspace=self%coefficients(iterator1%counter())
           do j=1,iterator1%currentOrder()
              workspace=workspace*self%statesCombined(iterator1%index(j),:)
@@ -522,7 +523,7 @@ contains
        self%regressionMatrixLU=FGSL_Matrix_Init      (type=1.0_FGSL_Double)
        self%permutations      =FGSL_Permutation_Alloc(self%regressionMatrixSize)
        status                 =FGSL_Matrix_Align     (self%regressionMatrix,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixLU)
-       status                 =FGSL_LinAlg_LU_Decomp (self%regressionMatrixLU,self%permutations,decompositionSign)     
+       status                 =FGSL_LinAlg_LU_Decomp (self%regressionMatrixLU,self%permutations,decompositionSign)
        determinantSign        =FGSL_Linalg_LU_SgnDet (self%regressionMatrixLU                  ,decompositionSign)
        self%regressionMatrixIsSingular=(determinantSign == 0)
        if (mpiSelf%isMaster().and.self%regressionMatrixIsSingular) call Galacticus_Display_Message('   ==> regression matrix is singular')
@@ -592,7 +593,7 @@ contains
              call Galacticus_Display_Message(message)
              if (.not.self%isGood) call Galacticus_Display_Message('WARNING: emulator failure rate is too high - emulator will not be used')
           end if
-       else        
+       else
           if (simulationConvergence%isConverged().and.simulationConvergence%stateIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return
           if (gaussianRegressionEvaluate+logPriorProposed+self%sigmaBuffer*likelihoodError < logLikelihoodCurrent+logPriorCurrent-self%logLikelihoodBuffer        *temperature) return
           if (                                                             likelihoodError <                                      self%logLikelihoodErrorTolerance*temperature) return
@@ -600,7 +601,7 @@ contains
     end if
     ! Evaluate the likelihood using the simulator, unless we have already done so.
     self%simulationCount=self%simulationCount+1
-    if (.not.likelihoodIsSimulated) then     
+    if (.not.likelihoodIsSimulated) then
        ! If prior probability is impossible, then don't even try to simulate.
        if (logPriorProposed <= logImpossible) then
           gaussianRegressionEvaluate=logImpossible
@@ -656,14 +657,14 @@ contains
 
   subroutine gaussianRegressionFitVariogram(self,separations,semiVariances)
     !% Compute best fit coefficients for the variogram model.
+    use            :: FGSL            , only : FGSL_Continue                  , FGSL_ENoProg                       , FGSL_MultiMin_FDFMinimizer_Alloc  , FGSL_MultiMin_FDFMinimizer_Conjugate_PR, &
+          &                                    FGSL_MultiMin_FDFMinimizer_Free, FGSL_MultiMin_FDFMinimizer_Gradient, FGSL_MultiMin_FDFMinimizer_Iterate, FGSL_MultiMin_FDFMinimizer_Minimum     , &
+          &                                    FGSL_MultiMin_FDFMinimizer_Set , FGSL_MultiMin_Function_FDF_Free    , FGSL_MultiMin_Function_FDF_Init   , FGSL_MultiMin_Test_Gradient            , &
+          &                                    FGSL_Multimin_FDFMinimizer_x   , FGSL_Success                       , FGSL_Vector_Align                 , FGSL_Vector_Free                       , &
+          &                                    FGSL_Vector_Init               , fgsl_multimin_fdfminimizer         , fgsl_multimin_function_fdf        , fgsl_vector
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Error
-    use            :: FGSL            , only : fgsl_multimin_function_fdf        , fgsl_multimin_fdfminimizer               , fgsl_vector                 , FGSL_MultiMin_Function_FDF_Init    , &
-         &                                     FGSL_MultiMin_FDFMinimizer_Alloc  , FGSL_MultiMin_FDFMinimizer_Conjugate_PR  , FGSL_Vector_Init            , FGSL_Vector_Align                  , &
-         &                                     FGSL_MultiMin_FDFMinimizer_Set    , FGSL_Success, FGSL_MultiMin_Test_Gradient, FGSL_Continue               , FGSL_MultiMin_FDFMinimizer_Gradient, &
-         &                                     FGSL_MultiMin_FDFMinimizer_Iterate, FGSL_MultiMin_FDFMinimizer_Minimum       , FGSL_ENoProg                , FGSL_MultiMin_FDFMinimizer_Free    , &
-         &                                     FGSL_MultiMin_Function_FDF_Free   , FGSL_MultiMin_Test_Gradient              , FGSL_Multimin_FDFMinimizer_x, FGSL_Vector_Free
-    use            :: Sort
+    use            :: Sort            , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
     double precision                                             , intent(in   ), dimension(:) :: separations                , semiVariances
@@ -707,7 +708,7 @@ contains
        if (j-k == binCountMaximum .or. self%separationsNormalized(rank(j)) > binWidthMaximum*self%separationsNormalized(rank(k)) .or. j == size(separations)) then
           self%binCount=self%binCount+1
           self%separationsBinned  (self%binCount)=0.0d0
-          self%semiVariancesBinned(self%binCount)=0.0d0        
+          self%semiVariancesBinned(self%binCount)=0.0d0
           do i=k,j
              self%separationsBinned  (self%binCount)=self%separationsBinned  (self%binCount)+self%separationsNormalized  (rank(i))
              self%semiVariancesBinned(self%binCount)=self%semiVariancesBinned(self%binCount)+self%semiVariancesNormalized(rank(i))
@@ -745,7 +746,7 @@ contains
        status        =FGSL_MultiMin_FDFMinimizer_Iterate(minimizer)
        currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
        if (status == FGSL_ENoProg) exit
-       if (status /= FGSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})  
+       if (status /= FGSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})
     end do
     ! Extract the best fit parameters.
     call FGSL_Vector_Free(cVector)
@@ -769,8 +770,8 @@ contains
 
   function gaussianRegressionVariogramModelF(x,parameters) bind(c)
     !% Function to be minimized when fitting the variogram.
-    use, intrinsic :: ISO_C_Binding
     use            :: FGSL         , only : FGSL_Vector, FGSL_obj_c_ptr, FGSL_vector_align
+    use, intrinsic :: ISO_C_Binding
     implicit none
     real   (c_double   )                        :: gaussianRegressionVariogramModelF
     type   (c_ptr      ), value                 :: x                                , parameters
@@ -792,20 +793,20 @@ contains
 
   subroutine gaussianRegressionVariogramModelD(x,parameters,df) bind(c)
     !% Derivatives of the function to be minimized when fitting the variogram.
+    use            :: FGSL         , only : FGSL_obj_c_ptr, FGSL_vector, FGSL_vector_align
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL         , only : FGSL_vector, FGSL_obj_c_ptr, FGSL_vector_align
     implicit none
     type   (c_ptr      ), value                 :: x     , parameters, &
          &                                         df
     real   (c_double   ), pointer, dimension(:) :: xx    , ddf
     type   (FGSL_vector)                        :: vec   , grad
-    integer(FGSL_int   )                        :: status  
+    integer(FGSL_int   )                        :: status
     !GCC$ attributes unused :: parameters
 
     call FGSL_obj_c_ptr(vec ,x )
     call FGSL_obj_c_ptr(grad,df)
     status=FGSL_vector_align(xx ,vec )
-    status=FGSL_vector_align(ddf,grad)   
+    status=FGSL_vector_align(ddf,grad)
     where (gaussianRegressionSelf%separationsBinned > xx(3))
        gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=xx(3)
     elsewhere
@@ -835,7 +836,7 @@ contains
 
   integer function polynomialCoefficientCount(n,d)
     !% Return the number of coefficients at {\normalfont \ttfamily n}$^\mathrm{th}$ order in polynomial of dimension {\normalfont \ttfamily d}.
-    use Factorials
+    use :: Factorials, only : Factorial
     implicit none
     integer, intent(in   ) :: n,d
 
@@ -849,7 +850,7 @@ contains
 
   function polynomialIteratorConstructor(order,rank)
     !% Create a polynomial iterator for a poynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
-    use Memory_Management
+    use :: Memory_Management, only : allocateArray
     implicit none
     type   (polynomialIterator)                :: polynomialIteratorConstructor
     integer                    , intent(in   ) :: order                        , rank
@@ -940,7 +941,7 @@ contains
 
   subroutine gaussianRegressionFunctionChanged(self)
     !% Respond to possible changes in the likelihood function.
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
     implicit none
     class(posteriorSampleLikelihoodGaussianRegression), intent(inout) :: self
 
@@ -970,11 +971,11 @@ contains
 
   logical function gaussianRegressionWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
     !% Return true if the log-likelihood will be evaluated.
+    use            :: Galacticus_Display            , only : Galacticus_Verbosity_Level     , verbosityInfo
     use, intrinsic :: ISO_C_Binding
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
-    use Models_Likelihoods_Constants
-    use Galacticus_Display
+    use            :: Models_Likelihoods_Constants  , only : logImpossible
+    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
@@ -1020,8 +1021,8 @@ contains
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
     !% Evaluate the model emulator.
-    use FGSL, only : fgsl_vector         , FGSL_Int        , FGSL_Vector_Init, FGSL_Vector_Align, &
-         &           FGSL_LinAlg_LU_Solve, FGSL_Vector_Free
+    use :: FGSL, only : FGSL_Int        , FGSL_LinAlg_LU_Solve, FGSL_Vector_Align, FGSL_Vector_Free, &
+          &             FGSL_Vector_Init, fgsl_vector
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
@@ -1064,15 +1065,15 @@ contains
        do j=1,iterator1%currentOrder()
           likelihoodFit=likelihoodFit*stateCurrent(iterator1%index(j))
        end do
-       likelihoodEmulated=likelihoodEmulated+likelihoodFit        
+       likelihoodEmulated=likelihoodEmulated+likelihoodFit
     end do
     return
   end subroutine gaussianRegressionEmulate
 
   subroutine gaussianRegressionRestore(self,simulationState,logLikelihood)
     !% Process a previous state to restore likelihood function.
-    use Models_Likelihoods_Constants
-    use Memory_Management
+    use :: Memory_Management           , only : allocateArray
+    use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     double precision                                             , intent(in   ), dimension(:) :: simulationState

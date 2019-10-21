@@ -20,9 +20,9 @@
 !% Contains a module which implements a linear theory power spectrum class in which the power spectrum is just the transferred
 !% primordial power spectrum correctly normalized to $z=0$.
 
-  use Cosmological_Density_Field
-  use Power_Spectra_Primordial_Transferred
-  
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceClass
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
+
   !# <powerSpectrum name="powerSpectrumStandard">
   !#  <description>Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to $z=0$.</description>
   !# </powerSpectrum>
@@ -30,7 +30,7 @@
      !% A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
      !% correctly normalized to $z=0$.
      private
-     class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_ => null()
+     class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
      class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_ => null()
    contains
      final     ::                               standardDestructor
@@ -49,7 +49,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumStandard                  )                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
     class(cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     !# <constructorAssign variables="*cosmologicalMassVariance_, *powerSpectrumPrimordialTransferred_"/>
-    
+
     return
   end function standardConstructorInternal
 
@@ -80,49 +80,49 @@ contains
     !% Destructor for the standard nonstandard power spectrum class.
     implicit none
     type(powerSpectrumStandard), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologicalMassVariance_"          />
     !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     return
   end subroutine standardDestructor
 
-  double precision function standardPower(self,wavenumber)
+  double precision function standardPower(self,wavenumber,time)
     !% Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
-    double precision                       , intent(in   ) :: wavenumber
+    double precision                       , intent(in   ) :: wavenumber, time
 
-    ! Compute the power spectrum.    
-    standardPower=+self%powerSpectrumPrimordialTransferred_%power             (wavenumber) &
-         &        *self%cosmologicalMassVariance_          %powerNormalization(          )
+    ! Compute the power spectrum.
+    standardPower=+self%powerSpectrumPrimordialTransferred_%power             (wavenumber,time) &
+         &        *self%cosmologicalMassVariance_          %powerNormalization(               )
     return
   end function standardPower
-  
-  double precision function standardPowerLogarithmicDerivative(self,wavenumber)
+
+  double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
     !% Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
     !% \ttfamily wavenumber} [Mpc$^{-1}$].
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
-    double precision                       , intent(in   ) :: wavenumber
+    double precision                       , intent(in   ) :: wavenumber, time
 
-    standardPowerLogarithmicDerivative=self%powerSpectrumPrimordialTransferred_%logarithmicDerivative(wavenumber)
+    standardPowerLogarithmicDerivative=self%powerSpectrumPrimordialTransferred_%logarithmicDerivative(wavenumber,time)
     return
   end function standardPowerLogarithmicDerivative
 
-  double precision function standardPowerDimensionless(self,wavenumber)
+  double precision function standardPowerDimensionless(self,wavenumber,time)
     !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
-    double precision                       , intent(in   ) :: wavenumber
-    
-    standardPowerDimensionless=+4.0d0                       &
-         &                       *Pi                        &
-         &                       *           wavenumber **3 &
-         &                       *self%power(wavenumber)    &
-         &                       /(                         &
-         &                         +2.0d0                   &
-         &                         *Pi                      &
-         &                        )**3
+    double precision                       , intent(in   ) :: wavenumber, time
+
+    standardPowerDimensionless=+4.0d0                          &
+         &                     *Pi                             &
+         &                     *           wavenumber      **3 &
+         &                     *self%power(wavenumber,time)    &
+         &                     /(                              &
+         &                       +2.0d0                        &
+         &                       *Pi                           &
+         &                      )**3
     return
   end function standardPowerDimensionless

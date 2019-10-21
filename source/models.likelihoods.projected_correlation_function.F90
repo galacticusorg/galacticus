@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
-  
-  use Linear_Algebra            , only : vector                           , matrix
-  use Geometry_Surveys          , only : surveyGeometryClass              , surveyGeometry
-  use Cosmology_Functions       , only : cosmologyFunctionsClass          , cosmologyFunctions
-  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass         , darkMatterHaloScale
-  use Power_Spectra             , only : powerSpectrumClass               , powerSpectrum
-  use Linear_Growth             , only : linearGrowthClass                , linearGrowth
-  use Halo_Mass_Functions       , only : haloMassFunctionClass            , haloMassFunction
-  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass, darkMatterProfileScaleRadius
-  use Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass          , darkMatterHaloBias
-  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass        , darkMatterProfileDMO
+
+  use :: Cosmology_Functions       , only : cosmologyFunctions          , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBias          , darkMatterHaloBiasClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale         , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
+  use :: Geometry_Surveys          , only : surveyGeometry              , surveyGeometryClass
+  use :: Halo_Mass_Functions       , only : haloMassFunction            , haloMassFunctionClass
+  use :: Linear_Algebra            , only : matrix                      , vector
+  use :: Linear_Growth             , only : linearGrowth                , linearGrowthClass
+  use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for projected correlation functions.</description>
@@ -40,7 +40,6 @@
      class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_                  => null()
      class           (surveyGeometryClass              ), pointer                     :: surveyGeometry_                      => null()
      class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_                 => null()
-     class           (linearGrowthClass                ), pointer                     :: linearGrowth_                        => null()
      class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_                    => null()
      class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_                => null()
      class           (darkMatterHaloBiasClass          ), pointer                     :: darkMatterHaloBias_                  => null()
@@ -72,7 +71,7 @@ contains
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
@@ -80,7 +79,6 @@ contains
     class           (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     class           (surveyGeometryClass                               ), pointer       :: surveyGeometry_
     class           (darkMatterHaloScaleClass                          ), pointer       :: darkMatterHaloScale_
-    class           (linearGrowthClass                                 ), pointer       :: linearGrowth_
     class           (haloMassFunctionClass                             ), pointer       :: haloMassFunction_
     class           (darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), pointer       :: darkMatterHaloBias_
@@ -129,18 +127,16 @@ contains
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                 name="linearGrowth_"                 source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=posteriorSampleLikelihoodPrjctdCorrelationFunction(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,linearGrowth_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
+    self=posteriorSampleLikelihoodPrjctdCorrelationFunction(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="powerSpectrum_"               />
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="surveyGeometry_"              />
     !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="linearGrowth_"                />
     !# <objectDestructor name="haloMassFunction_"            />
     !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="darkMatterHaloBias_"          />
@@ -148,12 +144,12 @@ contains
     return
   end function projectedCorrelationFunctionConstructorParameters
 
-  function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,linearGrowth_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
+  function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
-    use Galacticus_Paths
-    use IO_HDF5
-    use Memory_Management
-    use Node_Component_Dark_Matter_Profile_Scale
+    use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
+    use :: IO_HDF5          , only : hdf5Access    , hdf5Object
+    use :: Linear_Algebra   , only : assignment(=)
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
     double precision                                                    , intent(in   )         :: haloMassMinimum    , haloMassMaximum, &
@@ -164,13 +160,12 @@ contains
     class           (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class           (surveyGeometryClass                               ), intent(in   ), target :: surveyGeometry_
     class           (darkMatterHaloScaleClass                          ), intent(in   ), target :: darkMatterHaloScale_
-    class           (linearGrowthClass                                 ), intent(in   ), target :: linearGrowth_
     class           (haloMassFunctionClass                             ), intent(in   ), target :: haloMassFunction_
     class           (darkMatterProfileDMOClass                         ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5Object                                        )                        :: file
-    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *linearGrowth_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
@@ -206,22 +201,22 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"          />
     !# <objectDestructor name="self%surveyGeometry_"              />
     !# <objectDestructor name="self%darkMatterHaloScale_"         />
-    !# <objectDestructor name="self%linearGrowth_"                />
     !# <objectDestructor name="self%haloMassFunction_"            />
     !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     return
   end subroutine projectedCorrelationFunctionDestructor
-  
+
   double precision function projectedCorrelationFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the projected correlation function likelihood function.
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
-    use Conditional_Mass_Functions
-    use Galacticus_Error
-    use Halo_Model_Projected_Correlations
-    use Models_Likelihoods_Constants
+    use :: Conditional_Mass_Functions       , only : conditionalMassFunctionBehroozi2010
+    use :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
+    use :: Linear_Algebra                   , only : assignment(=)                      , operator(*)
+    use :: Models_Likelihoods_Constants     , only : logImpossible
+    use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                         ), intent(inout)               :: simulationState
@@ -274,7 +269,6 @@ contains
             &                                self%cosmologyFunctions_               , &
             &                                self%surveyGeometry_                   , &
             &                                self%darkMatterHaloScale_              , &
-            &                                self%linearGrowth_                     , &
             &                                self%haloMassFunction_                 , &
             &                                self%darkMatterProfileDMO_             , &
             &                                self%darkMatterHaloBias_               , &

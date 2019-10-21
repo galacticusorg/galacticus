@@ -19,8 +19,8 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{dutton_cold_2014} algorithm.
 
-  use Cosmology_Parameters
-  use Cosmology_Functions
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
@@ -59,14 +59,14 @@
      module procedure duttonMaccio2014ConstructorInternalType
      module procedure duttonMaccio2014ConstructorInternalDefined
   end interface darkMatterProfileConcentrationDuttonMaccio2014
-  
+
   ! Density contrast methods.
   !# <enumeration>
   !#  <name>duttonMaccio2014DensityContrastMethod</name>
   !#  <description>Enumeration of density contrast methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
   !#  <visibility>private</visibility>
-  !#  <entry label="virial" />
-  !#  <entry label="mean200"/>
+  !#  <entry label="virial"     />
+  !#  <entry label="critical200"/>
   !# </enumeration>
 
   ! Density profile methods.
@@ -77,7 +77,7 @@
   !#  <entry label="NFW"    />
   !#  <entry label="einasto"/>
   !# </enumeration>
-  
+
 contains
 
   function duttonMaccio2014ConstructorParameters(parameters) result(self)
@@ -99,7 +99,7 @@ contains
     !#   <name>fitType</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('nfwVirial')</defaultValue>
-    !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwMean200}, {\normalfont \ttfamily einastoMean200}, and {\normalfont \ttfamily userDefined}.</description>
+    !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwCritical200}, {\normalfont \ttfamily einastoCritical200}, and {\normalfont \ttfamily userDefined}.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -158,7 +158,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     character(len=*                                         ), intent(in   )         :: fitType
@@ -167,7 +167,7 @@ contains
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     select case (fitType)
-    case ('nfwVirial'     )
+    case ('nfwVirial'         )
        self%a1                   =+0.537d0
        self%a2                   =+1.025d0
        self%a3                   =-0.718d0
@@ -176,35 +176,35 @@ contains
        self%b2                   =+0.024d0
        self%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('nfwMean200'    )
+    case ('nfwCritical200'    )
        self%a1                   =+0.520d0
        self%a2                   =+0.905d0
        self%a3                   =-0.617d0
        self%a4                   =+1.210d0
        self%b1                   =-0.101d0
        self%b2                   =+0.026d0
-       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodCritical200
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('einastoMean200')
+    case ('einastoCritical200')
        self%a1                   =+0.459d0
        self%a2                   =+0.977d0
        self%a3                   =-0.490d0
        self%a4                   =+1.303d0
        self%b1                   =-0.130d0
        self%b2                   =+0.029d0
-       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodCritical200
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
-       call Galacticus_Error_Report('unrecognized fit type [available types are: nfwVirial, nfwMean200, einastoMean200]'//{introspection:location})
+       call Galacticus_Error_Report('unrecognized fit type [available types are: nfwVirial, nfwCritical200, einastoCritical200]'//{introspection:location})
     end select
     call self%definitions()
     return
   end function duttonMaccio2014ConstructorInternalType
-  
+
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     !% parameters.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     double precision                                                , intent(in   )         :: a1                  , a2, &
@@ -218,26 +218,27 @@ contains
     return
   end function duttonMaccio2014ConstructorInternalDefined
 
-  
+
   subroutine duttonMaccio2014Definitions(self)
     !% Establish virial density contrast and dark matter profile definitions.
-    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout), target  :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
 
     select case (self%densityContrastMethod)
-    case (duttonMaccio2014DensityContrastMethodMean200   )
-       allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+    case (duttonMaccio2014DensityContrastMethodCritical200)
+       allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastFixed)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeMean,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastFixed                                     )
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
        end select
-    case (duttonMaccio2014DensityContrastMethodVirial)
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+    case (duttonMaccio2014DensityContrastMethodVirial    )
+       allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true. ,                                               self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(darkMatterHaloScaleDefinition_)
@@ -259,23 +260,23 @@ contains
     !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
     return
   end subroutine duttonMaccio2014Definitions
-  
+
   subroutine duttonMaccio2014Destructor(self)
     !% Destructor for the {\normalfont \ttfamily DuttonMaccio2014} dark matter profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine duttonMaccio2014Destructor
-  
+
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), target  :: node
@@ -312,7 +313,7 @@ contains
     implicit none
     class(virialDensityContrastClass                    ), pointer       :: duttonMaccio2014DensityContrastDefinition
     class(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
-    
+
     duttonMaccio2014DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function duttonMaccio2014DensityContrastDefinition

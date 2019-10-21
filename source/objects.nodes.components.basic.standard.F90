@@ -77,7 +77,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Basic_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, propertyTypeInactive, nodeComponentBasicStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, propertyTypeInactive, treeNode
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
@@ -86,7 +86,7 @@ contains
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basicComponent
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
-    
+
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
@@ -107,7 +107,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Basic_Standard_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale        =1.0d-3
@@ -132,7 +132,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Tree_Initialize(node)
     !% Set the mass accretion rate for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: childNode          , nodeParent
@@ -212,7 +212,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Basic_Standard_Stop_Accretion(node)
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     class(nodeComponentBasic)               , pointer :: basic
@@ -236,17 +236,17 @@ contains
    subroutine Node_Component_Basic_Standard_Promote(node)
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
      !% to be that of its parent.
-     use Galacticus_Nodes  , only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
-     use Galacticus_Error
-     use ISO_Varying_String
-     use String_Handling
+     use :: Galacticus_Error  , only : Galacticus_Error_Report
+     use :: Galacticus_Nodes  , only : nodeComponentBasic     , nodeComponentBasicStandard, treeNode
+     use :: ISO_Varying_String
+     use :: String_Handling   , only : operator(//)
      implicit none
      type     (treeNode          ), intent(inout), pointer :: node
      type     (treeNode          )               , pointer :: nodeParent
      class    (nodeComponentBasic)               , pointer :: basicParent, basic
      type     (varying_string    )                         :: message
      character(len=12            )                         :: label
-     
+
      ! Get the basic component.
      basic => node%basic()
      ! Ensure that it is of the standard class.
@@ -275,7 +275,7 @@ contains
 
   double precision function Node_Component_Basic_Standard_Unresolved_Mass(node)
     !% Return the unresolved mass for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeChild
@@ -300,7 +300,7 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Basic_Standard_Plausibility(node)
     !% Determines whether the basic is physically plausible. Require the mass and time to be positive.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type   (treeNode          ), intent(inout) :: node
     class  (nodeComponentBasic), pointer       :: basic
@@ -320,9 +320,9 @@ contains
   !# <unitName>Node_Component_Basic_Standard_Post_Step</unitName>
   !# </postStepTask>
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
-    !% Trim histories attached to the disk.
-    use FGSL
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
+    !% Test for failure in the basic mass evolution.
+    use :: FGSL            , only : FGSL_Failure
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(inout)          :: status

@@ -43,12 +43,12 @@ contains
   function logarithmConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily logarithm} 1D distribution function class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryLogarithm)                :: self
     type(inputParameters       ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=operatorUnaryLogarithm()
     return
   end function logarithmConstructorParameters

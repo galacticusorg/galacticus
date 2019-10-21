@@ -19,7 +19,7 @@
 
   !% Implements a merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
 
-  use Satellite_Merging_Mass_Movements
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
   !#  <description>A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.</description>
@@ -49,15 +49,15 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
-    use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
-    use Galacticus_Error
-    use Array_Utilities
-    use Input_Parameters
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type (mergerProgenitorPropertiesCole2000)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(mergerMassMovementsClass          ), pointer       :: mergerMassMovements_
-    
+
     ! Ensure that required methods are supported.
     if     (                                                                                                                                                           &
          &  .not.                                                                                                                                                      &
@@ -105,14 +105,14 @@ contains
     !# <objectDestructor name="mergerMassMovements_"/>
     return
   end function cole2000ConstructorParameters
-  
+
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
     implicit none
     type (mergerProgenitorPropertiesCole2000)                        :: self
     class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
     !# <constructorAssign variables="*mergerMassMovements_"/>
-    
+
     return
   end function cole2000ConstructorInternal
 
@@ -124,15 +124,16 @@ contains
     !# <objectDestructor name="self%mergerMassMovements_"/>
     return
   end subroutine cole2000Destructor
-  
+
   subroutine cole2000Get(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
-    use Galacticus_Nodes                  , only : nodeComponentDisk, nodeComponentSpheroid
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Galacticus_Error
-    use Root_Finder
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
+    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
+    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
+    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self
     type            (treeNode                          ), intent(inout), target :: nodeSatellite                  , nodeHost
@@ -341,9 +342,9 @@ contains
 
   double precision function cole2000HalfMassRadiusRoot(radius)
     !% Function used in root finding for progenitor galaxy half-mass radii.
-    use Satellite_Merging_Mass_Movements
-    use Galactic_Structure_Options
-    use Galactic_Structure_Enclosed_Masses
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid   , massTypeGaseous, massTypeStellar
+    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerSpheroid       , destinationMergerUnmoved
     implicit none
     double precision, intent(in   ) :: radius
 

@@ -35,7 +35,7 @@ contains
     !% \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
     !% specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no
     !% {\normalfont \ttfamily rangeType} is given).
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   )           :: rangeMaximum                  , rangeMinimum
     integer         , intent(in   )           :: rangeNumber

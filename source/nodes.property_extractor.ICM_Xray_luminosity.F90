@@ -19,11 +19,11 @@
 
 !% Contains a module which implements an intracluster medium X-ray luminosity property extractor class.
 
-  use Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
-  use Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
-  use Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
-  use Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
-  use Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
+  use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
   !#  <description>An intracluster medium X-ray luminosity property extractor class.</description>
@@ -53,10 +53,10 @@
   end interface nodePropertyExtractorICMXRayLuminosity
 
 contains
-  
+
   function icmXRayLuminosityConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorICMXRayLuminosity)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -107,27 +107,27 @@ contains
     !# <objectDestructor name="self%coolingFunction_"          />
     return
   end subroutine icmXRayLuminosityDestructor
-  
+
   integer function icmXRayLuminosityElementCount(self,time)
     !% Return the number of elements in the lightconeple property extractors.
     implicit none
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
     double precision                                        , intent(in   ) :: time
     !GCC$ attributes unused :: self, time
-    
+
     icmXRayLuminosityElementCount=2
     return
   end function icmXRayLuminosityElementCount
 
   function icmXRayLuminosityExtract(self,node,time,instance)
     !% Implement an ICM X-ray properties extractor.
-    use FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
-    use Numerical_Integration       , only : Integrate                              , Integrate_Done
-    use Galacticus_Nodes            , only : treeNode                               , nodeComponentHotHalo
-    use Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
-    use Numerical_Constants_Prefixes, only : kilo
-    use Numerical_Constants_Physical, only : boltzmannsConstant
-    use Numerical_Constants_Units   , only : electronVolt
+    use :: FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
+    use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Units   , only : electronVolt
+    use :: Numerical_Integration       , only : Integrate                              , Integrate_Done
+    use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
     class           (nodePropertyExtractorICMXRayLuminosity ), intent(inout), target      :: self
@@ -140,7 +140,7 @@ contains
     logical                                                                               :: integrationReset
     double precision                                                                      :: luminosity          , temperature
     !GCC$ attributes unused :: self, time, instance
-    
+
     allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
     allocate(radiation_)
@@ -156,7 +156,7 @@ contains
          &                     reset            =integrationReset                            , &
          &                     toleranceAbsolute=0.0d+0                                      , &
          &                     toleranceRelative=1.0d-3                                        &
-         &                    )     
+         &                    )
     call Integrate_Done(integrandFunction,integrationWorkspace)
     integrationReset=.true.
     temperature     =Integrate(                                                                &
@@ -168,7 +168,7 @@ contains
          &                     reset            =integrationReset                            , &
          &                     toleranceAbsolute=0.0d+0                                      , &
          &                     toleranceRelative=1.0d-3                                        &
-         &                    )     
+         &                    )
     call Integrate_Done(integrandFunction,integrationWorkspace)
     if (luminosity > 0.0d0) then
        temperature=+temperature        &
@@ -188,13 +188,13 @@ contains
 
     double precision function integrandLuminosityXray(radius)
       !% Integrand function used for computing ICM X-ray luminosities.
-      use Numerical_Constants_Math         , only : Pi
-      use Numerical_Constants_Astronomical , only : massSolar                           , megaParsec
-      use Numerical_Constants_Atomic       , only : massHydrogenAtom
-      use Numerical_Constants_Prefixes     , only : hecto                               , centi
-      use Abundances_Structure             , only : abundances
-      use Chemical_Abundances_Structure    , only : chemicalAbundances
-      use Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+      use :: Abundances_Structure             , only : abundances
+      use :: Chemical_Abundances_Structure    , only : chemicalAbundances
+      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+      use :: Numerical_Constants_Astronomical , only : massSolar                           , megaParsec
+      use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
+      use :: Numerical_Constants_Math         , only : Pi
+      use :: Numerical_Constants_Prefixes     , only : centi                               , hecto
       implicit none
       double precision                      , intent(in   ) :: radius
       class           (nodeComponentHotHalo), pointer       :: hotHalo
@@ -230,7 +230,7 @@ contains
            &                  /massHydrogenAtom                           &
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
-      ! Evaluate the integrand.    
+      ! Evaluate the integrand.
       integrandLuminosityXray=+4.0d0                                                                                                                &
            &                  *Pi                                                                                                                   &
            &                  *radius**2                                                                                                            &
@@ -241,7 +241,7 @@ contains
            &                   )**3
       return
     end function integrandLuminosityXray
-    
+
     double precision function integrandTemperatureXray(radius)
       !% Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
       implicit none
@@ -282,8 +282,8 @@ contains
 
   function icmXRayLuminosityUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
-    use Numerical_Constants_Units   , only : ergs, electronVolt
-    use Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Units   , only : electronVolt, ergs
     implicit none
     double precision                                        , allocatable  , dimension(:) :: icmXRayLuminosityUnitsInSI
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)               :: self
@@ -297,7 +297,7 @@ contains
 
   integer function icmXRayLuminosityType(self)
     !% Return the type of the {\normalfont \ttfamily icmXRayLuminosity} properties.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -305,4 +305,4 @@ contains
     icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
     return
   end function icmXRayLuminosityType
-  
+

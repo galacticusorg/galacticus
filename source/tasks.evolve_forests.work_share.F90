@@ -21,8 +21,8 @@
 
 module Task_Evolve_Forests_Work_Shares
   !% Provides a class that implements general tasks to be performed by \glc.
-  use, intrinsic :: ISO_C_Binding
-  !$ use         :: OMP_Lib
+  use   , intrinsic :: ISO_C_Binding, only : c_size_t
+  !$ use            :: OMP_Lib
   private
 
   !# <functionClass>
@@ -59,22 +59,22 @@ module Task_Evolve_Forests_Work_Shares
   !#   </code>
   !#  </method>
   !# </functionClass>
-  
+
 contains
 
   subroutine evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
     !% Returns an ID for this worker which is unique across all MPI and OpenMP threads.
-    !$ use OMP_Lib
 #ifdef USEMPI
-    use MPI_Utilities
+    use    :: MPI_Utilities, only : mpiSelf
 #endif
+    !$ use :: OMP_Lib
     implicit none
     class  (evolveForestsWorkShareClass), intent(inout)               :: self
     logical                             , intent(in   )               :: utilizeOpenMPThreads
 #ifdef USEMPI
     integer                             , allocatable  , dimension(:) :: mpiProcessOpenMPThreadCount, mpiProcessIDOffset
     integer                                                           :: i                          , openMPThreadCount
-    
+
     ! Determine the number of OpenMP threads available to each MPI process.
     if (utilizeOpenMPThreads) then
        ! Both MPI and OpenMP threads are being used - must account for both types.

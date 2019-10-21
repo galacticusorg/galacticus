@@ -16,8 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
   !#  <description>A property extractor class for virial radius and velocity.</description>
@@ -35,7 +35,7 @@
      procedure :: unitsInSI    => virialPropertiesUnitsInSI
      procedure :: type         => virialPropertiesType
   end type nodePropertyExtractorVirialProperties
-  
+
   interface nodePropertyExtractorVirialProperties
      !% Constructors for the ``virialProperties'' output extractor class.
      module procedure virialPropertiesConstructorParameters
@@ -46,12 +46,12 @@ contains
 
   function virialPropertiesConstructorParameters(parameters) result(self)
     !% Constructor for the ``virialProperties'' property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorVirialProperties)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    
+
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=nodePropertyExtractorVirialProperties(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
@@ -68,7 +68,7 @@ contains
 
     return
   end function virialPropertiesConstructorInternal
-  
+
   subroutine virialPropertiesDestructor(self)
     !% Destructor for the {\normalfont \ttfamily virialProperties} property extractor class.
     implicit none
@@ -77,7 +77,7 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine virialPropertiesDestructor
-  
+
   integer function virialPropertiesElementCount(self,time)
     !% Return the number of elements in the {\normalfont \ttfamily virialProperies} property extractors.
     implicit none
@@ -88,7 +88,7 @@ contains
     virialPropertiesElementCount=2
     return
   end function virialPropertiesElementCount
-  
+
   function virialPropertiesExtract(self,node,time,instance)
     !% Implement a virialProperties output extractor.
     implicit none
@@ -98,7 +98,7 @@ contains
     double precision                                       , intent(in   )              :: time
     type            (multiCounter                         ), intent(inout), optional    :: instance
     !GCC$ attributes unused :: time, instance
-    
+
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
          &                   self%darkMatterHaloScale_%virialRadius  (node), &
@@ -141,8 +141,8 @@ contains
 
   function virialPropertiesUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
-    use Numerical_Constants_Prefixes    , only : kilo
-    use Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesUnitsInSI
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
@@ -159,7 +159,7 @@ contains
 
   integer function virialPropertiesType(self)
     !% Return the type of the virialProperties property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVirialProperties), intent(inout) :: self
     !GCC$ attributes unused :: self

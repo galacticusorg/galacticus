@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009}.
-  
-  use Galacticus_Paths
-  use Cosmology_Functions
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">
   !#  <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS
+     private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      character       (len=1                  )          :: band
      double precision                                   :: redshiftMinimum         , redshiftMaximum         , &
@@ -46,13 +46,13 @@ contains
 
   function monteroDorta2009SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{montero-dorta_sdss_2009} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type     (surveyGeometryMonteroDorta2009SDSS)                :: self
     type     (inputParameters                   ), intent(inout) :: parameters
     class    (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     character(len=1                             )                :: band
-    
+
     !# <inputParameter>
     !#   <name>band</name>
     !#   <source>parameters</source>
@@ -66,10 +66,10 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function monteroDorta2009SDSSConstructorParameters
-  
+
   function monteroDorta2009SDSSConstructorInternal(band,cosmologyFunctions_,redshiftMinimum,redshiftMaximum) result (self)
     !% Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryMonteroDorta2009SDSS)                          :: self
     character       (len=1                             ), intent(in   )           :: band
@@ -119,15 +119,14 @@ contains
     !% Destructor for the ``monteroDorta2009SDSS'' survey geometry class.
     implicit none
     type(surveyGeometryMonteroDorta2009SDSS), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine monteroDorta2009SDSSDestructor
-  
+
   double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -149,8 +148,8 @@ contains
 
   double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Galacticus_Error
-    use Cosmology_Functions_Options
+    use :: Cosmology_Functions_Options, only : distanceTypeComoving
+    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity
@@ -165,7 +164,7 @@ contains
     ! where D(z)=25+5log(Dₗ) is the regular distance modulus, Dₗ(z)=(1+z)Dᵪ(z) is the luminosity distance, Dᵪ(z) is the comoving
     ! distance, the -2.5log₁₀(1+z) terms accounts for compression of photon frequencies due to redshifting, and K is the
     ! k-correction. Since we do knot know K for each galaxy we neglect it. As such:
-    !  D(z) - 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z)] + 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z) √(1+z)] = m - M₀.₁    
+    !  D(z) - 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z)] + 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z) √(1+z)] = m - M₀.₁
     ! This is converted to a comoving distance by calling the relevant cosmological conversion function, with the input difference
     ! of magnitudes explicitly noted to contain the -2.5log₁₀(1+z) K-correction factor.
     distanceMaximumRedshift =self   %cosmologyFunctions_%distanceComoving           (                                                          &

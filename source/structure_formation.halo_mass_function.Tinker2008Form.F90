@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
-  use Cosmological_Density_Field
-  use Linear_Growth
-  use Cosmology_Functions
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Linear_Growth             , only : linearGrowthClass
 
   !# <haloMassFunction name="haloMassFunctionTinker2008Form" abstract="yes">
   !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}.</description>
@@ -76,13 +76,11 @@
        double precision                                , intent(in   ) :: time, mass
      end function tinker2008FormParameter
   end interface
-  
+
 contains
 
   double precision function tinker2008FormDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use Numerical_Interpolation
-    use Table_Labels
     implicit none
     class           (haloMassFunctionTinker2008Form), intent(inout)            :: self
     double precision                                , intent(in   )            :: time , mass
@@ -93,24 +91,23 @@ contains
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= self%time .or. mass /= self%mass) then
        ! Compute and store the mass function.
-       sigma            =+    self%cosmologicalMassVariance_%rootVariance                   (mass)  &
-            &            *    self%linearGrowth_            %value                          (time)
-       alpha            =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
-       self%massFunction=+    self%cosmologyParameters_     %OmegaMatter                    (    )  &
-            &            *    self%cosmologyParameters_     %densityCritical                (    )  &
-            &            /mass**2                                                                   &
-            &            *alpha                                                                     &
-            &            *self%normalization(time,mass)                                             &
-            &            *exp(                                                                      &
-            &                 -self%c(time,mass)                                                    &
-            &                 /sigma**2                                                             &
-            &                )                                                                      &
-            &            *(                                                                         &
-            &              +1.0d0                                                                   &
-            &              +(                                                                       &
-            &                +self%b(time,mass)                                                     &
-            &                /sigma                                                                 &
-            &               )**self%a(time,mass)                                                    &
+       sigma            =+    self%cosmologicalMassVariance_%rootVariance                   (mass,time)
+       alpha            =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
+       self%massFunction=+    self%cosmologyParameters_     %OmegaMatter                    (         )  &
+            &            *    self%cosmologyParameters_     %densityCritical                (         )  &
+            &            /mass**2                                                                        &
+            &            *alpha                                                                          &
+            &            *self%normalization(time,mass)                                                  &
+            &            *exp(                                                                           &
+            &                 -self%c(time,mass)                                                         &
+            &                 /sigma**2                                                                  &
+            &                )                                                                           &
+            &            *(                                                                              &
+            &              +1.0d0                                                                        &
+            &              +(                                                                            &
+            &                +self%b(time,mass)                                                          &
+            &                /sigma                                                                      &
+            &               )**self%a(time,mass)                                                         &
             &             )
        ! Store the time and mass.
        self%time=time

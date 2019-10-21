@@ -19,10 +19,10 @@
 
   !% Implementation of a merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
 
-  use Halo_Mass_Functions       , only : haloMassFunctionClass       , haloMassFunction
-  use Conditional_Mass_Functions, only : conditionalMassFunctionClass, conditionalMassFunction
-  use Meta_Tree_Compute_Times   , only : metaTreeProcessingTimeClass , metaTreeProcessingTime
-    
+  use :: Conditional_Mass_Functions, only : conditionalMassFunction, conditionalMassFunctionClass
+  use :: Halo_Mass_Functions       , only : haloMassFunction       , haloMassFunctionClass
+  use :: Meta_Tree_Compute_Times   , only : metaTreeProcessingTime , metaTreeProcessingTimeClass
+
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
   !# </mergerTreeBuildMassDistribution>
@@ -51,7 +51,7 @@ contains
 
   function stellarMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionStllrMssFnctn)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -62,7 +62,7 @@ contains
          &                                                                           constant                , binWidthLogarithmic, &
          &                                                                           massMinimum             , massMaximum        , &
          &                                                                           massCharacteristic      , normalization
-    
+
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <cardinality>1</cardinality>
@@ -142,7 +142,7 @@ contains
          &                                                                                   massMinimum             , massMaximum        , &
          &                                                                                   massCharacteristic      , normalization
     !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_, *conditionalMassFunction_, *metaTreeProcessingTime_"/>
-    
+
     return
   end function stellarMassFunctionConstructorInternal
 
@@ -159,8 +159,8 @@ contains
 
   double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
-    use FGSL                         , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
+    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     class           (mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
     double precision                                              , intent(in   ) :: mass                               , massMaximum                 , &

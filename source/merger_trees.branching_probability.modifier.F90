@@ -21,6 +21,7 @@
 
 module Merger_Tree_Branching_Modifiers
   !% Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -32,7 +33,8 @@ module Merger_Tree_Branching_Modifiers
   !#   <description>Return the multiplicative modifier to the tree branch probability rate.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: deltaParent, sigmaChild, sigmaParent</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: nodeParent</argument>
+  !#   <argument>double precision          , intent(in   ) :: massParent, sigmaParent, sigmaChild, timeParent</argument>
   !#  </method>
   !# </functionClass>
 

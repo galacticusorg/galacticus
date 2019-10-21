@@ -19,8 +19,8 @@
 
   !% Implementation of a timescale for star formation feedback in galactic disks which scales with the circular velocity of the host halo.
 
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Scales
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling">
   !#  <description>A haloScaling timescale for star formation feedback in galactic disks.</description>
@@ -65,7 +65,7 @@ contains
   function haloScalingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback in disks class which takes a
     !% parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleDisksHaloScaling)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -119,7 +119,7 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="exponentVelocityVirial, exponentRedshift, *cosmologyFunctions_, *darkMatterHaloScale_"/>
-    
+
     self%lastUniqueID                 =-1_kind_int8
     self%timescaleComputed            =.false.
     self%velocityPrevious             =-1.0d0
@@ -134,17 +134,17 @@ contains
 
   subroutine haloScalingAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
 
     call calculationResetEvent%attach(self,haloScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine haloScalingAutoHook
-  
+
   subroutine haloScalingDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation in disks class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
 
@@ -167,14 +167,14 @@ contains
 
   double precision function haloScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationTimescaleDisksHaloScaling), intent(inout), target :: self
     type            (treeNode                              ), intent(inout), target :: node
     class           (nodeComponentBasic                    ), pointer               :: basic
     double precision                                                                :: expansionFactor, velocityVirial
-    
-    
+
+
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Compute the timescale if necessary.

@@ -18,14 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution class.
-  
-  use Tables
+
+  use :: Tables, only : table1DLogarithmicLinear
 
   !# <massDistribution name="massDistributionMiyamotoNagai">
   !#  <description>An Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution class.</description>
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionMiyamotoNagai
      !% The Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution.
+     private
      double precision                           :: a                        , b                      , &
           &                                        densityNormalization     , mass                   , &
           &                                        shape                    , radiusHalfMassValue
@@ -70,8 +71,7 @@ contains
   function miyamotoNagaiConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily miyamotoNagai} mass distribution class which builds the object from a parameter
     !% set.
-    use Numerical_Constants_Math
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionMiyamotoNagai)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -124,9 +124,9 @@ contains
 
   function miyamotoNagaiConstructorInternal(a,b,mass,dimensionless) result(self)
     !% Internal constructor for ``miyamotoNagai'' mass distribution class.
-    use Numerical_Constants_Math
-    use Numerical_Comparison
-    use Galacticus_Error
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Comparison    , only : Values_Differ
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionMiyamotoNagai)                          :: self
     double precision                               , intent(in   ), optional :: a            , b, &
@@ -176,7 +176,7 @@ contains
 
   double precision function miyamotoNagaiDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
-    use Coordinates
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates
@@ -230,7 +230,6 @@ contains
 
   double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass distributions.
-    use Numerical_Constants_Math
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout), target :: self
     double precision                               , intent(in   )         :: radius
@@ -256,10 +255,10 @@ contains
 
   subroutine miyamotoNagaiMassEnclosedTabulate(self)
     !% Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
-    use Numerical_Integration
-    use Numerical_Constants_Math
-    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
-    use Table_Labels
+    use :: FGSL                    , only : fgsl_function               , fgsl_integration_workspace
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
@@ -324,7 +323,6 @@ contains
 
     double precision function integrandR(r)
       !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
-      use Coordinates
       implicit none
       double precision                            , intent(in   ) :: r
       type            (fgsl_function             )                :: integrandFunction1
@@ -350,7 +348,7 @@ contains
 
     double precision function integrandZ(z)
       !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
-      use Coordinates
+      use :: Coordinates, only : assignment(=), coordinateCylindrical
       implicit none
       double precision                       , intent(in   ) :: z
       type            (coordinateCylindrical)                :: position
@@ -364,9 +362,9 @@ contains
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
     !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
-    use Numerical_Integration    
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use Table_Labels
+    use :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
+    use :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use :: Table_Labels         , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
@@ -408,7 +406,7 @@ contains
 
     double precision function integrandSurfaceDensity(height)
       !% Integrand function used for finding the surface density of Miyamoto-Nagai disks.
-      use Coordinates
+      use :: Coordinates, only : assignment(=), coordinateCylindrical
       implicit none
       double precision                       , intent(in   ) :: height
       type            (coordinateCylindrical)                :: position
@@ -422,7 +420,7 @@ contains
 
   double precision function miyamotoNagaiSurfaceDensity(self,coordinates)
     !% Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Miyamoto-Nagai mass distribution.
-    use Coordinates
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates
@@ -438,10 +436,11 @@ contains
 
   double precision function miyamotoNagaiSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Tables          , only : tablesIntegrationWeightFunction
     implicit none
     class           (massDistributionMiyamotoNagai   ), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: moment 
+    double precision                                 , intent(in   )           :: moment
     double precision                                 , intent(in   ), optional :: radiusMinimum          , radiusMaximum
     logical                                          , intent(  out), optional :: isInfinite
     procedure       (tablesIntegrationWeightFunction), pointer                 :: integrandWeightFunction
@@ -496,7 +495,7 @@ contains
          &     )
     return
 
-  contains  
+  contains
 
     double precision function momentWeight(radius)
       !% The weight function used in computing radial moments of the Miyamoto-Nagai mass distribution surface density.
@@ -511,8 +510,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurve(self,radius)
     !% Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
-    use Coordinates
-    use Numerical_Constants_Physical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -542,8 +540,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use Numerical_Constants_Physical
-    use Coordinates
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -583,8 +580,8 @@ contains
 
   double precision function miyamotoNagaiPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use Numerical_Constants_Physical
-    use Coordinates
+    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates

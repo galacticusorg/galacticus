@@ -19,7 +19,7 @@
 
   !% Implements a cooling function class which utilizes the {\normalfont \scshape Cloudy} code to
   !% compute cooling in collisional ionization equilibrium.
-  
+
   !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
   !#  <description>
   !#   Class providing cooling function by utilizing the {\normalfont \scshape Cloudy} code to
@@ -28,7 +28,7 @@
   !#   Cloudy} is used to generate a file which contains a tabulation of the cooling function
   !#   suitable for reading by the {\normalfont \ttfamily CIE from file} method. Generation of
   !#   the tabulation typically takes several hours, but only needs to be done once as the
-  !#   stored table is simply read back in on later runs.}.  
+  !#   stored table is simply read back in on later runs.}.
   !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionCIEFile) :: coolingFunctionAtomicCIECloudy
@@ -76,7 +76,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters)
     !% Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
@@ -85,7 +85,7 @@ contains
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
   end function atomicCIECloudyConstructorParameters
-  
+
   function atomicCIECloudyConstructorInternal()
     !% Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
     implicit none
@@ -101,10 +101,9 @@ contains
     atomicCIECloudyConstructorInternal%initialized             =.false.
    return
   end function atomicCIECloudyConstructorInternal
-  
+
   subroutine atomicCIECloudyDestructor(self)
     !% Destructor for the ``atomic CIE Cloudy'' cooling function class.
-    use Numerical_Interpolation
     implicit none
     type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -115,16 +114,16 @@ contains
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !% Create the cooling function.
-    use Galacticus_Paths
-    use String_Handling
-    use Galacticus_Display
-    use Interfaces_Cloudy_CIE
-    use File_Utilities       , only : File_Remove
+    use :: Abundances_Structure , only : Abundances_Get_Metallicity   , metallicityTypeLinearByMassSolar
+    use :: File_Utilities       , only : File_Remove
+    use :: Galacticus_Paths     , only : galacticusPath               , pathTypeDataStatic
+    use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
+    use :: String_Handling      , only : operator(//)
     implicit none
     class  (coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type   (abundances                    ), intent(in   ) :: gasAbundances
     logical                                                :: makeFile
-    
+
     ! Determine if we need to retabulate the chemical state.
     if (.not.self%initialized) then
        makeFile=.true.
@@ -173,7 +172,7 @@ contains
     end if
     return
   end subroutine atomicCIECloudyTabulate
-  
+
   double precision function atomicCIECloudyCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function for collisional ionization equilibrium as computed by
     !% {\normalfont \scshape Cloudy}.

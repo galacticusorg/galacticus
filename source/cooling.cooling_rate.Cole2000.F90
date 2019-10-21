@@ -19,8 +19,8 @@
 
   !% Implementation of a cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
 
-  use Cooling_Infall_Radii
-  use Hot_Halo_Mass_Distributions
+  use :: Cooling_Infall_Radii       , only : coolingInfallRadiusClass
+  use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <coolingRate name="coolingRateCole2000">
   !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
@@ -46,13 +46,13 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRateCole2000         )                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(coolingInfallRadiusClass    ), pointer       :: coolingInfallRadius_
     class(hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
-    
+
     !# <objectBuilder class="coolingInfallRadius"     name="coolingInfallRadius_"     source="parameters"/>
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=coolingRateCole2000(coolingInfallRadius_,hotHaloMassDistribution_)
@@ -86,11 +86,11 @@ contains
   double precision function cole2000Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
-    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentHotHalo
-    use Numerical_Constants_Math
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentHotHalo, treeNode
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (coolingRateCole2000 ), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node    
+    type            (treeNode            ), intent(inout) :: node
     class           (nodeComponentBasic  ), pointer       :: basicFormation
     class           (nodeComponentHotHalo), pointer       :: hotHaloFormation
     double precision                                      :: densityInfall            , radiusInfall, &

@@ -48,13 +48,13 @@ contains
   function normalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
     !% set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DNormal)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: mean      , variance  , &
          &                                                           limitLower, limitUpper
-    
+
     !# <inputParameter>
     !#   <name>mean</name>
     !#   <cardinality>1</cardinality>
@@ -95,10 +95,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function normalConstructorParameters
-  
+
   function normalConstructorInternal(mean,variance,limitLower,limitUpper) result(self)
     !% Constructor for ``normal'' 1D distribution function class.
-    use Error_Functions
+    use :: Error_Functions, only : Error_Function
     implicit none
     type            (distributionFunction1DNormal)                          :: self
     double precision                              , intent(in   )           :: mean      , variance
@@ -127,7 +127,7 @@ contains
 
   double precision function normalMinimum(self)
     !% Return the minimum possible value of a uniform distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -142,7 +142,7 @@ contains
 
   double precision function normalMaximum(self)
     !% Return the maximum possible value of a uniform distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -157,7 +157,7 @@ contains
 
   double precision function normalDensity(self,x)
     !% Return the density of a normal distribution.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DNormal), intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -190,7 +190,7 @@ contains
 
   double precision function normalCumulative(self,x)
     !% Return the cumulative probability of a normal distribution.
-    use Error_Functions
+    use :: Error_Functions, only : Error_Function
     implicit none
     class           (distributionFunction1DNormal), intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -214,7 +214,7 @@ contains
 
   double precision function normalInverse(self,p)
     !% Return the inverse of a normal distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DNormal), intent(inout), target :: self
     double precision                              , intent(in   )         :: p
@@ -241,7 +241,7 @@ contains
     !% Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John
     !% Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the alogorithm of
     !% \cite{wichura_percentage_1988}.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   )                :: p
     double precision, parameter    , dimension (8) :: a=[                            &
@@ -343,7 +343,7 @@ contains
           normalStandardInverse=+normalPolynomialEvaluate(8,e,r) &
                &                /normalPolynomialEvaluate(8,f,r)
        end if
-       if (q < 0.0d0) normalStandardInverse=-normalStandardInverse 
+       if (q < 0.0d0) normalStandardInverse=-normalStandardInverse
     end if
     return
   end function normalStandardInverse

@@ -19,9 +19,9 @@
 
   !% Implementation of an outflow rate due to star formation feedback in galactic disks which scales with halo velocity.
 
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Scales
-  
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !# <starFormationFeedbackDisks name="starFormationFeedbackDisksHaloScaling">
   !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with halo velocity.</description>
   !# </starFormationFeedbackDisks>
@@ -49,7 +49,7 @@ contains
 
   function haloScalingConstructorParameters(parameters) result(self)
     !% Constructor for the halo scaling fraction star formation feedback in disks class which takes a parameter set as input.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackDisksHaloScaling)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -93,7 +93,7 @@ contains
 
   function haloScalingConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the halo scaling star formation feedback from disks class.
-    use Stellar_Feedback
+    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     type            (starFormationFeedbackDisksHaloScaling)                        :: self
     double precision                                       , intent(in   )         :: fraction                     , exponentRedshift, &
@@ -119,15 +119,15 @@ contains
     !% Destructor for the halo scaling feedback from star formation in disks class.
     implicit none
     type(starFormationFeedbackDisksHaloScaling), intent(inout) :: self
-  
+
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine haloScalingDestructor
-  
+
   double precision function haloScalingOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationFeedbackDisksHaloScaling), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node
@@ -145,7 +145,7 @@ contains
     if (velocityVirial /= self%velocityPrevious) then
        self%velocityPrevious=velocityVirial
        self%velocityFactor  =velocityVirial**self%exponentVelocity
-    end if    
+    end if
     ! Compute the expansion-factor factor.
     if (expansionFactor /= self%expansionFactorPrevious) then
        self%expansionFactorPrevious=      expansionFactor

@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a property extractor class for the density at a set of radii.
-  use Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
   !#  <description>A property extractor class for the density at a set of radii.</description>
@@ -52,10 +52,10 @@
   end interface nodePropertyExtractorDensityProfile
 
 contains
-  
+
   function densityProfileConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily densityProfile} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorDensityProfile)                              :: self
     type   (inputParameters                    ), intent(inout)               :: parameters
@@ -88,7 +88,7 @@ contains
 
   function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily densityProfile} property extractor class.
-    use Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
+    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorDensityProfile)                              :: self
     type   (varying_string                     ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -129,20 +129,20 @@ contains
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
     double precision                                     , intent(in   ) :: time
     !GCC$ attributes unused :: time
-    
+
     densityProfileElementCount=self%elementCount_
     return
   end function densityProfileElementCount
-  
+
   function densityProfileExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily densityProfile} property extractor.
-    use Galactic_Structure_Densities        , only : Galactic_Structure_Density
-    use Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
-    use Galactic_Structure_Options          , only : massTypeGalactic                        , componentTypeAll
-    use Galactic_Structure_Radii_Definitions, only : radiusTypeRadius                        , radiusTypeVirialRadius      , radiusTypeDarkMatterScaleRadius , radiusTypeDiskRadius          , &
-         &                                           radiusTypeSpheroidRadius                , radiusTypeDiskHalfMassRadius, radiusTypeSpheroidHalfMassRadius, radiusTypeGalacticMassFraction, &
-         &                                           radiusTypeGalacticLightFraction
-    use Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentSpheroid       , nodeComponentDisk
+    use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiusTypeVirialRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
     double precision                                     , dimension(:) , allocatable :: densityProfileExtract
     class           (nodePropertyExtractorDensityProfile), intent(inout), target      :: self
@@ -207,7 +207,7 @@ contains
     end do
     return
   end function densityProfileExtract
-  
+
   function densityProfileNames(self,time)
     !% Return the names of the {\normalfont \ttfamily densityProfile} properties.
     implicit none
@@ -225,7 +225,7 @@ contains
     end do
     return
   end function densityProfileNames
-  
+
   function densityProfileDescriptions(self,time)
     !% Return descriptions of the {\normalfont \ttfamily densityProfile} property.
     implicit none
@@ -243,10 +243,10 @@ contains
     end do
     return
   end function densityProfileDescriptions
-  
+
   function densityProfileUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily densityProfile} properties in the SI system.
-    use Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                     , allocatable  , dimension(:) :: densityProfileUnitsInSI
     class           (nodePropertyExtractorDensityProfile), intent(inout)               :: self
@@ -262,10 +262,10 @@ contains
     end do
     return
   end function densityProfileUnitsInSI
-  
+
   integer function densityProfileType(self)
     !% Return the type of the {\normalfont \ttfamily densityProfile} properties.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDensityProfile), intent(inout) :: self
     !GCC$ attributes unused :: self

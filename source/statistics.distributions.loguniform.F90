@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
-  
+
   !# <distributionFunction1D name="distributionFunction1DLogUniform">
   !#  <description>A 1D distibution function which is uniform in the logarithm of the variable.</description>
   !# </distributionFunction1D>
@@ -43,7 +43,7 @@ contains
   function logUniformConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily logUniform} 1D distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DLogUniform)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -67,13 +67,13 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function logUniformConstructorParameters
-  
+
   function logUniformConstructorInternal(limitLower,limitUpper) result(self)
     !% Constructor for ``logUniform'' 1D distribution function class.
     type            (distributionFunction1DLogUniform)                :: self
     double precision                                  , intent(in   ) :: limitLower, limitUpper
     !# <constructorAssign variables="limitLower, limitUpper"/>
-    
+
     self%randomNumberGenerator=pseudoRandom()
     return
   end function logUniformConstructorInternal
@@ -110,7 +110,7 @@ contains
 
   double precision function logUniformInverse(self,p)
     !% Return the inverse of a uniform distribution.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout), target :: self
     double precision                                  , intent(in   )         :: p

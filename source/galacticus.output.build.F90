@@ -24,7 +24,7 @@
 
 module Galacticus_Build
   !% Implements writing of \glc\ build information to the \glc\ output file.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_ptr
   implicit none
   private
   public :: Galacticus_Build_Output, Galacticus_Build_String
@@ -41,13 +41,13 @@ contains
 
   function Galacticus_Build_String()
     !% Returns a string describing the build environment of \glc.
-    use ISO_Varying_String
-    use String_Handling
-    use FoX_Common
-    use ISO_Varying_String
-    use FGSL              , only : FGSL_Version
-    use HDF5
-    use Galacticus_Error
+    use            :: FGSL              , only : FGSL_Version
+    use            :: FoX_Common        , only : Fox_Version
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : h5get_libversion_f
+    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer, c_null_char
+    use            :: ISO_Varying_String
+    use            :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string   )                        :: Galacticus_Build_String
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
@@ -111,14 +111,18 @@ contains
   !# </outputFileOpenTask>
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
-    use Galacticus_HDF5
-    use Galacticus_Paths
-    use FoX_Common
-    use ISO_Varying_String
-    use String_Handling
-    use Galacticus_Error
-    use FGSL              , only : FGSL_Version
-    use File_Utilities
+    use            :: FGSL              , only : FGSL_Version
+    use            :: File_Utilities    , only : File_Exists
+    use            :: FoX_Common        , only : Fox_Version
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec
+    use            :: HDF5              , only : h5get_libversion_f
+    use            :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer , c_null_char
+    use            :: ISO_Varying_String, only : assignment(=)          , char        , operator(//), operator(/=), &
+          &                                      varying_string
+    use            :: String_Handling   , only : operator(//)
     implicit none
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
     type     (varying_string   ), dimension(1)          :: changeSet

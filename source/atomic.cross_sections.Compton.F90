@@ -29,9 +29,9 @@ contains
 
   function Atomic_Cross_Section_Compton(photonEnergy)
     !% Returns the Compton cross section (in cm$^2$) for the specified {\normalfont \ttfamily photonEnergy} (in keV) from \cite{klein_uber_1929}.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Physical, only : electronMass, speedLight, thomsonCrossSection
+    use :: Numerical_Constants_Prefixes, only : hecto       , kilo
+    use :: Numerical_Constants_Units   , only : electronVolt
     implicit none
     double precision, dimension(:                 ), intent(in   ) :: photonEnergy
     double precision, dimension(size(photonEnergy))                :: Atomic_Cross_Section_Compton                                             , eta

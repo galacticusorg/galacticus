@@ -76,7 +76,7 @@
   <satelliteMergingTimescalesMethod value="jiang2008">
   <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescalesMethod>
-  <linearGrowthMethod value="simple"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
   <treeNodeMethodDisk value="verySimple"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>

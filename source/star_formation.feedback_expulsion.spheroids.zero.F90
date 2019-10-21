@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a zero expulsive outflow rate due to star formation feedback in galactic spheroids.
-  
+
   !# <starFormationExpulsiveFeedbackSpheroids name="starFormationExpulsiveFeedbackSpheroidsZero">
   !#  <description>A zero expulsive outflow rate due to star formation feedback in galactic spheroids.</description>
   !# </starFormationExpulsiveFeedbackSpheroids>
@@ -38,12 +38,12 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the superwind expulsive star formation feedback in spheroids class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(starFormationExpulsiveFeedbackSpheroidsZero)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=starFormationExpulsiveFeedbackSpheroidsZero()
     return
   end function zeroConstructorParameters

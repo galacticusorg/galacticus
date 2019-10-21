@@ -23,7 +23,7 @@
   !#  <description>Accretion disk spectra are interpolated from tables read from file.</description>
   !# </accretionDiskSpectra>
 
-  use FGSL, only : fgsl_interp_accel
+  use :: FGSL, only : fgsl_interp_accel
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !% An accretion disk spectra class which interpolates in spectra read from file.
@@ -80,13 +80,13 @@ contains
 
   function fileConstructorInternal(fileName)
     !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
-    use Galacticus_Error
-    use Array_Utilities
-    use Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
     type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
- 
+
     ! Ensure that the required methods are supported.
     if     (                                                                                                                           &
             &  .not.(                                                                                                                  &
@@ -116,8 +116,8 @@ contains
 
   subroutine fileDestructor(self)
     !% Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
-    use Numerical_Interpolation
-    use Memory_Management
+    use :: Memory_Management      , only : deallocateArray
+    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
@@ -135,8 +135,8 @@ contains
 
   subroutine fileLoadFile(self,fileName)
     !% Load a file of AGN spectra.
-    use IO_HDF5
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName
@@ -163,11 +163,11 @@ contains
 
   double precision function fileSpectrum(self,node,wavelength)
     !% Return the accretion disk spectrum for tabulated spectra.
+    use            :: Galacticus_Nodes                , only : nodeComponentBlackHole             , treeNode
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Interpolation
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Galacticus_Nodes                , only : nodeComponentBlackHole
+    use            :: Numerical_Constants_Astronomical, only : gigaYear                           , luminositySolar   , massSolar
+    use            :: Numerical_Constants_Physical    , only : speedLight
+    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
     type            (treeNode                ), intent(inout)  :: node
@@ -213,4 +213,4 @@ contains
     fileSpectrum=max(fileSpectrum,0.0d0)
     return
   end function fileSpectrum
-  
+

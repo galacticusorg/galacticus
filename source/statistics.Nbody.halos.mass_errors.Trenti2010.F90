@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
 
-  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
-  
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   !# <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
   !#  <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
   !# </nbodyHaloMassError>
@@ -46,14 +46,14 @@ contains
 
   function nbodyHaloMassErrorTrenti2010Parameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     double precision                                              :: massParticle           , correlationNormalization   , &
          &                                                           correlationMassExponent, correlationRedshiftExponent
-    
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>massParticle</name>
@@ -102,7 +102,7 @@ contains
     !% a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
     !% comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     !% normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
     double precision                              , intent(in   )                   :: massParticle
@@ -112,7 +112,7 @@ contains
     double precision                              , parameter                       :: exponent                =-1.000d0/3.0d0
     double precision                              , parameter                       :: normalization           =+0.135d0
     double precision                              , parameter                       :: particleNumberReference =+1.000d3
-    
+
     self%normalizationSquared          =(normalization*(powerLawMassReference/particleNumberReference/massParticle)**exponent)**2
     self%exponent                      =                                                                             exponent
     self%fractionalErrorHighMassSquared=+0.0d0
@@ -129,7 +129,7 @@ contains
        !# <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
     else
        self%correlationNormalization    =  0.0d0
-       self%correlationMassExponent     =  0.0d0       
+       self%correlationMassExponent     =  0.0d0
        self%correlationRedshiftExponent =  0.0d0
        self%cosmologyFunctions_         => null()
     end if
@@ -146,10 +146,10 @@ contains
     end if
     return
   end subroutine trenti2010Destructor
-  
+
   double precision function trenti2010Correlation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node1    , node2
@@ -172,4 +172,4 @@ contains
          &                *         expansionFactorRatio**self%correlationRedshiftExponent
     return
   end function trenti2010Correlation
-  
+

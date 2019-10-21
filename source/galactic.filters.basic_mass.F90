@@ -43,7 +43,7 @@ contains
 
   function basicMassConstructorParameters(parameters)
     !% Constructor for the ``basicMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterBasicMass)                :: basicMassConstructorParameters
     type(inputParameters        ), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
 
   logical function basicMassPasses(self,node)
     !% Implement a  basic mass high-pass galactic filter.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticFilterBasicMass), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node

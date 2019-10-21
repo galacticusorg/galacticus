@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a posterior sampling state class which computes correlation lengths.
-  
+
   !# <posteriorSampleState name="posteriorSampleStateCorrelation">
   !#  <description>A correlation posterior sampling state class.</description>
   !# </posteriorSampleState>
@@ -71,7 +71,7 @@ contains
   function correlationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateCorrelation)                :: self
     type   (inputParameters                ), intent(inout) :: parameters
@@ -93,12 +93,12 @@ contains
   function correlationConstructorInternal(acceptedStateCount) result(self)
     !% Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
     !% parameter set.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateCorrelation)                :: self
     integer                                 , intent(in   ) :: acceptedStateCount
     !# <constructorAssign variables="acceptedStateCount"/>
-    
+
     allocate(self%accepted(acceptedStateCount))
     self%stepCount                      = 0
     self%storedStateCount               = 0
@@ -108,7 +108,7 @@ contains
     self%chainIndexValue                =mpiSelf%rank()
     return
   end function correlationConstructorInternal
-  
+
   subroutine correlationParameterCountSet(self,parameterCount)
     !% Set the number of parameters in this state.
     implicit none
@@ -206,10 +206,10 @@ contains
 
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
     !% Compute correlation lengths.
-    use MPI_Utilities
-    use Galacticus_Display
-    use String_Handling
-    use ISO_Varying_String
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , varying_string
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleStateCorrelation), intent(inout)                            :: self
     logical                                          , intent(in   ), dimension(:), optional    :: outlierMask
@@ -247,8 +247,7 @@ contains
 
   subroutine correlationRestore(self,stateVector,first)
     !% Restore the state object from file.
-    use MPI_Utilities
-    use ISO_Varying_String
+    use :: ISO_Varying_String
     implicit none
     class           (posteriorSampleStateCorrelation), intent(inout)               :: self
     double precision                                 , intent(in   ), dimension(:) :: stateVector

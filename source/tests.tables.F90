@@ -21,10 +21,11 @@
 
 program Test_Tables
   !% Tests that tables work correctly.
-  use Unit_Tests
-  use Tables
-  use Array_Utilities
-  use Galacticus_Display
+  use :: Array_Utilities   , only : directionDecreasing           , directionIncreasing
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Tables            , only : table                         , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
+          &                         table1DLinearMonotoneCSpline  , table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   class           (table           ), allocatable :: myTable
   class           (table1D         ), allocatable :: myReversedTable
@@ -36,7 +37,7 @@ program Test_Tables
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tables")
 
@@ -259,7 +260,7 @@ program Test_Tables
           &     )
   end select
   deallocate(myTable)
-  
+
   ! Allocate a monotonic cubic spline interpolator table.
   allocate(table1DLinearMonotoneCSpline :: myTable)
   select type (myTable)
@@ -368,7 +369,7 @@ program Test_Tables
        &     )
   ! Destroy the table.
   call myTable2D%destroy()
-  
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

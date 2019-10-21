@@ -20,17 +20,17 @@
 !% Contains a module which implements a dark matter halo mass function class which modifies another mass function by convolving
 !% with a mass-dependent error.
 
-  use Statistics_NBody_Halo_Mass_Errors
-  
+  use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassError, nbodyHaloMassErrorClass
+
   !# <haloMassFunction name="haloMassFunctionErrorConvolved">
   !#  <description>
   !#   The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the
   !#   mass function is convolved with a Gaussian random error distribution with width computed using the given {\normalfont
-  !#   \ttfamily nbodyHaloMassError} object.  
+  !#   \ttfamily nbodyHaloMassError} object.
   !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionErrorConvolved
-     !% A halo mass function class convolves another halo mass function with a mass dependent error. 
+     !% A halo mass function class convolves another halo mass function with a mass dependent error.
      private
      double precision                                   :: errorFractionalMaximum
      class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic => null()
@@ -51,12 +51,12 @@
   double precision                                 :: errorConvolvedErrorMass            , errorConvolvedTime, &
        &                                              errorConvolvedMass
   !$omp threadprivate(errorConvolvedErrorMass,errorConvolvedTime,errorConvolvedMass, errorConvolvedIntrinsicMassFunction)
-  
+
 contains
 
   function errorConvolvedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionErrorConvolved)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -96,7 +96,7 @@ contains
 
     return
   end function errorConvolvedConstructorInternal
-  
+
   subroutine errorConvolvedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
     implicit none
@@ -110,9 +110,9 @@ contains
 
   double precision function errorConvolvedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
+    use            :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Integration
-    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic
+    use            :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
     double precision                                , intent(in   )           :: time                    , mass
@@ -151,7 +151,7 @@ contains
          &                                           toleranceAbsolute   =1.0d-100, &
          &                                           toleranceRelative   =1.0d-006  &
          &                                          )
-    call Integrate_Done(integrandFunction,integrationWorkspace)    
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)
@@ -161,7 +161,7 @@ contains
 
     double precision function errorConvolvedConvolution(massPrime)
       !% Integrand function used in convolving the dark matter halo mass function.
-      use Numerical_Constants_Math
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: massPrime
 

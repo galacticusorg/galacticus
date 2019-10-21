@@ -48,7 +48,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result(self)
     !% Constructor for the sequence on-the-fly output normalizer class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisDistributionNormalizerSequence)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
@@ -123,7 +123,7 @@ contains
 
   subroutine sequenceDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution normalizer operator class.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
     class(outputAnalysisDistributionNormalizerClass   ), intent(inout) :: destination
@@ -140,7 +140,7 @@ contains
           allocate(normalizerNew_)
           if (associated(normalizerDestination_)) then
              normalizerDestination_%next       => normalizerNew_
-             normalizerDestination_            => normalizerNew_             
+             normalizerDestination_            => normalizerNew_
           else
              destination          %normalizers => normalizerNew_
              normalizerDestination_            => normalizerNew_
@@ -148,7 +148,7 @@ contains
           allocate(normalizerNew_%normalizer_,mold=normalizer_%normalizer_)
           !# <deepCopy source="normalizer_%normalizer_" destination="normalizerNew_%normalizer_"/>
           normalizer_ => normalizer_%next
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select

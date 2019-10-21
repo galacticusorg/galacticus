@@ -21,9 +21,9 @@
 
 program Test_Comparison
   !% Tests that numerical comparison functions work.
-  use Unit_Tests
-  use Numerical_Comparison
-  use Galacticus_Display
+  use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Comparison, only : Values_Agree                  , Values_Differ
+  use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
 
   ! Set verbosity level.

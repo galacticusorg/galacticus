@@ -37,8 +37,8 @@ contains
 
   function Formatted_Date_and_Time()
     !% Return a formatted date and time.
-    use ISO_Varying_String
-    use String_Handling
+    use :: ISO_Varying_String, only : assignment(=), varying_string
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string) :: Formatted_Date_and_Time
     integer                   :: c                         , century      , &

@@ -19,14 +19,15 @@
 
   !% Implements the \cite{gnedin_effect_2000} filtering mass calculation.
 
-  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
-  use Linear_Growth             , only : linearGrowth            , linearGrowthClass
-  use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
-  use Tables                    , only : table1DLogarithmicLinear
+  use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: File_Utilities            , only : lockDescriptor
+  use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use :: Linear_Growth             , only : linearGrowth            , linearGrowthClass
+  use :: Tables                    , only : table                   , table1DLogarithmicLinear
 
   public :: gnedin2000ODEs
-  
+
   !# <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
   !#  <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
   !# </intergalacticMediumFilteringMass>
@@ -41,6 +42,7 @@
      integer                                                  :: countTimes
      double precision                                         :: timeMaximum                        , timeMinimum
      type            (table1DLogarithmicLinear     )          :: table
+     type            (varying_string               )          :: fileName
    contains
      !@ <objectMethods>
      !@   <object>intergalacticMediumFilteringMassGnedin2000</object>
@@ -68,13 +70,38 @@
      !@     <type>\doublezero</type>
      !@     <description>Return the early-epoch solution for the filtering mass.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileWrite</method>
+     !@     <type>\void</type>
+     !@     <description>Store the tabulate filtering mass to file.</description>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileRead</method>
+     !@     <type>\void</type>
+     !@     <description>Restore the tabulate filtering mass from file.</description>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>remakeTable</method>
+     !@     <type>\logicalzero</type>
+     !@     <description>Return true if the table must be remade.</description>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                            gnedin2000Destructor
-     procedure :: massFiltering           => gnedin2000MassFiltering
-     procedure :: tabulate                => gnedin2000Tabulate
-     procedure :: conditionsInitialODEs   => gnedin2000ConditionsInitialODEs
-     procedure :: coefficientsEarlyEpoch  => gnedin2000CoefficientsEarlyEpoch
-     procedure :: massFilteringEarlyEpoch => gnedin2000MassFilteringEarlyEpoch
+     final     ::                                gnedin2000Destructor
+     procedure :: massFiltering               => gnedin2000MassFiltering
+     procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
+     procedure :: fractionBaryons             => gnedin2000FractionBaryons
+     procedure :: fractionBaryonsRateOfChange => gnedin2000FractionBaryonsRateOfChange
+     procedure :: fractionBaryonsGradientMass => gnedin2000FractionBaryonsGradientMass
+     procedure :: tabulate                    => gnedin2000Tabulate
+     procedure :: conditionsInitialODEs       => gnedin2000ConditionsInitialODEs
+     procedure :: coefficientsEarlyEpoch      => gnedin2000CoefficientsEarlyEpoch
+     procedure :: massFilteringEarlyEpoch     => gnedin2000MassFilteringEarlyEpoch
+     procedure :: remakeTable                 => gnedin2000RemakeTable
+     procedure :: fileWrite                   => gnedin2000FileWrite
+     procedure :: fileRead                    => gnedin2000FileRead
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
@@ -84,13 +111,17 @@
   end interface intergalacticMediumFilteringMassGnedin2000
 
   ! Parameter controlling fine-grainedness of filtering mass tabulations.
-  integer, parameter :: filteringMassTablePointsPerDecade=100
-  
+  integer                , parameter :: gnedin2000TablePointsPerDecade=100
+
+  ! Lock used for file access.
+  type   (lockDescriptor)            :: gnedin2000FileLock
+  logical                            :: gnedin2000FileLockInitialized =.false.
+
 contains
 
   function gnedin2000ConstructorParameters(parameters) result(self)
     !% Default constructor for the file \gls{igm} state class.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (intergalacticMediumFilteringMassGnedin2000)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -114,6 +145,8 @@ contains
 
   function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
     !% Constructor for the filtering mass class.
+    use :: File_Utilities  , only : Directory_Make, File_Lock_Initialize, File_Path
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type (intergalacticMediumFilteringMassGnedin2000)                        :: self
     class(cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
@@ -121,8 +154,24 @@ contains
     class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
     class(intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
-    
+
     self%initialized=.false.
+    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+         &                      'intergalacticMedium/'                           // &
+         &                      self%objectType      (                          )// &
+         &                      '_'                                              // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                      '.hdf5'
+    call Directory_Make(File_Path(self%fileName))
+    ! Initialize file lock.
+    if (.not.gnedin2000FileLockInitialized) then
+       !$omp critical(gnedin2000FileLockInitialize)
+       if (.not.gnedin2000FileLockInitialized) then
+          call File_Lock_Initialize(gnedin2000FileLock)
+          gnedin2000FileLockInitialized=.true.
+       end if
+       !$omp end critical(gnedin2000FileLockInitialize)
+    end if
     return
   end function gnedin2000ConstructorInternal
 
@@ -149,12 +198,64 @@ contains
     return
   end function gnedin2000MassFiltering
 
+  double precision function gnedin2000MassFilteringRateOfChange(self,time)
+    !% Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: time
+
+    call self%tabulate(time)
+    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(time)
+    return
+  end function gnedin2000MassFilteringRateOfChange
+
+  double precision function gnedin2000FractionBaryons(self,mass,time)
+    !% Return the rate fo change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    !% {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryons=1.0d0/(1.0d0+(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0*self%massFiltering(time)/mass)**3
+    return
+  end function gnedin2000FractionBaryons
+
+  double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
+    !% Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    !% {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryonsRateOfChange=-3.0d0                                                    &
+         &                                *(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0                       &
+         &                                *self%massFilteringRateOfChange(     time)                &
+         &                                /     mass                                                &
+         &                                *self%fractionBaryons          (mass,time)**(4.0d0/3.0d0)
+    return
+  end function gnedin2000FractionBaryonsRateOfChange
+
+  double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
+    !% Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
+    !% \ttfamily mass} at the {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryonsGradientMass=-(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0             &
+         &                                *self%massFiltering  (     time)                &
+         &                                /     mass                      **2             &
+         &                                *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
+    return
+  end function gnedin2000FractionBaryonsGradientMass
+
   subroutine gnedin2000Tabulate(self,time)
     !% Construct a table of filtering mass as a function of cosmological time.
-    use FODEIV2                 , only : fodeiv2_system         , fodeiv2_driver
-    use ODEIV2_Solver           , only : ODEIV2_Solve
-    use Galacticus_Error        , only : Galacticus_Error_Report
-    use Numerical_Constants_Math, only : Pi
+    use :: FODEIV2                 , only : fodeiv2_driver         , fodeiv2_system
+    use :: File_Utilities          , only : File_Lock              , File_Unlock
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math, only : Pi
+    use :: ODEIV2_Solver           , only : ODEIV2_Solve
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
@@ -167,12 +268,27 @@ contains
     integer                                                                             :: iTime
     double precision                                                                    :: timeInitial                       , timeCurrent
 
-    if (.not.self%initialized .or. time < self%timeMinimum) then
+    ! Check if we need to recompute our table.
+    if (self%remakeTable(time)) then
+       call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.true.)
+       call self%fileRead()
+       call File_Unlock(gnedin2000FileLock)
+    end if
+    if (self%remakeTable(time)) then
+       call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.false.)
+       ! Evaluate a suitable starting time for filtering mass calculations.
+       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                             redshiftMaximumNaozBarkana &
+            &                                                            )                           &
+            &                                                           )
+       ! Abort if time is too early.
+       if (time <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
        ! Find minimum and maximum times to tabulate.
-       self%timeMaximum=max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
-       self%timeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
        ! Decide how many points to tabulate and allocate table arrays.
-       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(filteringMassTablePointsPerDecade))+1
+       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(gnedin2000TablePointsPerDecade))+1
        ! Create the tables.
        call self%table%destroy()
        call self%table%create (                   &
@@ -180,38 +296,35 @@ contains
             &                  self%timeMaximum , &
             &                  self%countTimes    &
             &                 )
-       ! Evaluate a suitable starting time for filtering mass calculations.
-       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
-            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
-            &                                                             redshiftMaximumNaozBarkana &
-            &                                                            )                           &
-            &                                                           )
        ! Loop over times and populate tables.
        do iTime=1,self%countTimes
-          ! Abort if time is too early.
-          if (self%table%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
           ! Set the composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
           odeReset   =.true.
           timeCurrent=timeInitial
-          call ODEIV2_Solve(                                                     &
-               &            ode2Driver                                         , &
-               &            ode2System                                         , &
-               &            timeCurrent                                        , &
-               &            self%table%x(iTime)                                , &
-               &            3                                                  , &
-               &            massFiltering                                      , &
-               &            massFilteringODEs                                  , &
-               &            odeToleranceAbsolute                               , &
-               &            odeToleranceRelative                               , &
-               &            yScale                         =massFilteringScales, &
-               &            reset                          =odeReset             &
-               &           )
+          if (self%table%x(iTime) > timeInitial) then
+             call ODEIV2_Solve(                                                     &
+                  &            ode2Driver                                         , &
+                  &            ode2System                                         , &
+                  &            timeCurrent                                        , &
+                  &            self%table%x(iTime)                                , &
+                  &            3                                                  , &
+                  &            massFiltering                                      , &
+                  &            massFilteringODEs                                  , &
+                  &            odeToleranceAbsolute                               , &
+                  &            odeToleranceRelative                               , &
+                  &            yScale                         =massFilteringScales, &
+                  &            reset                          =odeReset             &
+                  &           )
+          end if
           call self%table%populate(massFiltering(3),iTime)
        end do
        ! Specify that tabulation has been made.
        self%initialized=.true.
+       ! Store file.
+       call self%fileWrite()
+       call File_Unlock(gnedin2000FileLock)
     end if
     return
 
@@ -219,9 +332,9 @@ contains
 
     integer function massFilteringODEs(time,properties,propertiesRateOfChange)
       !% Evaluates the ODEs controlling the evolution temperature.
-      use Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, heliumByMassPrimordial
-      use Numerical_Constants_Atomic      , only : massHydrogenAtom        , massHeliumAtom        , electronMass
-      use FGSL                            , only : FGSL_Success
+      use :: FGSL                            , only : FGSL_Success
+      use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
+      use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
       implicit none
       double precision, intent(in  )                :: time
       double precision, intent(in   ), dimension(:) :: properties
@@ -251,7 +364,7 @@ contains
     double precision                                            , intent(in   ) :: time
     double precision                                            , dimension(4)  :: coefficients
     double precision                                                            :: expansionFactor
-    
+
     ! Compute the expansion factor.
     expansionFactor=self%cosmologyFunctions_%expansionFactor        (time)
     ! Get fitting function coefficients.
@@ -263,10 +376,10 @@ contains
          &               +coefficients(3)*(-log(expansionFactor))    &
          &               +coefficients(4)                            &
          &              )
-    ! Compute the 
+    ! Compute the
     return
   end function gnedin2000MassFilteringEarlyEpoch
-  
+
   subroutine gnedin2000ConditionsInitialODEs(self,time,massFilteringODEs,massFilteringScales)
     !% Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
     !% \begin{eqnarray}
@@ -285,8 +398,8 @@ contains
     !%  k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
     !% \end{equation},
     !% and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
-    use Numerical_Constants_Math, only : Pi
-    use Cosmology_Parameters    , only : hubbleUnitsTime
+    use :: Cosmology_Parameters    , only : hubbleUnitsTime
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)                         :: self
     double precision                                            , intent(in   )                         :: time
@@ -295,7 +408,7 @@ contains
     double precision                                                           , dimension(4)           :: coefficients
     double precision                                                                                    :: expansionFactor     , expansionRate      , &
          &                                                                                                 massFiltering       , wavenumberFiltering
-    
+
     ! Get fitting function coefficients.
     coefficients          =self                    %coefficientsEarlyEpoch (time           )
     ! Compute expansion factor and rate.
@@ -358,9 +471,9 @@ contains
 
   function gnedin2000ODEs(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,massFilteringODEs) result (massFilteringODEsRateOfChange)
     !% Compute the rates of change of the filtering mass ODE system.
-    use Numerical_Constants_Math        , only : Pi
-    use Numerical_Constants_Astronomical, only : gigayear          , megaparsec
-    use Numerical_Constants_Physical    , only : boltzmannsConstant
+    use :: Numerical_Constants_Astronomical, only : gigayear          , megaparsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     implicit none
     double precision                                         , dimension(3) :: massFilteringODEsRateOfChange
     class           (cosmologyParametersClass), intent(inout)               :: cosmologyParameters_
@@ -383,7 +496,7 @@ contains
             &                           +darkMatterFraction                                                               &
             &                           /                                  cosmologyFunctions_%expansionFactor (time)**2  &
             &                           *boltzmannsConstant                                                               &
-            &                           *temperature                                                                      & 
+            &                           *temperature                                                                      &
             &                           /massParticleMean                                                                 &
             &                           *linearGrowth_%value                                                   (time)     &
             &                           *(                                                                                &
@@ -420,7 +533,7 @@ contains
        massFilteringODEsRateOfChange(3)=-4.0d0                                     &
             &                           *Pi                                    **4 &
             &                           *cosmologyParameters_%densityCritical()    &
-            &                           *cosmologyParameters_%OmegaMatter    ()    & 
+            &                           *cosmologyParameters_%OmegaMatter    ()    &
             &                           /wavenumberFiltering                   **4 &
             &                           *wavenumberFilteringRateOfChange
     else
@@ -432,7 +545,7 @@ contains
   function gnedin2000CoefficientsEarlyEpoch(self,time) result (coefficients)
     !% Return the coefficients of the fitting function for the filtering mass at early epochs from
     !% \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
-    use Galacticus_Error, only : Galacticus_Warn
+    use :: Galacticus_Error, only : Galacticus_Warn
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , dimension(4)  :: coefficients
@@ -468,6 +581,61 @@ contains
     ! Barkana. Without this change the fit for rLSS does not work.
     gnedin2000rLSS  =+rLSSCoefficient1/expansionFactor**1.5d0 &
          &           +rLSSCoefficient2/expansionFactor        &
-         &           +rLSSCoefficient3 
+         &           +rLSSCoefficient3
     return
   end function gnedin2000rLSS
+
+  logical function gnedin2000RemakeTable(self,time)
+    !% Determine if the table should be remade.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: time
+
+    gnedin2000RemakeTable=.not.self%initialized .or. time < self%timeMinimum
+    return
+  end function gnedin2000RemakeTable
+
+  subroutine gnedin2000FileRead(self)
+    !% Read tabulated data on linear growth factor from file.
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access , hdf5Object
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
+    double precision                                            , dimension(:), allocatable :: massFiltering
+    type            (hdf5Object                                )                            :: dataFile
+
+    ! Return immediately if the file does not exist.
+    if (.not.File_Exists(char(self%fileName))) return
+    if (self%initialized) call self%table%destroy()
+    !$ call hdf5Access%set()
+    call dataFile%openFile     (char(self%fileName),overWrite=.false.           )
+    call dataFile%readDataset  ('massFiltering'    ,               massFiltering)
+    call dataFile%readAttribute('timeMinimum'      ,          self%timeMinimum  )
+    call dataFile%readAttribute('timeMaximum'      ,          self%timeMaximum  )
+    call dataFile%close        (                                                )
+    !$ call hdf5Access%unset()
+    call self%table%create  (self%timeMinimum,self%timeMaximum,size(massFiltering))
+    call self%table%populate(                                       massFiltering )
+    deallocate(massFiltering)
+    self%initialized=.true.
+    return
+  end subroutine gnedin2000FileRead
+
+  subroutine gnedin2000FileWrite(self)
+    !% Write tabulated data on linear growth factor to file.
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    implicit none
+    class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    type (hdf5Object                                )                :: dataFile
+
+    ! Open the data file.
+    !$ call hdf5Access%set()
+    call dataFile%openFile      (char   (self%fileName                            ),overWrite=.true.         ,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering'                                         )
+    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'                                           )
+    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'                                           )
+    call dataFile%close         (                                                                                                                     )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine gnedin2000FileWrite

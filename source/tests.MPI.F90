@@ -21,13 +21,14 @@
 
 program Test_MPI
   !% Tests of MPI functions.
-  use, intrinsic :: ISO_C_Binding
-  use               Unit_Tests
-  use               Galacticus_Display
-  !$ use            OMP_Lib
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
+  use               :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
+  use               :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
+  !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 #ifdef USEMPI
-  use               MPI
-  use               MPI_Utilities
+  use               :: MPI               , only : MPI_Thread_Multiple
+  use               :: MPI_Utilities     , only : mpiBarrier                , mpiCounter                    , mpiFinalize         , mpiInitialize    , &
+          &                                       mpiSelf
   implicit none
   type   (mpiCounter) :: counter
   integer(c_size_t  ) :: i

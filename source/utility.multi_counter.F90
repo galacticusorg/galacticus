@@ -19,7 +19,7 @@
 
   !% Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitary number of
   !% counters, each with an arbitrary range.
-  
+
 module Multi_Counters
   !% Implements multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with an
   !% arbitrary range.
@@ -90,8 +90,8 @@ contains
 
   function multiCounterConstructor(ranges) result (self)
     !% Constructor for multi-counters where the ranges are provided.
-    use Memory_Management
-    use Galacticus_Error
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray
     implicit none
     type   (multiCounter)                              :: self
     integer(c_size_t    ), intent(in   ), dimension(:) :: ranges
@@ -108,14 +108,14 @@ contains
 
   subroutine multiCounterDestructor(self)
     !% Destroy a multi-counter object.
-    use Memory_Management
+    use :: Memory_Management, only : deallocateArray
     type(multiCounter), intent(inout) :: self
 
     if (allocated(self%ranges)) call deallocateArray(self%ranges)
     if (allocated(self%values)) call deallocateArray(self%values)
     return
   end subroutine multiCounterDestructor
-  
+
   subroutine multiCounterReset(self)
     !% Reset the state of the multi-counter.
     implicit none
@@ -127,7 +127,7 @@ contains
 
   function multiCounterCount(self)
     !% Return the number of counters in the multi-counter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterCount
     class  (multiCounter), intent(inout) :: self
@@ -141,7 +141,7 @@ contains
 
   function multiCounterState(self,i)
     !% Return the state of the multi-counter.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterState
     class  (multiCounter), intent(inout) :: self
@@ -157,8 +157,8 @@ contains
 
   subroutine multiCounterAppend(self,range)
     !% Append a new counter with the given {\normalfont \ttfamily range}.
-    use Galacticus_Error
-    use Memory_Management
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class  (multiCounter), intent(inout)               :: self
     integer(c_size_t    ), intent(in   )               :: range
@@ -185,7 +185,7 @@ contains
 
   logical function multiCounterIncrement(self)
     !% Increment a multi-counter. Return true if increment was possible, false otherwise.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (multiCounter), intent(inout) :: self
     integer(c_size_t    )                :: i
@@ -216,7 +216,7 @@ contains
 
   logical function multiCounterIsFinal(self)
     !% Return true if a multi-counter is in its final state, false otherwise.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(multiCounter), intent(in   ) :: self
 

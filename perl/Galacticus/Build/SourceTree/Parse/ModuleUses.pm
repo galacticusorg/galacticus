@@ -8,6 +8,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Fortran::Utils;
+use Clone 'clone';
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'moduleUses'} = \&Parse_ModuleUses;
@@ -26,6 +27,7 @@ sub Parse_ModuleUses {
 	    # Read the code block, accumulating "uses" as we go.
 	    my $rawCode;
 	    my $rawModuleUse;
+	    my $rawPreprocessor;
 	    my $moduleUses;
 	    my @preprocessorStack;
 	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
@@ -39,9 +41,13 @@ sub Parse_ModuleUses {
 		# Determine if line is a module use line.
 		my $isModuleUse = 0;
 		$isModuleUse    = 1
-		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=,\s]+)?\s*$/ );
+		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=\/\*\-\+\.,\s]+)?\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleUse == 1 ) {
+		    if ( $rawPreprocessor ) {
+			$rawModuleUse .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    $rawModuleUse .= $rawLine;
 		    my $isOpenMP    = $1;
 		    my $isIntrinsic = $3;
@@ -55,16 +61,24 @@ sub Parse_ModuleUses {
 		    }
 		    if ( $only && ! exists($moduleUses->{$moduleName}->{'all'}) ) {
 			chomp($only);
-			map {$moduleUses->{$moduleName}->{'only'}->{$_} = 1} split(/\s*,\s*/,$only);
+			map {(my $symbol = $_) =~ s/\s//g; $moduleUses->{$moduleName}->{'only'}->{$symbol} = 1} split(/\s*,\s*/,$only);
 		    } else {
 			$moduleUses->{$moduleName}->{'all'} = 1;
 		    }
-		    @{$moduleUses->{$moduleName}->{'conditions'}} = @preprocessorStack
+		    $moduleUses->{$moduleName}->{'conditions'} = clone(\@preprocessorStack)
 			if ( scalar(@preprocessorStack) > 0 );
-		} elsif ( $processedLine =~ m/^#/ && $rawModuleUse ) {
-		    $isModuleUse = 1;
-		    $rawModuleUse .= $rawLine
+		} elsif ( $processedLine =~ m/^#/ ) {
+		    if ( $rawModuleUse ) {
+			$isModuleUse = 1;
+			$rawModuleUse .= $rawLine;
+		    } else {
+			$rawPreprocessor .= $rawLine;
+		    }
 		} else {
+		    if ( $rawPreprocessor ) {
+			$rawCode .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    $rawCode      .= $rawLine;
 		}
 		# Handle preprocessor lines. Note that for #else and #endif directives we check that we have elements in the
@@ -87,6 +101,10 @@ sub Parse_ModuleUses {
 		# Process code and module use blocks as necessary.		
 		if ( ( $isModuleUse == 1 || eof($code) ) && $rawCode      ) {
 		    # Create a new node.
+		    if ( $rawPreprocessor ) {
+			$rawCode .= $rawPreprocessor;
+			undef($rawPreprocessor);
+		    }
 		    my $newNode =
 		    {
 			type       => "code"  ,
@@ -144,7 +162,7 @@ sub Parse_ModuleUses {
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.
-	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
+	    unless ( scalar(@newNodes) == 0 || ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) ) {
 		# New nodes created, insert them, replacing the old node.
 		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
@@ -154,7 +172,6 @@ sub Parse_ModuleUses {
 }
 
 sub AddUses {
-    # Grab the node to add uses to, and the new uses to add.
     my $node       = shift();
     my $moduleUses = shift();
     # Locate a moduleUses node.
@@ -198,24 +215,86 @@ sub AddUses {
 	    }
 	}
     }
+    # Cause contained code to be updated.
+    &UpdateUses($usesNode);
+}
+
+sub UpdateUses {    
     # Update the contained code.
-    $usesNode->{'firstChild'}->{'content'} = undef();
+    my $usesNode = shift();
+    # Find the indent level.
+    my $indent = "";
+    open(my $code,"<",\$usesNode->{'firstChild'}->{'content'});
+    while ( ! eof($code) && $indent eq "" ) {
+	&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+	if ( $rawLine =~ m/^(\s*)/ ) {
+	    $indent = $1;
+	}
+    }
+    close($code);
+    # Check for OpenMP.
+    my $openMP    = grep {$usesNode->{'moduleUse'}->{$_}->{'openMP'   }} keys(%{$usesNode->{'moduleUse'}});
+    # Check for intrinsic.
+    my $intrinsic = grep {$usesNode->{'moduleUse'}->{$_}->{'intrinsic'}} keys(%{$usesNode->{'moduleUse'}});
+    # Determine name and column widths.
+    my $nameLengthMax = 0;
+    my @columnLengthMax = ( 0, 0, 0, 0 );
     foreach my $moduleName ( keys(%{$usesNode->{'moduleUse'}}) ) {
+	$nameLengthMax = length($moduleName)
+	    if ( length($moduleName) > $nameLengthMax );
+	if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} ) {
+	    my $i = -1;
+	    foreach my $symbol ( sort(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
+		++$i;
+		my $j = $i % 4;
+		$columnLengthMax[$j] = length($symbol)
+		    if ( length($symbol) > $columnLengthMax[$j] );
+	    }
+	}
+    }
+    # Clear previous content.
+    $usesNode->{'firstChild'}->{'content'} = undef();
+    foreach my $moduleName ( sort(keys(%{$usesNode->{'moduleUse'}})) ) {
 	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
 	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
 		$usesNode->{'firstChild'}->{'content'} .= ($_->{'invert'} ? "#ifndef" : "#ifdef")." ".$_->{'name'}."\n";
 	    }
 	}
-	$usesNode->{'firstChild'}->{'content'} .= "   ";
-	$usesNode->{'firstChild'}->{'content'} .= "!\$ "
+	my $useLine = "";
+	$useLine .= $indent;
+	$useLine .= "!\$ "
 	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
-	$usesNode->{'firstChild'}->{'content'} .= "use";
-	$usesNode->{'firstChild'}->{'content'} .= ", intrinsic"
-	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} );
-	$usesNode->{'firstChild'}->{'content'} .= " :: ".$moduleName;
-	$usesNode->{'firstChild'}->{'content'} .= ", only : ".join(", ",keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}}))
-	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} );
-  	$usesNode->{'firstChild'}->{'content'} .= "\n";
+	$useLine .= "use";
+	$useLine .= "   "
+	    if ( $openMP && ! $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
+	if ( $usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} ) {
+	    $useLine .= ", intrinsic";
+	} elsif ( $intrinsic ) {
+	    $useLine .= "           ";
+	}
+	$useLine .= " :: ".$moduleName;
+	my $symbolCount  = scalar(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}}));
+	if ( $symbolCount > 0 ) {
+	    $useLine .= (" " x ($nameLengthMax-length($moduleName))).", only : ";
+	    my $i            = -1;
+	    my $offsetLength = length($useLine);
+	    foreach my $symbol ( sort(keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
+		++$i;
+		my $j = $i % 4;
+		$useLine .= $symbol;
+		--$symbolCount;
+		if ( $symbolCount > 0 ) {
+		    $useLine .= (" " x ($columnLengthMax[$j]-length($symbol)));
+		    $useLine .= ", ";
+		    if ( $j == 3 ) {
+			$useLine .= "&\n";
+			$useLine .= "          &".(" " x ($offsetLength-11));
+		    }
+		}
+	    }
+	}
+  	$useLine .= "\n";
+	$usesNode->{'firstChild'}->{'content'} .= $useLine;
 	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
 	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
 		$usesNode->{'firstChild'}->{'content'} .= "#endif\n";

@@ -19,15 +19,17 @@
 
 !% Contains a module which implements a excursion set first crossing statistics class for linear barriers.
 
-  use Excursion_Sets_Barriers
-  
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
+
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
   !#  <description>An excursion set first crossing statistics class for linear barriers.</description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
      !% A linearBarrier excursion set barrier class.
      private
-     class(excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
+     class(excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::                    linearBarrierDestructor
      procedure :: probability     => linearBarrierProbability
@@ -45,26 +47,29 @@ contains
 
   function linearBarrierConstructorParameters(parameters) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
     class(excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
+    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
-    self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_)
+    !# <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="excursionSetBarrier_"/>
+    !# <objectDestructor name="excursionSetBarrier_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function linearBarrierConstructorParameters
 
-  function linearBarrierConstructorInternal(excursionSetBarrier_) result(self)
+  function linearBarrierConstructorInternal(excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                        :: self
     class(excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
-    !# <constructorAssign variables="*excursionSetBarrier_"/>
+    class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*excursionSetBarrier_, *cosmologicalMassVariance_"/>
 
     return
   end function linearBarrierConstructorInternal
@@ -74,13 +79,14 @@ contains
     implicit none
     type(excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
 
-    !# <objectDestructor name="self%excursionSetBarrier_" />
+    !# <objectDestructor name="self%excursionSetBarrier_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine linearBarrierDestructor
-  
+
   double precision function linearBarrierProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance, time
@@ -103,34 +109,49 @@ contains
 
   double precision function linearBarrierRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use Numerical_Constants_Math
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
          &                                                                     time
     type            (treeNode                              ), intent(inout) :: node
     double precision                                        , parameter     :: fractionalTimeChange=1.0d-3
-    double precision                                                        :: timeProgenitor
+    double precision                                                        :: timeProgenitor             , massProgenitor    , &
+         &                                                                     growthFactorEffective
 
-    ! Compute a slightly earlier time for the progenitor
-    timeProgenitor=time*(1.0d0-fractionalTimeChange)
     if (variance >= varianceProgenitor) then
        linearBarrierRate=0.0d0
     else
-       linearBarrierRate=+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
-            &            *exp(                                                                      &
-            &                 -0.5d0                                                                &
-            &                 *barrierEffective(variance,time,varianceProgenitor,timeProgenitor)**2 &
-            &                 / (+varianceProgenitor-variance)                                      &
-            &                 )                                                                     &
-            &            /      (+varianceProgenitor-variance)                                      &
-            &            /sqrt(                                                                     &
-            &                  +2.0d0                                                               &
-            &                  *Pi                                                                  &
-            &                  *(+varianceProgenitor-variance)                                      &
-            &                 )                                                                     &
-            &            /time                                                                      &
-            &            /fractionalTimeChange
+       ! * To estimate the rate we use a finite difference method - we compute the effective barrier for a slightly earlier time,
+       !   compute the fraction of trajectories which will have crossed that effective barrier, and divide by the time difference.
+       !
+       ! * In Galacticus, the time evolution due to linear growth is included in the root-variance of the density field, *not* in
+       !   the barrier height as is often done in the literature. As such, when computing the barrier at some earlier time we must
+       !   account for the fact that, at a fixed mass, the root variance will be smaller at that earlier time. Since the solution
+       !   to the excursion set problem must always be a function of δc(M,t)/√S(M,t) then we can simply scale δc by the ratio of
+       !   root-variances for the progenitor at the current and earlier times.
+       timeProgenitor       =+time*(1.0d0-fractionalTimeChange)
+       massProgenitor       =+self%cosmologicalMassVariance_%mass        (varianceProgenitor,time          )
+       growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(    massProgenitor,time          ) &
+            &                /self%cosmologicalMassVariance_%rootVariance(    massProgenitor,timeProgenitor)
+       linearBarrierRate    =+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
+            &                *exp(                                                                      &
+            &                     -0.5d0                                                                &
+            &                     *barrierEffective(variance,time,varianceProgenitor,timeProgenitor)**2 &
+            &                     / (+varianceProgenitor-variance)                                      &
+            &                     )                                                                     &
+            &                /      (+varianceProgenitor-variance)                                      &
+            &                /sqrt(                                                                     &
+            &                      +2.0d0                                                               &
+            &                      *Pi                                                                  &
+            &                      *(+varianceProgenitor-variance)                                      &
+            &                     )                                                                     &
+            &                /time                                                                      &
+            &                /fractionalTimeChange
+       linearBarrierRate    =max(                   &
+            &                    linearBarrierRate, &
+            &                    0.0d0              &
+            &                   )
     end if
     return
 
@@ -142,7 +163,7 @@ contains
       double precision, intent(in   ) :: time1    , time0    , &
            &                             variance1, variance0
 
-      barrierEffective=+self%excursionSetBarrier_%barrier(variance1,time1,node,rateCompute=.false.) &
+      barrierEffective=+self%excursionSetBarrier_%barrier(variance1,time1,node,rateCompute=.false.)*growthFactorEffective &
            &           -self%excursionSetBarrier_%barrier(variance0,time0,node,rateCompute=.false.)
       return
     end function barrierEffective
@@ -156,9 +177,9 @@ contains
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time, variance
-     type            (treeNode                              ), intent(inout) :: node
-   !GCC$ attributes unused :: self, time, variance, node
-    
+    type            (treeNode                              ), intent(inout) :: node
+    !GCC$ attributes unused :: self, time, variance, node
+
     linearBarrierRateNonCrossing=0.0d0
     return
   end function linearBarrierRateNonCrossing

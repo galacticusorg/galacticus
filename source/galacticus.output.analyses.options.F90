@@ -22,7 +22,7 @@
 module Output_Analyses_Options
   !% Provides options and enuemrations for on-the-fly analyses.
   public
-  
+
   !# <enumeration>
   !#  <name>outputAnalysisPropertyType</name>
   !#  <description>Property types.</description>
@@ -31,7 +31,7 @@ module Output_Analyses_Options
   !#  <entry label="magnitude" />
   !#  <entry label="unknown"   />
   !# </enumeration>
-  
+
   !# <enumeration>
   !#  <name>outputAnalysisPropertyQuantity</name>
   !#  <description>Property quantities.</description>
@@ -39,7 +39,7 @@ module Output_Analyses_Options
   !#  <entry label="mass"      />
   !#  <entry label="luminosity"/>
   !# </enumeration>
-  
+
   !# <enumeration>
   !#  <name>outputAnalysisCovarianceModel</name>
   !#  <description>Output analyses covariance models.</description>
@@ -47,5 +47,5 @@ module Output_Analyses_Options
   !#  <entry label="poisson" />
   !#  <entry label="binomial"/>
   !# </enumeration>
-  
+
 end module Output_Analyses_Options

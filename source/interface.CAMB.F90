@@ -21,7 +21,7 @@
 
 module Interfaces_CAMB
   !% Provides various interfaces to the \gls{camb} code.
-  use File_Utilities, only : lockDescriptor
+  use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_CAMB_Initialize, Interface_CAMB_Transfer_Function
 
@@ -47,18 +47,18 @@ module Interfaces_CAMB
 
   ! Generate a source digest.
   !# <sourceDigest name="cambSourceDigest"/>
-  
+
 contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
     !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
-    use ISO_Varying_String, only : varying_string            , replace            , operator(//), assignment(=), &
-         &                         char
-    use Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use File_Utilities    , only : File_Exists
-    use System_Command    , only : System_Command_Do
-    use Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use Galacticus_Error  , only : Galacticus_Error_Report
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace, &
+          &                           varying_string
+    use :: System_Command    , only : System_Command_Do
     implicit none
     type   (varying_string), intent(  out)           :: cambPath, cambVersion
     logical                , intent(in   ), optional :: static
@@ -98,7 +98,7 @@ contains
     return
 
   contains
-    
+
     function flagsRetrieve(flagsLength)
       !% Retrieve the compiler flags.
       implicit none
@@ -113,32 +113,34 @@ contains
 
   end subroutine Interface_CAMB_Initialize
 
-  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
+  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
-    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
-    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: Input_Parameters                , only : inputParameters
-    use               :: ISO_Varying_String              , only : varying_string          , char               , extract       , len        , &
-         &                                                        assignment(=)           , operator(==)
-    use               :: IO_HDF5                         , only : hdf5Object              , hdf5Access
-    use               :: File_Utilities                  , only : File_Lock_Initialize    , File_Lock          , File_Unlock   , File_Exists, &
-         &                                                        Count_Lines_In_File     , File_Path          , Directory_Make, File_Remove
-    use               :: System_Command                  , only : System_Command_Do
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath          , pathTypeDataDynamic
-    use               :: String_Handling                 , only : operator(//)
-    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
-    use               :: Hashes_Cryptographic            , only : Hash_MD5
-    use               :: Cosmology_Parameters            , only : cosmologyParametersClass, hubbleUnitsLittleH
-    use               :: HDF5                            , only : hsize_t
-    use               :: Sort                            , only : Sort_Index_Do
-    use               :: Tables                          , only : table1DGeneric
-    use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: FGSL                            , only : FGSL_Interp_cSpline
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock  , &
+          &                                                       File_Lock_Initialize        , File_Path          , File_Remove, File_Unlock, &
+          &                                                       lockDescriptor
+    use               :: Galacticus_Error                , only : Galacticus_Error_Report
+    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use               :: HDF5                            , only : hsize_t
+    use               :: Hashes_Cryptographic            , only : Hash_MD5
+    use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
+    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract    , len        , &
+          &                                                       operator(==)                , varying_string
+    use               :: Input_Parameters                , only : inputParameters
+    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
+    use               :: Sort                            , only : Sort_Index_Do
+    use               :: String_Handling                 , only : operator(//)
+    use               :: System_Command                  , only : System_Command_Do
+    use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use               :: Tables                          , only : table                       , table1DGeneric
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
     double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
+    integer                                   , intent(in   ), optional         :: countPerDecade
     logical                                   , intent(in   )                   :: lockFileGlobally
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
@@ -168,7 +170,8 @@ contains
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
-    
+    !# <optionalArgument name="countPerDecade" defaultsTo="0"/>
+
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))
     allocate(redshiftLabels(size(redshifts)))
@@ -181,7 +184,10 @@ contains
     call cosmologyParameters_%descriptor(descriptor)
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call descriptor%addParameter("Y_He",parameterLabel)
+    call descriptor%addParameter("Y_He"          ,parameterLabel)
+    ! Add wavenumber resolution to descriptor.
+    write (parameterLabel,'(i4)'  ) countPerDecade_
+    call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()// &
          &      "_sourceDigest:"              // &
@@ -242,7 +248,7 @@ contains
        call speciesGroup%close()
        call cambOutput  %close()
        call hdf5Access  %unset()
-   end if
+    end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
@@ -352,10 +358,10 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,5(i2))') 'initial_vector               ',-1,0,0,0,0
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'vector_mode                  ',0
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'COBE_normalize               ','F'
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'CMB_outputscale              ',7.42835025d12 
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'CMB_outputscale              ',7.42835025d12
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_high_precision      ','F'
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'transfer_kmax                ',wavenumberCAMB/cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
-       write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_k_per_logint        ',0
+       write (cambParameterFile,'(a,1x,"=",1x,i3   )') 'transfer_k_per_logint        ',countPerDecade_
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_num_redshifts       ',countRedshiftsUnique
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_interp_matterpower  ','T'
        do i=countRedshiftsUnique,1,-1
@@ -445,7 +451,7 @@ contains
        end do
        ! Convert from CAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &
-            &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)       
+            &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
        ! Construct the output HDF5 file.
        call hdf5Access  %set     (                                          )
        call cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
@@ -509,7 +515,7 @@ contains
        call hdf5Access  %unset()
     end if
     if (present(transferFunctionBaryons)) then
-       call hdf5Access%unset()
+       call hdf5Access%set()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)

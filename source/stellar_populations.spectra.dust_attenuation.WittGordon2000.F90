@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
-  
+
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationWittGordon2000">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{witt_multiple_2000}.</description>
   !# </stellarSpectraDustAttenuation>
@@ -48,12 +48,12 @@ contains
 
   function wittGordon2003ConstructorParameters(parameters) result(self)
     !% Default constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarSpectraDustAttenuationWittGordon2000)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
     type(varying_string                             )                :: model
-    
+
     !# <inputParameter>
     !#   <name>model</name>
     !#   <cardinality>1</cardinality>
@@ -69,11 +69,11 @@ contains
 
   function wittGordon2003ConstructorInternal(model) result(self)
     !% Constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
-    use Galacticus_Error
-    use Numerical_Constants_Units
-    use Numerical_Constants_Astronomical
-    use Array_Utilities
-    use Table_Labels
+    use :: Array_Utilities                 , only : Array_Reverse
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : magnitudesPerOpticalDepth
+    use :: Numerical_Constants_Units       , only : angstromsPerMicron
+    use :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
     type   (stellarSpectraDustAttenuationWittGordon2000)                :: self
     integer                                             , intent(in   ) :: model

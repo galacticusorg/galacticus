@@ -21,7 +21,7 @@
 
 module Merger_Trees_Render
   !% Implements dumping of information on merger tree structure useful for rendering 3D views of merger trees.
-  use Kind_Numbers
+  use :: Kind_Numbers, only : kind_int8
   implicit none
   private
   public :: Merger_Trees_Render_Dump
@@ -34,14 +34,11 @@ contains
 
   subroutine Merger_Trees_Render_Dump(tree)
     !% Dumps information on merger tree structure useful for rendering 3D views of merger trees.
-    use Galacticus_Nodes                 , only : mergerTree, treeNode, nodeComponentBasic
-    use Dark_Matter_Halo_Scales
-    use Cosmology_Functions
-    use File_Utilities
-    use IO_HDF5
-    use Numerical_Constants_Astronomical
-    use Memory_Management
-    use Merger_Tree_Walkers
+    use :: Galacticus_Nodes                , only : mergerTree              , nodeComponentBasic, treeNode
+    use :: IO_HDF5                         , only : hdf5Object
+    use :: Memory_Management               , only : allocateArray           , deallocateArray
+    use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
+    use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
     implicit none
     type            (mergerTree              ), intent(inout)                          :: tree
     type            (treeNode                )                               , pointer :: node

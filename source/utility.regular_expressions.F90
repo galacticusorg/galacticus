@@ -92,7 +92,7 @@ contains
     implicit none
     type     (regEx)                :: Regular_Expression_Constructor
     character(len=*), intent(in   ) :: regularExpression
-    
+
     Regular_Expression_Constructor%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
     return
   end function Regular_Expression_Constructor
@@ -101,7 +101,7 @@ contains
     !% Destructor for {\normalfont \ttfamily regEx} objects.
     implicit none
     type(regEx), intent(inout) :: self
-    
+
     if (C_Associated(self%r)) call Regular_Expression_Destruct_C(self%r)
     self%r=C_NULL_PTR
     return
@@ -111,7 +111,7 @@ contains
     !% Destroy a {\normalfont \ttfamily regEx} object.
     implicit none
     class(regEx), intent(inout) :: self
-    
+
     select type (self)
     type is (regEx)
        call Regular_Expression_Destructor(self)
@@ -125,7 +125,7 @@ contains
     class    (regEx)                :: self
     character(len=*), intent(in   ) :: string
     integer                         :: status
- 
+
     status=Regular_Expression_Match_C(self%r,trim(string)//char(0))
     Regular_Expression_Match=(status==0)
     return

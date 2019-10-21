@@ -19,8 +19,8 @@
 
   !% Implements a merger tree constructor class which builds merger trees assuming smooth accretion.
 
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Mass_Accretion_Histories
+  use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
   !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
@@ -44,10 +44,10 @@
   end interface mergerTreeConstructorSmoothAccretion
 
 contains
-  
+
   function smoothAccretionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeConstructorSmoothAccretion   )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -107,7 +107,7 @@ contains
          &                                                                massHaloDeclineFactor              , massHaloResolution
     !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_"/>
 
-    return    
+    return
   end function smoothAccretionConstructorInternal
 
   subroutine smoothAccretionDestructor(self)
@@ -122,10 +122,10 @@ contains
 
   function smoothAccretionConstruct(self,treeNumber) result(tree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
+    use            :: Galacticus_Nodes, only : mergerTree  , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes, only : treeNode, nodeComponentBasic
-    use               Kind_Numbers
-    use               Pseudo_Random
+    use            :: Kind_Numbers    , only : kind_int8
+    use            :: Pseudo_Random   , only : pseudoRandom
     implicit none
     class           (mergerTreeConstructorSmoothAccretion   ), intent(inout) :: self
     type            (mergerTree                             ), pointer       :: tree
@@ -186,7 +186,7 @@ contains
           call basicNew%timeLastIsolatedSet(timeNode)
           ! Create parent and child links.
           nodeCurrent%firstChild => nodeNew
-          nodeNew    %parent     => nodeCurrent             
+          nodeNew    %parent     => nodeCurrent
           ! Move the current node to the new node.
           nodeCurrent            => nodeNew
        end do

@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a radiusCooling property extractor class.
 
-  use Cooling_Radii, only : coolingRadius, coolingRadiusClass
+  use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
   !#  <description>A cooling radius property extractor class.</description>
@@ -44,10 +44,10 @@
   end interface nodePropertyExtractorRadiusCooling
 
 contains
-  
+
   function radiusCoolingConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily radiusCooling} property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRadiusCooling)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -78,7 +78,7 @@ contains
     !# <objectDestructor name="self%coolingRadius_"/>
     return
   end subroutine radiusCoolingDestructor
-  
+
   double precision function radiusCoolingExtract(self,node,instance)
     !% Implement a cooling radius property extractor.
     implicit none
@@ -86,7 +86,7 @@ contains
     type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
     !GCC$ attributes unused :: instance
-    
+
     radiusCoolingExtract=self%coolingRadius_%radius(node)
     return
   end function radiusCoolingExtract
@@ -115,7 +115,7 @@ contains
 
   double precision function radiusCoolingUnitsInSI(self)
     !% Return the units of the cooling radius property in the SI system.
-    use Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -126,7 +126,7 @@ contains
 
   integer function radiusCoolingType(self)
     !% Return the type of the last isolated redshift property.
-    use Output_Analyses_Options
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
     !GCC$ attributes unused :: self

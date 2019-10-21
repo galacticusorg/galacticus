@@ -19,9 +19,10 @@
 
   !% Contains a module which implements the transfer function fitting function of
   !% \cite{bardeen_statistics_1986}.
-  
-  use Cosmology_Parameters
-  use Dark_Matter_Particles
+
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBBKS">
   !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>
@@ -31,6 +32,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      double precision                                    :: Gamma                         , time
    contains
      final     ::                          bbksDestructor
@@ -53,8 +55,7 @@ contains
 
   function bbksConstructorParameters(parameters) result(self)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
-    use Input_Parameters
-    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (transferFunctionBBKS    )                :: self
     type (inputParameters         ), intent(inout) :: parameters
@@ -75,13 +76,15 @@ contains
 
   function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``BBKS'' transfer function class.
-    use Galacticus_Error    
+    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
     class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass ), intent(inout)         :: cosmologyFunctions_
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
+    class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -91,7 +94,7 @@ contains
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
-    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the Gamma parameter.
     self%Gamma=+             self%cosmologyParameters_%OmegaMatter   (                  ) &
          &     *             self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
@@ -117,7 +120,8 @@ contains
     !% Destructor for the ``BBKS'' transfer function class.
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
-    
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%darkMatterParticle_" />
     return
@@ -125,6 +129,7 @@ contains
 
   double precision function bbksValue(self,wavenumber)
     !% Return the transfer function at the given wavenumber.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionBBKS), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
@@ -156,6 +161,7 @@ contains
 
   double precision function bbksLogarithmicDerivative(self,wavenumber)
     !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionBBKS), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
@@ -215,7 +221,7 @@ contains
   double precision function bbksHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionBBKS), intent(inout)           :: self
     integer                      , intent(  out), optional :: status

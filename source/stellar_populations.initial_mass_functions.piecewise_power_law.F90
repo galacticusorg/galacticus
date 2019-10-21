@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class for piecewise power-law \gls{imf}s.
-  
+
   !# <initialMassFunction name="initialMassFunctionPiecewisePowerLaw">
   !#  <description>A stellar initial mass function class for piecewise power-law \gls{imf}s.</description>
   !# </initialMassFunction>
@@ -46,7 +46,7 @@ contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (initialMassFunctionPiecewisePowerLaw)                            :: self
     type            (inputParameters                     ), intent(inout)             :: parameters
@@ -80,14 +80,14 @@ contains
 
   function piecewisePowerLawConstructorInternal(mass,exponent) result(self)
     !% Internal constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function.
-    use Galacticus_Error
-    use Array_Utilities
+    use :: Array_Utilities , only : Array_Is_Monotonic     , directionIncreasing
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (initialMassFunctionPiecewisePowerLaw)                              :: self
     double precision                                      , intent(in   ), dimension(:) :: mass     , exponent
     integer                                                                             :: i
     double precision                                                                    :: massTotal
-    
+
     ! Validate.
     if (size(mass) <                 2                             ) call Galacticus_Error_Report('at least 2 mass points are required to define the IMF'//{introspection:location})
     if (size(mass) /= size(exponent)+1                             ) call Galacticus_Error_Report('number of exponents must match number of intervals'   //{introspection:location})
@@ -187,9 +187,10 @@ contains
     end do
     return
   end function piecewisePowerLawPhi
-  
+
   subroutine piecewisePowerLawTabulate(self,imfTable)
     !% Construct and return a tabulation of a piecewise power-law \gls{imf}.
+    use :: Tables, only : table1DLogarithmicLinear
     implicit none
     class  (initialMassFunctionPiecewisePowerLaw)             , intent(inout) :: self
     class  (table1D                             ), allocatable, intent(inout) :: imfTable

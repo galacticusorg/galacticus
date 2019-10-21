@@ -21,7 +21,7 @@
 
 module Merger_Trees_Builders
   !% Provides a class of merger tree builders.
-  use Galacticus_Nodes, only : mergerTree
+  use :: Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>
@@ -42,5 +42,5 @@ module Merger_Trees_Builders
   !#   <argument>double precision, intent(in   ) :: timeEarliest</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Merger_Trees_Builders

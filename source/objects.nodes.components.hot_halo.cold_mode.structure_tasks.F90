@@ -21,8 +21,8 @@
 
 module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   !% Implements structure tasks for the cold mode hot halo component.
-  use Mass_Distributions
-  use Hot_Halo_Cold_Mode_Density_Core_Radii
+  use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadiiClass
+  use :: Mass_Distributions                   , only : massDistributionBetaProfile
   implicit none
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
@@ -39,8 +39,9 @@ contains
   !# </enclosedMassTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex)
     !% Computes the mass within a given radius for the cold mode hot halo component.
-    use Galactic_Structure_Options
-    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll , massTypeBaryonic, &
+          &                                   massTypeGaseous        , radiusLarge          , weightByMass
+    use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
     type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType, massType   , &
@@ -49,7 +50,7 @@ contains
     class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
     double precision                                                :: radiusOuter  , radiusCore
     !GCC$ attributes unused :: weightIndex
-    
+
     ! Return zero mass if the requested mass type or component is not matched.
     Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=0.0d0
     if (.not.defaultHotHaloComponent%coldModeIsActive()                                                                     ) return
@@ -81,9 +82,9 @@ contains
   !# </rotationCurveTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task(thisNode,radius,componentType,massType)
     !% Computes the rotation curve at a given radius for the hot halo density profile.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Galacticus_Nodes, only : treeNode
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : treeNode
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
@@ -105,10 +106,10 @@ contains
   !# </rotationCurveGradientTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
-    use Galacticus_Nodes, only : treeNode
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Math
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : treeNode
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode), intent(inout) :: thisNode
     integer                   , intent(in   ) :: componentType   , massType
@@ -134,9 +135,10 @@ contains
   !# </densityTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
-    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
-    use Galactic_Structure_Options
-    use Coordinates
+    use :: Coordinates               , only : assignment(=)          , coordinateSpherical
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
+          &                                   massTypeGaseous        , weightByMass
+    use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
     type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType             , massType   , &

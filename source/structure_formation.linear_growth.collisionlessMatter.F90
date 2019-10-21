@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of
-  !% baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !% An implementation of linear growth of cosmological structure in models consisting of only collisionless matter. Ignores
+  !% pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
-  !# <linearGrowth name="linearGrowthSimple">
-  !#  <description>Linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
+  !# <linearGrowth name="linearGrowthCollisionlessMatter">
+  !#  <description>Linear growth of cosmological structure in models consisting of only collisionless matter. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !#  </description>
   !# </linearGrowth>
-  use Tables
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
+  use :: Tables              , only : table1D
 
-  type, extends(linearGrowthClass) :: linearGrowthSimple
-     !% A linear growth of cosmological structure contrast class in simple cosomologies.
+  type, extends(linearGrowthClass) :: linearGrowthCollisionlessMatter
+     !% A linear growth of cosmological structure contrast class in models consisting only of collisionless matter.
      private
      logical                                                 :: tableInitialized
      double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
@@ -38,7 +39,7 @@
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
      !@ <objectMethods>
-     !@   <object>linearGrowthSimple</object>
+     !@   <object>linearGrowthCollisionlessMatter</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -46,48 +47,50 @@
      !@     <description>Tabulate linear growth factor.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                         simpleDestructor
-     procedure :: value                                => simpleValue
-     procedure :: logarithmicDerivativeExpansionFactor => simpleLogarithmicDerivativeExpansionFactor
-     procedure :: retabulate                           => simpleRetabulate
-  end type linearGrowthSimple
+     final     ::                                         collisionlessMatterDestructor
+     procedure :: value                                => collisionlessMatterValue
+     procedure :: logarithmicDerivativeExpansionFactor => collisionlessMatterLogarithmicDerivativeExpansionFactor
+     procedure :: logarithmicDerivativeWavenumber      => collisionlessMatterLogarithmicDerivativeWavenumber
+     procedure :: retabulate                           => collisionlessMatterRetabulate
+     procedure :: isWavenumberDependent                => collisionlessMatterIsWavenumberDependent
+  end type linearGrowthCollisionlessMatter
 
-  interface linearGrowthSimple
-     !% Constructors for the {\normalfont \ttfamily simple} linear growth class.
-     module procedure simpleConstructorParameters
-     module procedure simpleConstructorInternal
-  end interface linearGrowthSimple
+  interface linearGrowthCollisionlessMatter
+     !% Constructors for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+     module procedure collisionlessMatterConstructorParameters
+     module procedure collisionlessMatterConstructorInternal
+  end interface linearGrowthCollisionlessMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision, parameter :: simpleTimeToleranceRelative=1.0d-4
+  double precision, parameter :: collisionlessMatterTimeToleranceRelative=1.0d-4
 
 contains
 
-  function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} linear growth class which takes a parameter set as input.
-    use Input_Parameters
+  function collisionlessMatterConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class which takes a parameter set as input.
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (linearGrowthSimple      )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    type (linearGrowthCollisionlessMatter)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
+    self=collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
-  end function simpleConstructorParameters
+  end function collisionlessMatterConstructorParameters
 
-  function simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simple} linear growth class.
+  function collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
     implicit none
-    type            (linearGrowthSimple      )                           :: self
-    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_    
-    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
-    double precision                                                     :: timeBigCrunch
+    type            (linearGrowthCollisionlessMatter)                           :: self
+    class           (cosmologyParametersClass       ), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass        ), target   , intent(in   ) :: cosmologyFunctions_
+    double precision                                                            :: timeBigCrunch
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     self%tableInitialized=.false.
@@ -96,54 +99,53 @@ contains
     timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-simpleTimeToleranceRelative)*timeBigCrunch
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                          *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-collisionlessMatterTimeToleranceRelative)*timeBigCrunch
     end if
     return
-  end function simpleConstructorInternal
+  end function collisionlessMatterConstructorInternal
 
-  subroutine simpleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily simple} linear growth class.
+  subroutine collisionlessMatterDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
     implicit none
-    type (linearGrowthSimple), intent(inout) :: self
-    
+    type (linearGrowthCollisionlessMatter), intent(inout) :: self
+
     !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     if (self%tableInitialized) then
        call self%growthFactor%destroy()
        deallocate(self%growthFactor)
     end if
     return
-  end subroutine simpleDestructor
+  end subroutine collisionlessMatterDestructor
 
-  subroutine simpleRetabulate(self,time)
+  subroutine collisionlessMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a simple matter plus cosmological constant cosmology.
-    use FGSL        , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
-         &                   FGSL_Success
-    use Tables
-    use Table_Labels
-    use ODE_Solver
+    !% $D(1)=1$ for a collisionlessMatter matter plus cosmological constant cosmology.
+    use :: FGSL      , only : FGSL_Success            , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
+          &                   fgsl_odeiv_system
+    use :: ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
+    use :: Tables    , only : table1DLogarithmicLinear
     implicit none
-    class           (linearGrowthSimple      ), intent(inout) :: self
-    double precision                          , intent(in   ) :: time
-    double precision                          , parameter     :: dominateFactor               =   1.0d+04
-    double precision                          , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
-    integer                                   , parameter     :: growthTablePointsPerDecade   =1000
-    double precision                          , dimension(2)  :: growthFactorODEVariables
-    logical                                                   :: remakeTable
-    integer                                                   :: i
-    double precision                                          :: expansionFactorMatterDominant           , growthFactorDerivative           , &
-         &                                                       timeNow                                 , linearGrowthFactorPresent        , &
-         &                                                       timeMatterDominant                      , timePresent                      , &
-         &                                                       timeBigCrunch
-    integer                                                   :: growthTableNumberPoints    
-    type            (fgsl_odeiv_step         )                :: odeStepper
-    type            (fgsl_odeiv_control      )                :: odeController
-    type            (fgsl_odeiv_evolve       )                :: odeEvolver
-    type            (fgsl_odeiv_system       )                :: odeSystem
-    logical                                                   :: odeReset                     =.true.
-    
+    class           (linearGrowthCollisionlessMatter), intent(inout) :: self
+    double precision                                 , intent(in   ) :: time
+    double precision                                 , parameter     :: dominateFactor               =   1.0d+04
+    double precision                                 , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
+    integer                                          , parameter     :: growthTablePointsPerDecade   =1000
+    double precision                                 , dimension(2)  :: growthFactorODEVariables
+    logical                                                          :: remakeTable
+    integer                                                          :: i
+    double precision                                                 :: expansionFactorMatterDominant           , growthFactorDerivative           , &
+         &                                                              timeNow                                 , linearGrowthFactorPresent        , &
+         &                                                              timeMatterDominant                      , timePresent                      , &
+         &                                                              timeBigCrunch
+    integer                                                          :: growthTableNumberPoints
+    type            (fgsl_odeiv_step                )                :: odeStepper
+    type            (fgsl_odeiv_control             )                :: odeController
+    type            (fgsl_odeiv_evolve              )                :: odeEvolver
+    type            (fgsl_odeiv_system              )                :: odeSystem
+    logical                                                          :: odeReset                     =.true.
+
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
        remakeTable=(                              &
@@ -162,7 +164,7 @@ contains
             &                            self%cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
             &                            self%cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
             &                           )
-       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)       
+       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
@@ -170,10 +172,10 @@ contains
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
           if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-simpleTimeToleranceRelative)*timeBigCrunch
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-collisionlessMatterTimeToleranceRelative)*timeBigCrunch
        end if
        ! Determine number of points to tabulate.
-       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
+       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))
        ! Destroy current table.
        if (allocated(self%growthFactor)) then
           call self%growthFactor%destroy()
@@ -228,21 +230,21 @@ contains
                &                              +abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
                &                              *    growthFactor             %x             (              1)  &
                &                             )**(2.0d0/3.0d0)                                                 &
-               &                            /      growthFactor             %y             (              1)     
+               &                            /      growthFactor             %y             (              1)
           self%tableInitialized=.true.
        end select
     end if
     return
-    
+
   contains
-    
+
     integer function growthFactorODEs(time,values,derivatives)
       !% System of differential equations to solve for the growth factor.
       double precision              , intent(in   ) :: time
       double precision, dimension(:), intent(in   ) :: values
       double precision, dimension(:), intent(  out) :: derivatives
       double precision                              :: expansionFactor
-      
+
       expansionFactor   =+    self%cosmologyFunctions_%expansionFactor   (                           time)
       derivatives    (1)=+    values                                     (                              2)
       derivatives    (2)=+    1.5d0                                                                           &
@@ -255,53 +257,79 @@ contains
       growthFactorODEs  = FGSL_Success
     end function growthFactorODEs
 
-  end subroutine simpleRetabulate
+  end subroutine collisionlessMatterRetabulate
 
-  double precision function simpleValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
+  double precision function collisionlessMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor at the given epoch.
     implicit none
-    class           (linearGrowthSimple     ), intent(inout)           :: self
-    double precision                         , intent(in   ), optional :: time               , expansionFactor
-    logical                                  , intent(in   ), optional :: collapsing
-    integer                                  , intent(in   ), optional :: normalize          , component
-    double precision                         , intent(in   ), optional :: wavenumber
-    double precision                                                   :: time_
+    class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
+    double precision                                 , intent(in   ), optional :: time      , expansionFactor
+    logical                                          , intent(in   ), optional :: collapsing
+    integer                                          , intent(in   ), optional :: normalize , component
+    double precision                                 , intent(in   ), optional :: wavenumber
+    double precision                                                           :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component, wavenumber
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    simpleValue=self%growthFactor%interpolate(time_)
+    collisionlessMatterValue=self%growthFactor%interpolate(time_)
     ! Normalize.
     select case (normalize_)
     case (normalizeMatterDominated)
-       simpleValue=simpleValue*self%normalizationMatterDominated
+       collisionlessMatterValue=collisionlessMatterValue*self%normalizationMatterDominated
     end select
     return
-  end function simpleValue
+  end function collisionlessMatterValue
 
-  double precision function simpleLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
+  double precision function collisionlessMatterLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (linearGrowthSimple     ), intent(inout)           :: self
-    double precision                         , intent(in   ), optional :: time               , expansionFactor
-    logical                                  , intent(in   ), optional :: collapsing
-    integer                                  , intent(in   ), optional :: component 
-    double precision                         , intent(in   ), optional :: wavenumber 
-    double precision                                                   :: time_              , expansionFactor_
+    class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
+    double precision                                 , intent(in   ), optional :: time      , expansionFactor
+    logical                                          , intent(in   ), optional :: collapsing
+    integer                                          , intent(in   ), optional :: component
+    double precision                                 , intent(in   ), optional :: wavenumber
+    double precision                                                           :: time_     , expansionFactor_
     !GCC$ attributes unused :: component, wavenumber
-    
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    simpleLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
-         &                                     /self%growthFactor       %interpolate        (time_           ) &
-         &                                     /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
+    collisionlessMatterLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
+         &                                                  /self%growthFactor       %interpolate        (time_           ) &
+         &                                                  /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
     return
-  end function simpleLogarithmicDerivativeExpansionFactor
+  end function collisionlessMatterLogarithmicDerivativeExpansionFactor
+
+  double precision function collisionlessMatterLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
+    !% Return the logarithmic gradient of linear growth factor with respect to wavenumber at the given epoch.
+    implicit none
+    class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
+    double precision                                 , intent(in   ), optional :: time      , expansionFactor
+    logical                                          , intent(in   ), optional :: collapsing
+    integer                                          , intent(in   ), optional :: component
+    double precision                                 , intent(in   ), optional :: wavenumber
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
+
+    ! No dependence on wavenumber.
+    collisionlessMatterLogarithmicDerivativeWavenumber=0.0d0
+    return
+  end function collisionlessMatterLogarithmicDerivativeWavenumber
+
+  logical function collisionlessMatterIsWavenumberDependent(self,component)
+    !% Return false indicating that the growth function is not wavenumber-dependent.
+    implicit none
+    class  (linearGrowthCollisionlessMatter), intent(inout)           :: self
+    integer                                 , intent(in   ), optional :: component
+    !GCC$ attributes unused :: self, component
+
+    collisionlessMatterIsWavenumberDependent=.false.
+    return
+  end function collisionlessMatterIsWavenumberDependent

@@ -21,7 +21,7 @@
 
   !% Contains a module which implements a excursion set first crossing statistics class utilizing a higher order generalization of
   !% the algorithm of \cite{zhang_random_2006}.
-  
+
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHuiHighOrder">
   !#  <description>An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of \cite{zhang_random_2006}.</description>
   !# </excursionSetFirstCrossing>
@@ -43,7 +43,7 @@
      procedure :: initialize  => zhangHuiHighOrderInitialize
      procedure :: probability => zhangHuiHighOrderProbability
   end type excursionSetFirstCrossingZhangHuiHighOrder
-  
+
   interface excursionSetFirstCrossingZhangHuiHighOrder
      !% Constructors for the \cite{zhang_random_2006} excursion set barrier class.
      module procedure zhangHuiHighOrderConstructorParameters
@@ -54,7 +54,7 @@ contains
 
   function zhangHuiHighOrderConstructorParameters(parameters) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -66,7 +66,6 @@ contains
 
   function zhangHuiHighOrderConstructorInternal(excursionSetBarrier_) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                        :: self
     class(excursionSetBarrierClass                  ), intent(in   ), target :: excursionSetBarrier_
@@ -88,11 +87,12 @@ contains
 
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
+    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                           verbosityWorking
     use, intrinsic :: ISO_C_Binding
-    use               Numerical_Interpolation
-    use               Numerical_Ranges
-    use               Memory_Management
-    use               Galacticus_Display
+    use            :: Memory_Management      , only : allocateArray             , deallocateArray
+    use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
@@ -124,9 +124,7 @@ contains
           self%timeMinimum=0.5d0*time
           self%timeMaximum=2.0d0*time
        end if
-       self%timeTableCount=int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        ! Make a copy of the current table if possible.
        tableIsExtendable=(self%timeMinimum == self%timeMinimumPrevious .and. self%timeMaximum == self%timeMaximumPrevious .and. self%tableInitialized)
        if (tableIsExtendable) then
@@ -139,6 +137,8 @@ contains
        end if
        self%timeMinimumPrevious=self%timeMinimum
        self%timeMaximumPrevious=self%timeMaximum
+       self%timeTableCount     =int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
+       self%varianceTableCount =int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
@@ -284,10 +284,10 @@ contains
     end if
     ! Get interpolation in time.
     iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
+    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime                                ,time                                          )
     ! Get interpolation in variance.
     iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance                            ,variance                                      )
     ! Compute first crossing probability by interpolating.
     zhangHuiHighOrderProbability=0.0d0
     do jTime=0,1

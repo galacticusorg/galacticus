@@ -21,18 +21,19 @@
 
 program Test_Integration2
   !% Tests that numerical integration routines work.
+  use            :: FGSL                       , only : FGSL_Integ_Gauss15              , FGSL_Integ_Gauss61                         , fgsl_function                                   , fgsl_integration_workspace
+  use            :: Galacticus_Display         , only : Galacticus_Display_Indent       , Galacticus_Display_Message                 , Galacticus_Display_Unindent                     , Galacticus_Verbosity_Level_Set                 , &
+       &                                                verbosityStandard
+  use            :: Galacticus_Error           , only : Galacticus_Error_Report
   use, intrinsic :: ISO_C_Binding
-  use Kind_Numbers
-  use Numerical_Integration
-  use FGSL                       , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15, FGSL_Integ_Gauss61
-  use Numerical_Integration2
-  use Test_Integration2_Functions
-  use Galacticus_Error
-  use Galacticus_Display
-  use ISO_Varying_String
-#ifdef YEPPP
-  use yepLibrary
-#endif
+  use            :: ISO_Varying_String
+  use            :: Kind_Numbers               , only : kind_int8
+  use            :: Numerical_Integration      , only : Integrate                       , Integrate_Done
+  use            :: Numerical_Integration2     , only : integrator                      , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+          &                                             integratorCompositeTrapezoidal1D, integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
+          &                                             integratorVectorized1D          , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
+  use            :: Test_Integration2_Functions, only : testFunctions                   , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
+          &                                             testIntegratorMulti
   implicit none
   double precision                                                                             :: timeMean                       , error
   integer         (kind=kind_int8            )                                                 :: countStart                     , countEnd                , &
@@ -59,17 +60,9 @@ program Test_Integration2
   integer         (kind=kind_int8            ), dimension(integratorMultiCount  )              :: timeMulti
   integer         (kind=kind_int8            ), dimension(                     2)              :: timeGSL
   integer                                     , parameter                                      :: trialCount              =10
-#ifdef YEPPP
-  integer         (c_int                     )                                                 :: yepppStatus
-#endif
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Initialize the YEPPP library.
-#ifdef YEPPP
-  yepppStatus=yepLibrary_Init()
-#endif
   ! Determine units of system clock.
   call System_Clock(countStart,countRate)
   select case (countRate)
@@ -93,39 +86,29 @@ program Test_Integration2
      ! Allocate integrators.
      allocate(integratorCompositeTrapezoidal1D                 :: integrators     ( 1)%integrator_)
      integrators     ( 1)%description="Scalar composite trapezoidal"
-     integrators     ( 1)%useYEPPP=.false.
      allocate(integratorAdaptiveCompositeTrapezoidal1D         :: integrators     ( 2)%integrator_)
      integrators     ( 2)%description="Scalar adaptive composite trapezoidal"
-     integrators     ( 2)%useYEPPP=.false.
      allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 3)%integrator_)
      integrators     ( 3)%description="Vector adaptive composite trapezoidal"
-     integrators     ( 3)%useYEPPP=.false.
      allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 4)%integrator_)
      integrators     ( 4)%description="Vector YEPPP! adaptive composite trapezoidal"
-     integrators     ( 4)%useYEPPP=.true.
      allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 5)%integrator_)
      integrators     ( 5)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 5)%useYEPPP=.false.
      integrators     ( 5)%order   =15
      allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 6)%integrator_)
      integrators     ( 6)%description="Scalar adaptive composite Gauss-Kronrod 61-point"
-     integrators     ( 6)%useYEPPP=.false.
      integrators     ( 6)%order   =61
      allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 7)%integrator_)
      integrators     ( 7)%description="Vector adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 7)%useYEPPP=.false.
      integrators     ( 7)%order   =15
      allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 8)%integrator_)
      integrators     ( 8)%description="Vector adaptive composite Gauss-Kronrod 61-point"
-     integrators     ( 8)%useYEPPP=.false.
      integrators     ( 8)%order   =61
      allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 9)%integrator_)
      integrators     ( 9)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 9)%useYEPPP=.true.
      integrators     ( 9)%order   =15
      allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     (10)%integrator_)
      integrators     (10)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 61-point"
-     integrators     (10)%useYEPPP=.true.
      integrators     (10)%order   =61
      ! Find the longest description.
      descriptionLengthMaximum=26
@@ -161,15 +144,7 @@ program Test_Integration2
         class is (integrator1D)
            call    integrator_%integrandSet(testFunctions(iFunction)%scalar)
         class is (integratorVectorized1D)
-#ifdef YEPPP
-           if (integrators(i)%useYEPPP) then
-              call integrator_%integrandSet(testFunctions(iFunction)%yeppp )
-           else
-#endif
-              call integrator_%integrandSet(testFunctions(iFunction)%vector)
-#ifdef YEPPP
-           end if
-#endif
+           call integrator_%integrandSet(testFunctions(iFunction)%vector)
         class default
            call Galacticus_Error_Report('unknown integrator class [2]'//{introspection:location})
         end select
@@ -181,9 +156,6 @@ program Test_Integration2
      do trial=1,trialCount
         ! Evaluate internal integrators.
         do i=1,integratorCount
-#ifndef YEPPP
-           if (integrators(i)%useYEPPP) cycle
-#endif
            select type (integrator_ => integrators(i)%integrator_)
            class is (integrator1D)
               call System_Clock(countStart,countRate)
@@ -225,9 +197,6 @@ program Test_Integration2
      end do
      ! Report.
      do i=1,integratorCount
-#ifndef YEPPP
-        if (integrators(i)%useYEPPP) cycle
-#endif
        timeMean=dble(time(i))/dble(trialCount)
         error= +abs(integral(i)-testFunctions(iFunction)%solution) &
              & /abs(            testFunctions(iFunction)%solution)
@@ -371,8 +340,4 @@ program Test_Integration2
      end do
      call Galacticus_Display_Unindent("done")
   end do
-  ! Release the YEPPP! library.
-#ifdef YEPPP
-  yepppStatus=yepLibrary_Release()
-#endif
 end program Test_Integration2

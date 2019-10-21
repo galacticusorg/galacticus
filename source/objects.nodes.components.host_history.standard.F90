@@ -49,12 +49,13 @@ contains
   subroutine Node_Component_Host_History_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the standard host history component by creating components in nodes and assigning
     !% host mass for satellites.
-    use Galacticus_Nodes, only : treeNode, nodeComponentHostHistory, nodeComponentHostHistoryStandard, nodeComponentBasic, defaultHostHistoryComponent
+    use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, nodeComponentHostHistoryStandard, &
+          &                         treeNode
     implicit none
     type (treeNode                ), pointer, intent(inout) :: thisNode
     class(nodeComponentHostHistory), pointer                :: thisHostHistory
     class(nodeComponentBasic      ), pointer                :: hostBasic
-    
+
     ! Return immediately if this class is not active.
     if (.not.defaultHostHistoryComponent%standardIsActive()) return
 
@@ -81,12 +82,12 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Host_History_Standard_Update_History(thisNode)
     !% Record any major merger of {\normalfont \ttfamily thisNode}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentHostHistory, nodeComponentBasic, defaultHostHistoryComponent
+    use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, treeNode
     implicit none
     type (treeNode                ), pointer, intent(inout) :: thisNode
     class(nodeComponentHostHistory), pointer                :: thisHostHistory
     class(nodeComponentBasic      ), pointer                :: hostBasic
-    
+
     ! Return immediately if this class is not active.
     if (.not.defaultHostHistoryComponent%standardIsActive()) return
     ! Return immediately if thisNode is not a satellite.
@@ -101,6 +102,6 @@ contains
          &                                     )                                   &
          &                                 )
     return
-  end subroutine Node_Component_Host_History_Standard_Update_History  
+  end subroutine Node_Component_Host_History_Standard_Update_History
 
 end module Node_Component_Host_History_Standard

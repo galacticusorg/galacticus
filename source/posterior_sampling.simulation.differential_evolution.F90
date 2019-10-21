@@ -19,15 +19,14 @@
 
   !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
 
-  use Models_Likelihoods
-  use Posterior_Sampling_Convergence
-  use Posterior_Sampling_Stopping_Criteria
-  use Posterior_Sampling_State
-  use Posterior_Sampling_State_Initialize
-  use Posterior_Sample_Differential_Proposal_Size
-  use Posterior_Sampling_Prop_Size_Temp_Exp
-  use Posterior_Sample_Differential_Random_Jump
-  use Model_Parameters
+  use :: Model_Parameters                           , only : modelParameterList
+  use :: Models_Likelihoods                         , only : posteriorSampleLikelihoodClass
+  use :: Posterior_Sample_Differential_Proposal_Size, only : posteriorSampleDffrntlEvltnProposalSizeClass
+  use :: Posterior_Sample_Differential_Random_Jump  , only : posteriorSampleDffrntlEvltnRandomJumpClass
+  use :: Posterior_Sampling_Convergence             , only : posteriorSampleConvergenceClass
+  use :: Posterior_Sampling_State                   , only : posteriorSampleStateClass
+  use :: Posterior_Sampling_State_Initialize        , only : posteriorSampleStateInitializeClass
+  use :: Posterior_Sampling_Stopping_Criteria       , only : posteriorSampleStoppingCriterionClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
   !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
@@ -35,8 +34,8 @@
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
      !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
      private
-     integer                                                                                   :: parameterCount                                    , stepsMaximum                      , & 
-          &                                                                                       stateSwapCount                                    , acceptanceAverageCount            , &  
+     integer                                                                                   :: parameterCount                                    , stepsMaximum                      , &
+          &                                                                                       stateSwapCount                                    , acceptanceAverageCount            , &
           &                                                                                       logFlushCount                                     , reportCount                       , &
           &                                                                                       recomputeCount
      double precision                                                                          :: logPosterior                                      , logPrior
@@ -120,11 +119,12 @@ contains
   function differentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use MPI_Utilities
-    use String_Handling
-    use Galacticus_Display
-    use Galacticus_Error
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
+    use :: String_Handling   , only : operator(//)
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
     type   (inputParameters                               ), intent(inout)               :: parameters
@@ -373,14 +373,14 @@ contains
 
   subroutine differentialEvolutionSimulate(self)
     !% Perform a differential evolution simulation.
-    use MPI_Utilities
-    use Pseudo_Random
-    use Galacticus_Error
-    use Galacticus_Display
-    use String_Handling
-    use Models_Likelihoods_Constants
-    use Kind_Numbers
-    use File_Utilities              , only : File_Remove, File_Exists
+    use :: File_Utilities              , only : File_Exists               , File_Remove
+    use :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error            , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
+    use :: Pseudo_Random               , only : pseudoRandom
+    use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
     integer                                                         , dimension(                    2) :: chainPair
@@ -571,7 +571,7 @@ contains
 
   subroutine differentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                                 :: self
     double precision                                                , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -588,8 +588,8 @@ contains
 
   integer function differentialEvolutionChainSelect(self,randomNumberGenerator,blockedChains)
     !% Select a chain at random, optionally excluding blocked chains.
-    use Pseudo_Random
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
+    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class  (posteriorSampleSimulationDifferentialEvolution), intent(inout)                         :: self
     type   (pseudoRandom                                  ), intent(inout)                         :: randomNumberGenerator
@@ -629,12 +629,13 @@ contains
 
   subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use               MPI_Utilities
-    use               Sort
-    use               Galacticus_Error
-    use               Galacticus_Display
-    use               Kind_Numbers
+    use            :: Kind_Numbers      , only : kind_int4
+    use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
+    use            :: Model_Parameters  , only : modelParameterListLogPrior
+    use            :: Sort              , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self
     class           (posteriorSampleStateClass                     ), intent(inout)               :: posteriorSampleState_
@@ -829,8 +830,7 @@ contains
 
   logical function differentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
     !% Return whether or not to accept a proposal.
-    use Pseudo_Random
-    use MPI_Utilities
+    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
     double precision                                                , intent(in   ) :: logPosterior         , logPosteriorProposed         , &

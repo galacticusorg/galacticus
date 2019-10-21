@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a star formation histories class which records star formation split by metallicity.
 
-  use Output_Times, only : outputTimesClass, outputTimes
+  use :: Output_Times, only : outputTimes, outputTimesClass
 
   !# <starFormationHistory name="starFormationHistoryMetallicitySplit">
   !#  <description>
@@ -92,13 +92,13 @@
   end type metallicitySplitTimeStepRange
 
   ! Effective infinite metallicity.
-  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)                                     
+  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)
 
 contains
-  
+
   function metallicitySplitConstructorParameters(parameters) result(self)
     !% Constructor for the ``metallicitySplit'' star formation history class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationHistoryMetallicitySplit)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
@@ -108,7 +108,7 @@ contains
          &                                                                                 timeFine             , metallicityMinimum, &
          &                                                                                 metallicityMaximum
     integer                                                                             :: countMetallicities
-    
+
     !# <inputParameter>
     !#   <name>timeStep</name>
     !#   <cardinality>1</cardinality>
@@ -186,8 +186,8 @@ contains
 
   function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !% Internal constructor for the ``metallicitySplit'' star formation history class.
-    use Numerical_Ranges, only : Make_Range             , rangeTypeLogarithmic
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryMetallicitySplit)                                        :: self
     double precision                                      , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -239,14 +239,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily metallicitySplit} star formation histories class.
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%outputTimes_"/>
     return
   end subroutine metallicitySplitDestructor
-  
+
   subroutine metallicitySplitCreate(self,node,historyStarFormation,timeBegin)
     !% Create the history required for storing star formation history.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -264,9 +264,9 @@ contains
 
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes    , only : nodeComponentBasic
-    use Arrays_Search       , only : Search_Array
-    use Abundances_Structure, only : metallicityTypeLinearByMassSolar
+    use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
+    use :: Arrays_Search       , only : Search_Array
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -297,10 +297,10 @@ contains
 
   subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use Galacticus_HDF5 , only : galacticusOutputFile
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use String_Handling , only : operator(//)
-    use IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: String_Handling , only : operator(//)
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -369,7 +369,7 @@ contains
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
     !GCC$ attributes unused :: abundancesStellar
-    
+
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
@@ -381,8 +381,8 @@ contains
 
   subroutine metallicitySplitMake(self,historyStarFormation,timeBegin,timeEnd,timesCurrent)
     !% Create the history required for storing star formation history.
-    use Numerical_Ranges, only : Make_Range             , rangeTypeLinear
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLinear
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)                         :: self
     type            (history                             ), intent(inout)                         :: historyStarFormation

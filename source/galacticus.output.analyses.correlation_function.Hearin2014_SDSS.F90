@@ -37,13 +37,12 @@ contains
 
   function correlationFunctionHearin2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
-    use            :: Input_Parameters, only : inputParameter, inputParameters
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                        ), pointer                     :: cosmologyFunctions_
-    class           (linearGrowthClass                              ), pointer                     :: linearGrowth_
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
     class           (darkMatterProfileDMOClass                      ), pointer                     :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                        ), pointer                     :: darkMatterHaloBias_
@@ -129,16 +128,14 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                   name="linearGrowth_"                   source="parameters"/>
     !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
     !# <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
     !# <objectBuilder class="powerSpectrum"                  name="powerSpectrum_"                  source="parameters"/>
     !# <objectBuilder class="haloModelPowerSpectrumModifier" name="haloModelPowerSpectrumModifier_" source="parameters"/>
-    self=outputAnalysisCorrelationFunctionHearin2013SDSS(massHaloBinsPerDecade,massHaloMinimum, massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,linearGrowth_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_)
+    self=outputAnalysisCorrelationFunctionHearin2013SDSS(massHaloBinsPerDecade,massHaloMinimum, massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="linearGrowth_"                  />
     !# <objectDestructor name="outputTimes_"                   />
     !# <objectDestructor name="darkMatterProfileDMO_"          />
     !# <objectDestructor name="darkMatterHaloBias_"            />
@@ -147,19 +144,24 @@ contains
     return
   end function correlationFunctionHearin2013SDSSConstructorParameters
 
-  function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,linearGrowth_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
+  function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
     !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
-    use, intrinsic :: ISO_C_Binding                     , only : c_size_t
-    use            :: Galacticus_Paths                  , only : galacticusPath                                 , pathTypeDataStatic
-    use            :: Cosmology_Parameters              , only : cosmologyParametersSimple
-    use            :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
+    use            :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use            :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use            :: Galactic_Filters                      , only : galacticFilterStellarMass
+    use            :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
+    use            :: Geometry_Surveys                      , only : surveyGeometryHearin2014SDSS
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
+    use            :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar
+    use            :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCsmlgyAnglrDstnc     , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
+          &                                                          outputAnalysisPropertyOperatorSystmtcPolynomial    , propertyOperatorList
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS    )                                :: self
     double precision                                                     , intent(in   )  , dimension(:) :: randomErrorPolynomialCoefficient              , systematicErrorPolynomialCoefficient
     double precision                                                     , intent(in   )                 :: massHaloMinimum                               , massHaloMaximum                     , &
          &                                                                                                  randomErrorMinimum                            , randomErrorMaximum
     integer                                                              , intent(in   )                 :: massHaloBinsPerDecade
-    class           (linearGrowthClass                                  ), intent(in   ), target         :: linearGrowth_
     class           (cosmologyFunctionsClass                            ), intent(in   ), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(in   ), target         :: outputTimes_
     class           (darkMatterProfileDMOClass                          ), intent(in   ), target         :: darkMatterProfileDMO_
@@ -257,7 +259,6 @@ contains
          &                                   wavenumberMinimum                                                                                                              , &
          &                                   wavenumberMaximum                                                                                                              , &
          &                                   halfIntegral                                                                                                                   , &
-         &                                   linearGrowth_                                                                                                                  , &
          &                                   galacticFilter_                                                                                                                , &
          &                                   surveyGeometry_                                                                                                                , &
          &                                   cosmologyFunctions_                                                                                                            , &

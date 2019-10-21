@@ -21,14 +21,16 @@
 
 double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !% Computes the mass within a given radius for an very simple spheroid.
-  use Galactic_Structure_Options
-  use Galacticus_Error
+  use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
+          &                                 massTypeGalactic       , massTypeGaseous      , massTypeStellar, radiusLarge     , &
+          &                                 weightByMass
+  use :: Galacticus_Error          , only : Galacticus_Error_Report
   implicit none
   class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
   integer                                          , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                                 , intent(in   ) :: radius
   !GCC$ attributes unused :: weightIndex
-  
+
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Spheroid_Very_Simple_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return

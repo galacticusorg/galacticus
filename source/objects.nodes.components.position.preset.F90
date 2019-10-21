@@ -61,15 +61,15 @@ module Node_Component_Position_Preset
 
   ! Options.
   logical :: positionsPresetSatelliteToHost
-  
+
 contains
-  
+
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Initialize</unitName>
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Position_Preset_Initialize(globalParameters_)
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -87,14 +87,14 @@ contains
     end if
     return
   end subroutine Node_Component_Position_Preset_Initialize
-  
+
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Position_Preset_Node_Promotion</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Position_Preset_Node_Promotion(thisNode)
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
     !% thisNode} to that of the parent.
-    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentPositionPreset
+    use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPreset, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: thisNode
     class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
@@ -123,7 +123,7 @@ contains
     end select
     return
   end subroutine Node_Component_Position_Preset_Node_Promotion
-  
+
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Position_Preset_Move</unitName>
   !# </nodeMergerTask>
@@ -132,7 +132,7 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Position_Preset_Move(node)
     !% Optionally move a satellite to coincide with the postion of its host.
-    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     type (treeNode             )               , pointer :: nodeHost
@@ -146,7 +146,7 @@ contains
     position     => node    %position()
     positionHost => nodeHost%position()
     call position%positionSet(positionHost%position())
-    call position%velocitySet(positionHost%velocity())    
+    call position%velocitySet(positionHost%velocity())
     return
   end subroutine Node_Component_Position_Preset_Move
 
@@ -156,8 +156,8 @@ contains
   subroutine Node_Component_Position_Preset_Inter_Tree_Insert(node,replaceNode)
     !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
     !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
-    use Histories
-    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentBasic, defaultPositionComponent
+    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
+    use :: Histories       , only : history
     implicit none
     type (treeNode             ), intent(inout), pointer :: node               , replaceNode
     class(nodeComponentPosition)               , pointer :: position           , replacePosition
@@ -181,8 +181,8 @@ contains
     call historyPosition       %append            (                moveHistoryPosition)
     ! Set the histories.
     call        position       %positionHistorySet(                    historyPosition)
-    call replacePosition       %positionHistorySet(             replaceHistoryPosition) 
+    call replacePosition       %positionHistorySet(             replaceHistoryPosition)
     return
   end subroutine Node_Component_Position_Preset_Inter_Tree_Insert
-    
+
 end module Node_Component_Position_Preset

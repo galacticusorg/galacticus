@@ -18,9 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements an HI vs halo mass relation analysis class.
-  
+
   use, intrinsic :: ISO_C_Binding, only : c_size_t
-  
+
   !# <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
   !#  <description>An HI vs halo mass relation output analysis class.</description>
   !# </outputAnalysis>
@@ -40,11 +40,11 @@ contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters(parameters) result (self)
     !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class which takes a parameter set as input.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Input_Parameters
-    use Output_Analysis_Molecular_Ratios
-    use Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
+    use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
+    use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
+    use :: Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
+    use :: Input_Parameters                , only : inputParameter                                          , inputParameters
+    use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio                            , outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisHIVsHaloMassRelationPadmanabhan2017)                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
@@ -95,25 +95,27 @@ contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
-    use ISO_Varying_String
-    use Numerical_Constants_Astronomical
-    use Output_Times
-    use Numerical_Ranges
-    use Numerical_Comparison
-    use Output_Analysis_Property_Operators
-    use Node_Property_Extractors
-    use Output_Analysis_Distribution_Operators
-    use Output_Analysis_Weight_Operators
-    use Output_Analysis_Utilities
-    use Output_Analysis_Molecular_Ratios
-    use Memory_Management
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use String_Handling
-    use Galacticus_Error
-    use Virial_Density_Contrast
-    use Dark_Matter_Halo_Scales
-    use Galacticus_Nodes                      , only : treeNode, nodeComponentBasic
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                  , only : cosmologyParametersClass                          , cosmologyParametersSimple                      , hubbleUnitsLittleH
+    use :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Galactic_Filters                      , only : filterList                                        , galacticFilterAll                              , galacticFilterHaloIsolated                     , galacticFilterISMMass
+    use :: Galacticus_Error                      , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                      , only : nodeComponentBasic                                , treeNode
+    use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
+    use :: ISO_Varying_String
+    use :: Memory_Management                     , only : allocateArray
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                     , nodePropertyExtractorMassISM
+    use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Numerical_Ranges                      , only : Make_Range                                        , rangeTypeLinear
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Molecular_Ratios      , only : outputAnalysisMolecularRatioClass
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10           , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorHIMass, &
+          &                                               outputAnalysisPropertyOperatorLog10               , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                          , only : outputTimesClass
+    use :: Virial_Density_Contrast               , only : virialDensityContrastBryanNorman1998              , virialDensityContrastPercolation
     implicit none
     type            (outputAnalysisHIVsHaloMassRelationPadmanabhan2017 )                                :: self
     integer         (c_size_t                                          ), intent(in   )                 :: likelihoodBin
@@ -144,8 +146,8 @@ contains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial   ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorFilterHighPass      ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassISM            ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                     ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassISM                      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                              ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                         ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                       :: cosmologyFunctionsData
@@ -317,7 +319,7 @@ contains
             &                                       /      massHILogarithmicTarget          (iBin     ) **2 &
             &                                       /log  (10.0d0                                      )**2
        massHILogarithmicTarget          (iBin     )=+log10(massHILogarithmicTarget          (iBin     ))
-    end do    
+    end do
     call nodeWork%destroy()
     deallocate(nodeWork)
     self%likelihoodBin=likelihoodBin
@@ -361,7 +363,7 @@ contains
          &                                                         var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
          &                                                         var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
          &                                                         .true.                                                , &
-         &                                                         .false.                                               , &    
+         &                                                         .false.                                               , &
          &                                                         var_str('Padmanabhan \\& Refrigier (2017)'           ), &
          &                                                         massHILogarithmicTarget                               , &
          &                                                         massHILogarithmicCovarianceTarget                       &

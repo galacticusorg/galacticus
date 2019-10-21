@@ -19,8 +19,8 @@
 
   !% Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
 
-  use Pseudo_Random
-  
+  use :: Pseudo_Random, only : pseudoRandom
+
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
   !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
   !# </posteriorSampleLikelihood>
@@ -45,15 +45,15 @@ contains
   function multivariateNormalStochasticConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multivariateNormalStochastic} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use Input_Parameters
-    use ISO_Varying_String
+    use :: ISO_Varying_String
+    use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
     double precision                                                  , allocatable, dimension(:  ) :: means
     double precision                                                  , allocatable, dimension(:,:) :: covariance
     integer                                                                                         :: realizationCount, realizationCountMinimum
-    
+
     allocate(means     (parameters%count('means')                          ))
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !# <inputParameter>
@@ -62,28 +62,28 @@ contains
     !#   <description>The mean of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>covariance</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>realizationCount</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The number of realizations of the stochastic likelihood to compute at unit temperature.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>realizationCountMinimum</name>
     !#   <cardinality>1</cardinality>
     !#   <description>The minimum number of realizations of the stochastic likelihood to compute at higher temperatures.</description>
     !#   <source>parameters</source>
     !#   <type>integer</type>
-    !# </inputParameter>   
+    !# </inputParameter>
     self=posteriorSampleLikelihoodMltiVrtNormalStochastic(means,covariance,realizationCount,realizationCountMinimum)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -95,7 +95,7 @@ contains
     double precision                                                  , intent(in   ), dimension(:  ) :: means
     double precision                                                  , intent(in   ), dimension(:,:) :: covariance
     integer                                                           , intent(in   )                 :: realizationCount, realizationCountMinimum
-   !# <constructorAssign variables="realizationCount, realizationCountMinimum"/>
+    !# <constructorAssign variables="realizationCount, realizationCountMinimum"/>
 
     self%posteriorSampleLikelihoodMultivariateNormal=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
     return
@@ -103,9 +103,10 @@ contains
 
   double precision function multivariateNormalStochasticEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
-    use Posterior_Sampling_State
-    use Posterior_Sampling_Convergence
-    use Numerical_Constants_Math
+    use :: Linear_Algebra                , only : assignment(=)                  , operator(*)
+    use :: Numerical_Constants_Math      , only : Pi
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout)                 :: self
     class           (posteriorSampleStateClass                       ), intent(inout)                 :: simulationState

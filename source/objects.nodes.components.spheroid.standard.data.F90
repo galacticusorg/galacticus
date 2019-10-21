@@ -21,12 +21,12 @@
 
 module Node_Component_Spheroid_Standard_Data
   !% Contains data for standard spheroid components.
-  use Mass_Distributions
+  use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public
 
   ! The mass distribution object.
   class(massDistributionClass), pointer :: spheroidMassDistribution
   !$omp threadprivate(spheroidMassDistribution)
-  
+
 end module Node_Component_Spheroid_Standard_Data

@@ -19,7 +19,7 @@
 
   !% Implements a satellite merging timescale class which uses the \cite{lacey_merger_1993} method.
 
-  use Dark_Matter_Halo_Scales
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
   !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993}.</description>
@@ -54,7 +54,7 @@ contains
 
   function laceyCole1993ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesLaceyCole1993)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -98,7 +98,7 @@ contains
 
   double precision function laceyCole1993TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
-    use Kepler_Orbits
+    use :: Kepler_Orbits, only : keplerOrbit
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
@@ -126,7 +126,7 @@ contains
 
   double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
     !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
@@ -135,7 +135,7 @@ contains
     double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                         :: massRatio
     !GCC$ attributes unused :: self
-    
+
     ! Find the host node.
     nodeHost => node%parent
     ! Compute mass ratio.

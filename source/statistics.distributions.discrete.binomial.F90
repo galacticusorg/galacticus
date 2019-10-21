@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of a binomial 1D discrete distibution function.
-  
+
   !# <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DBinomial">
   !#  <description>A binomial 1D discrete distribution function class.</description>
   !# </distributionFunctionDiscrete1D>
@@ -48,13 +48,13 @@ contains
   function binomialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily binomial} 1D discrete distribution function class which builds
     !% the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunctionDiscrete1DBinomial)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     double precision                                                        :: probabilitySuccess
     integer                                                                 :: countTrials
-    
+
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
     !#   <cardinality>1</cardinality>
@@ -76,7 +76,7 @@ contains
 
   function binomialConstructorInternal(probabilitySuccess,countTrials) result(self)
     !% Constructor for ``binomial'' 1D distribution function class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunctionDiscrete1DBinomial)                :: self
     double precision                                        , intent(in   ) :: probabilitySuccess
@@ -102,8 +102,8 @@ contains
 
   double precision function binomialMass(self,x)
     !% Return the mass of a binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Factorials      , only : Factorial
+    use :: Factorials      , only : Factorial
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     integer                                        , intent(in   ) :: x
@@ -129,7 +129,7 @@ contains
 
   double precision function binomialCumulative(self,x)
     !% Return the cumulative probability of a binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     integer                                        , intent(in   ) :: x
@@ -141,11 +141,11 @@ contains
 
   integer function binomialInverse(self,p)
     !% Return the inverse of a binomial discrete distribution.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     double precision                                        , intent(in   ) :: p
-    
+
     if (p < 0.0d0 .or. p > 1.0d0) call Galacticus_Error_Report('p∈[0,1]'//{introspection:location})
     binomialInverse=0
     do while (self%probabilityCumulative(binomialInverse) < p)

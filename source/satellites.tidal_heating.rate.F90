@@ -23,9 +23,9 @@
 
 module Satellite_Tidal_Heating
   !% Implements a class for calculations of tidal heating for satellites.
-  use Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
   !#  <name>satelliteTidalHeatingRate</name>
   !#  <descriptiveName>Satellite halo tidal heating rate models.</descriptiveName>
@@ -38,5 +38,5 @@ module Satellite_Tidal_Heating
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
-  
+
 end module Satellite_Tidal_Heating

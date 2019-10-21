@@ -19,18 +19,18 @@
 
   !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
   !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
      !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                    :: timescaleMultiplier
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                     :: timescaleMultiplier
    contains
      final     ::                     boylanKolchin2008Destructor
      procedure :: timeUntilMerging => boylanKolchin2008TimeUntilMerging
@@ -47,14 +47,14 @@ contains
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
     double precision                                                             :: timescaleMultiplier
-    
+
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
     !#   <cardinality>1</cardinality>
@@ -63,12 +63,12 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"  />
+    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function boylanKolchin2008ConstructorParameters
 
@@ -78,7 +78,7 @@ contains
     type            (satelliteMergingTimescalesBoylanKolchin2008)                        :: self
     double precision                                             , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
     !# <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
 
     return
@@ -89,17 +89,17 @@ contains
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine boylanKolchin2008Destructor
 
   double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Galacticus_Error
-    use Kepler_Orbits
-    use Satellite_Orbits
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
@@ -115,7 +115,7 @@ contains
          &                                                                          velocityScale                        , expArgument
     integer                                                                      :: errorCode
     !GCC$ attributes unused :: self
-    
+
     ! Find the host node.
     nodeHost => node%parent
     ! Get velocity scale.
@@ -136,9 +136,9 @@ contains
        return
     case (errorCodeSuccess          )
        ! Compute orbital circularity.
-       orbitalCircularity                                                                       &
-            & =orbit%angularMomentum()                                                          &
-            & /equivalentCircularOrbitRadius                                                    &
+       orbitalCircularity                                                                          &
+            & =orbit%angularMomentum()                                                             &
+            & /equivalentCircularOrbitRadius                                                       &
             & /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     case default
        orbitalCircularity=0.0d0

@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a thermal warm dark matter particle class.
 
-  use Cosmology_Parameters
-  
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+
   !# <darkMatterParticle name="darkMatterParticleWDMThermal">
   !#  <description>Provides a thermal warm dark matter particle.</description>
   !# </darkMatterParticle>
@@ -56,22 +56,22 @@
      procedure :: degreesOfFreedomEffective           => wdmThermalDegreesOfFreedomEffective
      procedure :: degreesOfFreedomEffectiveDecoupling => wdmThermalDegreesOfFreedomEffectiveDecoupling
   end type darkMatterParticleWDMThermal
-  
+
   interface darkMatterParticleWDMThermal
      !% Constructors for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
      module procedure wdmThermalConstructorParameters
      module procedure wdmThermalConstructorInternal
   end interface darkMatterParticleWDMThermal
-  
+
 contains
 
   function wdmThermalConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterParticleWDMThermal)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
-    class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_    
+    class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_
     double precision                                              :: massValue           , degreesOfFreedomEffectiveValue
 
     !# <inputParameter>
@@ -101,18 +101,17 @@ contains
 
   function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
-    use Input_Parameters
     implicit none
     type            (darkMatterParticleWDMThermal)                        :: self
     double precision                              , intent(in   )         :: mass                , degreesOfFreedomEffective
-    class           (cosmologyParametersClass    ), intent(inout), target :: cosmologyParameters_    
+    class           (cosmologyParametersClass    ), intent(inout), target :: cosmologyParameters_
     !# <constructorAssign variables="*cosmologyParameters_"/>
-    
+
     self%massValue                     =mass
     self%degreesOfFreedomEffectiveValue=degreesOfFreedomEffective
     return
   end function wdmThermalConstructorInternal
-  
+
   subroutine wdmThermalDestructor(self)
     !% Destructor for the cut off cooling rate class.
     implicit none
@@ -130,7 +129,7 @@ contains
     wdmThermalMass=self%massValue
     return
   end function wdmThermalMass
-  
+
   double precision function wdmThermalDegreesOfFreedomEffective(self)
     !% Return the effective number of degrees of freedom of a thermal warm dark matter particle.
     implicit none
@@ -139,12 +138,13 @@ contains
     wdmThermalDegreesOfFreedomEffective=self%degreesOfFreedomEffectiveValue
     return
   end function wdmThermalDegreesOfFreedomEffective
-  
+
   double precision function wdmThermalDegreesOfFreedomEffectiveDecoupling(self)
     !% Return the effective number of relativistic degrees of freedom at the time of decoupling of a thermal warm dark matter
     !% particle. The effective number of relativistic degrees of freedom at the time of decoupling is determined from the
     !% requirement that the warm dark matter particle have the correct relic density to provide the entire mass of dark matter
     !% \citep[][eqn.~17]{hogan_warm_1999}.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class(darkMatterParticleWDMThermal), intent(in   ) :: self
 
@@ -158,4 +158,4 @@ contains
          &                                        /  self%cosmologyParameters_%HubbleConstant          (hubbleUnitsLittleH)**2
     return
   end function wdmThermalDegreesOfFreedomEffectiveDecoupling
-  
+

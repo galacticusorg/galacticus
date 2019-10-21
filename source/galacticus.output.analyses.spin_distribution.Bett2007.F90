@@ -19,12 +19,7 @@
 
 !% Contains a module which implements a spin parameter distribution output analysis class.
 
-  use Cosmology_Functions
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles_DMO
-  use Halo_Mass_Functions
-  use Statistics_NBody_Halo_Mass_Errors
-  use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
   !# <outputAnalysis name="outputAnalysisSpinDistributionBett2007">
   !#  <description>A stellar mass function output analysis class.</description>
@@ -44,21 +39,21 @@ contains
 
   function spinDistributionBett2007ConstructorParameters(parameters) result (self)
     !% Constructor for the ``spinDistributionBett2007'' output analysis class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter                                          , inputParameters
-    use Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
+    use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
+    use :: Input_Parameters, only : inputParameter                                          , inputParameters
     implicit none
     type            (outputAnalysisSpinDistributionBett2007)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                      ), pointer       :: outputTimes_
-    class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_ 
-    class           (haloMassFunctionClass                 ), pointer       :: haloMassFunction_            
-    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_         
+    class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_
+    class           (haloMassFunctionClass                 ), pointer       :: haloMassFunction_
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (*                                     ), pointer       :: percolationObjects_
     double precision                                                        :: timeRecent
-    
+
     !# <inputParameter>
     !#   <name>timeRecent</name>
     !#   <source>parameters</source>
@@ -88,26 +83,38 @@ contains
 
   function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
     !% Internal constructor for the ``spinDistributionBett2007'' output analysis class.
-    use ISO_Varying_String
-    use Output_Times
-    use Output_Analyses_Options
-    use Galacticus_Error
-    use Galacticus_Paths
-    use IO_HDF5
-    use Memory_Management
-    use Numerical_Comparison
-    use Halo_Spin_Distributions
-    use Virial_Density_Contrast, only : virialDensityContrastPercolation
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
+    use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
+    use :: Galactic_Filters                        , only : filterList                                       , galacticFilterAll                           , galacticFilterHaloIsolated                    , galacticFilterHaloMass                      , &
+          &                                                 galacticFilterNodeMajorMergerRecent              , galacticFilterNot
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                        , only : galacticusPath                                   , pathTypeDataStatic
+    use :: Halo_Mass_Functions                     , only : haloMassFunctionClass
+    use :: Halo_Spin_Distributions                 , only : haloSpinDistributionDeltaFunction                , haloSpinDistributionNbodyErrors
+    use :: IO_HDF5                                 , only : hdf5Access                                       , hdf5Object
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorSpin
+    use :: Numerical_Comparison                    , only : Values_Agree
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                   , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
+          &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorSpinNBodyErrors
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10          , outputAnalysisPropertyOperatorLog10
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                            , only : outputTimesClass
+    use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast                 , only : virialDensityContrastPercolation
     implicit none
     type            (outputAnalysisSpinDistributionBett2007           )                              :: self
     double precision                                                                , intent(in   )  :: timeRecent
     class           (cosmologyFunctionsClass                          ), target     , intent(inout)  :: cosmologyFunctions_
     class           (outputTimesClass                                 ), target     , intent(inout)  :: outputTimes_
-    class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_ 
-    class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_            
-    class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_         
-    class           (darkMatterProfileDMOClass                        ), target     , intent(in   )  :: darkMatterProfileDMO_           
-    class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_           
+    class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_
+    class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_
+    class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass                        ), target     , intent(in   )  :: darkMatterProfileDMO_
+    class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_
     class           (*                                                ), target     , intent(in   )  :: percolationObjects_
     type            (nodePropertyExtractorSpin                        ), pointer                     :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10              ), pointer                     :: outputAnalysisPropertyOperator_
@@ -139,7 +146,7 @@ contains
     double precision                                                   , parameter                   :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                              :: i                                                , bufferCount
     type            (hdf5Object                                       )                              :: dataFile
-    
+
     ! Construct spins matched to those used by Bett et al. (2007).
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/bett2007HaloSpinDistribution.hdf5'),readOnly=.true.             )

@@ -20,7 +20,7 @@
   !% Implementation of an atomic photoionization cross section class based on
   !% (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
   !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
-  
+
   !# <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner">
   !#  <description>
   !#   An atomic photoionization cross section class based on (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont
@@ -1939,7 +1939,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily verner} atomic photoionization cross-section class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicCrossSectionIonizationPhotoVerner)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
@@ -1962,8 +1962,9 @@ contains
     !% Inner-shell ionization energies of some low-ionized species are slightly
     !% improved to fit smoothly the experimental inner-shell ionization energies
     !% of neutral atoms.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
+    use :: Numerical_Constants_Prefixes, only : centi            , mega
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter, barn      , electronVolt
     implicit none
     class           (atomicCrossSectionIonizationPhotoVerner), intent(inout) :: self
     integer                                                  , intent(in   ) :: atomicNumber  , ionizationState , shellNumber

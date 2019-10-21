@@ -19,8 +19,8 @@
 
 !% Contains a module which implements a stellar mass function output analysis class.
 
-  use Geometry_Surveys
-  use Cosmology_Functions
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !# <outputAnalysis name="outputAnalysisMassFunctionStellar">
   !#  <description>A stellar mass function output analysis class.</description>
@@ -31,7 +31,7 @@
      class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
    contains
-     final :: massFunctionStellarDestructor     
+     final :: massFunctionStellarDestructor
   end type outputAnalysisMassFunctionStellar
 
   interface outputAnalysisMassFunctionStellar
@@ -45,8 +45,8 @@ contains
 
   function massFunctionStellarConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -55,7 +55,7 @@ contains
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
-    class           (outputTimesClass                       ), pointer                     :: outputTimes_ 
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
     double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget              , &
          &                                                                                    functionCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
@@ -64,7 +64,7 @@ contains
     type            (inputParameters                        )                              :: dataAnalysisParameters
     type            (varying_string                         )                              :: label                              , comment                          , &
          &                                                                                    targetLabel
-    
+
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(masses(parameters%count('masses')))
@@ -133,7 +133,7 @@ contains
           !#   <description>The target function for likelihood calculations.</description>
           !#   <type>real</type>
           !#   <cardinality>0..1</cardinality>
-          !# </inputParameter> 
+          !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
@@ -180,7 +180,7 @@ contains
 
   function massFunctionStellarConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which reads bin information from a standard format file.
-    use IO_HDF5
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -198,7 +198,7 @@ contains
     type            (hdf5Object                             )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget
-    
+
     !$ call hdf5Access%set()
     call dataFile%openFile   (fileName,readOnly=.true.)
     call dataFile%readDataset('mass'  ,masses         )
@@ -222,13 +222,19 @@ contains
 
   function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
-    use ISO_Varying_String
-    use Memory_Management
-    use String_Handling
-    use Galacticus_Error
-    use Numerical_Constants_Astronomical
-    use Output_Analyses_Options
-    use Output_Analysis_Utilities
+    use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
+    use :: Galactic_Filters                        , only : galacticFilterClass
+    use :: Galacticus_Error                        , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar
+    use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
+          &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
+    use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
     implicit none
     type            (outputAnalysisMassFunctionStellar              )                                          :: self
     type            (varying_string                                 ), intent(in   )                           :: label                                                 , comment
@@ -244,7 +250,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorMassStellar     )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar               )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -368,7 +374,7 @@ contains
   subroutine massFunctionStellarDestructor(self)
     !% Destructor for  the ``massFunctionStellar'' output analysis class.
     type(outputAnalysisMassFunctionStellar), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%surveyGeometry_"       />
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%cosmologyFunctionsData"/>

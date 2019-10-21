@@ -22,7 +22,7 @@
 module Cosmology_Parameters
   !% Provides an object that implements cosmological parameters.
   private
-  
+
   ! Enumeration for Hubble constant units.
   !# <enumeration>
   !#  <name>hubbleUnits</name>

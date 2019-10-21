@@ -23,7 +23,7 @@
      class(nodePropertyExtractorClass), pointer :: extractor_
      type (multiExtractorList        ), pointer :: next       => null()
   end type multiExtractorList
-  
+
   !# <nodePropertyExtractor name="nodePropertyExtractorMulti">
   !#  <description>A multi output extractor property extractor class.</description>
   !# </nodePropertyExtractor>
@@ -115,7 +115,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !% Constructor for the ``multi'' output extractor property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorMulti)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
@@ -158,7 +158,7 @@ contains
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self
     type(multiExtractorList        ), pointer       :: extractor_, extractorNext
-    
+
     if (associated(self%extractors)) then
        extractor_ => self%extractors
        do while (associated(extractor_))
@@ -170,10 +170,10 @@ contains
     end if
     return
   end subroutine multiDestructor
-  
+
   integer function multiElementCount(self,elementType,time)
     !% Return the number of elements in the multiple property extractors.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
     integer                                     , intent(in   ) :: elementType
@@ -202,7 +202,7 @@ contains
 
   function multiExtractDouble(self,node,time,instance)
     !% Implement a multi output extractor.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiExtractDouble
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -239,7 +239,7 @@ contains
 
   function multiExtractInteger(self,node,time,instance)
     !% Implement a multi output extractor.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         (kind_int8                 ), dimension(:) , allocatable :: multiExtractInteger
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -292,7 +292,7 @@ contains
 
   function multiNames(self,elementType,time)
     !% Return the names of the multiple properties.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiNames
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -338,7 +338,7 @@ contains
 
   function multiDescriptions(self,elementType,time)
     !% Return the descriptions of the multiple properties.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiDescriptions
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -384,7 +384,7 @@ contains
 
   function multiUnitsInSI(self,elementType,time)
     !% Return the units of the multiple properties in the SI system.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiUnitsInSI
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -410,7 +410,7 @@ contains
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
           end if
        class is (nodePropertyExtractorIntegerScalar)
-          if (elementType == elementTypeDouble ) then
+          if (elementType == elementTypeInteger) then
              elementCount=1
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
           end if
@@ -430,7 +430,7 @@ contains
 
   integer function multiType(self)
     !% Return the type of the multi property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMulti), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -441,7 +441,7 @@ contains
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} extractor class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(nodePropertyExtractorMulti), intent(inout) :: self
     class(nodePropertyExtractorClass), intent(inout) :: destination
@@ -451,7 +451,7 @@ contains
     call self%nodePropertyExtractorClass%deepCopy(destination)
     select type (destination)
     type is (nodePropertyExtractorMulti)
-       ! Copy list of extractors.       
+       ! Copy list of extractors.
        destination%extractors => null           ()
        extractorDestination_  => null           ()
        extractor_             => self%extractors
@@ -459,7 +459,7 @@ contains
           allocate(extractorNew_)
           if (associated(extractorDestination_)) then
              extractorDestination_%next       => extractorNew_
-             extractorDestination_            => extractorNew_             
+             extractorDestination_            => extractorNew_
           else
              destination          %extractors => extractorNew_
              extractorDestination_            => extractorNew_

@@ -23,16 +23,17 @@
 program Tests_Halo_Mass_Function_Tinker
   !% Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
   !% \href{http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Halo_Mass_Functions
-  use Cosmology_Functions
-  use Cosmology_Parameters
-  use File_Utilities
-  use Cosmological_Density_Field
-  use Galacticus_Display
-  use Memory_Management
+  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass, hubbleUnitsLittleH
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: File_Utilities            , only : Count_Lines_In_File
+  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Halo_Mass_Functions       , only : haloMassFunction              , haloMassFunctionClass
+  use :: ISO_Varying_String
+  use :: Input_Parameters          , only : inputParameters
+  use :: Memory_Management         , only : allocateArray                 , deallocateArray
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -49,6 +50,8 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: Tinker et al. (2008)")
 
@@ -61,7 +64,7 @@ program Tests_Halo_Mass_Function_Tinker
   cosmologyFunctions_  => cosmologyFunctions ()
   criticalOverdensity_ => criticalOverdensity()
   haloMassFunction_    => haloMassFunction   ()
-  
+
   time=cosmologyFunctions_%cosmicTime(1.0d0)
 
   ! Determine number of masses in reference data file and allocate arrays.

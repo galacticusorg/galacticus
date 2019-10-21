@@ -17,9 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use            :: Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
   use, intrinsic :: ISO_C_Binding      , only : c_size_t
-  use               Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
-  use               Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLightcone">
   !#  <description>A lightcone output extractor property extractor class.</description>
@@ -56,7 +56,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !% Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
-    use Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorLightcone)                :: self
     type   (inputParameters               ), intent(inout) :: parameters
@@ -91,8 +91,8 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_) result(self)
     !% Internal constructor for the ``lightcone'' output extractor property extractor class.
-    use Numerical_Constants_Prefixes    , only : kilo
-    use Numerical_Constants_Astronomical, only : megaParsec, degreesToRadians    
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
     logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates
@@ -151,7 +151,7 @@ contains
     end if
     return
   end function lightconeConstructorInternal
-  
+
   subroutine lightconeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class.
     implicit none
@@ -161,7 +161,7 @@ contains
     !# <objectDestructor name="self%geometryLightcone_" />
     return
   end subroutine lightconeDestructor
-  
+
   integer function lightconeElementCount(self,time)
     !% Return the number of elements in the lightconeple property extractors.
     implicit none
@@ -172,14 +172,14 @@ contains
     lightconeElementCount=self%elementCount_
     return
   end function lightconeElementCount
-  
+
   function lightconeExtract(self,node,time,instance)
     !% Implement a lightcone output extractor.
-    use Vectors                         , only : Vector_Magnitude
-    use Numerical_Constants_Astronomical, only : degreesToRadians
-    use Numerical_Constants_Physical    , only : speedLight
-    use Numerical_Constants_Prefixes    , only : kilo
-    use Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeExtract
     class           (nodePropertyExtractorLightcone), intent(inout), target      :: self
@@ -230,8 +230,8 @@ contains
 
   subroutine lightconeAddInstances(self,node,instance)
     !% Implement adding of instances to a lightcone property extractor.
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use String_Handling , only : operator(//)
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: String_Handling , only : operator(//)
     implicit none
     class    (nodePropertyExtractorLightcone), intent(inout) :: self
     type     (treeNode                      ), intent(inout) :: node
@@ -296,7 +296,7 @@ contains
 
   integer function lightconeType(self)
     !% Return the type of the lightcone property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLightcone), intent(inout) :: self
     !GCC$ attributes unused :: self

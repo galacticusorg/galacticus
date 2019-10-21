@@ -37,21 +37,21 @@ contains
 
   function buildToolRecFastParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily buildToolRecFast} task class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolRecFast)                :: self
     type(inputParameters     ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=taskBuildToolRecFast()
     return
   end function buildToolRecFastParameters
 
   subroutine buildToolRecFastPerform(self,status)
     !% Builds the tabulation.
-    use Galacticus_Error  , only : errorStatusSuccess
-    use Galacticus_Display
-    use Interfaces_RecFast
+    use :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Interfaces_RecFast, only : Interface_RecFast_Initialize
     implicit none
     class  (taskBuildToolRecFast), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
@@ -69,7 +69,7 @@ contains
   logical function buildToolRecFastRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
-    class(taskBuildToolRecFast), intent(inout) :: self    
+    class(taskBuildToolRecFast), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     buildToolRecFastRequiresOutputFile=.false.

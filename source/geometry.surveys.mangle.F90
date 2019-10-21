@@ -19,13 +19,13 @@
 
 !% Implements an abstract survey geometry using \gls{mangle} polygons.
 
-  use Galacticus_Paths
-  use Geometry_Mangle
-  
+  use :: Geometry_Mangle, only : window
+
   !# <surveyGeometry name="surveyGeometryMangle" abstract="yes">
   !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
   !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
+     private
      logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
      double precision        , allocatable, dimension(:  ) :: solidAngles
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
@@ -92,7 +92,7 @@ contains
     !% Internal constructor for the {\normalfont \scshape mangle} conditional mass function class.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
- 
+
     self%solidAnglesInitialized  =.false.
     self%angularPowerInitialized =.false.
     self%windowInitialized       =.false.
@@ -104,7 +104,7 @@ contains
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     mangleWindowFunctionAvailable=.false.
     return
   end function mangleWindowFunctionAvailable
@@ -114,22 +114,23 @@ contains
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     mangleAngularPowerAvailable=.true.
     return
   end function mangleAngularPowerAvailable
 
   double precision function mangleSolidAngle(self,field)
     !% Return the survey solid angle computed from \gls{mangle} polygons.
-    use Galacticus_Error
-    use String_Handling
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Geometry_Mangle , only : geometryMangleSolidAngle
+    use :: String_Handling , only : operator(//)
     implicit none
     class  (surveyGeometryMangle), intent(inout)               :: self
     integer                      , intent(in   ), optional     :: field
     type   (varying_string      ), allocatable  , dimension(:) :: mangleFiles
     integer                                                    :: fieldActual
     type   (varying_string      )                              :: message
-    
+
     ! Validate field.
     if (.not.present(field)) then
        if (self%fieldCount() > 1) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -158,8 +159,8 @@ contains
 
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Provides window functions for \gls{mangle}-based survey geometries.
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
     implicit none
     class           (surveyGeometryMangle), intent(inout)                                           :: self
     double precision                      , intent(in   )                                           :: mass1,mass2
@@ -167,19 +168,16 @@ contains
     double precision                      , intent(  out)                                           :: boxLength
     complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
-    
+
     call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
     return
   end subroutine mangleWindowFunctions
 
   double precision function mangleAngularPower(self,i,j,l)
     !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
-    use Galacticus_Error
-    use File_Utilities
-    use String_Handling
-    use System_Command
-    use IO_HDF5
-    use Memory_Management
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Geometry_Mangle , only : geometryMangleAngularPower
+    use :: String_Handling , only : operator(//)
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     integer                               , intent(in   )               :: i          , j, &
@@ -215,7 +213,7 @@ contains
     end if
     return
   end function mangleAngularPower
-  
+
   integer function mangleFieldPairIndex(self,i,j)
     !% Compute the index of a pair of fields in \gls{mangle}-based survey geometries.
     implicit none
@@ -231,8 +229,8 @@ contains
 
   logical function manglePointIncluded(self,point,mass)
     !% Return true if a point is included in the survey geometry.
-    use Vectors
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Vectors         , only : Vector_Magnitude
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     double precision                      , intent(in   ), dimension(3) :: point

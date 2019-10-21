@@ -20,7 +20,7 @@
   !% Contains a module which implements a random error output analysis distribution operator class providing errors in $\log_{10}$
   !% of N-body halo mass.
 
-  use Statistics_NBody_Halo_Mass_Errors
+  use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass">
   !#  <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo mass.</description>
@@ -44,7 +44,7 @@ contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbodyMass)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
@@ -75,7 +75,7 @@ contains
     !# <objectDestructor name="self%nbodyHaloMassError_" />
     return
   end subroutine randomErrorNbodyMassDestructor
-  
+
   double precision function randomErrorNbodyMassRootVariance(self,propertyValue,node)
     !% Computes errors on $\log_{10}($halo masses$)$ for N-body halos.
     implicit none
@@ -83,7 +83,7 @@ contains
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
     !GCC$ attributes unused :: propertyValue
-    
+
     ! Return the fractional error in halo mass, divided by log(10) to convert from natural to base-10 logarithm.
     randomErrorNbodyMassRootVariance=+self%nbodyHaloMassError_%errorFractional(node  ) &
          &                           /                         log            (10.0d0)

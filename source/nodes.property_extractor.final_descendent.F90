@@ -41,7 +41,7 @@ contains
 
   function finalDescendentConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily finalDescendent} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorFinalDescendent)                :: finalDescendentConstructorParameters
     type(inputParameters                     ), intent(inout) :: parameters
@@ -76,7 +76,7 @@ contains
 
   integer function finalDescendentType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -106,6 +106,6 @@ contains
     finalDescendentDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return
   end function finalDescendentDescription
-  
- 
- 
+
+
+

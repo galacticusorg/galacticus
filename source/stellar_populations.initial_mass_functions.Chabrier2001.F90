@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a stellar initial mass function class based on \cite{chabrier_galactic_2001}.
-  
+
   !# <initialMassFunction name="initialMassFunctionChabrier2001">
   !#  <description>A stellar initial mass function class based on \cite{chabrier_galactic_2001}.</description>
   !# </initialMassFunction>
@@ -28,7 +28,7 @@
      double precision :: massLower               , massTransition        , &
           &              massUpper               , exponent              , &
           &              massCharacteristic      , sigma                 , &
-          &              normalizationExponential, normalizationLogNormal       
+          &              normalizationExponential, normalizationLogNormal
    contains
      procedure :: massMinimum => chabrier2001MassMinimum
      procedure :: massMaximum => chabrier2001MassMaximum
@@ -47,14 +47,14 @@ contains
 
   function chabrier2001ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily chabrier2001} initial mass function class which takes a parameter list as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (initialMassFunctionChabrier2001)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: massLower         , massTransition, &
           &                                                             massUpper         , exponent      , &
           &                                                             massCharacteristic, sigma
-    
+
     !# <inputParameter>
     !#   <name>massUpper</name>
     !#   <cardinality>1</cardinality>
@@ -110,8 +110,8 @@ contains
 
   function chabrier2001ConstructorInternal(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma) result(self)
     !% Internal constructor for the {\normalfont \ttfamily chabrier2001} initial mass function.
-    use Error_Functions
-    use Numerical_Constants_Math
+    use :: Error_Functions         , only : Error_Function
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (initialMassFunctionChabrier2001)                :: self
     double precision                                 , intent(in   ) :: massLower         , massTransition, &
@@ -119,7 +119,7 @@ contains
          &                                                              massCharacteristic, sigma
     double precision                                                 :: normalization
     !# <constructorAssign variables="massLower,massTransition,massUpper,exponent,massCharacteristic,sigma"/>
-    
+
     self%normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
          &                        *self%sigma                                         &
          &                        *self%massCharacteristic                            &
@@ -203,7 +203,7 @@ contains
     chabrier2001MassMaximum=self%massUpper
     return
   end function chabrier2001MassMaximum
-  
+
   double precision function chabrier2001Phi(self,massInitial)
     !% Evaluate the \cite{chabrier_galactic_2001} stellar initial mass function.
     implicit none
@@ -239,9 +239,10 @@ contains
     end if
     return
   end function chabrier2001Phi
-  
+
   subroutine chabrier2001Tabulate(self,imfTable)
     !% Construct and return a tabulation of the \cite{chabrier_galactic_2001} \gls{imf}.
+    use :: Tables, only : table1DLogarithmicLinear
     implicit none
     class  (initialMassFunctionChabrier2001)             , intent(inout) :: self
     class  (table1D                        ), allocatable, intent(inout) :: imfTable

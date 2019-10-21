@@ -19,7 +19,7 @@
 
   !% Contains a module which implements an output analysis distribution operator class to account for errors on N-body measurements of halo spin.
 
-  use Halo_Spin_Distributions
+  use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSpinNBodyErrors">
   !#  <description>An output analysis distribution operator class to account for errors on N-body measurements of halo spin.</description>
@@ -44,7 +44,7 @@ contains
 
   function spinNBodyErrorsConstructorParameters(parameters) result(self)
     !% Constructor for the ``spinNBodyErrors'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisDistributionOperatorSpinNBodyErrors)                :: self
     type (inputParameters                                  ), intent(inout) :: parameters
@@ -60,7 +60,8 @@ contains
 
   function spinNBodyErrorsConstructorInternal(haloSpinDistribution_) result(self)
     !% Internal constructor for the ``spinNBodyErrors'' output analysis distribution operator class.
-    use Galacticus_Error
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Halo_Spin_Distributions, only : haloSpinDistributionClass, haloSpinDistributionNbodyErrors
     implicit none
     type (outputAnalysisDistributionOperatorSpinNBodyErrors)                        :: self
     class(haloSpinDistributionClass                        ), intent(in   ), target :: haloSpinDistribution_
@@ -88,10 +89,10 @@ contains
 
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
-    use Output_Analyses_Options
-    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
-    use Galacticus_Error
+    use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Numerical_Integration  , only : Integrate                       , Integrate_Done
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   )                                        :: propertyValue
@@ -106,7 +107,7 @@ contains
     type            (fgsl_function                                    )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                       )                                                       :: integrationWorkspace
     !GCC$ attributes unused :: outputIndex, propertyValue
-    
+
     select case (propertyType)
     case (outputAnalysisPropertyTypeLinear)
        spinMeasuredRangeMinimum=        propertyValueMinimum(                        1 )
@@ -144,14 +145,15 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
     return
-    
+
   contains
-    
+
     double precision function spinDistributionIntegrate(spinMeasured)
       !% Integrand function used to find cumulative spin distribution over a bin.
-      implicit none
+      use :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
+     implicit none
       double precision, intent(in   ) :: spinMeasured
-      
+
       select type (haloSpinDistribution_ => self%haloSpinDistribution_)
       class is (haloSpinDistributionNbodyErrors)
          spinDistributionIntegrate=+                                                  spinMeasured                                                    &
@@ -166,7 +168,7 @@ contains
 
   function spinNBodyErrorsOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution

@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by: Omid Sameie.
-  
+
   !% Contains a module which provides a power spectrum window function class that implements the smooth-$k$ space filter of
   !% \cite{leo_new_2018}.
-  
-  use Cosmology_Parameters
+
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace">
   !#  <description>A smooth window function for filtering of power spectra.</description>
@@ -48,7 +48,7 @@ contains
 
   function smoothKSpaceConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -84,13 +84,12 @@ contains
 
   function smoothKSpaceConstructorInternal(cosmologyParameters_,beta,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
-    use Numerical_Constants_Math
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                        :: self
-    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_    
-    double precision                                         , intent(in   )         :: beta                , normalization 
+    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
+    double precision                                         , intent(in   )         :: beta                , normalization
     !# <constructorAssign variables="beta, normalization, *cosmologyParameters_"/>
-    
+
     return
   end function smoothKSpaceConstructorInternal
 
@@ -106,8 +105,7 @@ contains
   double precision function smoothKSpaceValue(self,wavenumber,smoothingMass)
     !% Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
     !% spectrum.
-    use Numerical_Constants_Math
-    use Cosmology_Parameters
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
     double precision                                         , intent(in   ) :: smoothingMass, wavenumber
@@ -125,7 +123,7 @@ contains
     x           =+wavenumber                                    &
          &       *smoothRadius
     if (x <= 0.0d0) then
-       smoothKSpaceValue=+0.0d0                      
+       smoothKSpaceValue=+0.0d0
     else
        ! For larger x, use the full expression.
        smoothKSpaceValue=1.0d0/(1.0d0+x**self%beta)
@@ -141,7 +139,7 @@ contains
     double precision                                         , intent(in   ) :: smoothingMass
     double precision                                         , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !GCC$ attributes unused :: self, smoothingMass
-    
+
     smoothKSpaceWavenumberMaximum=wavenumberLarge
     return
   end function smoothKSpaceWavenumberMaximum

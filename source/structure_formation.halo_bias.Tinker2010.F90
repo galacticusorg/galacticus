@@ -19,8 +19,8 @@
 
   !% Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
 
-  use Cosmological_Density_Field
-  use Virial_Density_Contrast
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Virial_Density_Contrast   , only : virialDensityContrastClass
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
   !#  <description>
@@ -30,11 +30,11 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
      private
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_ => null()
-     double precision                                         :: timePrevious             , massPrevious, &
-          &                                                      lowerA                   , upperA      , &
+     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_    => null()
+     double precision                                         :: timePrevious                       , massPrevious, &
+          &                                                      lowerA                             , upperA      , &
           &                                                      upperC
    contains
      final     ::               tinker2010Destructor
@@ -51,7 +51,7 @@ contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasTinker2010  )                :: self
     type(inputParameters               ), intent(inout) :: parameters
@@ -107,7 +107,7 @@ contains
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =self%cosmologicalMassVariance_%rootVariance(               mass)
+    sigma        =self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
     nu           =+deltaCritical                                                   &
          &        /sigma
     ! Update fitting parameters if the time has changed.

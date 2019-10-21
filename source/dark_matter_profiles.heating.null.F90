@@ -41,12 +41,12 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily null} dark matter profile heating scales class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileHeatingNull), target        :: self
     type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=darkMatterProfileHeatingNull()
     return
   end function nullConstructorParameters

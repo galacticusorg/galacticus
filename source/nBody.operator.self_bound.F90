@@ -44,14 +44,14 @@ contains
 
   function selfBoundConstructorParameters(parameters) result (self)
     !% Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
     integer         (c_size_t              )                :: bootstrapSampleCount
     double precision                                        :: tolerance           , bootstrapSampleRate
     logical                                                 :: analyzeAllParticles , useVelocityMostBound
-    
+
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
@@ -98,7 +98,6 @@ contains
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound) result (self)
     !% Internal constructor for the ``selfBound'' N-body operator class
-    use Input_Parameters
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
     double precision                        , intent(in   ) :: tolerance           , bootstrapSampleRate
@@ -111,13 +110,12 @@ contains
 
   subroutine selfBoundOperate(self,simulation)
     !% Determine the subset of N-body particles which are self-bound.
-    use Memory_Management
-    use Numerical_Constants_Physical
-    use Galacticus_Error
-    use ISO_Varying_String
-    use Galacticus_Display
-    use String_Handling
-    use Pseudo_Random
+    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Memory_Management           , only : allocateArray                  , deallocateArray
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Pseudo_Random               , only : pseudoRandom
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
@@ -147,11 +145,11 @@ contains
 
     ! Allocate workspaces.
     particleCount=size(simulation%position,dim=2)
-    call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])    
-    call allocateArray(isBoundNew             ,[           particleCount,self%bootstrapSampleCount])    
-    call allocateArray(isBoundCompute         ,[           particleCount,self%bootstrapSampleCount])    
-    call allocateArray(energyKinetic          ,[           particleCount,self%bootstrapSampleCount])    
-    call allocateArray(energyPotential        ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(isBoundNew             ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(isBoundCompute         ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(energyKinetic          ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(energyPotential        ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(velocityPotential      ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(compute                ,[           particleCount                          ])
     call allocateArray(energyPotentialChange  ,[           particleCount,self%bootstrapSampleCount])

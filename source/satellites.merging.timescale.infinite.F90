@@ -20,7 +20,7 @@
 !+    Contributions to this file made by:  Markus Haider.
 
   !% Implements a satellite merging timescale class in which merging timescales are always infinite.
- 
+
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
   !#  <description>Returns an infinite timescale for merging.</description>
   !# </satelliteMergingTimescales>
@@ -37,11 +37,11 @@
   end interface satelliteMergingTimescalesInfinite
 
 contains
-  
+
   function infiniteConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily infinite} satellite merging timescale class which builds the object from a
     !% parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesInfinite)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
@@ -58,7 +58,7 @@ contains
     type (treeNode                          ), intent(inout) :: node
     type (keplerOrbit                       ), intent(inout) :: orbit
     !GCC$ attributes unused :: self, node, orbit
-    
+
     infiniteTimeUntilMerging=satelliteMergeTimeInfinite
     return
   end function infiniteTimeUntilMerging

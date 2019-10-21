@@ -21,7 +21,7 @@
 
   !% An implementation of exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.
 
-  use Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
   !#  <description>exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.</description>
@@ -74,7 +74,7 @@
      procedure :: energyGrowthRate                  => truncatedExponentialEnergyGrowthRate
      procedure :: kSpace                            => truncatedExponentialKSpace
      procedure :: freefallRadius                    => truncatedExponentialFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => truncatedExponentialFreefallRadiusIncreaseRate     
+     procedure :: freefallRadiusIncreaseRate        => truncatedExponentialFreefallRadiusIncreaseRate
      procedure :: truncationFunction                => truncatedExponentialTruncationFunction
   end type darkMatterProfileDMOTruncatedExponential
 
@@ -88,8 +88,8 @@ contains
 
   function truncatedExponentialConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class which takes a parameter set as input.
-    use Galacticus_Error
-    use Input_Parameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
@@ -150,7 +150,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily exponentially truncated} dark matter profile class.
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                        :: self
     class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
@@ -168,17 +168,17 @@ contains
 
   subroutine truncatedExponentialAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
     call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedExponentialAutoHook
-  
+
   subroutine truncatedExponentialDestructor(self)
     !% Destructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class.
-    use Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
@@ -198,7 +198,7 @@ contains
     self%kappaPrevious              =-huge(0.0d0)
     self%enclosingMassRadiusPrevious=-1.0d0
     return
-  end subroutine truncatedExponentialCalculationReset 
+  end subroutine truncatedExponentialCalculationReset
 
   subroutine truncatedExponentialTruncationFunction(self,node,radius,multiplier,multiplierGradient)
     !% Return the scaled truncation radial coordinate, and the truncation multiplier.
@@ -244,7 +244,7 @@ contains
 
   subroutine recomputeKappa (self,node)
     !% Recompute parameter kappa in the truncation funciton.
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
@@ -290,13 +290,13 @@ contains
   double precision function truncatedExponentialDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Error
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
     double precision                                                          :: multiplier, multiplierGradient
-    
+
     call self%truncationFunction(node,radius,multiplier=multiplier,multiplierGradient=multiplierGradient)
     if (multiplier > 0.0d0) then
        truncatedExponentialDensityLogSlope=+self%darkMatterProfileDMO_%densityLogSlope(node,radius) &
@@ -317,7 +317,7 @@ contains
     type            (treeNode                                ), intent(inout), target :: node
     double precision                                          , intent(in   )         :: density
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node,density)
     else
        truncatedExponentialRadiusEnclosingDensity=self                      %radiusEnclosingDensityNumerical(node,density)
@@ -328,7 +328,7 @@ contains
   double precision function truncatedExponentialRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
@@ -338,7 +338,7 @@ contains
 
     basic      => node %basic()
     massVirial =  basic%mass ()
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= massVirial) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= massVirial) then
        truncatedExponentialRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
        truncatedExponentialRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
@@ -355,19 +355,19 @@ contains
     double precision                                          , intent(in   )           :: moment
     double precision                                          , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum)
     else
        truncatedExponentialRadialMoment=self                      %radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
     end if
-    return 
+    return
   end function truncatedExponentialRadialMoment
 
   double precision function truncatedExponentialEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Numerical_Constants_Math, only : Pi
-    use FGSL                    , only : FGSL_SF_GAMMA_INC
+    use :: FGSL                    , only : FGSL_SF_GAMMA_INC
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
@@ -394,7 +394,7 @@ contains
     end if
     return
   end function truncatedExponentialEnclosedMass
-  
+
   double precision function truncatedExponentialPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
@@ -402,9 +402,9 @@ contains
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
     type            (treeNode                                ), intent(inout), pointer  :: node
     double precision                                          , intent(in   )           :: radius
-    integer                                                   , intent(  out), optional :: status    
- 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    integer                                                   , intent(  out), optional :: status
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)
     else
        truncatedExponentialPotential=self                      %potentialNumerical(node,radius,status)
@@ -420,7 +420,7 @@ contains
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialCircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius)
     else
        truncatedExponentialCircularVelocity=self                      %circularVelocityNumerical(node,radius)
@@ -434,7 +434,7 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node)
     else
        truncatedExponentialCircularVelocityMaximum=self                      %circularVelocityMaximumNumerical(node)
@@ -485,7 +485,7 @@ contains
     type            (treeNode                                ), intent(inout), pointer :: node
     double precision                                          , intent(in   )          :: specificAngularMomentum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
     else
        truncatedExponentialRadiusFromSpecificAngularMomentum=self                      %radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
@@ -499,7 +499,7 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization         (node)
     else
        truncatedExponentialRotationNormalization=self                      %rotationNormalizationNumerical(node)
@@ -513,7 +513,7 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialEnergy=self%darkMatterProfileDMO_%energy         (node)
     else
        truncatedExponentialEnergy=self                      %energyNumerical(node)
@@ -527,14 +527,14 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
     type (treeNode                                ), intent(inout), target :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
     else
        truncatedExponentialEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
     end if
     return
   end function truncatedExponentialEnergyGrowthRate
-  
+
   double precision function truncatedExponentialKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the truncatedExponential density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
@@ -543,7 +543,7 @@ contains
     type            (treeNode                                ), intent(inout), target :: node
     double precision                                          , intent(in   )         :: waveNumber
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
        truncatedExponentialKSpace=self                      %kSpaceNumerical(node,waveNumber)
@@ -559,7 +559,7 @@ contains
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: time
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
     else
        truncatedExponentialFreefallRadius=self                      %freefallRadiusNumerical(node,time)
@@ -575,7 +575,7 @@ contains
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: time
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)
     else
        truncatedExponentialFreefallRadiusIncreaseRate=self                      %freefallRadiusIncreaseRateNumerical(node,time)

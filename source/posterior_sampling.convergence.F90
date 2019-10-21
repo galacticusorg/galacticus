@@ -21,9 +21,9 @@
 
 module Posterior_Sampling_Convergence
   !% Implements a class that provides convergence criteria for posterior sampling simulations.
-  use Posterior_Sampling_State
+  use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
-  
+
   !# <functionClass>
   !#  <name>posteriorSampleConvergence</name>
   !#  <descriptiveName>Posterior Sampling Convergence Criteria</descriptiveName>

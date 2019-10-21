@@ -37,15 +37,15 @@
   end interface satelliteTidalHeatingRateZero
 
 contains
-  
+
   function zeroConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zero} satellite tidal heating rate class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteTidalHeatingRateZero)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
- 
+
     self=satelliteTidalHeatingRateZero()
     return
   end function zeroConstructorParameters

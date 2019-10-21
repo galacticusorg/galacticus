@@ -23,10 +23,10 @@
 module Numerical_Interpolation
   !% A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
   !% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
-  use FGSL, only : fgsl_interp           , fgsl_interp_accel       , fgsl_interp_type      , fgsl_int          , &
-       &           fgsl_well_defined     , fgsl_interp_accel_alloc , fgsl_interp_alloc     , fgsl_interp_init  , &
-       &           fgsl_success          , fgsl_interp_eval_deriv_e, FGSL_EDOM             , fgsl_interp_eval_e, &
-       &           fgsl_interp_accel_find, fgsl_interp_free        , fgsl_interp_accel_free, fgsl_interp_linear
+  use            :: FGSL         , only : FGSL_EDOM               , fgsl_int              , fgsl_interp           , fgsl_interp_accel, &
+          &                               fgsl_interp_accel_alloc , fgsl_interp_accel_find, fgsl_interp_accel_free, fgsl_interp_alloc, &
+          &                               fgsl_interp_eval_deriv_e, fgsl_interp_eval_e    , fgsl_interp_free      , fgsl_interp_init , &
+          &                               fgsl_interp_linear      , fgsl_interp_type      , fgsl_success          , fgsl_well_defined
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
@@ -38,7 +38,6 @@ contains
   double precision function Interpolate_Linear_Do(yArray,iInterpolate,interpolationFactors)
     !% Given an array index {\normalfont \ttfamily iInterpolate} and interpolating factors {\normalfont \ttfamily interpolationFactors} for array {\normalfont \ttfamily yArray}, return
     !% a linearly interpolated value.
-    use Kind_Numbers
     implicit none
     integer         (c_size_t), intent(in   ) :: iInterpolate
     double precision          , intent(in   ) :: yArray              (:)
@@ -51,7 +50,6 @@ contains
   function Interpolate_Linear_Generate_Factors(xArray,iInterpolate,x)
     !% Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given the index in the array which
     !% brackets value {\normalfont \ttfamily x}.
-    use Kind_Numbers
     implicit none
     double precision          , dimension(0:1)                :: Interpolate_Linear_Generate_Factors
     integer         (c_size_t)                , intent(in   ) :: iInterpolate
@@ -66,9 +64,9 @@ contains
   double precision function Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
        &,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
-    use ISO_Varying_String
-    use Table_Labels
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                         , yArray
     type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
@@ -87,7 +85,7 @@ contains
     double precision                                                           :: gradient                       , xActual
     character       (len =12          )                                        :: labelX                         , labelXMinimum          , &
          &                                                                        labelXMaximum                  , labelXActual
-    
+
     ! Detect mismatched array sizes.
     if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('mismatched array sizes'//{introspection:location})
     ! Decide whether to reset.
@@ -178,9 +176,9 @@ contains
   double precision function Interpolate_Derivative(xArray,yArray,interpolationObject,interpolationAccelerator,x&
        &,interpolationType ,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding first derivative of {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
-    use ISO_Varying_String
-    use Table_Labels
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String
+    use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                  , yArray
     type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
@@ -250,8 +248,7 @@ contains
 
    function Interpolate_Locate(xArray,interpolationAccelerator,x,reset,closest)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
-    use Galacticus_Error
-    use Kind_Numbers
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         (c_size_t         )                                        :: Interpolate_Locate
     double precision                   , dimension(:), intent(in   )           :: xArray

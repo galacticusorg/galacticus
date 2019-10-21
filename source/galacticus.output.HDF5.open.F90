@@ -21,8 +21,7 @@
 
 module Galacticus_Output_Open
   !% Handles opening of the \glc\ output file.
-  use ISO_Varying_String
-  use Galacticus_HDF5
+  use :: ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File
@@ -34,11 +33,16 @@ contains
 
   subroutine Galacticus_Output_Open_File
     !% Open the file for \glc\ output.
+    use            :: Galacticus_HDF5 , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
+         &                                     galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
+    use            :: HDF5            , only : hsize_t                   , size_t
+    use            :: IO_HDF5         , only : hdf5Access                , IO_HDF5_Set_Defaults
     use, intrinsic :: ISO_C_Binding
-    use               Input_Parameters
-    use               MPI_Utilities
-    use               String_Handling
-    use               HDF5
+    use            :: Input_Parameters, only : globalParameters          , inputParameter
+#ifdef USEMPI
+    use            :: MPI_Utilities   , only : mpiSelf
+#endif
+    use            :: String_Handling , only : operator(//)
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
@@ -173,13 +177,14 @@ contains
 
   subroutine Galacticus_Output_Close_File
     !% Close the \glc\ output file.
-    use File_Utilities, only : File_Rename
-    use Events_Hooks
+    use :: Galacticus_HDF5 , only : galacticusOutputFileIsOpen, galacticusOutputFile
+    use :: File_Utilities  , only : File_Rename
+    use :: IO_HDF5         , only : hdf5Access
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
     !# </include>
     implicit none
-    
+
     ! Perform any final tasks prior to shutdown.
     if (galacticusOutputFileIsOpen) then
        !$omp critical (Galacticus_Output_Close_File)

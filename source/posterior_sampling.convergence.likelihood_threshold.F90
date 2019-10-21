@@ -46,7 +46,7 @@ contains
 
   function likelihoodThresholdConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -67,7 +67,6 @@ contains
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
     !% Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
-    use Input_Parameters
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
     double precision                                               , intent(in   ) :: likelihoodThreshold
@@ -80,7 +79,7 @@ contains
 
   logical function likelihoodThresholdIsConverged(self,simulationState,logLikelihood)
     !% Returns true if the posterior sampling is converged (which it likelihoodThreshold is).
-    use MPI_Utilities
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (posteriorSampleConvergenceLikelihoodThreshold), intent(inout)           :: self
     class           (posteriorSampleStateClass                    ), intent(inout), optional :: simulationState

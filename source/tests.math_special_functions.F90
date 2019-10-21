@@ -21,14 +21,15 @@
 
 program Test_Math_Special_Functions
   !% Tests of mathematical special functions.
-  use Unit_Tests
-  use Bessel_Functions
-  use Exponential_Integrals
-  use Factorials
-  use Gamma_Functions
-  use Hypergeometric_Functions
-  use Error_Functions
-  use Galacticus_Display
+  use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_K0                     , Bessel_Function_K1
+  use :: Error_Functions         , only : Error_Function
+  use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
+  use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set   , verbosityStandard
+  use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic, &
+          &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
+  use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq
+  use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
   double precision, dimension(10) :: P                                   =[0.1353352832d0,0.4060058496d0,0.6766764160d0,0.8571234602d0,0.9473469824d0,0.9834363913d0,0.9954661943d0,0.9989032808d0,0.9997625524d0,0.9999535016d0]
@@ -47,10 +48,10 @@ program Test_Math_Special_Functions
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: special functions")
-  
+
   ! Evaluate functions.
   do i=1,10
      BesselK0                                   (i)=Bessel_Function_K0                             (                                   argument(i)                                )

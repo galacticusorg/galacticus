@@ -21,7 +21,7 @@
 
 module OpenMP_Utilities_Data
   !% Implements data for useful OpenMP utilities.
-  use ISO_Varying_String
+  use :: ISO_Varying_String
   private
 
   ! Include auto-generated content describing number of OpenMP critical sections in the code.
@@ -35,5 +35,5 @@ module OpenMP_Utilities_Data
   double precision, public                                  :: ompProfileTimeWaitStart      , ompProfileTimeWaitEnd
   !$omp threadprivate(ompProfileTimeWaitStart,ompProfileTimeWaitEnd)
 #endif
-  
+
 end module OpenMP_Utilities_Data

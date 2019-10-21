@@ -32,7 +32,7 @@ contains
 
   subroutine Node_Components_Initialize(parameters)
     !% Perform initialization tasks for node components.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     !# <include directive="nodeComponentInitializationTask" type="moduleUse">
     include 'node_components.initialize.moduleUse.inc'
     !# </include>
@@ -48,16 +48,16 @@ contains
     initializationCount=initializationCount+1
     return
   end subroutine Node_Components_Initialize
-  
+
   subroutine Node_Components_Thread_Initialize(parameters)
     !% Perform per-thread initialization tasks for node components.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     !# <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
     include 'node_components.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
     type(inputParameters), intent(inout) :: parameters
-    
+
     if (initializationThreadCount == 0) then
        !# <include directive="nodeComponentThreadInitializationTask" type="functionCall" functionType="void">
        !#  <functionArgs>parameters</functionArgs>
@@ -67,7 +67,7 @@ contains
     initializationThreadCount=initializationThreadCount+1
     return
   end subroutine Node_Components_Thread_Initialize
-  
+
   subroutine Node_Components_Uninitialize()
     !% Perform uninitialization tasks for node components.
     implicit none
@@ -75,14 +75,14 @@ contains
     initializationCount=initializationCount-1
     return
   end subroutine Node_Components_Uninitialize
-  
+
   subroutine Node_Components_Thread_Uninitialize()
     !% Perform per-thread uninitialization tasks for node components.
     !# <include directive="nodeComponentThreadUninitializationTask" type="moduleUse">
     include 'node_components.threadUninitialize.moduleUse.inc'
     !# </include>
     implicit none
-    
+
     initializationThreadCount=initializationThreadCount-1
     if (initializationThreadCount == 0) then
        !# <include directive="nodeComponentThreadUninitializationTask" type="functionCall" functionType="void">
@@ -91,5 +91,5 @@ contains
     end if
     return
   end subroutine Node_Components_Thread_Uninitialize
-  
+
 end module Node_Components

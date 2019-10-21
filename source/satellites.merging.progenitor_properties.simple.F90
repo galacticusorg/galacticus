@@ -19,7 +19,7 @@
 
   !% Implements a merger progenitor properties class which uses a simple calculation.
 
-  use Satellite_Merging_Mass_Movements
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple">
   !#  <description>A merger progenitor properties class which uses a simple calculation.</description>
@@ -43,15 +43,15 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
-    use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
-    use Galacticus_Error
-    use Array_Utilities
-    use Input_Parameters
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type (mergerProgenitorPropertiesSimple)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(mergerMassMovementsClass        ), pointer       :: mergerMassMovements_
-    
+
     ! Ensure that required methods are supported.
     if     (                                                                                                                                          &
          &  .not.                                                                                                                                     &
@@ -102,7 +102,7 @@ contains
     type (mergerProgenitorPropertiesSimple)                        :: self
     class(mergerMassMovementsClass        ), intent(in   ), target :: mergerMassMovements_
     !# <constructorAssign variables="*mergerMassMovements_"/>
-    
+
     return
   end function simpleConstructorInternal
 
@@ -114,14 +114,14 @@ contains
     !# <objectDestructor name="self%mergerMassMovements_"/>
     return
   end subroutine simpleDestructor
-  
+
   subroutine simpleGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
-    use Galacticus_Nodes                  , only : nodeComponentDisk, nodeComponentSpheroid
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Galacticus_Error
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic
+    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid    , treeNode
+    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesSimple), intent(inout)         :: self
     type            (treeNode                        ), intent(inout), target :: nodeSatellite            , nodeHost

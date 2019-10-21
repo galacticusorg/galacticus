@@ -21,16 +21,15 @@
 
 program Test_Nodes
   !% Tests the \glspl{node} implementation.
-  use Unit_Tests
-  use Memory_Management
-  use Galacticus_Nodes  , only : treeNode       , nodeComponent               , nodeComponentBasic        , nodeComponentPosition, &
-       &                         propertyTypeAll, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
-  use Galacticus_Error
-  use ISO_Varying_String
-  use Input_Parameters
-  use Array_Utilities
-  use Test_Nodes_Tasks
-  use Galacticus_Display
+  use :: Array_Utilities   , only : Array_Reverse
+  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Galacticus_Error  , only : Galacticus_Error_Report
+  use :: Galacticus_Nodes  , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize, nodeComponent       , nodeComponentBasic, &
+          &                         nodeComponentPosition         , propertyTypeAll             , treeNode
+  use :: ISO_Varying_String
+  use :: Input_Parameters  , only : inputParameters
+  use :: Test_Nodes_Tasks  , only : Test_Node_Task
+  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (treeNode                     )                                     :: thisNode
   type            (treeNode                     )                           , pointer :: hostNode

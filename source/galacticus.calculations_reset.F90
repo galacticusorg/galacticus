@@ -35,7 +35,7 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_Calculations_Reset(node)
     !% Calls any routines required to reset all calculation for a new or updated node.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     !# <include directive="calculationResetTask" type="moduleUse">
     include 'galacticus.calculation_reset.tasks.modules.inc'
     !# </include>
@@ -46,10 +46,10 @@ contains
     !#  <functionArgs>node</functionArgs>
     include 'galacticus.calculation_reset.tasks.inc'
     !# </include>
-    
+
     !# <eventHook name="calculationReset">
     !#  <callWith>node</callWith>
-    !# </eventHook>    
+    !# </eventHook>
     return
   end subroutine Galacticus_Calculations_Reset
 

@@ -39,25 +39,26 @@ contains
   function identityConstructorParameters(parameters) result(self)
     !% A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
     !% object from a parameter set.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
-    
+
     self=mergerTreeBranchingProbabilityModifierIdentity()
     return
   end function identityConstructorParameters
 
-  double precision function identityRateModifier(self,deltaParent,sigmaChild,sigmaParent)
+  double precision function identityRateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent)
     !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
     !% Return the core radius of the hot halo mass distribution.
     implicit none
     class           (mergerTreeBranchingProbabilityModifierIdentity), intent(inout) :: self
-    double precision                                                , intent(in   ) :: sigmaChild , deltaParent, &
-         &                                                                             sigmaParent
-    !GCC$ attributes unused :: self, deltaParent, sigmaChild, sigmaParent
-    
+    type            (treeNode                                      ), intent(inout) :: nodeParent
+    double precision                                                , intent(in   ) :: sigmaChild , timeParent, &
+         &                                                                             sigmaParent, massParent
+    !GCC$ attributes unused :: self, nodeParent, massParent, sigmaParent, sigmaChild, timeParent
+
     identityRateModifier=1.0d0
     return
   end function identityRateModifier

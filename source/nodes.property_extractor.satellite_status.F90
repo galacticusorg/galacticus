@@ -47,17 +47,17 @@
   !#  <entry label="boundMass"/>
   !#  <entry label="position" />
   !# </enumeration>
-  
+
 contains
 
   function satelliteStatusConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily satelliteStatus} node property extractor class which takes a parameter set as input.
-    use Input_Parameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(nodePropertyExtractorSatelliteStatus)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
     type(varying_string                      )                :: discriminator
-    
+
     !# <inputParameter>
     !#   <name>discriminator</name>
     !#   <cardinality>1</cardinality>
@@ -73,13 +73,13 @@ contains
 
   function satelliteStatusConstructorInternal(discriminator) result(self)
     !% Internal constructor for the {\normalfont \ttfamily satelliteStatus} node property extractor class.
-    use Galacticus_Error, only : Galacticus_Error_Report  , Galacticus_Component_List
-    use Galacticus_Nodes, only : defaultSatelliteComponent, defaultPositionComponent
+    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
     implicit none
     type   (nodePropertyExtractorSatelliteStatus)                :: self
     integer                                      , intent(in   ) :: discriminator
     !# <constructorAssign variables="discriminator"/>
-    
+
     select case (discriminator)
     case (satelliteStatusDiscriminatorBoundMass)
        if     (                                                                                                                    &
@@ -117,8 +117,8 @@ contains
 
   function satelliteStatusExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily satelliteStatus} node property extractor.
-    use Histories       , only : history
-    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentPosition
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
+    use :: Histories       , only : history
     implicit none
     integer         (kind_int8                           )                          :: satelliteStatusExtract
     class           (nodePropertyExtractorSatelliteStatus), intent(inout)           :: self
@@ -162,7 +162,7 @@ contains
 
   integer function satelliteStatusType(self)
     !% Return the type of the stellar mass property.
-    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
     !GCC$ attributes unused :: self
@@ -193,4 +193,4 @@ contains
     return
   end function satelliteStatusDescription
 
-   
+

@@ -21,15 +21,15 @@
 
 module Node_Component_Black_Hole_Standard
   !% Implement black hole tree node methods.
-  use Cosmology_Parameters
-  use Accretion_Disks
-  use Black_Hole_Binary_Mergers
-  use Black_Hole_Binary_Initial_Separation
-  use Black_Hole_Binary_Recoil_Velocities
-  use Black_Hole_Binary_Separations
-  use Cooling_Radii
-  use Hot_Halo_Temperature_Profiles
-  use Dark_Matter_Halo_Scales
+  use :: Accretion_Disks                     , only : accretionDisksClass
+  use :: Black_Hole_Binary_Initial_Separation, only : blackHoleBinaryInitialSeparationClass
+  use :: Black_Hole_Binary_Mergers           , only : blackHoleBinaryMergerClass
+  use :: Black_Hole_Binary_Recoil_Velocities , only : blackHoleBinaryRecoilClass
+  use :: Black_Hole_Binary_Separations       , only : blackHoleBinarySeparationGrowthRateClass
+  use :: Cooling_Radii                       , only : coolingRadiusClass
+  use :: Cosmology_Parameters                , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Temperature_Profiles       , only : hotHaloTemperatureProfileClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set        , &
@@ -38,7 +38,7 @@ module Node_Component_Black_Hole_Standard
        &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
        &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize, &
        &    Node_Component_Black_Hole_Standard_Thread_Uninitialize
-  
+
   !# <component>
   !#  <class>blackHole</class>
   !#  <name>standard</name>
@@ -118,7 +118,7 @@ module Node_Component_Black_Hole_Standard
   class(hotHaloTemperatureProfileClass          ), pointer :: hotHaloTemperatureProfile_
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
   !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_)
-  
+
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
   double precision :: bondiHoyleAccretionEnhancementHotHalo         , bondiHoyleAccretionEnhancementSpheroid
@@ -130,7 +130,7 @@ module Node_Component_Black_Hole_Standard
   ! Feedback parameters.
   double precision :: blackHoleWindEfficiency                       , blackHoleRadioModeFeedbackEfficiency
   logical          :: blackHoleHeatsHotHalo                         , blackHoleWindEfficiencyScalesWithRadiativeEfficiency
-  
+
   ! Output options.
   logical          :: blackHoleOutputAccretion
   logical          :: blackHoleOutputData
@@ -146,8 +146,8 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Initialize(globalParameters_)
     !% Initializes the standard black hole component module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : nodeComponentBlackHoleStandard, defaultHotHaloComponent
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentBlackHoleStandard
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters               ), intent(inout) :: globalParameters_
     type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
@@ -277,8 +277,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard black hole module.
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -301,7 +301,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard black hole module.
-    use Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -323,11 +323,13 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Black_Hole_Binary_Separations
-    use Galacticus_Nodes                , only : treeNode            , interruptTask     , nodeComponentBlackHole, nodeComponentSpheroid    , &
-         &                                       nodeComponentHotHalo, nodeComponentBasic, propertyTypeInactive  , defaultBlackHoleComponent
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
+          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
+    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant       , speedLight
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     logical                                 , intent(inout)            :: interrupt
@@ -397,7 +399,7 @@ contains
           call spheroid %massGasSinkRate(-accretionRateSpheroid                             )
           ! Remove the accreted mass from the hot halo component.
           call hotHalo  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
-          ! Set spin-up rate due to accretion.         
+          ! Set spin-up rate due to accretion.
           if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
@@ -453,7 +455,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid, nodeComponentBlackHole, defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleMassRelative=1.0d-4
@@ -485,7 +487,7 @@ contains
                &                          )                                               &
                &                      )                                                   &
                &                  )
-          
+
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
 
@@ -509,7 +511,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(node)
     !% Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     type            (treeNode              )               , pointer :: hostNode
@@ -590,9 +592,9 @@ contains
 
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
     !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
-    use Galactic_Structure_Potentials
-    use Galactic_Structure_Options
-    use Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
+    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
+    use :: Galacticus_Nodes             , only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: recoilVelocity        , radius
@@ -622,16 +624,18 @@ contains
          &  -      potentialHaloSelf
     return
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
-  
+
   subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid,accretionRateHotHalo)
     !% Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily node}.
-    use Bondi_Hoyle_Lyttleton_Accretion
-    use Galactic_Structure_Densities
-    use Galactic_Structure_Options
-    use Ideal_Gases_Thermodynamics
-    use Black_Hole_Fundamentals
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : treeNode, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentHotHalo
+    use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
+    use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
+    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, coordinateSystemCylindrical, &
+          &                                         massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, treeNode
+    use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Jeans_Length                , Ideal_Gas_Sound_Speed
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (nodeComponentBlackHole), intent(inout)          :: blackHole
     double precision                        , intent(  out)          :: accretionRateHotHalo      , accretionRateSpheroid
@@ -772,7 +776,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Create(node)
     !% Creates a black hole component for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentBlackHole)               , pointer :: blackHole
@@ -794,8 +798,9 @@ contains
        &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
        &,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use Numerical_Constants_Astronomical
-    use Galacticus_Nodes                , only : treeNode
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type            (treeNode)              , intent(inout), pointer :: node
     double precision                        , intent(in   )          :: time
@@ -834,7 +839,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Node_Component_Black_Hole_Standard_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
@@ -856,9 +861,9 @@ contains
   subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use Kind_Numbers
-    use Multi_Counters
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
+    use :: Kind_Numbers    , only : kind_int8
+    use :: Multi_Counters  , only : multiCounter
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: node
@@ -896,7 +901,7 @@ contains
 
   logical function Node_Component_Black_Hole_Standard_Matches(node)
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
-    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard, defaultBlackHoleComponent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleStandard, treeNode
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentBlackHole)               , pointer :: blackHole
@@ -916,8 +921,9 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
     !% Outputs properties of merging black holes.
-    use Galacticus_HDF5
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
+    use :: Galacticus_HDF5 , only : galacticusOutputFile
+    use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
+    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , intent(in   )          :: massBlackHole1    , massBlackHole2
@@ -952,13 +958,14 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\normalfont \ttfamily node}.
+    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: Galacticus_Nodes  , only : nodeComponentBlackHole, treeNode
+    use            :: IO_HDF5           , only : hdf5Access            , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes  , only : treeNode, nodeComponentBlackHole
-    use            :: Galacticus_HDF5
-    use            :: Memory_Management
-    use            :: Kind_Numbers
     use            :: ISO_Varying_String
-    use            :: String_Handling
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray         , deallocateArray
+    use            :: String_Handling   , only : operator(//)
     implicit none
     type            (treeNode              ), intent(inout), pointer      :: node
     integer         (kind=kind_int8        ), intent(in   )               :: treeIndex
@@ -1045,7 +1052,7 @@ contains
 
   double precision function Hot_Mode_Fraction(node)
     !% A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
-    use Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: node
     double precision          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
@@ -1068,7 +1075,7 @@ contains
 
   double precision function Node_Component_Black_Hole_Standard_Accretion_Rate(self)
     !% Return the rest mass accretion rate onto a standard black hole.
-    use Galacticus_Nodes, only : nodeComponentBlackHoleStandard
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class           (nodeComponentBlackHoleStandard), intent(inout) :: self
     double precision                                                :: accretionRateSpheroid, accretionRateHotHalo
@@ -1080,7 +1087,7 @@ contains
 
   double precision function Node_Component_Black_Hole_Standard_Radiative_Efficiency(self)
     !% Return the radiative efficiency of a standard black hole.
-    use Galacticus_Nodes, only : nodeComponentBlackHoleStandard
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class(nodeComponentBlackHoleStandard), intent(inout) :: self
 
@@ -1093,8 +1100,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !% Keep black hole spin in physical range.
-    use FGSL            , only : FGSL_Failure
-    use Galacticus_Nodes, only : nodeComponentBlackHole, treeNode, defaultBlackHoleComponent
+    use :: FGSL            , only : FGSL_Failure
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1102,7 +1109,7 @@ contains
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
     double precision                                                 :: spin
-    
+
     ! Check if the standard component is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
@@ -1122,5 +1129,5 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
-    
+
 end module Node_Component_Black_Hole_Standard
