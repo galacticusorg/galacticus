@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib, only : omp_lock_kind
 
   !# <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
   !#  <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>

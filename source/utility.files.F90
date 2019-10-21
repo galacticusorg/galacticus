@@ -26,7 +26,7 @@ module File_Utilities
   !% Implements various file-related utilities.
   use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
   use               :: ISO_Varying_String, only : varying_string
-  !$ use            :: OMP_Lib
+  !$ use            :: OMP_Lib           , only : omp_lock_kind
   implicit none
   private
   public :: Count_Lines_in_File, File_Exists    , File_Lock_Initialize, File_Lock       , &
@@ -192,6 +192,7 @@ contains
 
   subroutine File_Lock_Initialize(lock)
     !% Initilialize the per thread lock in a file lock object.
+    !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     type(lockDescriptor), intent(inout) :: lock
 
@@ -201,7 +202,8 @@ contains
 
   subroutine File_Lock(fileName,lock,lockIsShared)
     !% Place a lock on a file.
-    use :: ISO_Varying_String, only : trim, assignment(=)
+    use    :: ISO_Varying_String, only : trim, assignment(=)
+    !$ use :: OMP_Lib, only : OMP_Set_Lock
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
@@ -220,8 +222,9 @@ contains
 
   subroutine File_Unlock(lock,sync)
     !% Remove a lock from a file.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : char
+    use    :: Galacticus_Error  , only : Galacticus_Error_Report
+    use    :: ISO_Varying_String, only : char
+    !$ use :: OMP_Lib           , only : OMP_Unset_Lock
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: sync

@@ -24,7 +24,7 @@
   use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
   use               :: ISO_Varying_String
   use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
-  !$ use            :: OMP_Lib
+  !$ use            :: OMP_Lib                                 , only : omp_lock_kind
   use               :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerClass
   use               :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
@@ -404,10 +404,11 @@ contains
 
   function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Memory_Management       , only : allocateArray
-    use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
-    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
+    use    :: Galacticus_Error        , only : Galacticus_Error_Report
+    use    :: Memory_Management       , only : allocateArray
+    use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
+    !$ use :: OMP_Lib                 , only : OMP_Init_Lock
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                                          :: self
     type            (varying_string                           ), intent(in   )                           :: label                                , comment                          , &
@@ -495,6 +496,8 @@ contains
 
   subroutine volumeFunction1DDestructor(self)
     !% Destructor for  the ``volumeFunction1D'' output analysis class.
+    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
+    implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
 
     !# <objectDestructor name="self%nodePropertyExtractor_"     />
@@ -512,9 +515,10 @@ contains
 
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
     !% Implement a volumeFunction1D output analysis.
-    use :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
-    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
+    use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
+    use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
+    !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     type            (treeNode                      ), intent(inout)                 :: node
@@ -600,9 +604,10 @@ contains
 
   subroutine volumeFunction1DReduce(self,reduced)
     !% Implement a volumeFunction1D output analysis reduction.
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
-   implicit none
+    use    :: Galacticus_Error       , only : Galacticus_Error_Report
+    use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
+    !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
+    implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
     class(outputAnalysisClass           ), intent(inout) :: reduced
 

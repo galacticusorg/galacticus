@@ -24,7 +24,7 @@
   use    :: FGSL                , only : FGSL_Success       , fgsl_function           , fgsl_integration_workspace, fgsl_interp    , &
           &                              fgsl_interp_accel  , fgsl_odeiv_control      , fgsl_odeiv_evolve         , fgsl_odeiv_step, &
           &                              fgsl_odeiv_system
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib             , only : omp_lock_kind
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterLambdaAgeTableNPointsPerOctave     =dble(matterLambdaAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)

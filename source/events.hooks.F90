@@ -174,7 +174,6 @@ contains
 
   subroutine eventHookUnlock(self,writeLock)
     !% Unlock the event to avoid race conditions between OpenMP threads.
-    !$ use :: OMP_Lib
     implicit none
     class  (eventHook), intent(inout)           :: self
     logical           , intent(in   ), optional :: writeLock
@@ -191,7 +190,7 @@ contains
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding)
     !% Attach an object to an event hook.
     use    :: Galacticus_Error, only : Galacticus_Error_Report
-    !$ use :: OMP_Lib
+    !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
     class    (eventHookUnspecified), intent(inout)           :: self
     class    (*                   ), intent(in   ), target   :: object_

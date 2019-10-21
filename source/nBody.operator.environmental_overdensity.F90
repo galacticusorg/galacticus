@@ -122,7 +122,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use :: Memory_Management , only : allocateArray             , deallocateArray
     use :: Nearest_Neighbors , only : nearestNeighbors
-    use :: OMP_Lib
+    use :: OMP_Lib           , only : omp_get_thread_num
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
     type            (nBodyData                            ), intent(inout)                 :: simulation

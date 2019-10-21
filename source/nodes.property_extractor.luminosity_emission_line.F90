@@ -21,7 +21,7 @@
 
   use    :: FGSL                             , only : fgsl_interp_accel
   use    :: ISO_Varying_String
-  !$ use :: OMP_Lib
+  !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Output_Times                     , only : outputTimesClass
   use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 

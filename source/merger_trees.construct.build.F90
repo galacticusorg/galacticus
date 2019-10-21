@@ -198,13 +198,12 @@ contains
 
   function buildConstruct(self,treeNumber) result(tree)
     !% Build a merger tree.
-    use    :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
-    use    :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
-    use    :: Kind_Numbers           , only : kind_int8
-    use    :: Merger_Tree_State_Store, only : treeStateStoreSequence
-    !$ use :: OMP_Lib
-    use    :: Pseudo_Random          , only : pseudoRandom
-    use    :: String_Handling        , only : operator(//)
+    use :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
+    use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
+    use :: Kind_Numbers           , only : kind_int8
+    use :: Merger_Tree_State_Store, only : treeStateStoreSequence
+    use :: Pseudo_Random          , only : pseudoRandom
+    use :: String_Handling        , only : operator(//)
     implicit none
     type            (mergerTree                ), pointer       :: tree
     class           (mergerTreeConstructorBuild), intent(inout) :: self

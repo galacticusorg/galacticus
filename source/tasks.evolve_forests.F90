@@ -377,7 +377,7 @@ contains
     use               :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Display_Message         , Galacticus_Display_Unindent, verbosityInfo
     use               :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
     use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode                   , universe     , &
+    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode                   , universe        , &
           &                                                           universeEvent
     use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
     
@@ -386,7 +386,7 @@ contains
     use               :: Merger_Trees_Initialize             , only : Merger_Tree_Initialize
     use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib
+    !$ use            :: OMP_Lib                             , only : omp_lock_kind                      , OMP_Init_Lock                      , OMP_Get_Thread_Num         , OMP_Destroy_Lock
     use               :: Semaphores                          , only : Semaphore_Open                     , semaphore
     use               :: Sort                                , only : Sort_Index_Do
     use               :: String_Handling                     , only : operator(//)
