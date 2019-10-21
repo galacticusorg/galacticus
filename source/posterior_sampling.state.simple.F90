@@ -29,6 +29,15 @@
      integer         , allocatable, dimension(:) :: accepted
      integer                                     :: acceptedStateCount
    contains
+     !@ <objectMethods>
+     !@   <object>posteriorSampleStateSimple</object>
+     !@   <objectMethod>
+     !@     <method>countSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateCount\argin</arguments>
+     !@     <description>Set the state count.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: parameterCountSet => simpleParameterCountSet
      procedure :: get               => simpleGet
      procedure :: update            => simpleUpdate
@@ -37,6 +46,7 @@
      procedure :: acceptanceRate    => simpleAcceptanceRate
      procedure :: reset             => simpleReset
      procedure :: restore           => simpleRestore
+     procedure :: countSet          => simpleCountSet
   end type posteriorSampleStateSimple
 
   interface posteriorSampleStateSimple
@@ -204,3 +214,13 @@ contains
     self%current=stateVector
     return
   end subroutine simpleRestore
+
+  subroutine simpleCountSet(self,stateCount)
+    !% Set the state count.
+    implicit none
+    class  (posteriorSampleStateSimple), intent(inout) :: self
+    integer                            , intent(in   ) :: stateCount
+    
+    self%stepCount=stateCount
+    return
+  end subroutine simpleCountSet
