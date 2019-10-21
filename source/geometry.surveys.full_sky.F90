@@ -173,7 +173,8 @@ contains
 
   subroutine fullSkyWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Compute the window function for the survey.
-    use            :: FFTW3
+    use            :: FFTW3             , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
+         &                                       fftw_destroy_plan
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
     use            :: ISO_Varying_String
