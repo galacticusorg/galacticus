@@ -253,9 +253,9 @@ sub function1DPlot {
 	 color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 	 title      => "\\\\footnotesize ".$targetLabel
 	);
-    $plotOptionsTarget{'errorDown'} = $yErrorLowerTarget
+    $plotOptionsTarget{'errorDown'} = $yErrorLowerTarget->($nonZeroTarget)
 	if ( defined($yErrorLowerTarget) );
-    $plotOptionsTarget{'errorUp'  } = $yErrorUpperTarget
+    $plotOptionsTarget{'errorUp'  } = $yErrorUpperTarget->($nonZeroTarget)
 	if ( defined($yErrorUpperTarget) );
     &GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
@@ -271,14 +271,15 @@ sub function1DPlot {
 	 color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	 title      => "\\\\footnotesize Galacticus"
 	);
-    $plotOptions{'errorDown'} = $yErrorLower
+    $plotOptions{'errorDown'} = $yErrorLower->($nonZero)
 	if ( defined($yErrorLower) );
-    $plotOptions{'errorUp'  } = $yErrorUpper
+    $plotOptions{'errorUp'  } = $yErrorUpper->($nonZero)
 	if ( defined($yErrorUpper) );
     &GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $data->{'xDataset'}->($nonZero),
-	    $data->{'yDataset'}->($nonZero),
+	$data->{'yDataset'}->($nonZero),
+	errorUp => $yErrorUpper,
 	    %plotOptions
 	);
     &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
