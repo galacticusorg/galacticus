@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ Contributions to this file made by: Chrsitoph Behrens.
+!+ Contributions to this file made by: Christoph Behrens.
 
 !% Contains a module implementing a node spin component using the approach of
 !% \cite{vitvitska_origin_2002}.
 
 module Node_Component_Spin_Vitvitska
   !% Implements a node spin component using the approach of \cite{vitvitska_origin_2002}.
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
-  use :: Halo_Spin_Distributions   , only : haloSpinDistributionClass
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales     , only : darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
+  use :: Halo_Spin_Distributions        , only : haloSpinDistributionClass
   use :: ISO_Varying_String
-  use :: Virial_Orbits             , only : virialOrbitClass
+  use :: Virial_Orbits                  , only : virialOrbitClass
+  use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   implicit none
   private
   public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
@@ -72,7 +73,8 @@ module Node_Component_Spin_Vitvitska
   class(virialOrbitClass                 ), pointer :: virialOrbit_
   class(darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
   class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
-  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
+  class(mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_
+  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,mergerTreeMassResolution_)
 
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
   double precision :: spinVitvitskaMassExponent
@@ -110,9 +112,10 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
-    use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
-    use :: Galacticus_Nodes          , only : defaultSpinComponent
-    use :: Input_Parameters          , only : inputParameter              , inputParameters
+    use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
+    use :: Galacticus_Nodes                  , only : defaultSpinComponent
+    use :: Input_Parameters                  , only : inputParameter              , inputParameters
+    use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolution
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
@@ -122,6 +125,7 @@ contains
        !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="globalParameters_"/>
        !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="globalParameters_"/>
+       !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
@@ -140,6 +144,7 @@ contains
        !# <objectDestructor name="darkMatterProfileDMO_"        />
        !# <objectDestructor name="darkMatterHaloScale_"         />
        !# <objectDestructor name="virialOrbit_"                 />
+       !# <objectDestructor name="mergerTreeMassResolution_"    />
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize
@@ -151,26 +156,29 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Spin
-    use :: Galacticus_Nodes        , only : defaultSpinComponent             , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentSatellite, &
-          &                                 nodeComponentSpin                , nodeComponentSpinVitvitska, treeNode
-    use :: ISO_Varying_String
+    use :: Galacticus_Nodes        , only : defaultSpinComponent             , nodeComponentBasic                 , nodeComponentDarkMatterProfile, nodeComponentSatellite, &
+          &                                 nodeComponentSpin                , nodeComponentSpinVitvitska         , treeNode
+    use :: Beta_Functions          , only : Beta_Function                    , Beta_Function_Incomplete_Normalized
     use :: Numerical_Constants_Math, only : Pi
     use :: Vectors                 , only : Vector_Magnitude
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
-    type            (treeNode                      )               , pointer :: nodeChild                  , nodeSibling          , &
-         &                                                                      nodeUnresolved
-    class           (nodeComponentBasic            )               , pointer :: basicChild                 , basicSibling         , &
-         &                                                                      basic                      , basicUnresolved
-    class           (nodeComponentSpin             )               , pointer :: spin                       , spinSibling          , &
-         &                                                                      spinChild
-    class           (nodeComponentSatellite        )               , pointer :: satelliteSibling
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileUnresolved
-    double precision                                , dimension(3)           :: angularMomentumOrbital     , angularMomentumTotal , &
-         &                                                                      spinVector
-    double precision                                                         :: spinValue                  , massRatio            , &
-         &                                                                      theta                      , phi                  , &
-         &                                                                      massUnresolved             , radiusScaleUnresolved
+    type            (treeNode                      ), intent(inout), pointer   :: node
+    type            (treeNode                      )               , pointer   :: nodeChild                         , nodeSibling                       , &
+         &                                                                        nodeUnresolved
+    class           (nodeComponentBasic            )               , pointer   :: basicChild                        , basicSibling                      , &
+         &                                                                        basic                             , basicUnresolved
+    class           (nodeComponentSpin             )               , pointer   :: spin                              , spinSibling                       , &
+         &                                                                        spinChild
+    class           (nodeComponentSatellite        )               , pointer   :: satelliteSibling
+    class           (nodeComponentDarkMatterProfile)               , pointer   :: darkMatterProfileUnresolved
+    double precision                                , dimension(3)             :: angularMomentumOrbital            , angularMomentumTotal              , &
+         &                                                                        spinVector
+    double precision                                               , parameter :: massFunctionSlopeLogarithmic=1.9d0
+    double precision                                                           :: spinValue                         , massRatio                         , &
+         &                                                                        theta                             , phi                               , &
+         &                                                                        massUnresolved                    , radiusScaleUnresolved             , &
+         &                                                                        massResolution                    , angularMomentumSubresolutionFactor, &
+         &                                                                        a                                 , b
 
     ! Check if we are the default method.
     if (defaultSpinComponent%vitvitskaIsActive()) then
@@ -178,7 +186,7 @@ contains
        spin => node%spin(autoCreate=.true.)
        ! Ensure that the spin has not yet been assigned for this node.
        select type (spin)
-          class is (nodeComponentSpinVitvitska)
+       class is (nodeComponentSpinVitvitska)
           if (spin%spinValue() == 0.0d0) then
              basic => node%basic()
              ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
@@ -194,7 +202,9 @@ contains
                 basicChild     =>  nodeChild %basic     ()
                 massUnresolved =  +basic     %mass      () &
                      &            -basicChild%mass      ()
-                ! Node has multiple progenitors - iterate over them and sum their angular momenta.
+                ! Get the resolution of the tree.
+                massResolution=mergerTreeMassResolution_%resolution(node%hostTree)
+                 ! Node has multiple progenitors - iterate over them and sum their angular momenta.
                 angularMomentumTotal =   0.0d0
                 nodeSibling          =>  nodeChild
                 do while(associated(nodeSibling%sibling))
@@ -233,15 +243,35 @@ contains
                 nodeUnresolved              => treeNode                                       (                         )
                 basicUnresolved             => nodeUnresolved               %basic            (autoCreate=.true.        )
                 darkMatterProfileUnresolved => nodeUnresolved               %darkMatterProfile(autoCreate=.true.        )
-                call basicUnresolved            %massSet            (massUnresolved       )
+                call basicUnresolved            %massSet            (massResolution       )
                 call basicUnresolved            %timeSet            (basicChild%time()    )
                 call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
                 radiusScaleUnresolved       =  darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
                 call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
-                angularMomentumTotal=+angularMomentumTotal                                                        &
-                     &               +massUnresolved                                                              &
-                     &               *virialOrbit_        %velocityTangentialVectorMean(nodeUnresolved,nodeChild) &
-                     &               *darkMatterHaloScale_%virialRadius                (               nodeChild)
+                ! Compute a correction factor to the orbital angular momentum which takes into account the mass dependence of the
+                ! 1/(1+m/M)ᵅ term that is applied to the angular momentum, and the reduced mass factor that appears in the orbital
+                ! angular momentum. Averaging this over a power-law mass function gives the result below. In the case that α=0 the
+                ! result is identically 1 - in this case we avoid computing beta functions.
+                massRatio                       =+basicUnresolved%mass()                                               &
+                     &                           /basicChild     %mass()
+                a                               =+2.0d0                                                                &
+                     &                           -massFunctionSlopeLogarithmic
+                if (spinVitvitskaMassExponent == 0.0d0) then
+                   angularMomentumSubresolutionFactor=+1.0d0
+                else
+                   b                                 =+massFunctionSlopeLogarithmic                                         &
+                        &                             +spinVitvitskaMassExponent                                            &
+                        &                             -2.0d0
+                   angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
+                        &                             *Beta_Function                      (a,b                            ) &
+                        &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
+                        &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+                end if
+                ! Accumulate the angular momentum of the unresolved mass.
+                angularMomentumTotal=+angularMomentumTotal                                                                   &
+                     &               +massUnresolved                                                                         &
+                     &               *virialOrbit_                      %angularMomentumVectorMean(nodeUnresolved,nodeChild) &
+                     &               *angularMomentumSubresolutionFactor                
                 call nodeUnresolved%destroy()
                 deallocate(nodeUnresolved)
                 ! Convert angular momentum back to spin.
