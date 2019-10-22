@@ -101,7 +101,7 @@ contains
     allocate(sphericalCollapseSolverCllsnlssMttrDarkEnergy :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
     type is (sphericalCollapseSolverCllsnlssMttrDarkEnergy)
-       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrDarkEnergy(cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyFunctions_,self%linearGrowth_)"/>
+       !# <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrDarkEnergy(cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyFunctions_,self%linearGrowth_)"/>
     end select
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
