@@ -299,6 +299,7 @@ contains
     type(transferFunctionEisensteinHu1999), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine eisensteinHu1999Destructor
