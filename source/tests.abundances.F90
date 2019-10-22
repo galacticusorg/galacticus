@@ -23,7 +23,7 @@ program Test_Abundances
   !% Test abundances objects.
   use :: Abundances_Structure, only : abundances                    , max
   use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String  , only : varying_string                , assignment(=)
   use :: Input_Parameters    , only : inputParameters
   use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

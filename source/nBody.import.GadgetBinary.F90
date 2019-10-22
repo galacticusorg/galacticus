@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an N-body data importer for Gadget binary files.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
 
   !# <nbodyImporter name="nbodyImporterGadgetBinary">
   !#  <description>An importer for Gadget binary files.</description>

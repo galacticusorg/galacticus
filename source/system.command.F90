@@ -34,7 +34,7 @@ contains
 
   subroutine System_Command_VarStr(command,iStatus)
     !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: command
     integer                , intent(  out), optional :: iStatus

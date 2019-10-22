@@ -112,7 +112,7 @@ contains
     !% Determine the subset of N-body particles which are self-bound.
     use :: Galacticus_Display          , only : Galacticus_Display_Message
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String          , only : varying_string
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     use :: Pseudo_Random               , only : pseudoRandom

@@ -199,13 +199,12 @@ contains
 
   subroutine caputi2011UKIDSSUDSRandomsInitialize(self)
     !% Load random points for the survey.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String
-    use :: String_Handling   , only : operator(//)
-    use :: System_Command    , only : System_Command_Do
+    use :: File_Utilities  , only : File_Exists
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Paths, only : galacticusPath         , pathTypeExec
+    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: String_Handling , only : operator(//)
+    use :: System_Command  , only : System_Command_Do
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
     type (hdf5Object                       )                :: surveyGeometryRandomsFile

@@ -38,7 +38,8 @@ module Hashes_Cryptographic
 contains
 
   function Hash_MD5(text)
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string     , operator(//), extract, len, &
+         &                            assignment(=)
     use :: String_Handling   , only : String_C_to_Fortran, char
     implicit none
     type     (varying_string)                               :: Hash_MD5

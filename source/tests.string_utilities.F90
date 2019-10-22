@@ -22,7 +22,7 @@
 program Test_String_Utilities
   !% Tests that numerical range making code works correctly.
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string                , assignment(=)
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : Convert_VarString_To_Char     , String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case, &
           &                         String_Split_Words            , String_Upper_Case     , String_Upper_Case_First    , operator(//)

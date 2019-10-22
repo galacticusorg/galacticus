@@ -146,7 +146,6 @@ contains
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
     use :: Cosmology_Parameters, only : hubbleUnitsTime
-    use :: ISO_Varying_String
     use :: Numerical_Comparison, only : Values_Agree
     use :: ODE_Solver          , only : ODE_Solve      , ODE_Solver_Free
     implicit none
@@ -493,7 +492,7 @@ contains
   double precision function matterLambdaExpansionFactor(self,time)
     !% Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time

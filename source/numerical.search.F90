@@ -103,12 +103,12 @@ contains
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i)
     !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
     !% $x(i)=v$ occurs will be returned.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string, operator(>=), operator(<), operator(>)
     implicit none
     integer(c_size_t      )                              :: Search_Array_VarString
     type   (varying_string), dimension(:), intent(in   ) :: arrayToSearch
     type   (varying_string)              , intent(in   ) :: valueToFind
-    integer(c_size_t      )                              :: jLower       , jMidpoint, jUpper
+    integer(c_size_t      )                              :: jLower                , jMidpoint, jUpper
     logical                                              :: isInside
 
     isInside=.true.

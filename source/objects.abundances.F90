@@ -21,7 +21,6 @@
 
 module Abundances_Structure
   !% Defines the abundances structure used for describing elemental abundances in \glc.
-  use :: ISO_Varying_String
   implicit none
   private
   public :: abundances, Abundances_Names, Abundances_Index_From_Name, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
@@ -407,6 +406,7 @@ contains
   subroutine Abundances_Dump(self)
     !% Reset an abundances object.
     use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
     implicit none
     class    (abundances    ), intent(in   ) :: self
     integer                                  :: i
@@ -629,7 +629,8 @@ contains
 
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : varying_string         , assignment(=)
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index

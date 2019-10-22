@@ -252,7 +252,7 @@ contains
       use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
       use :: Galacticus_Display                , only : Galacticus_Verbosity_Level       , Galacticus_Verbosity_Level_Set, verbosityStandard
       use :: Galacticus_Error                  , only : Galacticus_Error_Report
-      use :: ISO_Varying_String
+      use :: ISO_Varying_String                , only : varying_string
       use :: Memory_Management                 , only : allocateArray                    , deallocateArray
       use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
       use :: String_Handling                   , only : operator(//)

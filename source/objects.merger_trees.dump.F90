@@ -40,7 +40,8 @@ contains
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String , only : varying_string          , char              , trim    , operator(//), &
+         &                             assignment(=)
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     type            (mergerTree              )              , intent(in   )                    :: tree

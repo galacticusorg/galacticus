@@ -21,7 +21,7 @@
   !% objects binned by some property) output analysis class.
 
   use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use            :: ISO_Varying_String, only : varying_string
 
   !# <outputAnalysis name="outputAnalysisMeanFunction1D">
   !#  <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>

@@ -21,7 +21,7 @@
 
 module Galacticus_Output_Open
   !% Handles opening of the \glc\ output file.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File
@@ -33,16 +33,18 @@ contains
 
   subroutine Galacticus_Output_Open_File
     !% Open the file for \glc\ output.
-    use            :: Galacticus_HDF5 , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
-         &                                     galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
-    use            :: HDF5            , only : hsize_t                   , size_t
-    use            :: IO_HDF5         , only : hdf5Access                , IO_HDF5_Set_Defaults
+    use            :: Galacticus_HDF5   , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
+         &                                       galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
+    use            :: HDF5              , only : hsize_t                   , size_t
+    use            :: IO_HDF5           , only : hdf5Access                , IO_HDF5_Set_Defaults
     use, intrinsic :: ISO_C_Binding
-    use            :: Input_Parameters, only : globalParameters          , inputParameter
+    use            :: ISO_Varying_String, only : var_str                   , char
+    use            :: Input_Parameters  , only : globalParameters          , inputParameter
 #ifdef USEMPI
-    use            :: MPI_Utilities   , only : mpiSelf
+    use            :: ISO_Varying_String, only : operator(//)              , extract             , len                 , operator(==)
+    use            :: MPI_Utilities     , only : mpiSelf
 #endif
-    use            :: String_Handling , only : operator(//)
+    use            :: String_Handling   , only : operator(//)
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
@@ -177,9 +179,10 @@ contains
 
   subroutine Galacticus_Output_Close_File
     !% Close the \glc\ output file.
-    use :: Galacticus_HDF5 , only : galacticusOutputFileIsOpen, galacticusOutputFile
-    use :: File_Utilities  , only : File_Rename
-    use :: IO_HDF5         , only : hdf5Access
+    use :: Galacticus_HDF5   , only : galacticusOutputFileIsOpen, galacticusOutputFile
+    use :: File_Utilities    , only : File_Rename
+    use :: IO_HDF5           , only : hdf5Access
+    use :: ISO_Varying_String, only : operator(/=)
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
     !# </include>

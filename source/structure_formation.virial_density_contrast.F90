@@ -21,7 +21,6 @@
 
 module Virial_Density_Contrast
   !% Provides a class implementing the virial density contrast for halos.
-  use :: ISO_Varying_String
   private
 
   !# <functionClass>

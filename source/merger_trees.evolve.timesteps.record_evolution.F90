@@ -161,7 +161,7 @@ contains
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String     , only : varying_string
     use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target            :: self
@@ -237,7 +237,7 @@ contains
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String              , only : var_str                , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
     use            :: String_Handling                 , only : operator(//)

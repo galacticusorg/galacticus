@@ -21,7 +21,7 @@
 
 module Node_Component_NBody_Generic
   !% An implementation of the N-body component which supports generic properties.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Node_Component_NBody_Generic_Promote          , Node_Component_NBody_Generic_Initialize  , &
@@ -138,7 +138,8 @@ contains
 
    function Node_Component_NBody_Generic_Add_Real_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
-     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     use :: Galacticus_Nodes  , only : nodeComponentNBodyGeneric
+     use :: ISO_Varying_String, only : operator(==)             , assignment(=)
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
      character(len=*                    ), intent(in   )             :: propertyName
@@ -178,7 +179,8 @@ contains
 
    function Node_Component_NBody_Generic_Add_Integer_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
-     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     use :: Galacticus_Nodes  , only : nodeComponentNBodyGeneric
+     use :: ISO_Varying_String, only : operator(==)             , assignment(=)
      implicit none
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
@@ -264,8 +266,9 @@ contains
         &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
         &,doublePropertyUnitsSI,time)
      !% Set names of black hole properties to be written to the \glc\ output file.
-     use :: Galacticus_Nodes, only : treeNode
-     use :: String_Handling , only : String_Upper_Case_First, char
+     use :: Galacticus_Nodes  , only : treeNode
+     use :: ISO_Varying_String, only : char
+     use :: String_Handling   , only : String_Upper_Case_First, char
      implicit none
      type            (treeNode)              , intent(inout), pointer :: node
      double precision                        , intent(in   )          :: time

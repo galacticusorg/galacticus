@@ -266,7 +266,7 @@ contains
     use :: Chemical_Abundances_Structure        , only : Chemicals_Property_Count
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent             , nodeComponentHotHaloStandard
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                   , only : var_str                             , varying_string                 , char
     use :: Input_Parameters                     , only : inputParameter                      , inputParameters
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                         , formationNode                  , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode   , &
           &                                              hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed

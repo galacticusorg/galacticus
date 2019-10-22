@@ -24,13 +24,12 @@
 
 module Node_Component_Spin_Vitvitska
   !% Implements a node spin component using the approach of \cite{vitvitska_origin_2002}.
-  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profile_Scales     , only : darkMatterProfileScaleRadiusClass
-  use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
-  use :: Halo_Spin_Distributions        , only : haloSpinDistributionClass
-  use :: ISO_Varying_String
-  use :: Virial_Orbits                  , only : virialOrbitClass
-  use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
+  use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadiusClass
+  use :: Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMOClass
+  use :: Halo_Spin_Distributions           , only : haloSpinDistributionClass
+  use :: Virial_Orbits                     , only : virialOrbitClass
+  use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   implicit none
   private
   public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
@@ -112,10 +111,9 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
-    use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
-    use :: Galacticus_Nodes                  , only : defaultSpinComponent
-    use :: Input_Parameters                  , only : inputParameter              , inputParameters
-    use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolution
+    use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
+    use :: Galacticus_Nodes          , only : defaultSpinComponent
+    use :: Input_Parameters          , only : inputParameter              , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 

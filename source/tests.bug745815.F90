@@ -22,7 +22,7 @@ program Tests_Bug745815
   !% walk.
   use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Nodes   , only : mergerTree                    , treeNode              , treeNodeList
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String , only : varying_string                , assignment(=)
   use :: Input_Parameters   , only : inputParameters
   use :: Kind_Numbers       , only : kind_int8
   use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes

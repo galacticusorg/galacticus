@@ -214,7 +214,7 @@ contains
     !% branches. This routine then finds the progenitor mass corresponding to this value.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Pseudo_Random     , only : pseudoRandom
     use :: Root_Finder       , only : rootFinder
     implicit none
@@ -383,7 +383,7 @@ contains
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function     , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Warn   , errorStatusSuccess
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String   , only : varying_string
     use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self

@@ -70,9 +70,8 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion(node)
     !% Handle node promotion for formation times.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes  , only : nodeComponentFormationTime, nodeComponentFormationTimeMassFraction, treeNode
-    use :: ISO_Varying_String
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentFormationTime, nodeComponentFormationTimeMassFraction, treeNode
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime, formationTimeParent

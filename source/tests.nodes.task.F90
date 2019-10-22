@@ -64,7 +64,7 @@ contains
   subroutine testVoidFunc(component)
     !% A simple void function used in testing mapping over a function over all components.
     use :: Galacticus_Nodes  , only : nodeComponent
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : operator(==)
     implicit none
     class(nodeComponent), intent(inout) :: component
 

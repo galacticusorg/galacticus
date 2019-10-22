@@ -26,7 +26,7 @@ program Test_Nodes
   use :: Galacticus_Error  , only : Galacticus_Error_Report
   use :: Galacticus_Nodes  , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize, nodeComponent       , nodeComponentBasic, &
           &                         nodeComponentPosition         , propertyTypeAll             , treeNode
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string                , assignment(=)               , char
   use :: Input_Parameters  , only : inputParameters
   use :: Test_Nodes_Tasks  , only : Test_Node_Task
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish

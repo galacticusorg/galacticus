@@ -228,7 +228,7 @@ contains
     !% Build a merger tree.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : mergerTree                   , nodeComponentBasic              , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String   , only : varying_string
     use :: Kind_Numbers         , only : kind_int8
     use :: Merger_Tree_Branching, only : mergerTreeBranchingBoundLower, mergerTreeBranchingBoundUpper
     use :: Merger_Tree_Walkers  , only : mergerTreeWalkerIsolatedNodes, mergerTreeWalkerTreeConstruction

@@ -70,7 +70,7 @@ contains
   double precision function Inverse_Gamma_Function_Incomplete_Complementary(a,P)
     !% Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
     use :: Incomplete_Gamma  , only : GamInv
     implicit none
     double precision                , intent(in   ) :: P         , a

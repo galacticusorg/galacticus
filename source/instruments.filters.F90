@@ -23,8 +23,8 @@
 
 module Instruments_Filters
   !% Implements calculations of filter response curves.
-  use :: FGSL              , only : fgsl_interp, fgsl_interp_accel
-  use :: ISO_Varying_String
+  use :: FGSL              , only : fgsl_interp   , fgsl_interp_accel
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
@@ -49,6 +49,7 @@ contains
 
   integer function Filter_Get_Index(filterName)
     !% Return the index for the specified filter, loading that filter if necessary.
+    use :: ISO_Varying_String, only : operator(==)
     implicit none
     type   (varying_string), intent(in   ) :: filterName
     integer                                :: iFilter
@@ -102,13 +103,15 @@ contains
     !% Load a filter response curve.
     use :: File_Utilities           , only : File_Exists
     use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , extractDataContent, &
-          &                                  node                   , parseFile                        , inException       , getExceptionCode
+          &                                  getExceptionCode       , inException                      , node              , parseFile
     use :: Galacticus_Error         , only : Galacticus_Error_Report
     use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
     use :: IO_HDF5                  , only : hdf5Access             , hdf5Object
     use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)     , &
+         &                                   extract
     use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
     use :: Numerical_Constants_Units, only : angstromsPerMeter
     use :: String_Handling          , only : String_Split_Words     , operator(//)

@@ -24,7 +24,7 @@ module Input_Parameters
   use :: FoX_dom           , only : node
   use :: Function_Classes  , only : functionClass
   use :: IO_HDF5           , only : hdf5Object
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
   private
@@ -370,8 +370,9 @@ contains
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
-    use :: FoX_dom, only : node                             , parseString
-    use :: IO_XML , only : XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom           , only : node                             , parseString
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String, only : extract                          , char       , operator(==)
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -409,6 +410,7 @@ contains
   function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
+    use :: ISO_Varying_String, only : char
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorFileVarStr
     type     (varying_string    )              , intent(in   )           :: fileName
@@ -482,10 +484,11 @@ contains
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , getTextContent , node, setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , getTextContent , node        , setLiveNodeLists
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: ISO_Varying_String, only : char                             , assignment(=)  , operator(/=), operator(//)
     use :: String_Handling   , only : String_Strip
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -697,9 +700,10 @@ contains
 
   subroutine inputParametersFinalize(self)
     !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
-    use :: File_Utilities, only : File_Remove
-    use :: FoX_dom       , only : destroy
-    use :: IO_HDF5       , only : hdf5Access
+    use :: File_Utilities    , only : File_Remove
+    use :: FoX_dom           , only : destroy
+    use :: IO_HDF5           , only : hdf5Access
+    use :: ISO_Varying_String, only : char
     implicit none
     type(inputParameters), intent(inout) :: self
     type(varying_string )                :: fileNameTemporary
@@ -918,7 +922,8 @@ contains
 
  subroutine inputParameterSetVarStr(self,value)
    !% Set the value of a parameter.
-    use :: FoX_DOM, only : setAttribute
+    use :: FoX_DOM           , only : setAttribute
+    use :: ISO_Varying_String, only : char
     implicit none
     class    (inputParameter), intent(inout) :: self
     type     (varying_string), intent(in   ) :: value
@@ -929,10 +934,11 @@ contains
 
   function inputParameterGet(self)
     !% Get the value of a parameter.
-    use :: FoX_dom         , only : DOMException           , getAttributeNode, getNodeName, getTextContent, &
-          &                         hasAttribute           , inException     , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
+    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, getTextContent, &
+          &                           hasAttribute           , inException     , node
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)
+   implicit none
     type   (varying_string)                :: inputParameterGet
     class  (inputParameter), intent(inout) :: self
     type   (node          ), pointer       :: valueElement
@@ -960,7 +966,8 @@ contains
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     use :: FoX_dom            , only : destroy                    , getNodeName               , node
     use :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                            verbositySilent
+         &                            verbositySilent
+    use :: ISO_Varying_String , only : assignment(=)              , operator(//)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
@@ -1091,8 +1098,9 @@ contains
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !% Open an output group for parameters in the given HDF5 object.
-    use :: File_Utilities, only : File_Remove
-    use :: IO_HDF5       , only : hdf5Access
+    use :: File_Utilities    , only : File_Remove
+    use :: IO_HDF5           , only : hdf5Access
+    use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
     type (hdf5Object     ), intent(inout) :: outputGroup
@@ -1293,8 +1301,9 @@ contains
 
   integer function inputParametersCount(self,parameterName,zeroIfNotPresent)
     !% Return a count of the number of values in a parameter.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : String_Count_Words
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: String_Handling   , only : String_Count_Words
     implicit none
     class    (inputParameters), intent(inout)           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1386,17 +1395,20 @@ contains
 
   subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
-    use :: FoX_dom         , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
-          &                         getTextContent                   , hasAttribute      , inException     , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
-    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: FoX_dom           , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
+          &                           getTextContent                   , hasAttribute      , inException     , node
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     {Type¦match¦^(Character|VarStr)Rank1$¦use :: String_Handling , only : String_Split_Words¦}
-    use :: FoX_dom         , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
-          &                         getTextContent                   , hasAttribute      , inException     , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
-    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: FoX_dom           , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
+          &                           getTextContent                   , hasAttribute      , inException     , node
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: ISO_Varying_String, only : char
+    {Type¦match¦^(Character|VarStr)Rank1$¦use :: ISO_Varying_String, only : assignment(=)¦}
+    {Type¦match¦^VarStr¦use :: ISO_Varying_String, only : assignment(=)¦}
     implicit none
     class           (inputParameters), intent(inout)           :: self
     type            (inputParameter ), intent(in   )           :: parameterNode
@@ -1493,6 +1505,8 @@ contains
 
   subroutine inputParameterListAdd(self,name,value)
     !% Add a parameter to a list of input parameters to an XML document.
+    use :: ISO_Varying_String, only : assignment(=)
+    implicit none
     class    (inputParameterList), intent(inout)               :: self
     character(len=*             ), intent(in   )               :: name             , value
     type     (varying_string    ), allocatable  , dimension(:) :: nameTemporary    , valueTemporary
@@ -1520,7 +1534,8 @@ contains
 
   subroutine inputParameterListSerializeToXML(self,parameterDoc)
     !% Serialize a list of input parameters to an XML document.
-    use :: FoX_wXML, only : xml_AddAttribute, xml_EndElement, xml_NewElement, xmlf_t
+    use :: FoX_wXML          , only : xml_AddAttribute, xml_EndElement, xml_NewElement, xmlf_t
+    use :: ISO_Varying_String, only : char
     class (inputParameterList), intent(in   ) :: self
     type  (xmlf_t            ), intent(inout) :: parameterDoc
     integer                                   :: i
@@ -1537,8 +1552,9 @@ contains
 
   recursive function inputParametersSerializeToString(self,hashed)
     !% Serialize input parameters to a string.
-    use :: FoX_dom             , only : getNodeName, node
+    use :: FoX_dom             , only : getNodeName  , node
     use :: Hashes_Cryptographic, only : Hash_MD5
+    use :: ISO_Varying_String  , only : assignment(=), operator(//), char
     implicit none
     type   (varying_string )                          :: inputParametersSerializeToString
     class  (inputParameters), intent(inout)           :: self
@@ -1562,7 +1578,7 @@ contains
           inputParametersSerializeToString=inputParametersSerializeToString// &
                &                           getNodeName(thisNode)           // &
                &                           ":"                             // &
-               &                           adjustl(trim(parameterValue))
+               &                           adjustl(char(parameterValue))
           subParameters=self%subParameters(getNodeName(thisNode))
           if (associated(subParameters%parameters%firstChild)) inputParametersSerializeToString=inputParametersSerializeToString // &
                &                                                                                "{"                              // &
@@ -1578,8 +1594,9 @@ contains
 
   subroutine inputParametersSerializeToXML(self,parameterFile)
     !% Serialize input parameters to an XML file.
-    use :: FoX_DOM, only : serialize
-    implicit none
+    use :: FoX_DOM           , only : serialize
+    use :: ISO_Varying_String, only : char
+   implicit none
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
 

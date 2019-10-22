@@ -65,7 +65,7 @@ contains
        &,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string         , assignment(=)               , operator(//)
     use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                         , yArray
@@ -177,7 +177,7 @@ contains
        &,interpolationType ,extrapolationType,reset)
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding first derivative of {\normalfont \ttfamily yArray()}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string         , assignment(=)               , operator(//)
     use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                  , yArray

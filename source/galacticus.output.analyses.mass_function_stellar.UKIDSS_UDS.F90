@@ -163,7 +163,7 @@ contains
     use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryCaputi2011UKIDSSUDS
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                    , only : var_str                                        , varying_string
     use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     use :: String_Handling                       , only : operator(//)

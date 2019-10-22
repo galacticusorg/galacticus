@@ -39,7 +39,8 @@ contains
           &                           Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access                 , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str                    , varying_string                  , operator(//)             , char                      , &
+         &                            assignment(=)
     use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
     use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear
     use :: String_Handling   , only : operator(//)

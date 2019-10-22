@@ -99,7 +99,7 @@ contains
     !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
     !% units prior to output.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)
     implicit none
     double precision                , parameter :: newReportChangeFactor=1.2d0
     logical                                     :: issueNewReport
@@ -151,7 +151,7 @@ contains
 
   subroutine Add_Memory_Component(thisMemoryUsage,headerText,usageText,join)
     !% Add a memory type to the memory reporting strings.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string, trim, assignment(=), operator(//), char, len
     implicit none
     type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage
     type     (varying_string        ), intent(inout) :: headerText     , usageText
@@ -233,7 +233,7 @@ contains
     !% Record a change in memory usage.
     use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityDebug
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use            :: ISO_Varying_String, only : varying_string            , assignment(=)             , operator(//)
     use            :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=c_size_t ), intent(in   )           :: elementsUsed

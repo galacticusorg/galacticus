@@ -259,7 +259,7 @@ contains
   function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi                     , e
     use :: Sort                    , only : Sort_Do
@@ -431,7 +431,7 @@ contains
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
           &                                        nodeComponentSatellite   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String  , only : varying_string
     use            :: Memory_Management   , only : allocateArray
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
@@ -615,7 +615,7 @@ contains
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String  , only : varying_string
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none

@@ -1477,7 +1477,6 @@ contains
     !% Outputs conditional mass function.
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: IO_HDF5                         , only : hdf5Access          , hdf5Object
-    use    :: ISO_Varying_String
     use    :: Memory_Management               , only : allocateArray       , deallocateArray
     use    :: Numerical_Constants_Astronomical, only : massSolar
     !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads

@@ -141,7 +141,6 @@ contains
     !% Initialize random points for the survey.
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
     use            :: Numerical_Constants_Math        , only : Pi

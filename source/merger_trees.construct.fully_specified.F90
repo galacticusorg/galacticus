@@ -76,7 +76,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
-    use :: FoX_DOM         , only : parseFile              , getElementsByTagname, getLength
+    use :: FoX_DOM         , only : getElementsByTagname   , getLength, parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self

@@ -34,7 +34,7 @@ program Test_Zhao2009_Flat
   use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize       , nodeComponentBasic                     , treeNode
   use :: Galacticus_Paths                         , only : galacticusPath                     , pathTypeExec
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String                       , only : varying_string                     , assignment(=)                          , operator(//)                       , char
   use :: Input_Parameters                         , only : inputParameters
   use :: Node_Components                          , only : Node_Components_Initialize         , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: String_Handling                          , only : operator(//)

@@ -51,7 +51,7 @@ contains
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode                     , treeNodeLinkedList
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                 , only : varying_string               , assignment(=)     , operator(//)
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     implicit none
@@ -174,7 +174,7 @@ contains
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                 , only : varying_string            , assignment(=)                , operator(//)
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable
     use :: String_Handling                    , only : operator(//)
     !# <include directive="interTreeSatelliteAttach" type="moduleUse">
@@ -497,7 +497,7 @@ contains
     !% Check that the inter-tree transfer list is empty after universe evolution.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string         , assignment(=)
     use :: String_Handling   , only : operator(//)
     implicit none
     type(interTreeTransfer), pointer :: waitListEntry

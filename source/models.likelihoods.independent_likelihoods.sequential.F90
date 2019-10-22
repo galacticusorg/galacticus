@@ -130,7 +130,7 @@ contains
     !% Return the log-likelihood for the halo mass function likelihood function.
     use :: Galacticus_Display          , only : Galacticus_Display_Message
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String          , only : varying_string
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible             , logImprobable
     use :: String_Handling             , only : operator(//)

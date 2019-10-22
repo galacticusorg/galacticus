@@ -32,7 +32,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)      , char        , operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion

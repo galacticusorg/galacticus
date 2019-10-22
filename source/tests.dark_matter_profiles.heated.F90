@@ -35,7 +35,7 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set , verbosityStandard
   use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize     , nodeClassHierarchyInitialize  , nodeComponentBasic           , nodeComponentSatellite, &
           &                                   treeNode
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String          , only : varying_string                 , assignment(=)
   use :: Input_Parameters            , only : inputParameters
   use :: Numerical_Constants_Math    , only : Pi
   use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus

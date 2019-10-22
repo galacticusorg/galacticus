@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   use :: Output_Times      , only : outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">

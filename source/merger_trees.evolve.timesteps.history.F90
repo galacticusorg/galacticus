@@ -169,7 +169,7 @@ contains
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String     , only : varying_string
     use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self

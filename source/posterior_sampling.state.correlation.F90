@@ -247,7 +247,6 @@ contains
 
   subroutine correlationRestore(self,stateVector,first)
     !% Restore the state object from file.
-    use :: ISO_Varying_String
     implicit none
     class           (posteriorSampleStateCorrelation), intent(inout)               :: self
     double precision                                 , intent(in   ), dimension(:) :: stateVector

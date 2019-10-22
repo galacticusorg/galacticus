@@ -22,7 +22,7 @@
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
   use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use            :: ISO_Varying_String, only : varying_string
   implicit none
 
   !# <generic identifier="Type">
@@ -173,10 +173,11 @@ contains
 
   logical function Exists_{Type¦label}_Scalar_CH(thisHash,keyCH)
     !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class    ({Type¦label}ScalarHash), intent(in   ) :: thisHash
-    character(len=*            ), intent(in   ) :: keyCH
-    type     (varying_string   ), save          :: key
+    character(len=*                 ), intent(in   ) :: keyCH
+    type     (varying_string        ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     Exists_{Type¦label}_Scalar_CH=Exists_{Type¦label}_Scalar_VS(thisHash,key)
@@ -185,9 +186,10 @@ contains
 
   logical function Exists_{Type¦label}_Scalar_VS(thisHash,key)
     !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
+    use :: ISO_Varying_String, only : operator(==)
     implicit none
     class({Type¦label}ScalarHash), intent(in   ) :: thisHash
-    type (varying_string   ), intent(in   ) :: key
+    type (varying_string        ), intent(in   ) :: key
 
     if (thisHash%elementCount > 0) then
        Exists_{Type¦label}_Scalar_VS=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
@@ -199,10 +201,11 @@ contains
 
   subroutine Delete_{Type¦label}_Scalar_CH(thisHash,keyCH)
     !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily thisHash}.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    character(len=*            ), intent(in   ) :: keyCH
+    character(len=*                 ), intent(in   ) :: keyCH
     class    ({Type¦label}ScalarHash), intent(inout) :: thisHash
-    type     (varying_string   ), save          :: key
+    type     (varying_string        ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     call Delete_{Type¦label}_Scalar_VS(thisHash,key)
@@ -211,9 +214,10 @@ contains
 
   subroutine Delete_{Type¦label}_Scalar_VS(thisHash,key)
     !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
-    use            :: Arrays_Search   , only : Search_Array
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use            :: Arrays_Search     , only : Search_Array
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : char
     implicit none
     type   (varying_string        ), intent(in   ) :: key
     class  ({Type¦label}ScalarHash), intent(inout) :: thisHash
@@ -291,6 +295,7 @@ contains
 
   function Value_{Type¦label}_Scalar_CH(thisHash,keyCH)
     !% Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_CH
     character       (len=*                 ), intent(in   )   :: keyCH
@@ -304,9 +309,10 @@ contains
 
   function Value_{Type¦label}_Scalar_VS(thisHash,key)
     !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
-    use            :: Arrays_Search   , only : Search_Array
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use            :: Arrays_Search     , only : Search_Array
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : char
     implicit none
     {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_VS
     class           ({Type¦label}ScalarHash), intent(in   )   :: thisHash
@@ -325,6 +331,7 @@ contains
 
   subroutine Set_{Type¦label}_Scalar_CH(thisHash,keyCH,value)
     !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   ) :: value
     character       (len=*                 )                         , intent(in   ) :: keyCH
@@ -339,8 +346,9 @@ contains
 
   subroutine Set_{Type¦label}_Scalar_VS(thisHash,key,value)
     !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
-    use            :: Arrays_Search, only : Search_Array
-    use, intrinsic :: ISO_C_Binding
+    use            :: Arrays_Search     , only : Search_Array
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : operator(==)
     implicit none
     {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   )               :: Value
     type            (varying_string        )                         , intent(in   )               :: Key

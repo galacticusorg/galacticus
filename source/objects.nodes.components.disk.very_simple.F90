@@ -25,7 +25,6 @@ module Node_Component_Disk_Very_Simple
   use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
   use :: Galacticus_Nodes               , only : treeNode
-  use :: ISO_Varying_String
   use :: Math_Exponentiation            , only : fastExponentiator
   use :: Star_Formation_Feedback_Disks  , only : starFormationFeedbackDisksClass
   use :: Star_Formation_Timescales_Disks, only : starFormationTimescaleDisksClass
@@ -339,6 +338,7 @@ contains
     use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskVerySimple, treeNode
+    use :: ISO_Varying_String            , only : varying_string            , assignment(=)              , operator(//)
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none

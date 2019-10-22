@@ -72,7 +72,7 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Initialize(globalParameters_)
     !% Initializes the recent merging statistics component.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str                , varying_string , char
     use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_

@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   use :: Output_Times      , only : outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">

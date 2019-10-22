@@ -236,7 +236,7 @@ contains
     !% branch.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -296,7 +296,7 @@ contains
     !% target.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -386,7 +386,7 @@ contains
     !% Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic        , nodeComponentSatellite    , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), pointer :: node

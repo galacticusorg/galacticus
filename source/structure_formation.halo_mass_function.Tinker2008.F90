@@ -113,7 +113,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
     use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : extrapolationTypeExtrapolate
     implicit none
     type            (haloMassFunctionTinker2008   )                             :: self

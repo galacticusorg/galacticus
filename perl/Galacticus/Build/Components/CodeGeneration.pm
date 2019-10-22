@@ -37,6 +37,8 @@ sub Importables {
 		&&
 		exists($datum->{'type'})
 		&&
+		$datum->{'type'} !~ m/\s*\s*len\s*=/
+		&&
 		$datum->{'type'} =~ m/\s*(kind\s*=\s*)??([a-zA-Z0-9_]+)/
 		) {
 		push(@importables,$2);

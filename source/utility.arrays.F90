@@ -63,7 +63,7 @@ contains
 
   function Array_Reverse_SizeT(array) result (reversedArray)
     !% Reverses the direction of a real array.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer(c_size_t), intent(in   )          :: array        (:)
     integer(c_size_t), dimension(size(array)) :: reversedArray
@@ -382,7 +382,7 @@ contains
   end function Array_Is_Monotonic_Integer8
 
   function Array_Intersection_Varying_String(a,b)
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string, operator(==)
     implicit none
     type   (varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
     type   (varying_string), intent(in   ), dimension(:) :: a, b

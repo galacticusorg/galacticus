@@ -456,7 +456,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access                        , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self

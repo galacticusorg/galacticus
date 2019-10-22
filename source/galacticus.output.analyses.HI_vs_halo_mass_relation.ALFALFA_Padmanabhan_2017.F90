@@ -102,7 +102,7 @@ contains
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                      , only : nodeComponentBasic                                , treeNode
     use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                    , only : var_str
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                     , nodePropertyExtractorMassISM
     use :: Numerical_Constants_Astronomical      , only : massSolar

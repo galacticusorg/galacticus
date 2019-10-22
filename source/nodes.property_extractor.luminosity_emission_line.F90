@@ -20,7 +20,7 @@
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
   use    :: FGSL                             , only : fgsl_interp_accel
-  use    :: ISO_Varying_String
+  use    :: ISO_Varying_String               , only : varying_string
   !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Output_Times                     , only : outputTimesClass
   use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass

@@ -1963,7 +1963,7 @@ contains
           &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
     use            :: Galacticus_Error  , only : Galacticus_Error_Report       , errorStatusFail           , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string                , assignment(=)             , operator(//)
+    use            :: ISO_Varying_String, only : assignment(=)                 , operator(//)              , varying_string
     use            :: Sort              , only : Sort_Index_Do
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self

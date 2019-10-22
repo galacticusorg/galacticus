@@ -62,8 +62,8 @@ contains
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     use :: Atomic_Data      , only : Atom_Lookup            , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                , extractDataContent               , getLength, item                , &
-          &                          node                   , nodeList                         , parseFile, getElementsByTagname
+    use :: FoX_dom          , only : destroy                , extractDataContent               , getElementsByTagname, getLength, &
+          &                          item                   , node                             , nodeList            , parseFile
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Galacticus_Paths , only : galacticusPath         , pathTypeDataStatic
     use :: IO_XML           , only : XML_Array_Length       , XML_Get_First_Element_By_Tag_Name

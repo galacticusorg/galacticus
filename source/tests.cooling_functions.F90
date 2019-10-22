@@ -27,7 +27,7 @@ program Test_Cooling_Functions
   use :: Cooling_Functions               , only : coolingFunction                        , coolingFunctionAtomicCIECloudy  , coolingFunctionCMBCompton, coolingFunctionClass
   use :: Cosmology_Functions             , only : cosmologyFunctions                     , cosmologyFunctionsClass
   use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set         , verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String              , only : varying_string                         , assignment(=)
   use :: Input_Parameters                , only : inputParameters
   use :: Numerical_Constants_Astronomical, only : gigaYear
   use :: Numerical_Constants_Physical    , only : boltzmannsConstant

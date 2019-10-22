@@ -247,8 +247,8 @@ contains
 
   function Executable_Find(executableName)
     !% Return the full path to the executable of the given name.
-    use :: ISO_Varying_String
-    use :: String_Handling   , only : String_Count_Words, String_Split_Words, char
+    use :: ISO_Varying_String, only : operator(//)      , char              , assignment(=)
+    use :: String_Handling   , only : String_Count_Words, String_Split_Words
     implicit none
     type     (varying_string)                            :: Executable_Find
     character(len=*         ), intent(in   )             :: executableName
@@ -272,6 +272,7 @@ contains
 
     subroutine Get_Paths(pathsLength)
       !% Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      use ISO_Varying_String, only : assignment(=)
       implicit none
       integer                     , intent(in   ) :: pathsLength
       character(len=pathsLength+1)                :: pathsName

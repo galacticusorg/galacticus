@@ -25,8 +25,8 @@ module Galacticus_Error
           &                                    FGSL_Set_Error_Handler, FGSL_StrError          , FGSL_StrMax  , FGSL_Success , &
           &                                    FGSL_eDom             , FGSL_eRange            , FGSL_eUndrFlw, FGSL_eZeroDiv, &
           &                                    fgsl_error_handler_t
-  use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use, intrinsic :: ISO_C_Binding     , only : c_int
+  use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
@@ -83,6 +83,7 @@ contains
 
   subroutine Galacticus_Error_Report_VarStr(message)
     !% Display an error message.
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: message
 
@@ -124,6 +125,7 @@ contains
 
   subroutine Galacticus_Warn_VarStr(message)
     !% Display a warning message
+    use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: message
 
@@ -134,6 +136,7 @@ contains
   subroutine Galacticus_Warn_Char(message)
     !% Display a warning message.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*  ), intent(in   ) :: message
     type     (warning), pointer       :: newWarning
@@ -165,6 +168,7 @@ contains
 
   subroutine Galacticus_Warn_Review()
     !% Review any warning messages emitted during the run.
+    use :: ISO_Varying_String, only : char
     implicit none
     type(warning), pointer :: warning_
 
@@ -465,13 +469,14 @@ contains
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
+    use   , intrinsic :: ISO_C_Binding, only : c_ptr
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Initialized        , MPI_Comm_Rank     , MPI_Comm_World
+    use               :: MPI          , only : MPI_Initialized        , MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
+    !$ use            :: OMP_Lib      , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
-    use    :: HDF5      , only : H5Close_F
+    use               :: Semaphores   , only : Semaphore_Post_On_Error
+    use               :: HDF5         , only : H5Close_F
 #endif
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line
@@ -547,7 +552,8 @@ contains
 
   function Galacticus_Component_List(className,componentList)
     !% Construct a message describing which implementations of a component class provide required functionality.
-    use :: String_Handling, only : String_Join, char
+    use :: ISO_Varying_String, only : operator(//), assignment(=)
+    use :: String_Handling   , only : String_Join
     implicit none
     type     (varying_string)                                           :: Galacticus_Component_List
     character(len=*         ), intent(in   )                            :: className

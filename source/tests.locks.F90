@@ -24,7 +24,7 @@ program Test_Locks
   use            :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
   use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String
+  use            :: ISO_Varying_String, only : var_str                   , varying_string                , operator(//)
   use            :: Locks             , only : ompIncrementalLock
   use            :: String_Handling   , only : operator(//)
   use            :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish

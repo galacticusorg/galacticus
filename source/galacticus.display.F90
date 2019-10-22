@@ -21,7 +21,6 @@
 
 module Galacticus_Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
-  use :: ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
@@ -130,6 +129,7 @@ contains
 
   subroutine Galacticus_Display_Indent_VarStr(message,verbosity)
     !% Increase the indentation level and display a message.
+    use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
@@ -177,6 +177,7 @@ contains
 
   subroutine Galacticus_Display_Unindent_VarStr(message,verbosity)
     !% Decrease the indentation level and display a message.
+    use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
@@ -256,7 +257,8 @@ contains
 
   subroutine Galacticus_Display_Message_VarStr(message,verbosity)
     !% Display a message (input as a {\normalfont \ttfamily varying\_string} variable).
-    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
+    !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use    :: ISO_Varying_String, only : varying_string , char
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity

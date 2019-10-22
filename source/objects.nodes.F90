@@ -29,7 +29,7 @@ module Galacticus_Nodes
   use            :: Histories                       , only : history                       , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
   use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use            :: ISO_Varying_String              , only : varying_string
   use            :: Kepler_Orbits                   , only : keplerOrbit
   use            :: Kind_Numbers                    , only : kind_int8
   use            :: Memory_Management               , only : Memory_Usage_Record           , memoryTypeNodes
@@ -126,6 +126,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Type(self)
     !% Returns the name of a {\normalfont \ttfamily treeNode} object.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class(treeNode      ), intent(in   ) :: self
     type (varying_string)                :: Tree_Node_Type
@@ -522,6 +523,7 @@ module Galacticus_Nodes
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : operator(//)              , assignment(=)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -566,6 +568,7 @@ module Galacticus_Nodes
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -768,6 +771,7 @@ module Galacticus_Nodes
   ! Functions for nodeComponent class.
   function Node_Component_Generic_Type(self)
     !% Returns the name of a generic tree node component.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class(nodeComponent ), intent(in   ) :: self
     type (varying_string)                :: Node_Component_Generic_Type
@@ -1051,7 +1055,7 @@ module Galacticus_Nodes
     !% having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
     !% called a very large number of times).
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string
+    use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     character(len=*         ), intent(in   ) :: nameComponent

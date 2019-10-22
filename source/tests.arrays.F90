@@ -24,7 +24,7 @@ program Test_Array_Monotonicity
   use :: Array_Utilities   , only : Array_Cumulate                , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
           &                         directionIncreasing           , operator(.intersection.)
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string                , assignment(=)           , char
   use :: Kind_Numbers      , only : kind_int8
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

@@ -76,7 +76,7 @@ contains
     use :: Galacticus_Paths                        , only : galacticusPath                                    , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryMonteroDorta2009SDSS
     use :: IO_HDF5                                 , only : hdf5Access                                        , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                      , only : var_str                                           , varying_string
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson

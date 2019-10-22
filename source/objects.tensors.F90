@@ -23,7 +23,6 @@
 
 module Tensors
   !% Defines the tensor symmetric structure used for describing symmetric tensors.
-  use :: ISO_Varying_String
   implicit none
   private
   public :: tensorRank2Dimension3Symmetric, assignment(=), operator(*), max
@@ -280,7 +279,7 @@ contains
   subroutine Tensor_R2_D3_Sym_Dump(self)
     !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(in   ) :: self
     character(len=22                        )                :: label
@@ -309,7 +308,6 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
     !% Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
-    use :: ISO_Varying_String
     implicit none
     class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
     integer                                , intent(in   ) :: fileHandle
@@ -326,7 +324,6 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Read_Raw(self,fileHandle)
     !% Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
-    use :: ISO_Varying_String
     implicit none
     class  (tensorRank2Dimension3Symmetric), intent(inout) :: self
     integer                                , intent(in   ) :: fileHandle

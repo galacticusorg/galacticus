@@ -28,7 +28,6 @@ module Node_Component_Hot_Halo_Cold_Mode
   use :: Cosmology_Parameters          , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO      , only : darkMatterProfileDMOClass
-  use :: ISO_Varying_String
   implicit none
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &

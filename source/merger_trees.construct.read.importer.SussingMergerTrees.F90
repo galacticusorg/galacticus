@@ -21,7 +21,7 @@
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String  , only : varying_string
   use :: Pseudo_Random       , only : pseudoRandom
 
 

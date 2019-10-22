@@ -216,7 +216,7 @@ contains
     integer function nodeArrayPosition(nodeIndex,nodeIndices)
       !% Returns the position of a node in the output list given its index.
       use :: Galacticus_Error  , only : Galacticus_Error_Report
-      use :: ISO_Varying_String
+      use :: ISO_Varying_String, only : varying_string
       use :: Kind_Numbers      , only : kind_int8
       use :: String_Handling   , only : operator(//)
       implicit none

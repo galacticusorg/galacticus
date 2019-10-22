@@ -2619,7 +2619,7 @@ contains
     !% Search for subhalos which move between branches/trees.
     use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Nodes          , only : treeNodeList
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String        , only : assignment(=)             , operator(//)
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -3486,7 +3486,7 @@ contains
     !% Find initial root node affinities for all nodes.
     use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo, &
          &                                    verbosityWarn
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String        , only : varying_string           , assignment(=)             , operator(//)
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sort                      , only : Sort_Index_Do

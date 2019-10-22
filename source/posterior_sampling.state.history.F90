@@ -146,7 +146,6 @@ contains
 
   subroutine historyRestore(self,stateVector,first)
     !% Restore the state object from file.
-    use :: ISO_Varying_String
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)               :: self
     double precision                             , intent(in   ), dimension(:) :: stateVector

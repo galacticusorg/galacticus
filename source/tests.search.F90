@@ -23,7 +23,7 @@ program Test_Search
   !% Tests that array search functions work.
   use :: Arrays_Search     , only : Search_Array                  , Search_Array_For_Closest
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : var_str                       , varying_string          , assignment(=)
   use :: Kind_Numbers      , only : kind_int8
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

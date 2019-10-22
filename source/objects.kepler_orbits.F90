@@ -550,7 +550,7 @@ contains
   subroutine Kepler_Orbits_Dump(self)
     !% Reset an orbit to a null state.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)
     implicit none
     class    (keplerOrbit   ), intent(in   ) :: self
     character(len=22        )                :: label

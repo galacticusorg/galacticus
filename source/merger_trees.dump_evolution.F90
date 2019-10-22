@@ -21,7 +21,7 @@
 
 module Merger_Trees_Dump_Evolution
   !% Dumps the structure of entire merger trees.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Merger_Tree_Dump_Evolution, Merger_Tree_Dump_Evolution_Close
@@ -45,8 +45,9 @@ contains
   !# </postEvolveTask>
   subroutine Merger_Tree_Dump_Evolution(thisNode)
     !% Trim histories attached to the disk.
-    use :: Galacticus_Nodes, only : treeNode
-    use :: Input_Parameters, only : globalParameters, inputParameter
+    use :: Galacticus_Nodes  , only : treeNode
+    use :: Input_Parameters  , only : globalParameters, inputParameter
+    use :: ISO_Varying_String, only : var_str         , char
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

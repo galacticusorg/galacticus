@@ -23,7 +23,7 @@ program Test_Hashes_Cryptographic
   !% Contains a program to test features of cryptographic hashes.
   use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Hashes_Cryptographic, only : Hash_MD5
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String  , only : varying_string                , assignment(=)         , char
   use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(varying_string) :: myHash, myText

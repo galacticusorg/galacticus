@@ -144,7 +144,7 @@ contains
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
     use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none

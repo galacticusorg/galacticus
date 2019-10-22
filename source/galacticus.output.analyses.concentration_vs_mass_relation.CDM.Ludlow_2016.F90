@@ -75,7 +75,7 @@ contains
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                                    , pathTypeDataStatic
     use :: IO_HDF5                               , only : hdf5Access                                        , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                    , only : var_str
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorConcentration                , nodePropertyExtractorMassHalo
     use :: Numerical_Comparison                  , only : Values_Agree

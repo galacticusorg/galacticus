@@ -42,7 +42,7 @@ contains
     !% Record profiling information on the ODE evolver.
     use            :: Arrays_Search     , only : Search_Array
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use            :: ISO_Varying_String, only : varying_string
     use            :: Input_Parameters  , only : globalParameters, inputParameter
     use            :: Memory_Management , only : allocateArray
     use            :: Numerical_Ranges  , only : Make_Range      , rangeTypeLogarithmic
@@ -114,7 +114,7 @@ contains
     !% Outputs collected meta-data on tree evolution.
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String              , only : varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     type   (varying_string), allocatable, dimension(:) :: metaProfilePropertyNames

@@ -27,7 +27,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   use :: Cosmology_Functions    , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Events_Hooks           , only : eventsHooksInitialize
   use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String     , only : varying_string                , assignment(=)
   use :: Input_Parameters       , only : inputParameters
   use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   use :: Virial_Density_Contrast, only : virialDensityContrast         , virialDensityContrastClass

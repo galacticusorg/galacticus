@@ -195,7 +195,7 @@ contains
     use :: Galacticus_Display      , only : Galacticus_Display_Message
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String      , only : varying_string
     use :: Memory_Management       , only : allocateArray             , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)

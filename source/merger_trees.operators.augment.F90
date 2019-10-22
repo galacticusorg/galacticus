@@ -1355,10 +1355,9 @@ contains
 
   subroutine augmentFinalize(self)
     !% Output augmentation histogram.
-    use :: Galacticus_HDF5   , only : galacticusOutputFile
-    use :: IO_HDF5           , only : hdf5Access          , hdf5Object
-    use :: ISO_Varying_String
-    use :: Memory_Management , only : allocateArray       , deallocateArray
+    use :: Galacticus_HDF5  , only : galacticusOutputFile
+    use :: IO_HDF5          , only : hdf5Access          , hdf5Object
+    use :: Memory_Management, only : allocateArray       , deallocateArray
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)               :: self
     integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount

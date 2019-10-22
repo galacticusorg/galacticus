@@ -86,14 +86,14 @@ contains
        &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-    use :: FGSL                  , only : FGSL_Failure               , FGSL_Success
-    use :: FODEIV2               , only : fodeiv2_driver             , fodeiv2_system      , fodeiv2_step_type              , FODEIV2_Driver_Status     , &
-         &                                FODEIV2_System_Init        , Fodeiv2_Step_RKCK   , FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, &
-         &                                FODEIV2_Driver_Reset       , FODEIV2_Driver_Apply, FODEIV2_Driver_h
+    use :: FGSL                  , only : FGSL_Failure                   , FGSL_Success
+    use :: FODEIV2               , only : FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, FODEIV2_Driver_Apply, FODEIV2_Driver_Reset, &
+          &                               FODEIV2_Driver_Status          , FODEIV2_Driver_h          , FODEIV2_System_Init , Fodeiv2_Step_RKCK   , &
+          &                               fodeiv2_driver                 , fodeiv2_step_type         , fodeiv2_system
     use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: ISO_Varying_String    , only : assignment(=)              , operator(//)        , varying_string
+    use :: ISO_Varying_String    , only : assignment(=)                  , operator(//)              , varying_string
     use :: Numerical_Integration2, only : integratorMultiVectorized1D
-    use :: ODE_Solver_Error_Codes, only : interruptedAtX             , odeSolverInterrupt
+    use :: ODE_Solver_Error_Codes, only : interruptedAtX                 , odeSolverInterrupt
     use :: String_Handling       , only : operator(//)
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
@@ -381,7 +381,7 @@ contains
 
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
-    use :: FODEIV2, only : fodeiv2_driver, fodeiv2_system, Fodeiv2_Driver_Free, Fodeiv2_System_Free
+    use :: FODEIV2, only : Fodeiv2_Driver_Free, Fodeiv2_System_Free, fodeiv2_driver, fodeiv2_system
     implicit none
     type(fodeiv2_driver), intent(inout) :: odeDriver
     type(fodeiv2_system), intent(inout) :: odeSystem

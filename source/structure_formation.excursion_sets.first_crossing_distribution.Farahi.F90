@@ -977,7 +977,7 @@ contains
     use :: File_Utilities         , only : File_Exists              , File_Name_Expand
     use :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
     use :: IO_HDF5                , only : hdf5Access               , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String     , only : varying_string           , var_str                   , operator(//)
     use :: Memory_Management      , only : allocateArray            , deallocateArray
     use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
