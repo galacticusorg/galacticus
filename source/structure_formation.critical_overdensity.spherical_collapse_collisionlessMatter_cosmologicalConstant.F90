@@ -26,12 +26,6 @@
 
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </stateStorable>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
@@ -133,7 +127,7 @@ contains
     allocate(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
     type is (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)
-       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
+       !# <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
     end select
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)

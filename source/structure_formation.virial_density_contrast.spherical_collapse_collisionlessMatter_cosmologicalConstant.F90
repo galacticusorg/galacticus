@@ -25,12 +25,6 @@
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </stateStorable>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
@@ -104,7 +98,7 @@ contains
     allocate(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
     type is (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)
-       !# <referenceConstruct isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_)"/>
+       !# <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_)"/>
     end select
     return
   end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal

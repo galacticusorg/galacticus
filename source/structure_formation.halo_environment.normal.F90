@@ -168,7 +168,7 @@ contains
     self%linearToNonLinearInitialized=.false.
     ! Construct a spherical collapse solver.
     allocate(self%sphericalCollapseSolver_)
-    !# <referenceConstruct owner="self" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
+    !# <referenceConstruct owner="self" isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
     return
   end function normalConstructorInternal
 
