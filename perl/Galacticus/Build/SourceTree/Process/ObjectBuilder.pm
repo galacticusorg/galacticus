@@ -574,9 +574,10 @@ sub Process_ObjectBuilder {
 	    my $constructor = $node->{'directive'}->{'constructor'};
 	    $constructor =~ s/^[\s\n]+//;
 	    $constructor =~ s/[\s\n]+$//;
-	    my $constructCode  = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."=".$constructor."\n";
-	    $constructCode    .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."\%referenceCountIncrement()\n";
-	    $constructCode    .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."\%autoHook()\n";
+	    my $objectName     =  (exists($node->{'directive'}->{'owner'}) && ! exists($node->{'directive'}->{'nameAssociated'}) ? $node->{'directive'}->{'owner'}."%" : "").(exists($node->{'directive'}->{'nameAssociated'}) ? $node->{'directive'}->{'nameAssociated'} : $node->{'directive'}->{'object'});
+	    my $constructCode  = $objectName."=".$constructor."\n";
+	    $constructCode    .= "call ".$objectName."\%referenceCountIncrement()\n";
+	    $constructCode    .= "call ".$objectName."\%autoHook()\n";
  	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {
 		my $objectLoc = "loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")";	
