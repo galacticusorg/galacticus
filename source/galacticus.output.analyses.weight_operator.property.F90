@@ -93,7 +93,7 @@ contains
 
   double precision function propertyOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an property output analysis weight operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisWeightOperatorProperty), intent(inout) :: self

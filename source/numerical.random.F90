@@ -167,7 +167,7 @@ contains
 
   function pseudoRandomConstructor() result(self)
     !% Construct a pseudo-random sequence object.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr
     implicit none
     type(pseudoRandom) :: self
 

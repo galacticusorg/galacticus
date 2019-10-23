@@ -19,7 +19,7 @@
 
   !% Implements a stellar population properties class based on the instantaneous recycling approximation.
 
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding                 , only : c_size_t
   use            :: Stellar_Luminosities_Structure, only : stellarLuminosities
   use            :: Stellar_Population_Selectors  , only : stellarPopulationSelectorClass
 

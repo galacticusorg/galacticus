@@ -100,7 +100,7 @@ contains
 
   pure double precision function cubeRoot(x)
     !% Utilize the fast {\normalfont \ttfamily cbrt()} function from the standard C library for computing cube roots.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double
     implicit none
     double precision, intent(in   ) :: x
 

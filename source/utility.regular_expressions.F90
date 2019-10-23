@@ -24,7 +24,7 @@
 
 module Regular_Expressions
   !% Implements regular expressions by wrappring the GNU C Library implementations.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_char, c_int, c_ptr, c_null_ptr
   implicit none
   private
   public :: regEx
@@ -99,6 +99,7 @@ contains
 
   subroutine Regular_Expression_Destructor(self)
     !% Destructor for {\normalfont \ttfamily regEx} objects.
+    use, intrinsic :: ISO_C_Binding, only : C_Associated
     implicit none
     type(regEx), intent(inout) :: self
 

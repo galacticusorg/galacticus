@@ -148,7 +148,7 @@ contains
     !% \cite{sutherland_accurate_1998}.
     use            :: Arrays_Search               , only : Search_Array
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: Numerical_Constants_Physical, only : boltzmannsConstant
     use            :: Numerical_Constants_Units   , only : electronVolt
     implicit none

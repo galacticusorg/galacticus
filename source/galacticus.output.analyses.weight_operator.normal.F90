@@ -145,7 +145,7 @@ contains
   double precision function normalOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an normal output analysis weight operator.
     use            :: Error_Functions         , only : Error_Function
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisWeightOperatorNormal), intent(inout) :: self

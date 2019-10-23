@@ -124,7 +124,7 @@ contains
     !% Construct a set of merger tree masses by sampling from a distribution.
     use            :: FGSL                   , only : fgsl_function          , fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray          , deallocateArray
     use            :: Numerical_Integration  , only : Integrate              , Integrate_Done
     use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done

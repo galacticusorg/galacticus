@@ -151,7 +151,7 @@ contains
 
   function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_) result(self)
     !% Initializes the merger tree building module.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
     implicit none
     type            (mergerTreeConstructorBuild)                        :: self

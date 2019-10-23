@@ -139,12 +139,11 @@ contains
 
   subroutine martin2010ALFALFARandomsInitialize(self)
     !% Initialize random points for the survey.
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management               , only : allocateArray
-    use            :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
-    use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Pseudo_Random                   , only : pseudoRandom
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Memory_Management               , only : allocateArray
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Pseudo_Random                   , only : pseudoRandom
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self
     integer                                          , parameter                               :: randomsCount=1000000

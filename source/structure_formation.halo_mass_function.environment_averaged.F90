@@ -97,10 +97,9 @@ contains
 
   recursive double precision function environmentAveragedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use            :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Integration, only : Integrate          , Integrate_Done
-    use            :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
+    use :: Numerical_Integration, only : Integrate          , Integrate_Done
+    use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
     double precision                                     , intent(in   )           :: time                              , mass

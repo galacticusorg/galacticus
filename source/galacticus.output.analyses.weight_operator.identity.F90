@@ -51,7 +51,7 @@ contains
 
   double precision function identityOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an identity output analysis weight operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisWeightOperatorIdentity), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node

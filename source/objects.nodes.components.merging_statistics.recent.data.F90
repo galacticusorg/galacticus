@@ -21,7 +21,7 @@
 
 module Node_Component_Merging_Statistics_Recent_Data
   !% Stores data for the recent merging statistics component.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Recent_Count

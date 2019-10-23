@@ -131,7 +131,7 @@ contains
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
     use            :: IO_HDF5                       , only : hdf5Access             , hdf5Object
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
     use            :: Memory_Management             , only : allocateArray
     use            :: Output_Times                  , only : outputTimesClass
@@ -243,7 +243,7 @@ contains
     !% Implement an emission line output analysis property extractor.
     use            :: Abundances_Structure            , only : abundances                         , max                  , metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Nodes                , only : nodeComponentBasic                 , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar                , luminosityZeroPointAB, massSolar                            , megaParsec, &
           &                                                    metallicitySolar                   , parsec
     use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen                 , atomicMassUnit

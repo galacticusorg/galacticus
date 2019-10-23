@@ -23,7 +23,7 @@ module Stellar_Population_Luminosities
   !% Implements calculations of stellar population luminosities in the AB magnitude system.
   use            :: Abundances_Structure                  , only : abundances
   use            :: FGSL                                  , only : FGSL_Integ_Gauss15                        , fgsl_function, fgsl_integration_workspace, fgsl_interp_accel
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding                         , only : c_size_t
   use            :: ISO_Varying_String                    , only : varying_string
   use            :: Locks                                 , only : ompReadWriteLock
   use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
@@ -84,7 +84,7 @@ contains
     use            :: Galacticus_Paths                      , only : galacticusPath                           , pathTypeDataDynamic
     use            :: IO_HDF5                               , only : hdf5Access                               , hdf5Object
     use, intrinsic :: ISO_C_Binding                         , only : c_size_t
-    use            :: ISO_Varying_String                    , only : char                                     , assignment(=)                        , operator(//)             , var_str
+    use            :: ISO_Varying_String                    , only : assignment(=)                            , char                                 , operator(//)             , var_str
     use            :: Input_Parameters                      , only : globalParameters                         , inputParameter                       , inputParameters
     use            :: Instruments_Filters                   , only : Filter_Extent                            , Filter_Name
     use            :: Memory_Management                     , only : Memory_Usage_Record                      , allocateArray                        , deallocateArray
@@ -476,7 +476,7 @@ contains
     !% filterIndex}.
     use            :: Abundances_Structure                  , only : Abundances_Get_Metallicity               , logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Error                      , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
     use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
     use            :: Stellar_Populations                   , only : stellarPopulationClass
@@ -557,7 +557,7 @@ contains
     !% the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}, for all available ages.
     use            :: Abundances_Structure                  , only : Abundances_Get_Metallicity               , logMetallicityZero, metallicityTypeLogarithmicByMassSolar
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
     use            :: Memory_Management                     , only : allocateArray
     use            :: Numerical_Interpolation               , only : Interpolate_Linear_Generate_Factors      , Interpolate_Locate
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList

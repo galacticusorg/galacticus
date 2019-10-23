@@ -302,8 +302,8 @@ contains
     use            :: Cosmology_Functions                   , only : cosmologyFunctions                          , cosmologyFunctionsClass
     use            :: Galacticus_Error                      , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                         , only : c_size_t
-    use            :: ISO_Varying_String                    , only : char                                        , operator(==)                                     , operator(//) , &
-         &                                                           var_str                                     , operator(/=)                                     , assignment(=)
+    use            :: ISO_Varying_String                    , only : assignment(=)                               , char                                             , operator(//), operator(/=), &
+          &                                                          operator(==)                                , var_str
     use            :: Input_Parameters                      , only : globalParameters                            , inputParameter
     use            :: Instruments_Filters                   , only : Filter_Get_Index
     use            :: Memory_Management                     , only : Memory_Usage_Record                         , allocateArray
@@ -1029,7 +1029,7 @@ contains
   subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
     !% Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
-    use :: ISO_Varying_String, only : operator(//), trim, assignment(=)
+    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     class           (stellarLuminosities)              , intent(in   ) :: self
     double precision                                   , intent(in   ) :: time
@@ -1154,7 +1154,7 @@ contains
   integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
     !% Return the index of and specified entry in the luminosity list given its properties.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : varying_string         , assignment(=), operator(//), operator(==)
+    use :: ISO_Varying_String  , only : assignment(=)          , operator(//), operator(==), varying_string
     use :: Numerical_Comparison, only : Values_Agree
     use :: String_Handling     , only : operator(//)
     implicit none
@@ -1271,8 +1271,8 @@ contains
     use            :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
     use            :: HII_Region_Emission_Lines , only : emissionLineWavelength
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use            :: ISO_Varying_String        , only : extract                 , assignment(=)                , operator(==), char, &
-         &                                               var_str
+    use            :: ISO_Varying_String        , only : assignment(=)           , char                         , extract, operator(==), &
+          &                                              var_str
     use            :: Memory_Management         , only : deallocateArray
     use            :: Output_Times              , only : outputTimes             , outputTimesClass
     use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
@@ -1636,7 +1636,7 @@ contains
        & luminosityBandRedshiftTmp                   &
        &                                           )
     !% Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     implicit none
     integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
@@ -1757,8 +1757,8 @@ contains
     !% Write the luminosities state to file.
     use            :: FGSL              , only : fgsl_file
     use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String, only : var_str                  , operator(//)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : operator(//)             , var_str
     use            :: String_Handling   , only : operator(//)
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -1793,8 +1793,8 @@ contains
     !% Retrieve the luminosities state from the file.
     use            :: FGSL                                  , only : fgsl_file
     use            :: Galacticus_Display                    , only : Galacticus_Display_Indent                   , Galacticus_Display_Message                       , Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String                    , only : var_str                                     , operator(//)
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
+    use            :: ISO_Varying_String                    , only : operator(//)                                , var_str
     use            :: Instruments_Filters                   , only : Filter_Get_Index
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
     use            :: String_Handling                       , only : operator(//)
@@ -1856,7 +1856,7 @@ contains
 
   subroutine sortByIndexPostprocessor(array,index)
     !% Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     type   (stellarPopulationSpectraPostprocessorList), dimension(:          ), intent(inout) :: array
     integer(kind=c_size_t                            ), dimension(:          ), intent(in   ) :: index

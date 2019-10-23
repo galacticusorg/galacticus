@@ -50,7 +50,7 @@ contains
 
   double precision function booleanOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an boolean output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorBoolean), intent(inout)           :: self
     double precision                                       , intent(in   )           :: propertyValue

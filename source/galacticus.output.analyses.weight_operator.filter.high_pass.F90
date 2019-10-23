@@ -72,7 +72,7 @@ contains
 
   double precision function filterHighPassOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an filterHighPass output analysis weight operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisWeightOperatorFilterHighPass), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node

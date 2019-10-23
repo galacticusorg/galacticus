@@ -22,7 +22,7 @@
 program Test_Multi_Counters
   !% Tests of multi-counters.
   use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: Multi_Counters    , only : multiCounter
   use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

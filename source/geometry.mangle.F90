@@ -21,7 +21,7 @@
 
 module Geometry_Mangle
   !% Implements functions utilizing \gls{mangle} survey geometry definitions.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: geometryMangleSolidAngle, geometryMangleAngularPower, &
        &    window
@@ -93,7 +93,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                           Galacticus_Display_Unindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string             , assignment(=)                   , operator(==)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)              , operator(//)                    , operator(==)             , varying_string
     use :: Sort              , only : Sort_Index_Do
     use :: String_Handling   , only : String_Split_Words         , operator(//)
     implicit none
@@ -239,8 +239,8 @@ contains
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
     use :: IO_HDF5                 , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String      , only : varying_string         , char               , operator(//)      , extract, &
-         &                                  operator(==)           , len
+    use :: ISO_Varying_String      , only : char                   , extract            , len               , operator(//), &
+          &                                 operator(==)           , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : String_Count_Words     , String_Join        , String_Split_Words, char
     use :: System_Command          , only : System_Command_Do
@@ -313,8 +313,8 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: IO_HDF5           , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String, only : var_str                , varying_string     , operator(//)      , char        , &
-         &                            len                    , extract            , operator(==)
+    use :: ISO_Varying_String, only : char                   , extract            , len               , operator(//), &
+          &                           operator(==)           , var_str            , varying_string
     use :: String_Handling   , only : String_Count_Words     , String_Join        , String_Split_Words, operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none

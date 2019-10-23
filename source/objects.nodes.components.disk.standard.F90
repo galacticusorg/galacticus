@@ -460,7 +460,7 @@ contains
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode
-    use :: ISO_Varying_String            , only : varying_string            , operator(//)             , assignment(=)
+    use :: ISO_Varying_String            , only : assignment(=)             , operator(//)             , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -1470,7 +1470,7 @@ contains
     !% Store the star formation history in the output file.
     use            :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
     use            :: Histories       , only : history
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
@@ -1498,7 +1498,7 @@ contains
     !% Write the tablulation state to file.
     use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -1520,7 +1520,7 @@ contains
     use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile

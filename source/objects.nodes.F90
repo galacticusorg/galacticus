@@ -28,7 +28,7 @@ module Galacticus_Nodes
   use            :: Hashes                          , only : doubleScalarHash              , genericScalarHash
   use            :: Histories                       , only : history                       , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: ISO_Varying_String              , only : varying_string
   use            :: Kepler_Orbits                   , only : keplerOrbit
   use            :: Kind_Numbers                    , only : kind_int8
@@ -523,7 +523,7 @@ module Galacticus_Nodes
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : operator(//)              , assignment(=)
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -1055,7 +1055,7 @@ module Galacticus_Nodes
     !% having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
     !% called a very large number of times).
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     character(len=*         ), intent(in   ) :: nameComponent

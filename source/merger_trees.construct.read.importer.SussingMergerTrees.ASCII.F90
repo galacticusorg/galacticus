@@ -281,7 +281,7 @@ contains
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                                                    Galacticus_Display_Unindent, verbosityWorking
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Memory_Management               , only : allocateArray              , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : kiloParsec                 , massSolar

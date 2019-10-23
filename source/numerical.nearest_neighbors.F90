@@ -24,7 +24,7 @@
 
 module Nearest_Neighbors
   !% Wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr, c_ptr, c_int, c_double
   private
   public :: nearestNeighbors, nearestNeighborsClose
 
@@ -116,8 +116,7 @@ contains
   function nearestNeighborsConstructor(points)
     !% Constructs a nearest neighor search object.
 #ifndef ANNAVAIL
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type            (nearestNeighbors)                                :: nearestNeighborsConstructor

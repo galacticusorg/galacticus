@@ -160,7 +160,7 @@ contains
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Provides window functions for \gls{mangle}-based survey geometries.
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_double_complex
     implicit none
     class           (surveyGeometryMangle), intent(inout)                                           :: self
     double precision                      , intent(in   )                                           :: mass1,mass2

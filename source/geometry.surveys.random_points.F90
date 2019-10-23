@@ -78,7 +78,7 @@ contains
     use            :: FFTW3           , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
          &                                     fftw_destroy_plan
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_ptr
     use            :: Meshes          , only : Meshes_Apply_Point     , cloudTypeTriangular
     use            :: Pseudo_Random   , only : pseudoRandom
     implicit none

@@ -720,10 +720,9 @@ contains
 
     double precision function rootVariance(time_,useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
-      use            :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-      use, intrinsic :: ISO_C_Binding
-      use            :: Numerical_Constants_Math, only : Pi
-      use            :: Numerical_Integration   , only : Integrate         , Integrate_Done
+      use :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
+      use :: Numerical_Constants_Math, only : Pi
+      use :: Numerical_Integration   , only : Integrate         , Integrate_Done
       implicit none
       double precision                            , intent(in   ) :: time_
       logical                                     , intent(in   ) :: useTopHat

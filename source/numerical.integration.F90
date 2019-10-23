@@ -142,7 +142,7 @@ contains
 
   function integrandWrapper(x,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} integration functions.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
     real(c_double)        :: integrandWrapper
     real(c_double), value :: x
@@ -166,7 +166,7 @@ contains
 
   subroutine Integration_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library during integration.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
     type   (c_ptr     ), value :: file       , reason
     integer(kind=c_int), value :: errorNumber, line
     !GCC$ attributes unused :: reason, file, line

@@ -210,7 +210,7 @@ contains
 
   double precision function fileLuminosity(self,initialMass,metallicity,age)
     !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (stellarTracksFile), intent(inout)    :: self
     double precision                   , intent(in   )    :: age                            , initialMass   , &
@@ -258,7 +258,7 @@ contains
 
   double precision function fileTemperatureEffective(self,initialMass,metallicity,age)
     !% Return the effective temperature (in Kelvin) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
      class           (stellarTracksFile), intent(inout)    :: self
     double precision                   , intent(in   )    :: age                            , initialMass   , &
@@ -306,7 +306,7 @@ contains
 
   double precision function fileInterpolate(self,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,stellarTracks)
     !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self
     integer         (c_size_t         ), intent(in   ), dimension(2,2,2) :: interpolationIndicesAge
@@ -342,7 +342,7 @@ contains
 
   subroutine fileInterpolationCompute(self,initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
     !% Get interpolating factors for stellar tracks.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Done, Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self

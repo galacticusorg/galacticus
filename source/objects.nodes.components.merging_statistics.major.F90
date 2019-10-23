@@ -21,7 +21,6 @@
 
 module Node_Component_Merging_Statistics_Major
   !% Implements the major merging statistics component.
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Major_Satellite_Merging, Node_Component_Merging_Statistics_Major_Node_Promotion, &
@@ -115,10 +114,10 @@ contains
   subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\normalfont \ttfamily node}.
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
-    use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree   , nodeComponentMergingStatistics, treeNode
+    use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree, nodeComponentMergingStatistics, treeNode
     use            :: IO_HDF5           , only : hdf5Access                       , hdf5Object
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string                   , assignment(=), char
+    use            :: ISO_Varying_String, only : assignment(=)                    , char      , varying_string
     use            :: Kind_Numbers      , only : kind_int8
     use            :: String_Handling   , only : operator(//)
     implicit none

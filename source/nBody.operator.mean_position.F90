@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
 
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !# <nbodyOperator name="nbodyOperatorMeanPosition">
   !#  <description>An N-body data operator which determines the mean position and velocity of particles.</description>

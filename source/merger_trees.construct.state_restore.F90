@@ -75,7 +75,7 @@ contains
     !% Restores the state of a merger tree from file.
     use            :: Functions_Global, only : Galacticus_State_Retrieve_
     use            :: Galacticus_Nodes, only : mergerTree
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     type   (mergerTree                        ), pointer       :: tree
     class  (mergerTreeConstructorStateRestored), intent(inout) :: self
@@ -99,7 +99,7 @@ contains
     use            :: Functions_Global   , only : Galacticus_State_Store_
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree                          , nodeEvent, nodeEventBuildFromRaw, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Kind_Numbers       , only : kind_int8
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllAndFormationNodes
     implicit none

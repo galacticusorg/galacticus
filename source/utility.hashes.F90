@@ -21,7 +21,7 @@
 
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string
   implicit none
 

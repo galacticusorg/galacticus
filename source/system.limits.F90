@@ -24,7 +24,7 @@
 
 module System_Limits
   !% Set resource limits.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_int, c_long
   implicit none
   private
   public :: System_Limits_Set

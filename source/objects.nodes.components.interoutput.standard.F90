@@ -175,7 +175,7 @@ contains
   subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
     use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node

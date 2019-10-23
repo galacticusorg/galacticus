@@ -111,7 +111,7 @@ contains
 
   function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -160,7 +160,7 @@ contains
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: ISO_Varying_String     , only : varying_string
     use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
@@ -202,7 +202,7 @@ contains
     use            :: Galactic_Structure_Options        , only : massTypeGalactic                , massTypeStellar
     use            :: Galacticus_Error                  , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                     , only : c_size_t
     use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                 ), intent(inout)          :: self
@@ -236,7 +236,7 @@ contains
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : var_str                , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar

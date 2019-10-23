@@ -21,7 +21,6 @@
 
 module Arrays_Search
   !% Implements searching of ordered arrays.
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Search_Array, Search_Array_For_Closest, Search_Indexed
@@ -42,7 +41,8 @@ contains
 
   function Search_Array_Double(arrayToSearch,valueToFind)
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use :: FGSL, only : FGSL_Interp_BSearch, fgsl_size_t
+    use            :: FGSL         , only : FGSL_Interp_BSearch, fgsl_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer         (c_size_t)                              :: Search_Array_Double
     double precision          , dimension(:), intent(in   ) :: arrayToSearch
@@ -53,9 +53,10 @@ contains
     return
   end function Search_Array_Double
 
-   function Search_Array_Integer8(arrayToSearch,valueToFind)
+  function Search_Array_Integer8(arrayToSearch,valueToFind)
     !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use :: Kind_Numbers, only : kind_int8
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Kind_Numbers , only : kind_int8
     implicit none
     integer(c_size_t      )                              :: Search_Array_Integer8
     integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch
@@ -103,7 +104,8 @@ contains
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i)
     !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
     !% $x(i)=v$ occurs will be returned.
-    use :: ISO_Varying_String, only : varying_string, operator(>=), operator(<), operator(>)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : varying_string, operator(>=), operator(<), operator(>)
     implicit none
     integer(c_size_t      )                              :: Search_Array_VarString
     type   (varying_string), dimension(:), intent(in   ) :: arrayToSearch
@@ -151,9 +153,10 @@ contains
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
     !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     !% within which the two values must match.
-    use :: FGSL                , only : FGSL_Interp_BSearch    , fgsl_size_t
-    use :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
-    use :: Numerical_Comparison, only : Values_Agree
+    use            :: FGSL                , only : FGSL_Interp_BSearch    , fgsl_size_t
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
+    use            :: Numerical_Comparison, only : Values_Agree
     implicit none
     integer         (c_size_t)                                        :: Search_Array_For_Closest
     double precision          , dimension(:), intent(in   )           :: arrayToSearch
@@ -194,7 +197,7 @@ contains
 
   function Search_Indexed_Integer8(arrayToSearch,arrayIndex,valueToFind)
     !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Kind_Numbers , only : kind_int8
     implicit none
     integer(kind=kind_int8) :: Search_Indexed_Integer8

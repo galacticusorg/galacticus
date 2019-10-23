@@ -41,7 +41,7 @@ contains
   subroutine Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     !% Record profiling information on the ODE evolver.
     use            :: Arrays_Search     , only : Search_Array
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : varying_string
     use            :: Input_Parameters  , only : globalParameters, inputParameter
     use            :: Memory_Management , only : allocateArray

@@ -110,9 +110,8 @@ contains
 
   double precision function errorConvolvedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use            :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
+    use :: Numerical_Integration, only : Integrate         , Integrate_Done
     implicit none
     class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
     double precision                                , intent(in   )           :: time                    , mass

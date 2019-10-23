@@ -126,7 +126,7 @@ contains
 
   function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand,outputMask) result(self)
     !% Internal constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Get_Index       , Filter_Wavelength_Effective
     use            :: Memory_Management             , only : allocateArray
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -179,7 +179,7 @@ contains
     !% Implement a stellar luminosity output analysis property extractor.
     use            :: Abundances_Structure            , only : abundances         , metallicityTypeLinearByMass
     use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk          , nodeComponentSpheroid, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, massSolar                  , parsec
     use            :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use            :: Numerical_Constants_Math        , only : Pi

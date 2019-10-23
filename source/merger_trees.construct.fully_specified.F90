@@ -125,7 +125,7 @@ contains
     use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes  , only : mergerTree               , treeNode                   , treeNodeList
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : Memory_Usage_Record
     use            :: Pseudo_Random     , only : pseudoRandom

@@ -22,7 +22,7 @@
 module Merger_Tree_Read_Importers
   !% Provides an object that implements importing of merger trees from file.
   use            :: Galacticus_Nodes  , only : treeNode
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   private

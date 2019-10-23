@@ -72,7 +72,7 @@ contains
 
   subroutine sampledDistributionPseudoRandomSampleCMF(self,x)
     !% Generate a pseudoRandom sample of points from the merger tree mass distribution.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout)               :: self

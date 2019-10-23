@@ -89,7 +89,7 @@ contains
     !% Return the excursion set barrier at the given variance and time.
     use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
           &                                           verbosityWorking
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray             , deallocateArray
     use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic

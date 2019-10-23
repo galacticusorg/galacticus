@@ -23,7 +23,7 @@ program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use            :: FODEIV2                  , only : Fodeiv2_Step_MSBDFActive                        , fodeiv2_driver        , fodeiv2_step_type   , fodeiv2_system
   use            :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding            , only : C_Null_FunPtr
   use            :: Numerical_Integration2   , only : integratorMultiVectorizedCompositeGaussKronrod1D
   use            :: ODEIV2_Solver            , only : ODEIV2_Solve                                    , ODEIV2_Solver_Free
   use            :: Test_ODE_Solver_Functions, only : Integrands_Set_2                                , Jacobian_Set_1        , Jacobian_Set_2      , ODE_Set_1        , &

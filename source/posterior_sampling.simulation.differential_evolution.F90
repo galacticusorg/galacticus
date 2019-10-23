@@ -635,7 +635,7 @@ contains
     !% Return the log of the posterior for the current state.
     use            :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Kind_Numbers      , only : kind_int4
     use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
     use            :: Model_Parameters  , only : modelParameterListLogPrior

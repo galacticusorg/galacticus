@@ -50,7 +50,7 @@ contains
 
   double precision function squareOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an square root output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorSquare), intent(inout)           :: self
     double precision                                      , intent(in   )           :: propertyValue

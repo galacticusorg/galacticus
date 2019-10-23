@@ -24,7 +24,7 @@
 
 module Semaphores
   !% Implements semaphores.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_char, c_int, c_ptr
   implicit none
   private
   public :: Semaphore_Open, Semaphore_Post_On_Error

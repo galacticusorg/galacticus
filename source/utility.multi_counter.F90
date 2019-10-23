@@ -23,7 +23,7 @@
 module Multi_Counters
   !% Implements multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with an
   !% arbitrary range.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
   public :: multiCounter

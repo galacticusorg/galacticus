@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an N-body data operator which determines the environmental overoverdensity around particles.
 
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !# <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
   !#  <description>An N-body data operator which determines the environmental overoverdensity around particles.</description>

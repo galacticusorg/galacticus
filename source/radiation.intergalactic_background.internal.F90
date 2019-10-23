@@ -297,7 +297,7 @@ contains
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !% Return the flux in the internally-computed intergalatic background.
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
@@ -388,7 +388,7 @@ contains
           &                                                nodeComponentDisk            , nodeComponentSpheroid     , treeNode                   , universe          , &
           &                                                universeEvent
     use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
     use            :: Numerical_Constants_Math    , only : Pi

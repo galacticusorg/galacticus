@@ -21,7 +21,7 @@
 
 module Output_Times
   !% Provides a class that implements output times for \glc.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
 
   !# <functionClass>

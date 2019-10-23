@@ -254,7 +254,7 @@ contains
     use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
     use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent, &
           &                                           treeNode                , treeNodeList
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Kind_Numbers           , only : kind_int8
     use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump

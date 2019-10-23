@@ -89,9 +89,8 @@ contains
   function bett2007ConstructorInternal(lambda0,alpha)
     !% Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class.
-    use            :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
-    use, intrinsic :: ISO_C_Binding
-    use            :: Table_Labels   , only : extrapolationTypeFix
+    use :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
+    use :: Table_Labels   , only : extrapolationTypeFix
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
     double precision                              , intent(in   ) :: lambda0                    , alpha

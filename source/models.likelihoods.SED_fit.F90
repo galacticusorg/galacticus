@@ -234,7 +234,7 @@ contains
     use            :: FGSL                             , only : FGSL_Integ_Gauss61                  , fgsl_function                            , fgsl_integration_workspace
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Models_Likelihoods_Constants     , only : logImpossible
     use            :: Numerical_Integration            , only : Integrate                           , Integrate_Done
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass

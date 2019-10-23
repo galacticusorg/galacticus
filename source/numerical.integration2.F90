@@ -1369,9 +1369,8 @@ contains
 
   double precision function vectorizedCompositeTrapezoidalEvaluate1D(self,a,b)
     !% Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Comparison, only : Values_Agree
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
     double precision                                            , intent(in   )                        :: a,b
@@ -1636,7 +1635,7 @@ contains
   function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Sort            , only : Sort_Index_Do
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self

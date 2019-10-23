@@ -26,7 +26,7 @@ module Hypergeometric_Functions
   !% Implements hypergeometric functions.
   use            :: FGSL         , only : FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, FGSL_Success, fgsl_int, &
           &                               fgsl_sf_result    , gsl_sf_result
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_double          , c_int
   implicit none
   private
   public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
