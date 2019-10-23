@@ -38,10 +38,10 @@ contains
     use            :: HDF5              , only : hsize_t                   , size_t
     use            :: IO_HDF5           , only : hdf5Access                , IO_HDF5_Set_Defaults
     use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String, only : var_str                   , char
+    use            :: ISO_Varying_String, only : var_str                   , char                , operator(//)        , extract               , &
+         &                                       len                       , operator(==)
     use            :: Input_Parameters  , only : globalParameters          , inputParameter
 #ifdef USEMPI
-    use            :: ISO_Varying_String, only : operator(//)              , extract             , len                 , operator(==)
     use            :: MPI_Utilities     , only : mpiSelf
 #endif
     use            :: String_Handling   , only : operator(//)
