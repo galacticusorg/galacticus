@@ -135,14 +135,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Satellite_Orbiting_Initialize(globalParameters_)
+  subroutine Node_Component_Satellite_Orbiting_Initialize(parameters_)
     !% Initializes the orbiting satellite methods module.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
     use :: ISO_Varying_String, only : char                     , var_str                       , varying_string
     use :: Input_Parameters  , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters               ), intent(inout) :: globalParameters_
+    type(inputParameters               ), intent(inout) :: parameters_
     type(nodeComponentSatelliteOrbiting)                :: satelliteComponent
     type(varying_string                )                :: satelliteBoundMassInitializeTypeText
 
@@ -152,7 +152,7 @@ contains
        !# <inputParameter>
        !#   <name>satelliteOrbitingDestructionMassIsFractional</name>
        !#   <defaultValue>.true.</defaultValue>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
        !#   <type>double</type>
        !#   <cardinality>1</cardinality>
@@ -162,7 +162,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.01d0</defaultValue>
        !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -170,7 +170,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('basicMass')</defaultValue>
        !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>string</type>
        !#   <variable>satelliteBoundMassInitializeTypeText</variable>
        !# </inputParameter>
@@ -180,7 +180,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -188,7 +188,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>200.0d0</defaultValue>
        !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        ! Validate the parameters.
@@ -213,19 +213,19 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters_)
     !% Initializes the tree node orbiting satellite module.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="globalParameters_"/>
-       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="globalParameters_"/>
-       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="globalParameters_"/>
-       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="globalParameters_"/>
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters_"/>
+       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters_"/>
+       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="parameters_"/>
+       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="parameters_"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize

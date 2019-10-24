@@ -201,14 +201,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spheroid_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Spheroid_Standard_Initialize(parameters_)
     !% Initializes the tree node standard spheroid methods module.
     use :: Abundances_Structure, only : Abundances_Property_Count
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters              ), intent(inout) :: globalParameters_
+    type(inputParameters              ), intent(inout) :: parameters_
     type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
 
     ! Initialize the module if necessary.
@@ -231,7 +231,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -239,7 +239,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -247,7 +247,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -255,7 +255,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in spheroids in satellites.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -263,7 +263,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
     end if
@@ -273,7 +273,7 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spheroid_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters_)
     !% Initializes the standard spheroid module for each thread.
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
@@ -281,23 +281,23 @@ contains
     use :: Mass_Distributions                   , only : massDistributionSymmetrySpherical
     use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
-    type            (inputParameters), intent(inout) :: globalParameters_
+    type            (inputParameters), intent(inout) :: parameters_
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
     double precision                                 :: spheroidMassDistributionDensityMomentum2   , spheroidMassDistributionDensityMomentum3, &
          &                                              spheroidAngularMomentumAtScaleRadiusDefault
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="globalParameters_"/>
-       !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="globalParameters_"/>
-       !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="globalParameters_"/>
-       !# <objectBuilder class="starFormationTimescaleSpheroids"         name="starFormationTimescaleSpheroids_"         source="globalParameters_"/>
-       !# <objectBuilder class="ramPressureStrippingSpheroids"           name="ramPressureStrippingSpheroids_"           source="globalParameters_"/>
-       !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="globalParameters_"/>
-       !# <objectBuilder class="satelliteTidalField"                     name="satelliteTidalField_"                     source="globalParameters_"/>
-       !# <objectBuilder class="starFormationHistory"                    name="starFormationHistory_"                    source="globalParameters_"/>
-       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="globalParameters_" threadPrivate="yes">
+       !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters_"/>
+       !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters_"/>
+       !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters_"/>
+       !# <objectBuilder class="starFormationTimescaleSpheroids"         name="starFormationTimescaleSpheroids_"         source="parameters_"/>
+       !# <objectBuilder class="ramPressureStrippingSpheroids"           name="ramPressureStrippingSpheroids_"           source="parameters_"/>
+       !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="parameters_"/>
+       !# <objectBuilder class="satelliteTidalField"                     name="satelliteTidalField_"                     source="parameters_"/>
+       !# <objectBuilder class="starFormationHistory"                    name="starFormationHistory_"                    source="parameters_"/>
+       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="parameters_" threadPrivate="yes">
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
        !#    <dimensionless value="true"/>
@@ -329,7 +329,7 @@ contains
        !#   <defaultSource>($I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n \mathrm{d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
        !#   <defaultValue>spheroidAngularMomentumAtScaleRadiusDefault</defaultValue>
        !#   <description>The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !$omp end critical (spheroidStandardInitializeAngularMomentum)

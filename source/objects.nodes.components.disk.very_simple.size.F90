@@ -74,12 +74,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Disk_Very_Simple_Size_Initialize(globalParameters_)
+  subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters_)
     !% Initializes the tree node exponential disk methods module.
     use :: Galacticus_Nodes, only : defaultDiskComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Read parameters controlling the physical implementation.
@@ -88,7 +88,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if
@@ -98,15 +98,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters_)
     !% Initializes the tree node standard merging statistics module.
     use :: Galacticus_Nodes, only : defaultDiskComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize

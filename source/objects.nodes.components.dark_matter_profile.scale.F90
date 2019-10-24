@@ -80,11 +80,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(globalParameters_)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters_)
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     ! Get parameters.
     !# <inputParameter>
@@ -92,7 +92,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The minimum concentration allowed for dark matter profiles.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -100,7 +100,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The maximum concentration allowed for dark matter profiles.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -109,7 +109,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
     !#   <group>output</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the scale get function.
@@ -120,16 +120,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters_)
     !% Initializes the tree node scale dark matter profile module.
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters_"/>
+       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize

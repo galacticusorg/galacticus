@@ -108,18 +108,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Standard_Initialize(parameters_)
     !% Initializes the standard merging statistics component.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>nodeMajorMergerFraction</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -127,7 +127,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -135,7 +135,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d100</defaultValue>
     !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
@@ -147,15 +147,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard merging statistics module.
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize

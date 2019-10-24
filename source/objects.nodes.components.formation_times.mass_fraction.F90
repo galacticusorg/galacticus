@@ -48,16 +48,16 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize(globalParameters_)
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize(parameters_)
     !% Initializes the tree node formation time tracking module.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>formationTimeMassFraction</name>
     !#   <defaultValue>0.5d0</defaultValue>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>

@@ -83,18 +83,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spin_Vitvitska_Bindings(globalParameters_)
+  subroutine Node_Component_Spin_Vitvitska_Bindings(parameters_)
     !% Initializes the ``Vitvitskae'' implementation of the spin component.
     use :: Galacticus_Nodes, only : nodeComponentspinVitvitska
     use :: Input_Parameters, only : inputParameter            , inputParameters
     implicit none
-    type(inputParameters           ), intent(inout) :: globalParameters_
+    type(inputParameters           ), intent(inout) :: parameters_
     type(nodeComponentspinVitvitska)                :: spin
 
     !# <inputParameter>
     !#   <name>spinVitvitskaMassExponent</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>
@@ -109,21 +109,21 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(parameters_)
     !% Initializes the tree node Vitvitsake spin module.
     use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
     use :: Galacticus_Nodes          , only : defaultSpinComponent
     use :: Input_Parameters          , only : inputParameter              , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="globalParameters_"/>
-       !# <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="globalParameters_"/>
-       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="globalParameters_"/>
-       !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters_"/>
+       !# <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="parameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters_"/>
+       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters_"/>
+       !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize

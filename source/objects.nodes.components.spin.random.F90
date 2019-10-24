@@ -63,18 +63,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spin_Random_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spin_Random_Initialize(globalParameters_)
+  subroutine Node_Component_Spin_Random_Initialize(parameters_)
     !% Initializes the random spin component module.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>randomSpinResetMassFactor</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -83,15 +83,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Random_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spin_Random_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Spin_Random_Thread_Initialize(parameters_)
     !% Initializes the tree node random spin module.
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSpinComponent%randomIsActive()) then
-       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
+       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Random_Thread_Initialize

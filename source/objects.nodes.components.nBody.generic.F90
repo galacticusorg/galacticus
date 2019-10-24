@@ -90,14 +90,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_NBody_Generic_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_NBody_Generic_Initialize(globalParameters_)
+  subroutine Node_Component_NBody_Generic_Initialize(parameters_)
     !% Initializes the generic N-body component module.
     use :: Galacticus_Nodes, only : defaultNBodyComponent, nodeComponentNBodyGeneric
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters             ), intent(inout) :: globalParameters_
+    type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentNBodyGeneric   )                :: nbodyComponent
-    !GCC$ attributes unused :: globalParameters_
+    !GCC$ attributes unused :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultNBodyComponent%genericIsActive()) then

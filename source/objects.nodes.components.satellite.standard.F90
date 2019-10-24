@@ -97,12 +97,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-   subroutine Node_Component_Satellite_Standard_Initialize(globalParameters_)
+   subroutine Node_Component_Satellite_Standard_Initialize(parameters_)
      !% Initializes the standard satellite orbit component module.
      use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard
      use :: Input_Parameters, only : inputParameter                , inputParameters
      implicit none
-     type(inputParameters               ), intent(inout) :: globalParameters_
+     type(inputParameters               ), intent(inout) :: parameters_
      type(nodeComponentSatelliteStandard)                :: satellite
 
      if (satellite%standardIsActive()) then
@@ -113,7 +113,7 @@ contains
         !#   <defaultValue>.true.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
         !#      again---possibly at random---each time they are requested).</description>
-        !#   <source>globalParameters_</source>
+        !#   <source>parameters_</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
@@ -122,7 +122,7 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-        !#   <source>globalParameters_</source>
+        !#   <source>parameters_</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if bound mass is an inactive variable.
@@ -131,7 +131,7 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
-        !#   <source>globalParameters_</source>
+        !#   <source>parameters_</source>
         !#   <type>boolean</type>
         !# </inputParameter>
          ! Specify the function to use for setting virial orbits.
@@ -144,17 +144,17 @@ contains
    !# <nodeComponentThreadInitializationTask>
    !#  <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
    !# </nodeComponentThreadInitializationTask>
-   subroutine Node_Component_Satellite_Standard_Thread_Initialize(globalParameters_)
+   subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters_)
      !% Initializes the tree node standard satellite module.
      use :: Galacticus_Nodes, only : defaultSatelliteComponent
      use :: Input_Parameters, only : inputParameter           , inputParameters
      implicit none
-     type(inputParameters), intent(inout) :: globalParameters_
+     type(inputParameters), intent(inout) :: parameters_
 
      if (defaultSatelliteComponent%standardIsActive()) then
-        !# <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="globalParameters_"/>
-        !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
-        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="globalParameters_"/>
+        !# <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters_"/>
+        !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
+        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
      end if
      return
    end subroutine Node_Component_Satellite_Standard_Thread_Initialize

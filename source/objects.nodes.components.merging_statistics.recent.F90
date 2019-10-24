@@ -69,13 +69,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Recent_Initialize(parameters_)
     !% Initializes the recent merging statistics component.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char                   , var_str        , varying_string
     use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
     type(varying_string )                :: nodeRecentMajorMergerIntervalTypeText
 
     !# <inputParameter>
@@ -83,7 +83,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -91,7 +91,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -99,7 +99,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('dynamical')</defaultValue>
     !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
     !# </inputParameter>
@@ -116,7 +116,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -125,18 +125,18 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters_)
     !% Initializes the tree node recent merging flow statistics module.
     use :: Galacticus_Nodes                             , only : defaultMergingStatisticsComponent
     use :: Input_Parameters                             , only : inputParameter                   , inputParameters
     use :: Memory_Management                            , only : allocateArray
     use :: Node_Component_Merging_Statistics_Recent_Data, only : mergingStatisticsRecentCount
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="globalParameters_"/>
-       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
        !$omp critical (Node_Component_Merging_Statistics_Recent_Thread_Initialize)
        if (.not.allocated(zeroCount)) then
           mergingStatisticsRecentCount=outputTimes_%count()
