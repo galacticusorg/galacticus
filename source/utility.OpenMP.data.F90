@@ -21,7 +21,9 @@
 
 module OpenMP_Utilities_Data
   !% Implements data for useful OpenMP utilities.
-  use :: ISO_Varying_String
+#ifdef OMPPROFILE
+  use :: ISO_Varying_String, only : varying_string, var_str
+#endif
   private
 
   ! Include auto-generated content describing number of OpenMP critical sections in the code.

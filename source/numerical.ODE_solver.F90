@@ -21,7 +21,7 @@
 
 module ODE_Solver
   !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
   public :: ODE_Solve, ODE_Solver_Free

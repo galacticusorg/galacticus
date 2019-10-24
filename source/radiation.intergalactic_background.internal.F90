@@ -297,7 +297,7 @@ contains
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !% Return the flux in the internally-computed intergalatic background.
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
@@ -380,7 +380,7 @@ contains
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : Search_Array_For_Closest
     use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
-    use            :: FODEIV2                     , only : fodeiv2_system               , fodeiv2_driver
+    use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5             , only : galacticusOutputFile
@@ -388,8 +388,8 @@ contains
           &                                                nodeComponentDisk            , nodeComponentSpheroid     , treeNode                   , universe          , &
           &                                                universeEvent
     use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding               , only : c_size_t
+    use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
     use            :: Numerical_Constants_Math    , only : Pi
     use            :: Numerical_Constants_Physical, only : plancksConstant              , speedLight

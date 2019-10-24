@@ -64,7 +64,7 @@ contains
           &                           lockDescriptor
     use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
     use :: IO_HDF5           , only : hdf5Access               , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Table_Labels      , only : extrapolationTypeFix
     implicit none

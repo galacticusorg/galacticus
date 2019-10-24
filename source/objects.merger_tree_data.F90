@@ -23,8 +23,8 @@
 
 module Merger_Tree_Data_Structure
   !% Implements an object to store merger tree data for processing into \glc's preferred file format.
-  use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   implicit none
   private
@@ -487,8 +487,9 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue,doubleValue,textValue)
     !% Add a metadatum.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)
+    use :: Memory_Management , only : Memory_Usage_Record
     implicit none
     class           (mergerTreeData), intent(inout)               :: mergerTrees
     integer                         , intent(in   )               :: metadataType
@@ -670,7 +671,8 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
     !% Set the units system.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class           (mergerTreeData), intent(inout)           :: mergerTrees
     integer                         , intent(in   )           :: unitType
@@ -921,6 +923,7 @@ contains
     use :: File_Utilities    , only : Count_Lines_In_File
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
     use :: Memory_Management , only : allocateArray             , deallocateArray
     use :: String_Handling   , only : String_Count_Words        , String_Split_Words, operator(//)
     implicit none
@@ -1555,13 +1558,13 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to a Galacticus-format HDF5 file.
-    use            :: File_Utilities   , only : File_Exists
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use            :: HDF5             , only : HSIZE_T                , hsize_t
-    use            :: IO_HDF5          , only : hdf5Access             , hdf5Object
-    use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management, only : deallocateArray
-    use            :: String_Handling  , only : operator(//)
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HSIZE_T                , hsize_t
+    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String, only : assignment(=)          , char
+    use :: Memory_Management , only : deallocateArray
+    use :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
     integer                                             , intent(in   ) :: hdfCompressionLevel
@@ -1833,12 +1836,13 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export_IRATE(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an IRATE-format HDF5 file.
-    use :: Array_Utilities  , only : Array_Index            , Array_Which
-    use :: File_Utilities   , only : File_Exists
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : hsize_t
-    use :: IO_HDF5          , only : hdf5Access             , hdf5Object
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Array_Utilities   , only : Array_Index            , Array_Which
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : hsize_t
+    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String, only : assignment(=)          , char
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
     integer                                                    , intent(in   ) ::        hdfCompressionLevel
@@ -2142,7 +2146,8 @@ contains
   subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,thisDataset)
     !% Store unit attributes in IRATE format files.
     use :: IO_HDF5                     , only : hdf5Object
-    use :: Numerical_Constants_Prefixes, only : hecto     , kilo
+    use :: ISO_Varying_String          , only : assignment(=), operator(//)
+    use :: Numerical_Constants_Prefixes, only : hecto        , kilo
     implicit none
     integer                         , dimension(:), intent(in   ) :: unitType
     class           (mergerTreeData)              , intent(in   ) :: mergerTrees

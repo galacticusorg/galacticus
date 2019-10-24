@@ -45,8 +45,8 @@ contains
     use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : h5get_libversion_f
-    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer, c_null_char
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer , c_null_char
+    use            :: ISO_Varying_String, only : varying_string         , operator(//), assignment(=)
     use            :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string   )                        :: Galacticus_Build_String

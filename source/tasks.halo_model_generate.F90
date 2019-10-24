@@ -168,7 +168,7 @@ contains
     use :: Galacticus_Error                  , only : errorStatusSuccess
     use :: Galacticus_Nodes                  , only : nodeComponentBasic                      , nodeComponentDarkMatterProfile, treeNode
     use :: IO_IRATE                          , only : irate
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                , only : varying_string
     use :: Numerical_Constants_Math          , only : Pi
     use :: Pseudo_Random                     , only : pseudoRandom
     use :: Root_Finder                       , only : rangeExpandMultiplicative               , rootFinder

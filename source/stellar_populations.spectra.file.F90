@@ -192,7 +192,7 @@ contains
     use            :: Abundances_Structure   , only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
           &                                           metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Error       , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors  , Interpolate_Locate
     implicit none
     class           (stellarPopulationSpectraFile), intent(inout)            :: self

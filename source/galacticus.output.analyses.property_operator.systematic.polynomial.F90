@@ -85,7 +85,7 @@ contains
 
   double precision function systmtcPolynomialOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an systmtcPolynomial output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorSystmtcPolynomial), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue

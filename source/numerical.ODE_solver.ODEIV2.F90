@@ -21,7 +21,7 @@
 
 module ODEIV2_Solver
   !% Contains an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 
@@ -86,15 +86,16 @@ contains
        &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-    use :: FGSL                  , only : FGSL_Failure               , FGSL_Success
-    use :: FODEIV2               , only : fodeiv2_driver             , fodeiv2_system      , fodeiv2_step_type              , FODEIV2_Driver_Status     , &
-         &                                FODEIV2_System_Init        , Fodeiv2_Step_RKCK   , FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, &
-         &                                FODEIV2_Driver_Reset       , FODEIV2_Driver_Apply, FODEIV2_Driver_h
-    use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: ISO_Varying_String    , only : assignment(=)              , operator(//)        , varying_string
-    use :: Numerical_Integration2, only : integratorMultiVectorized1D
-    use :: ODE_Solver_Error_Codes, only : interruptedAtX             , odeSolverInterrupt
-    use :: String_Handling       , only : operator(//)
+    use            :: FGSL                  , only : FGSL_Failure                   , FGSL_Success
+    use            :: FODEIV2               , only : FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, FODEIV2_Driver_Apply, FODEIV2_Driver_Reset, &
+          &                                          FODEIV2_Driver_Status          , FODEIV2_Driver_h          , FODEIV2_System_Init , Fodeiv2_Step_RKCK   , &
+          &                                          fodeiv2_driver                 , fodeiv2_step_type         , fodeiv2_system
+    use             :: Galacticus_Error      ,only : Galacticus_Error_Report
+    use            :: ISO_Varying_String    , only : assignment(=)                  , operator(//)              , varying_string
+    use, intrinsic :: ISO_C_Binding         , only : C_Null_FunPtr                  , C_FunPtr                  , C_FunLoc            , C_Ptr
+    use            :: Numerical_Integration2, only : integratorMultiVectorized1D
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX                 , odeSolverInterrupt
+    use            :: String_Handling       , only : operator(//)
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount
@@ -351,7 +352,7 @@ contains
 
   function odesWrapperIV2(x,y,dydx,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} ODEIV2 functions.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(kind=c_int   )                              :: odesWrapperIV2
     real   (kind=c_double), value                       :: x
@@ -366,7 +367,7 @@ contains
 
   function jacobianWrapperIV2(x,y,dfdy,dfdx,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(kind=c_int   )                              :: jacobianWrapperIV2
     real   (kind=c_double), value                       :: x
@@ -381,7 +382,7 @@ contains
 
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
-    use :: FODEIV2, only : fodeiv2_driver, fodeiv2_system, Fodeiv2_Driver_Free, Fodeiv2_System_Free
+    use :: FODEIV2, only : Fodeiv2_Driver_Free, Fodeiv2_System_Free, fodeiv2_driver, fodeiv2_system
     implicit none
     type(fodeiv2_driver), intent(inout) :: odeDriver
     type(fodeiv2_system), intent(inout) :: odeSystem

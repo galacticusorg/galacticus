@@ -234,15 +234,14 @@ contains
 
   double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo spin distribution likelihood function.
-    use            :: FGSL                          , only : fgsl_function                  , fgsl_integration_workspace
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
-    use            :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
-    use, intrinsic :: ISO_C_Binding
-    use            :: Models_Likelihoods_Constants  , only : logImpossible
-    use            :: Numerical_Integration         , only : Integrate                      , Integrate_Done
-    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
-    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass
+    use :: FGSL                          , only : fgsl_function                  , fgsl_integration_workspace
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
+    use :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Numerical_Integration         , only : Integrate                      , Integrate_Done
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodSpinDistribution), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState

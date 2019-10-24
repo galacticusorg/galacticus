@@ -97,7 +97,7 @@ contains
   subroutine Node_Component_Basic_Extended_Bindings(globalParameters_)
     !% Initializes the ``extended'' implementation of the basic component.
     use :: Galacticus_Nodes          , only : nodeComponentBasicStandardExtended
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String        , only : var_str                                       , varying_string , char
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none

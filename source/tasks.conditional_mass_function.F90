@@ -296,7 +296,7 @@ contains
     use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : char                     , var_str
+    use :: ISO_Varying_String   , only : char                     , var_str                    , varying_string
     use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : Integrate
     use :: String_Handling      , only : operator(//)

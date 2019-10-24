@@ -238,6 +238,12 @@ sub Process_ObjectBuilder {
 			}
 		    }
 		};	
+		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} =
+		{
+		    intrinsic => 0,
+		    only      => {var_str => 1}
+		}
+		if ( $parametersDefaultRequired );
 		$usesNode->{'moduleUse'}->{$moduleName} =
 		{
 		    intrinsic => 0,

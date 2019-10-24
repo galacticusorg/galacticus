@@ -115,13 +115,12 @@ contains
 
   subroutine fileRead(self)
     !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
-    use :: Atomic_Data       , only : Atomic_Short_Label
-    use :: FoX_DOM           , only : destroy                          , extractDataContent, getElementsByTagname, getLength, &
-          &                           item                             , node              , nodeList            , parseFile
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String
-    use :: Memory_Management , only : allocateArray
+    use :: Atomic_Data      , only : Atomic_Short_Label
+    use :: FoX_DOM          , only : destroy                          , extractDataContent, getElementsByTagname, getLength, &
+          &                          item                             , node              , nodeList            , parseFile
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name
+    use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     type            (node                   ), pointer       :: doc              , datum                   , &

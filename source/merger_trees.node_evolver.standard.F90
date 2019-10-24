@@ -1101,7 +1101,7 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
     ! Perform any processing necessary before this halo is promoted. (Note that the eventHook is after the old-style include
-    ! directive here as we want galactic structure solvers to be calledafter any node component functions. Once node component
+    ! directive here as we want galactic structure solvers to be called after any node component functions. Once node component
     ! functions move to hooking to the nodePromotionTask event we will need to introduce a mechanism to specify dependencies in
     ! the event hook call order.)
     !# <include directive="nodePromotionTask" type="functionCall" functionType="void">

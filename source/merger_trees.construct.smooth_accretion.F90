@@ -123,7 +123,7 @@ contains
   function smoothAccretionConstruct(self,treeNumber) result(tree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
     use            :: Galacticus_Nodes, only : mergerTree  , nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     use            :: Pseudo_Random   , only : pseudoRandom
     implicit none

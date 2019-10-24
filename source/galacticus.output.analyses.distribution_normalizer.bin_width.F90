@@ -50,7 +50,7 @@ contains
 
   subroutine binWidthNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
     !% Implement a bin width output analysis distribution normalizer.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                 :: self
     double precision                                              , intent(inout), dimension(:  ) :: distribution

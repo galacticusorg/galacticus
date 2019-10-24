@@ -71,7 +71,7 @@ contains
 
   subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
     use            :: Models_Likelihoods_Constants, only : logImpossible
     use            :: Pseudo_Random               , only : pseudoRandom

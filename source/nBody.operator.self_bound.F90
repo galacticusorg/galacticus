@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
 
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !# <nbodyOperator name="nbodyOperatorSelfBound">
   !#  <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
@@ -112,7 +112,7 @@ contains
     !% Determine the subset of N-body particles which are self-bound.
     use :: Galacticus_Display          , only : Galacticus_Display_Message
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String          , only : varying_string
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     use :: Pseudo_Random               , only : pseudoRandom

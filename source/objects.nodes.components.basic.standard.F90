@@ -238,7 +238,7 @@ contains
      !% to be that of its parent.
      use :: Galacticus_Error  , only : Galacticus_Error_Report
      use :: Galacticus_Nodes  , only : nodeComponentBasic     , nodeComponentBasicStandard, treeNode
-     use :: ISO_Varying_String
+     use :: ISO_Varying_String, only : var_str                , varying_string            , operator(//)
      use :: String_Handling   , only : operator(//)
      implicit none
      type     (treeNode          ), intent(inout), pointer :: node

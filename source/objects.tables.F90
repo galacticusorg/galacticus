@@ -2368,7 +2368,7 @@ contains
 
   double precision function Table_2D_LinLinLin_Interpolate(self,x,y,table)
     !% Perform generic interpolation in a generic 2D table.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (table2DLinLinLin), intent(inout)            :: self

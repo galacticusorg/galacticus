@@ -68,7 +68,6 @@ contains
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataStatic
     use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : ergs

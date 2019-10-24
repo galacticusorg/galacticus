@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
 
   !# <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
   !#  <description>A posterior sampling convergence class which implements the Gelman-Rubin statistic.</description>
@@ -74,7 +74,7 @@ contains
   function gelmanRubinConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
@@ -194,7 +194,7 @@ contains
     !% Return whether the simulation is converged.
     use :: FGSL                    , only : FGSL_CDF_tDist_Qinv
     use :: Galacticus_Display      , only : Galacticus_Display_Message
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String      , only : varying_string
     use :: MPI_Utilities           , only : mpiBarrier                , mpiSelf
     use :: Memory_Management       , only : allocateArray
     use :: Posterior_Sampling_State, only : posteriorSampleStateClass

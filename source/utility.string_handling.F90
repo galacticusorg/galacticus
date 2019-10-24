@@ -21,7 +21,6 @@
 
 module String_Handling
   !% Implements various useful functionality for manipulating character strings.
-  use :: ISO_Varying_String
   implicit none
   private
   public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
@@ -62,6 +61,7 @@ contains
 
   integer function String_Count_Words(inputString,separator,bracketing)
     !% Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
+    use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
     character(len=*         ), intent(in   )           :: inputString
     character(len=*         ), intent(in   ), optional :: separator
@@ -100,6 +100,7 @@ contains
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !% Split {\normalfont \ttfamily inputString} into words and return as an array.
+    use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
@@ -149,6 +150,7 @@ contains
 
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
     !% Split {\normalfont \ttfamily inputString} into words and return as an array.
+    use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
@@ -198,6 +200,7 @@ contains
 
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
     !% Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
+    use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
     integer                      , intent(in   ) :: intVariable
@@ -211,7 +214,8 @@ contains
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
     !% Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
-    use :: Kind_Numbers, only : kind_int8
+    use :: Kind_Numbers      , only : kind_int8
+    use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
     integer  (kind=kind_int8    ), intent(in   ) :: intVariable
@@ -291,6 +295,7 @@ contains
 
   function Convert_VarString_To_Char(varStrings)
     !% Convert an array of varying strings into an array of characters.
+    use :: ISO_Varying_String, only : varying_string, assignment(=), len
     implicit none
     type     (varying_string             ), dimension(:)               , intent(in   ) :: varStrings
     character(len=maxval(len(varStrings))), dimension(size(varStrings))                :: Convert_VarString_To_Char
@@ -304,7 +309,8 @@ contains
 
   function String_C_to_Fortran(charArray)
     !% Convert a C-style character array into a Fortran varying string variable.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding     , only : c_char
+    use            :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
     implicit none
     type     (varying_string)                :: String_C_to_Fortran
     character(kind=c_char   ), intent(in   ) :: charArray          (:)
@@ -387,9 +393,10 @@ contains
           String_Levenshtein_Distance=d(m,n)
     return
   end function String_Levenshtein_Distance
-
+  
   function String_Join(strings,separator)
     !% Joins an array of strings into one long string with the given separator.
+    use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=)
     implicit none
     type     (varying_string)                              :: String_Join
     type     (varying_string), dimension(:), intent(in   ) :: strings
@@ -406,6 +413,7 @@ contains
 
   function String_Strip(string)
     !% Strips a string of leading and trailing whitespace, including tabs.
+    use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
     type     (varying_string)                :: String_Strip
     character(len=*         ), intent(in   ) :: string

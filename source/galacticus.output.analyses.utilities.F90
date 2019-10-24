@@ -32,8 +32,8 @@ contains
     use            :: Cosmology_Functions, only : cosmologyFunctionsClass
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Geometry_Surveys   , only : surveyGeometryClass
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
+    use            :: ISO_Varying_String , only : varying_string         , operator(//)
     use            :: Output_Times       , only : outputTimesClass
     implicit none
     double precision                         , dimension(:) , allocatable :: outputWeight

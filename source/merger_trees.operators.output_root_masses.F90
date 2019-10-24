@@ -207,8 +207,7 @@ contains
 
   subroutine outputRootMassesFinalize(self)
     !% Outputs conditional mass function.
-    use :: IO_HDF5           , only : hdf5Access, hdf5Object
-    use :: ISO_Varying_String
+    use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5Object                        ), target        :: outputFile

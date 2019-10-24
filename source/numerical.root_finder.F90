@@ -20,15 +20,14 @@
 !% Contains a module which does root finding.
 module Root_Finder
   !% Implements root finding.
-  use            :: FGSL         , only : FGSL_Error_Handler_Init       , FGSL_Function_FdF_Free     , FGSL_Function_Free       , FGSL_Function_Init       , &
-          &                               FGSL_Function_fdf_Init        , FGSL_Root_FSolver_Free     , FGSL_Root_FdFSolver_Free , FGSL_Root_Test_Delta     , &
-          &                               FGSL_Root_Test_Interval       , FGSL_Root_fSolver_Alloc    , FGSL_Root_fSolver_Brent  , FGSL_Root_fSolver_Iterate, &
-          &                               FGSL_Root_fSolver_Root        , FGSL_Root_fSolver_Set      , FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, &
-          &                               FGSL_Root_fdfSolver_Alloc     , FGSL_Root_fdfSolver_Iterate, FGSL_Root_fdfSolver_Root , FGSL_Root_fdfSolver_Set  , &
-          &                               FGSL_Root_fdfSolver_Steffenson, FGSL_Set_Error_Handler     , FGSL_Success             , fgsl_error_handler_t     , &
-          &                               fgsl_function                 , fgsl_function_fdf          , fgsl_root_fdfsolver      , fgsl_root_fdfsolver_type , &
-          &                               fgsl_root_fsolver             , fgsl_root_fsolver_type
-  use, intrinsic :: ISO_C_Binding
+  use :: FGSL, only : FGSL_Error_Handler_Init       , FGSL_Function_FdF_Free     , FGSL_Function_Free       , FGSL_Function_Init       , &
+          &           FGSL_Function_fdf_Init        , FGSL_Root_FSolver_Free     , FGSL_Root_FdFSolver_Free , FGSL_Root_Test_Delta     , &
+          &           FGSL_Root_Test_Interval       , FGSL_Root_fSolver_Alloc    , FGSL_Root_fSolver_Brent  , FGSL_Root_fSolver_Iterate, &
+          &           FGSL_Root_fSolver_Root        , FGSL_Root_fSolver_Set      , FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, &
+          &           FGSL_Root_fdfSolver_Alloc     , FGSL_Root_fdfSolver_Iterate, FGSL_Root_fdfSolver_Root , FGSL_Root_fdfSolver_Set  , &
+          &           FGSL_Root_fdfSolver_Steffenson, FGSL_Set_Error_Handler     , FGSL_Success             , fgsl_error_handler_t     , &
+          &           fgsl_function                 , fgsl_function_fdf          , fgsl_root_fdfsolver      , fgsl_root_fdfsolver_type , &
+          &           fgsl_root_fsolver             , fgsl_root_fsolver_type
   implicit none
   private
   public :: rootFinder
@@ -221,9 +220,10 @@ contains
 
   recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
+    use, intrinsic :: ISO_C_Binding     , only : c_double                  , c_ptr
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
@@ -511,7 +511,7 @@ contains
 
     subroutine Root_Finder_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
       !% Handle errors from the GSL library during root finding.
-      use, intrinsic :: ISO_C_Binding
+      use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
       type   (c_ptr     ), value :: file       , reason
       integer(kind=c_int), value :: errorNumber, line
       !GCC$ attributes unused :: reason, file, line
@@ -643,6 +643,7 @@ contains
 
   recursive function Root_Finder_Wrapper_Function(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer
@@ -665,6 +666,7 @@ contains
 
   recursive function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
     real(kind=c_double)        :: Root_Finder_Wrapper_Function_Derivative
     real(kind=c_double), value :: x
@@ -677,6 +679,7 @@ contains
 
   recursive subroutine Root_Finder_Wrapper_Function_Both(x,parameterPointer,f,df) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
     real(kind=c_double), value         :: x
     type(c_ptr        ), value         :: parameterPointer

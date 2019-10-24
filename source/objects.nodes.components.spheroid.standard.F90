@@ -23,7 +23,6 @@ module Node_Component_Spheroid_Standard
   !% Implements the standard spheroid component.
   use :: Dark_Matter_Halo_Scales                        , only : darkMatterHaloScaleClass
   use :: Histories                                      , only : history
-  use :: ISO_Varying_String
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids, only : ramPressureStrippingSpheroidsClass
   use :: Satellites_Tidal_Fields                        , only : satelliteTidalFieldClass
   use :: Star_Formation_Feedback_Expulsion_Spheroids    , only : starFormationExpulsiveFeedbackSpheroidsClass
@@ -421,7 +420,7 @@ contains
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidStandard, treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String            , only : assignment(=)             , operator(//)                 , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -1627,7 +1626,7 @@ contains
     !% Store the star formation history in the output file.
     use            :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     use            :: Histories       , only : history
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
@@ -1655,7 +1654,7 @@ contains
     !% Write the tablulation state to file.
     use            :: FGSL                                 , only : fgsl_file
     use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -1677,7 +1676,7 @@ contains
     use            :: FGSL                                 , only : fgsl_file
     use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
     use            :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile

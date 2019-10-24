@@ -152,7 +152,7 @@ contains
     use :: Galacticus_Display     , only : Galacticus_Display_Message  , verbosityWorking
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataDynamic
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String     , only : varying_string
     use :: Memory_Management      , only : allocateArray               , deallocateArray
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : Interpolate                 , Interpolate_Done

@@ -22,7 +22,6 @@
 module Node_Component_Disk_Very_Simple_Size
   !% Implements a very simple disk component.
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: ISO_Varying_String
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &

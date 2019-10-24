@@ -117,8 +117,8 @@ contains
     !% Run CAMB as necessary to compute transfer functions.
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: FGSL                            , only : FGSL_Interp_cSpline
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock  , &
-          &                                                       File_Lock_Initialize        , File_Path          , File_Remove, File_Unlock, &
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock  , &
+          &                                                       File_Lock_Initialize        , File_Path          , File_Remove , File_Unlock, &
           &                                                       lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
@@ -126,8 +126,8 @@ contains
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract    , len        , &
-          &                                                       operator(==)                , varying_string
+    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract     , len        , &
+          &                                                       operator(==)                , varying_string     , operator(//)
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num

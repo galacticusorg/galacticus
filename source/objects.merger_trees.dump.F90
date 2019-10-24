@@ -21,7 +21,7 @@
 
 module Merger_Trees_Dump
   !% Implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
   implicit none
   private
@@ -40,7 +40,8 @@ contains
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String , only : assignment(=)           , char              , operator(//), trim, &
+          &                            varying_string
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     type            (mergerTree              )              , intent(in   )                    :: tree

@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   use :: Output_Times      , only : outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
@@ -119,7 +119,7 @@ contains
 
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !% Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Memory_Management             , only : allocateArray
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -169,7 +169,7 @@ contains
     use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use            :: Galactic_Structure_Options        , only : massTypeStellar                 , radiusLarge, weightByLuminosity
     use            :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                     , only : c_size_t
     implicit none
     class  (nodePropertyExtractorLuminosityStellar), intent(inout)           :: self
     type   (treeNode                              ), intent(inout), target   :: node

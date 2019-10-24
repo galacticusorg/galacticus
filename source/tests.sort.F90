@@ -22,7 +22,7 @@
 program Test_Sort
   !% Tests of sorting functions.
   use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: Kind_Numbers      , only : kind_int8
   use            :: Sort              , only : Sort_Do                       , Sort_Index_Do         , sortByIndex
   use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish

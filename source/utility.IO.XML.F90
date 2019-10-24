@@ -21,8 +21,8 @@
 
 module IO_XML
   !% Implements various utility functions for extracting data from XML files.
-  use :: FoX_dom           , only : node, nodeList
-  use :: ISO_Varying_String
+  use :: FoX_dom           , only : node          , nodeList
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: XML_Extrapolation_Element_Decode , XML_Array_Read  , XML_Array_Read_Static, &
@@ -57,7 +57,8 @@ contains
 
   function XML_Extract_Text(xmlElement)
     !% Extract the text from an XML element and return as a variable length string.
-    use :: FoX_dom, only : getTextContent, node
+    use :: FoX_dom           , only : getTextContent, node
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type(varying_string)                         :: XML_Extract_Text
     type(node          ), intent(in   ), pointer :: xmlElement
@@ -372,14 +373,16 @@ contains
 
   function XML_Parse(fileName,iostat) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
-    use :: File_Utilities  , only : File_Exists            , File_Name       , File_Path
-    use :: FoX_dom         , only : ELEMENT_NODE           , destroy         , getAttribute , getChildNodes , &
-          &                         getDocumentElement     , getFirstChild   , getLength    , getNextSibling, &
-          &                         getNodeName            , getNodeType     , getParentNode, hasAttribute  , &
-          &                         hasChildNodes          , importNode      , insertBefore , item          , &
-          &                         node                   , nodeList        , parseFile    , removeChild   , &
-          &                         replaceChild           , setLiveNodeLists
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: File_Utilities    , only : File_Exists            , File_Name       , File_Path
+    use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute , getChildNodes , &
+          &                           getDocumentElement     , getFirstChild   , getLength    , getNextSibling, &
+          &                           getNodeName            , getNodeType     , getParentNode, hasAttribute  , &
+          &                           hasChildNodes          , importNode      , insertBefore , item          , &
+          &                           node                   , nodeList        , parseFile    , removeChild   , &
+          &                           replaceChild           , setLiveNodeLists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)    , len          , operator(==)  , &
+         &                            extract                , char
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
          &                                                      nodeCurrent        , nodeParent    , &

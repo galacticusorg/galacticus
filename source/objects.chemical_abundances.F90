@@ -21,7 +21,7 @@
 
 module Chemical_Abundances_Structure
   !% Defines the structure used for describing chemical abundances in \glc.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count, operator(*)
@@ -225,6 +225,7 @@ contains
     !% Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
     use :: Input_Parameters   , only : globalParameters           , inputParameter
+    use :: ISO_Varying_String , only : len                        , char
     use :: Memory_Management  , only : allocateArray
     implicit none
     integer                    :: iChemical
@@ -263,8 +264,7 @@ contains
                 call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
                 chemicalsCharges(iChemical)=dble(thisChemical%charge())
                 chemicalsMasses (iChemical)=     thisChemical%mass  ()
-                if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum&
-                     &=len(chemicalsToTrack(iChemical))
+                if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum=len(chemicalsToTrack(iChemical))
              end do
           end if
           ! Create zero and unit chemical abundances objects.
@@ -294,7 +294,8 @@ contains
 
   function Chemicals_Names(index)
     !% Return a name for the specified entry in the chemicals structure.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : trim
     implicit none
     type   (varying_string)                :: Chemicals_Names
     integer                , intent(in   ) :: index
@@ -312,6 +313,7 @@ contains
 
   integer function Chemicals_Index(chemicalName)
     !% Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
+    use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in   ) :: chemicalName
     integer                         :: iChemical
@@ -522,6 +524,7 @@ contains
   subroutine Chemicals_Dump(chemicals)
     !% Dump all chemical values.
     use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: ISO_Varying_String, only : len                       , operator(//)
     implicit none
     class    (chemicalAbundances), intent(in   ) :: chemicals
     integer                                      :: i

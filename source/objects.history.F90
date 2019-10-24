@@ -823,7 +823,7 @@ contains
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
     class           (history), intent(inout)           :: thisHistory
@@ -886,7 +886,7 @@ contains
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
     use            :: Arrays_Search    , only : Search_Array
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history ), intent(inout)           :: self
@@ -934,7 +934,7 @@ contains
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
     class           (longIntegerHistory), intent(inout)           :: thisHistory
@@ -997,7 +997,7 @@ contains
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
     use            :: Arrays_Search    , only : Search_Array
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)           :: self
@@ -1182,7 +1182,7 @@ contains
      !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
      !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
      use            :: Galacticus_Error       , only : Galacticus_Error_Report
-     use, intrinsic :: ISO_C_Binding
+     use, intrinsic :: ISO_C_Binding          , only : c_size_t
      use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors
      implicit none
      class           (history ), intent(inout) :: thisHistory
@@ -1247,7 +1247,7 @@ contains
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
      use            :: Arrays_Search   , only : Search_Array
      use            :: Galacticus_Error, only : Galacticus_Error_Report
-     use, intrinsic :: ISO_C_Binding
+     use, intrinsic :: ISO_C_Binding   , only : c_size_t
      use            :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
      class           (history ), intent(inout)           :: thisHistory

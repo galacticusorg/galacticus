@@ -31,7 +31,7 @@ contains
     !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic        , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , assignment(=)             , operator(//)
     use :: String_Handling   , only : operator(//)
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'

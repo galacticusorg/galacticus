@@ -23,7 +23,6 @@ module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
   use :: Dark_Matter_Halo_Scales                    , only : darkMatterHaloScaleClass
   use :: Galactic_Dynamics_Bar_Instabilities        , only : galacticDynamicsBarInstabilityClass
-  use :: ISO_Varying_String
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks, only : ramPressureStrippingDisksClass
   use :: Star_Formation_Feedback_Disks              , only : starFormationFeedbackDisksClass
   use :: Star_Formation_Feedback_Expulsion_Disks    , only : starFormationExpulsiveFeedbackDisksClass
@@ -461,7 +460,7 @@ contains
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String            , only : assignment(=)             , operator(//)             , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -1471,7 +1470,7 @@ contains
     !% Store the star formation history in the output file.
     use            :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
     use            :: Histories       , only : history
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
@@ -1499,7 +1498,7 @@ contains
     !% Write the tablulation state to file.
     use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -1521,7 +1520,7 @@ contains
     use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     integer           , intent(in   ) :: stateFile

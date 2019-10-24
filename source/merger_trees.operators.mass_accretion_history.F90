@@ -149,8 +149,8 @@ contains
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree             , nodeComponentBasic, nodeComponentSpin, treeNode
     use            :: IO_HDF5                         , only : hdf5Access
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: ISO_Varying_String              , only : varying_string
     use            :: Memory_Management               , only : allocateArray          , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
     use            :: String_Handling                 , only : operator(//)

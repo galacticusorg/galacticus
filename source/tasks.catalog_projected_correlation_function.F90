@@ -270,7 +270,7 @@ contains
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String              , only : varying_string
     use :: Memory_Management               , only : allocateArray                , deallocateArray
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Points                          , only : Points_Prune                 , Points_Replicate          , Points_Rotate              , Points_Survey_Geometry, &

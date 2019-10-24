@@ -21,8 +21,8 @@
 
 module Test_Integration2_Functions
   !% Contains integrands for unit tests.
-  use :: ISO_Varying_String
-  use :: Numerical_Integration2, only : integrator, integratorMulti
+  use :: ISO_Varying_String    , only : varying_string
+  use :: Numerical_Integration2, only : integrator    , integratorMulti
   implicit none
   private
   public :: testIntegrator         , testIntegratorMulti, &

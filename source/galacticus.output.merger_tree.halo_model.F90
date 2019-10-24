@@ -122,8 +122,8 @@ contains
     use            :: Galacticus_HDF5         , only : galacticusOutputFile
     use            :: Galacticus_Nodes        , only : mergerTree          , nodeComponentBasic       , treeNode
     use            :: IO_HDF5                 , only : hdf5Access          , hdf5Object
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t
+    use            :: ISO_Varying_String      , only : varying_string      , assignment(=)            , char
     use            :: Kind_Numbers            , only : kind_int8
     use            :: Memory_Management       , only : allocateArray       , deallocateArray
     use            :: String_Handling         , only : operator(//)

@@ -267,19 +267,18 @@ contains
 
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
-    use            :: Dates_and_Times               , only : Formatted_Date_and_Time
-    use            :: Error_Functions               , only : Error_Function
-    use            :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                                  verbosityInfo
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
-    use            :: Linear_Algebra                , only : assignment(=)
-    use            :: MPI_Utilities                 , only : mpiSelf
-    use            :: Memory_Management             , only : allocateArray
-    use            :: Models_Likelihoods_Constants  , only : logImpossible
-    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
-    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
-    use            :: String_Handling               , only : operator(//)
+    use :: Dates_and_Times               , only : Formatted_Date_and_Time
+    use :: Error_Functions               , only : Error_Function
+    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                       verbosityInfo
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Linear_Algebra                , only : assignment(=)
+    use :: MPI_Utilities                 , only : mpiSelf
+    use :: Memory_Management             , only : allocateArray
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
+    use :: String_Handling               , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
@@ -663,7 +662,7 @@ contains
           &                                    FGSL_Multimin_FDFMinimizer_x   , FGSL_Success                       , FGSL_Vector_Align                 , FGSL_Vector_Free                       , &
           &                                    FGSL_Vector_Init               , fgsl_multimin_fdfminimizer         , fgsl_multimin_function_fdf        , fgsl_vector
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_ptr                          , c_size_t
     use            :: Sort            , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
@@ -771,7 +770,7 @@ contains
   function gaussianRegressionVariogramModelF(x,parameters) bind(c)
     !% Function to be minimized when fitting the variogram.
     use            :: FGSL         , only : FGSL_Vector, FGSL_obj_c_ptr, FGSL_vector_align
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double   , c_ptr
     implicit none
     real   (c_double   )                        :: gaussianRegressionVariogramModelF
     type   (c_ptr      ), value                 :: x                                , parameters
@@ -794,7 +793,7 @@ contains
   subroutine gaussianRegressionVariogramModelD(x,parameters,df) bind(c)
     !% Derivatives of the function to be minimized when fitting the variogram.
     use            :: FGSL         , only : FGSL_obj_c_ptr, FGSL_vector, FGSL_vector_align
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double      , c_ptr
     implicit none
     type   (c_ptr      ), value                 :: x     , parameters, &
          &                                         df
@@ -823,7 +822,7 @@ contains
 
   subroutine gaussianRegressionVariogramModelFD(x,parameters,f,df) bind(c)
     !% Computes both function and derivatives to be minimized when fitting the variogram.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
     type(c_ptr   ), value :: x , parameters, &
          &                   df
@@ -971,11 +970,10 @@ contains
 
   logical function gaussianRegressionWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
     !% Return true if the log-likelihood will be evaluated.
-    use            :: Galacticus_Display            , only : Galacticus_Verbosity_Level     , verbosityInfo
-    use, intrinsic :: ISO_C_Binding
-    use            :: Models_Likelihoods_Constants  , only : logImpossible
-    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
-    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass
+    use :: Galacticus_Display            , only : Galacticus_Verbosity_Level     , verbosityInfo
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

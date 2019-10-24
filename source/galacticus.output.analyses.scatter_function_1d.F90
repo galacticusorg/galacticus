@@ -20,8 +20,7 @@
   !% Contains a module which implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
   !% objects binned by some property) output analysis class.
 
-  use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
 
   !# <outputAnalysis name="outputAnalysisScatterFunction1D">
   !#  <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>

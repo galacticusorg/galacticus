@@ -257,7 +257,7 @@ contains
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
@@ -336,7 +336,7 @@ contains
     !% read from a file.
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
@@ -456,7 +456,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access                        , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
@@ -571,7 +571,7 @@ contains
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
@@ -625,7 +625,7 @@ contains
 
   double precision function cieFileInterpolate(self,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Perform the interpolation.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     integer         (c_size_t              ), intent(in   ) :: iMetallicity, iTemperature

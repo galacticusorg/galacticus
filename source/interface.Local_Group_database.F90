@@ -138,10 +138,10 @@ contains
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
     !% Get a named text property from the Local Group database.
-    use :: FoX_DOM           , only : extractDataContent     , getAttributeNode, getElementsByTagName, getLength, &
-          &                           getTextContent         , hasAttribute    , item
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use                      :: FoX_DOM           , only : extractDataContent     , getAttributeNode, getElementsByTagName, getLength, &
+          &                                                getTextContent         , hasAttribute    , item
+    use                      :: Galacticus_Error  , only : Galacticus_Error_Report
+    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string         , assignment(=)¦}
     implicit none
     class           (localGroupDB  ), intent(inout)                                      :: self
     character       (len=*         ), intent(in   )                                      :: name
@@ -220,9 +220,10 @@ contains
 
   subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
     !% Impose a selection on the database.
-    use :: FoX_DOM           , only : getAttributeNode       , getLength, getTextContent, item
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use                      :: FoX_DOM           , only : getAttributeNode       , getLength  , getTextContent, item
+    use                      :: Galacticus_Error  , only : Galacticus_Error_Report
+    use                      :: ISO_Varying_String, only : varying_string
+    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)            , operator(>), operator(==)¦}
     implicit none
     class           (localGroupDB  ), intent(inout)               :: self
     character       (len=*         ), intent(in   )               :: name

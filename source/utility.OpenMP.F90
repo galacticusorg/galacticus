@@ -34,7 +34,7 @@ contains
 #ifdef OMPPROFILE
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String   , only : varying_string         , var_str
     use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime
 #endif
     implicit none

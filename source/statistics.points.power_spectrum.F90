@@ -32,8 +32,8 @@ contains
          &                                             fftw_destroy_plan         , FFTW_Wavenumber
     use            :: Galacticus_Display      , only : Galacticus_Display_Message
     use            :: Galacticus_Error        , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding           , only : c_double_complex          , c_ptr
+    use            :: ISO_Varying_String      , only : varying_string
     use            :: Memory_Management       , only : allocateArray             , deallocateArray
     use            :: Meshes                  , only : Meshes_Apply_Point        , cloudTypePoint
     use            :: Numerical_Constants_Math, only : Pi

@@ -109,7 +109,7 @@ contains
   double precision function normalOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an normal output analysis property operator.
     use            :: Error_Functions, only : Error_Function
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding  , only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorNormal), intent(inout)           :: self
     double precision                                      , intent(in   )           :: propertyValue

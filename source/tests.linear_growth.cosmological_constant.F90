@@ -22,7 +22,7 @@ program Tests_Linear_Growth_Cosmological_Constant
   !% Andrew Hamilton's "growl" code available at: http://casa.colorado.edu/~ajsh/growl/
   use :: Cosmology_Functions, only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String , only : varying_string                , assignment(=)
   use :: Input_Parameters   , only : inputParameters
   use :: Linear_Growth      , only : componentDarkMatter           , linearGrowth           , linearGrowthClass   , normalizeMatterDominated
   use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish

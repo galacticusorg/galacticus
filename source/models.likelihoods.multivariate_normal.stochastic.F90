@@ -45,8 +45,7 @@ contains
   function multivariateNormalStochasticConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily multivariateNormalStochastic} posterior sampling convergence class which builds the object from a
     !% parameter set.
-    use :: ISO_Varying_String
-    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters

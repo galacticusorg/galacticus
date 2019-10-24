@@ -24,9 +24,9 @@
 
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.
-  use            :: HDF5              , only : hid_t  , hsize_t, size_t
-  use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use            :: HDF5              , only : hid_t         , hsize_t, size_t
+  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_ptr  , c_size_t, c_int
+  use            :: ISO_Varying_String, only : varying_string
   use            :: Locks             , only : ompLock
   implicit none
   private
@@ -677,6 +677,7 @@ contains
 
   function IO_HDF5_Path_To(thisObject) result (pathToObject)
     !% Returns the path to {\normalfont \ttfamily thisObject}.
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     class(hdf5Object    ), intent(in   ) :: thisObject
     type (varying_string)                :: pathToObject
@@ -692,6 +693,7 @@ contains
     use :: HDF5              , only : H5F_OBJ_ALL_F            , h5aclose_f                , h5dclose_f                 , h5fclose_f     , &
           &                           h5fget_obj_count_f       , h5fget_obj_ids_f          , h5gclose_f                 , h5iget_name_f  , &
           &                           hid_t                    , size_t
+    use :: ISO_Varying_String, only : assignment(=)            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class    (hdf5Object               ), intent(inout)               :: thisObject
@@ -797,6 +799,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : H5F_Scope_Local_F         , h5fflush_f
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
     implicit none
     class  (hdf5Object    ), intent(inout) :: thisObject
     type   (varying_string)                :: message
@@ -823,9 +826,10 @@ contains
 
   function IO_HDF5_Character_Types(stringLength)
     !% Return datatypes for character data of a given length. Types are for Fortran native and C native types.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_CHARACTER   , HID_T, h5tcopy_f, h5tset_size_f, &
-          &                         size_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T       , h5tcopy_f, h5tset_size_f, &
+          &                           size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     integer(kind=HID_T    ), dimension(2)  :: IO_HDF5_Character_Types
     integer                , intent(in   ) :: stringLength
@@ -860,13 +864,14 @@ contains
   subroutine IO_HDF5_Open_File(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
     !% Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
     !% provided, will be taken from the stored object name in {\normalfont \ttfamily fileObject}.
-    use :: File_Utilities  , only : File_Exists
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5F_ACC_RDONLY_F       , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                         H5F_LIBVER_EARLIEST_F  , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
-          &                         h5fopen_f              , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
-          &                         h5pset_fapl_stdio_f    , h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
-          &                         hid_t                  , hsize_t               , size_t
+    use :: File_Utilities    , only : File_Exists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5F_ACC_RDONLY_F       , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
+          &                           H5F_LIBVER_EARLIEST_F  , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+          &                           h5fopen_f              , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
+          &                           h5pset_fapl_stdio_f    , h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
+          &                           hid_t                  , hsize_t               , size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)          , len
     implicit none
     class    (hdf5Object    ), intent(inout)           :: fileObject
     character(len=*         ), intent(in   ), optional :: fileName
@@ -1024,9 +1029,10 @@ contains
     !% Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     !% not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
     !% taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5gcreate_f, h5gopen_f, h5gset_comment_f, &
-          &                         hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5gcreate_f, h5gopen_f, h5gset_comment_f, &
+          &                           hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     type     (hdf5Object    )                          :: groupObject
     character(len=*         ), intent(in   )           :: groupName
@@ -1142,8 +1148,9 @@ contains
 
   logical function IO_HDF5_Has_Group(thisObject,groupName)
     !% Check if {\normalfont \ttfamily thisObject} has a group with the given {\normalfont \ttfamily groupName}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : h5eset_auto_f          , h5gget_info_by_name_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : h5eset_auto_f          , h5gget_info_by_name_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    ), intent(in   ) :: thisObject
     character(len=*         ), intent(in   ) :: groupName
@@ -1181,10 +1188,11 @@ contains
   function IO_HDF5_Open_Attribute(inObject,attributeName,attributeDataType,attributeDimensions,isOverwritable,useDataType)&
        & result(attributeObject)
     !% Open an attribute in {\normalfont \ttfamily inObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_CHARACTER   , H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, &
-          &                         HID_T                  , HSIZE_T           , h5acreate_f       , h5aopen_f           , &
-          &                         h5sclose_f             , h5screate_simple_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, &
+          &                           HID_T                  , HSIZE_T           , h5acreate_f       , h5aopen_f           , &
+          &                           h5sclose_f             , h5screate_simple_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
     type     (hdf5Object    )                                        :: attributeObject
@@ -1319,8 +1327,9 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER     , HSIZE_T, h5awrite_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_INTEGER     , HSIZE_T     , h5awrite_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -1396,8 +1405,9 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer_1D(thisObject,attributeValue,attributeName)
     !% Open and write an integer 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER     , HSIZE_T, h5awrite_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_INTEGER     , HSIZE_T     , h5awrite_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
@@ -1476,9 +1486,11 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer8_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write a long integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER_8
-    use :: Kind_Numbers    , only : kind_int8
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
+    use            :: Kind_Numbers      , only : kind_int8
     implicit none
     class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -1557,10 +1569,12 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer8_1D(thisObject,attributeValue,attributeName)
     !% Open and write an integer 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5T_NATIVE_INTEGER_8   , HSIZE_T
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HSIZE_T
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)   , trim
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
@@ -1647,8 +1661,9 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write an double scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_DOUBLE      , HSIZE_T, h5awrite_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HSIZE_T     , h5awrite_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class           (hdf5Object    ), intent(inout)           :: thisObject
     character       (len=*         ), intent(in   ), optional :: attributeName
@@ -1726,8 +1741,9 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_1D(thisObject,attributeValue,attributeName)
     !% Open and write an double 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_DOUBLE      , HSIZE_T, h5awrite_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HSIZE_T     , h5awrite_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: attributeName
@@ -1806,8 +1822,9 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_2D(thisObject,attributeValue,attributeName)
     !% Open and write an double 2-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_DOUBLE      , HSIZE_T, h5awrite_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HSIZE_T     , h5awrite_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class           (hdf5Object    )                , intent(inout)           :: thisObject
     character       (len=*         )                , intent(in   ), optional :: attributeName
@@ -1886,9 +1903,10 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Character_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write an character scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_CHARACTER   , HID_T    , HSIZE_T      , h5awrite_f, &
-          &                         h5tclose_f             , h5tcopy_f, h5tset_size_f, size_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T       , HSIZE_T      , h5awrite_f, &
+          &                           h5tclose_f             , h5tcopy_f   , h5tset_size_f, size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -1986,9 +2004,10 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Character_1D(thisObject,attributeValue,attributeName)
     !% Open and write an character 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_CHARACTER   , HID_T        , HSIZE_T, h5awrite_f, &
-          &                         h5tcopy_f              , h5tset_size_f, size_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T        , HSIZE_T, h5awrite_f, &
+          &                           h5tcopy_f              , h5tset_size_f, size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
@@ -2080,6 +2099,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_VarString_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write a varying string scalar attribute in {\normalfont \ttfamily thisObject}.
+    use :: ISO_Varying_String, only : char
     implicit none
     class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -2087,7 +2107,6 @@ contains
 
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Attribute_Character_Scalar(thisObject,char(attributeValue),attributeName)
-
     return
   end subroutine IO_HDF5_Write_Attribute_VarString_Scalar
 
@@ -2107,9 +2126,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER     , HID_T     , HSIZE_T                    , h5aget_space_f, &
-          &                         h5aread_f              , h5sclose_f, h5sget_simple_extent_dims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_INTEGER     , HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     integer                                , intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: thisObject
@@ -2222,10 +2242,11 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5T_NATIVE_INTEGER     , HID_T          , HSIZE_T                    , h5aget_space_f, &
-          &                          h5aread_f              , h5sclose_f     , h5sget_simple_extent_dims_f
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_INTEGER     , HID_T          , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f     , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)   , trim
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer                  , allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -2319,9 +2340,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER     , HID_T     , HSIZE_T                    , h5aget_space_f, &
-          &                         h5aread_f              , h5sclose_f, h5sget_simple_extent_dims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_INTEGER     , HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     integer                  , dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: thisObject
@@ -2417,10 +2439,12 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read a long integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                         h5sclose_f             , h5sget_simple_extent_dims_f
-    use :: Kind_Numbers    , only : kind_int8
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
+          &                                      h5sclose_f             , h5sget_simple_extent_dims_f
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: Kind_Numbers      , only : kind_int8
     implicit none
     integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue
     class    (hdf5Object    )              , intent(inout)                   :: thisObject
@@ -2534,11 +2558,13 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                          h5sclose_f             , h5sget_simple_extent_dims_f
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error ,  only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
+                     &                           h5sclose_f             , h5sget_simple_extent_dims_f
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -2633,11 +2659,13 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                          h5sclose_f             , h5sget_simple_extent_dims_f
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
+                     &                           h5sclose_f             , h5sget_simple_extent_dims_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray
     implicit none
     integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -2739,9 +2767,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an double scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_DOUBLE      , HID_T     , HSIZE_T                    , h5aget_space_f, &
-          &                         h5aread_f              , h5sclose_f, h5sget_simple_extent_dims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     double precision                              , intent(  out)           :: attributeValue
     class           (hdf5Object    )              , intent(inout)           :: thisObject
@@ -2856,10 +2885,11 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable(thisObject,attributeName,attributeValue)
     !% Open and read an double scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5T_NATIVE_DOUBLE      , HID_T          , HSIZE_T                    , h5aget_space_f, &
-          &                          h5aread_f              , h5sclose_f     , h5sget_simple_extent_dims_f
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HID_T          , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f     , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)   , trim
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                , allocatable, dimension(:), intent(  out)           :: attributeValue
     class           (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -2953,9 +2983,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an double scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_NATIVE_DOUBLE      , HID_T     , HSIZE_T                    , h5aget_space_f, &
-          &                         h5aread_f              , h5sclose_f, h5sget_simple_extent_dims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE      , HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f              , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//), trim
     implicit none
     double precision                , dimension(:), intent(  out)           :: attributeValue
     class           (hdf5Object    )              , intent(inout)           :: thisObject
@@ -3051,9 +3082,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an character scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                         h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
+          &                           h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     character(len=*                  )              , intent(  out)           :: attributeValue
     class    (hdf5Object             )              , intent(inout)           :: thisObject
@@ -3183,10 +3215,11 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable(thisObject,attributeName,attributeValue)
     !% Open and read an character scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                          h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
+          &                           h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     character(len=*         ), allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -3295,9 +3328,10 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an character scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                         h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , HSIZE_T                    , h5aget_space_f, h5aread_f, &
+          &                           h5sclose_f             , h5sget_simple_extent_dims_f, h5tclose_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: thisObject
@@ -3408,8 +3442,9 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an varying string scalar attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     type     (varying_string), intent(  out)           :: attributeValue
     class    (hdf5Object    ), intent(inout)           :: thisObject
@@ -3497,6 +3532,7 @@ contains
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
     !% Open and read an varying string scalar attribute in {\normalfont \ttfamily thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type     (varying_string  ), intent(  out)           :: attributeValue
     class    (hdf5Object      ), intent(inout)           :: thisObject
@@ -3516,8 +3552,9 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable(thisObject,attributeName,attributeValue)
     !% Open and read an varying string 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     type     (varying_string), allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -3604,7 +3641,8 @@ contains
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
     !% Open and read an varying string 1-D array attribute in {\normalfont \ttfamily thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
-    use :: Memory_Management, only : Memory_Usage_Record, deallocateArray
+    use :: ISO_Varying_String, only : assignment(=)
+    use :: Memory_Management , only : Memory_Usage_Record, deallocateArray
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object      )                           , intent(inout)           :: thisObject
@@ -3626,8 +3664,9 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an varying string 1-D array attribute in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5aget_type_f, h5tclose_f, h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: thisObject
@@ -3714,6 +3753,7 @@ contains
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
     !% Open and read an varying string 1-D array attribute in {\normalfont \ttfamily thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type     (varying_string  ), dimension(:)                   , intent(  out)           :: attributeValue
     class    (hdf5Object      )                                 , intent(inout)           :: thisObject
@@ -3732,8 +3772,9 @@ contains
 
   logical function IO_HDF5_Has_Attribute(thisObject,attributeName)
     !% Check if {\normalfont \ttfamily thisObject} has an attribute with the given {\normalfont \ttfamily attributeName}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : h5aexists_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : h5aexists_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    ), intent(in   ) :: thisObject
     character(len=*         ), intent(in   ) :: attributeName
@@ -3760,9 +3801,10 @@ contains
 
   subroutine IO_HDF5_Assert_Attribute_Type(attributeObject,attributeAssertedType,attributeAssertedRank,matches)
     !% Asserts that an attribute is of a certain type and rank.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                       , h5aget_space_f, h5aget_type_f, h5sclose_f, &
-          &                         h5sget_simple_extent_ndims_f, h5tclose_f    , h5tequal_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                       , h5aget_space_f, h5aget_type_f, h5sclose_f, &
+          &                           h5sget_simple_extent_ndims_f, h5tclose_f    , h5tequal_f
+    use :: ISO_Varying_String, only : assignment(=)               , operator(//)
     implicit none
     class  (hdf5Object    )              , intent(in   )           :: attributeObject
     integer                              , intent(in   )           :: attributeAssertedRank
@@ -3841,9 +3883,10 @@ contains
 
   function IO_HDF5_Dataset_Size(datasetObject,dim)
     !% Return the size of the {\normalfont \ttfamily dim}$^\mathrm{th}$ dimension of dataset {\normalfont \ttfamily datasetObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                      , HSIZE_T                     , h5dget_space_f, h5sclose_f, &
-          &                         h5sget_simple_extent_dims_f, h5sget_simple_extent_ndims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                      , HSIZE_T                     , h5dget_space_f, h5sclose_f, &
+          &                           h5sget_simple_extent_dims_f, h5sget_simple_extent_ndims_f
+    use :: ISO_Varying_String, only : assignment(=)              , operator(//)
     implicit none
     integer(kind=HSIZE_T  )                              :: IO_HDF5_Dataset_Size
     class  (hdf5Object    ), intent(in   )               :: datasetObject
@@ -3908,8 +3951,9 @@ contains
 
   integer function IO_HDF5_Dataset_Rank(datasetObject)
     !% Return the rank of dataset {\normalfont \ttfamily datasetObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5dget_space_f, h5sget_simple_extent_ndims_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5dget_space_f, h5sget_simple_extent_ndims_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class  (hdf5Object    ), intent(in   )               :: datasetObject
     integer                                              :: datasetRank         , errorCode
@@ -3951,13 +3995,14 @@ contains
   function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo&
        &,useDataType,chunkSize,compressionLevel) result(datasetObject)
     !% Open an dataset in {\normalfont \ttfamily inObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DATASET_CREATE_F   , H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
-          &                         H5T_NATIVE_INTEGER     , H5T_NATIVE_INTEGER_8 , HID_T               , HSIZE_T           , &
-          &                         h5dcreate_f            , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
-          &                         h5gset_comment_f       , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
-          &                         h5pset_chunk_f         , h5pset_deflate_f     , h5sclose_f          , h5screate_simple_f, &
-          &                         hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5P_DATASET_CREATE_F   , H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
+          &                           H5T_NATIVE_INTEGER     , H5T_NATIVE_INTEGER_8 , HID_T               , HSIZE_T           , &
+          &                           h5dcreate_f            , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
+          &                           h5gset_comment_f       , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
+          &                           h5pset_chunk_f         , h5pset_deflate_f     , h5sclose_f          , h5screate_simple_f, &
+          &                           hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     type     (hdf5Object    )                                        :: datasetObject
     character(len=*         )              , intent(in   )           :: datasetName
@@ -4212,8 +4257,9 @@ contains
 
   logical function IO_HDF5_Has_Dataset(thisObject,datasetName)
     !% Check if {\normalfont \ttfamily thisObject} has a dataset with the given {\normalfont \ttfamily datasetName}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5dclose_f, h5dopen_f, h5eset_auto_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5dclose_f  , h5dopen_f, h5eset_auto_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    ), intent(in   ) :: thisObject
     character(len=*         ), intent(in   ) :: datasetName
@@ -4255,9 +4301,10 @@ contains
 
   function IO_HDF5_Datasets(thisObject)
     !% Return a list of all datasets present within {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : h5g_dataset_f          , h5gget_obj_info_idx_f, h5gn_members_f, hid_t
-    use :: String_Handling , only : char                   , operator(//)
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : h5g_dataset_f          , h5gget_obj_info_idx_f, h5gn_members_f, hid_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim          , char
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string), allocatable  , dimension(:) :: IO_HDF5_Datasets
     class    (hdf5Object    ), intent(in   )               :: thisObject
@@ -4326,9 +4373,10 @@ contains
 
   subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank)
     !% Asserts that an dataset is of a certain type and rank.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                       , h5dget_space_f, h5dget_type_f, h5sclose_f, &
-          &                         h5sget_simple_extent_ndims_f, h5tclose_f    , h5tequal_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                       , h5dget_space_f, h5dget_type_f, h5sclose_f, &
+          &                           h5sget_simple_extent_ndims_f, h5tclose_f    , h5tequal_f
+    use :: ISO_Varying_String, only : assignment(=)               , operator(//)
     implicit none
     class  (hdf5Object    )              , intent(in   ) :: datasetObject
     integer                              , intent(in   ) :: datasetAssertedRank
@@ -4391,10 +4439,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Integer_1D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write an integer 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
@@ -4559,10 +4608,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Integer_2D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write an integer 2-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                , intent(inout)           :: thisObject
     character(len=*         )                , intent(in   ), optional :: commentText                , datasetName
@@ -4727,12 +4777,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     integer                     , dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )              , intent(inout)           :: thisObject
@@ -5019,13 +5071,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer                     , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                           , intent(inout)           :: thisObject
@@ -5310,12 +5364,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     integer                     , dimension(:,:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                , intent(inout)           :: thisObject
@@ -5602,13 +5658,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer                     , allocatable, dimension(:,:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                             , intent(inout)           :: thisObject
@@ -5893,12 +5951,14 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Integer8_1D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a long integer 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
-          &                          HSIZE_T                , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                          h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+          &                                      HSIZE_T                , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
+          &                                      h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     class    (hdf5Object    )                           , intent(inout)                   :: thisObject
     character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName
@@ -6069,12 +6129,14 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Integer8_2D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a long integer 2-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
-          &                          HSIZE_T                , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                          h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+          &                                      HSIZE_T                , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
+          &                                      h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     class    (hdf5Object    )                             , intent(inout)                   :: thisObject
     character(len=*         )                             , intent(in   ), optional         :: commentText                , datasetName
@@ -6245,14 +6307,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a long integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
-          &                          H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
-          &                          h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-          &                          h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
+          &                                      h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer  (kind=kind_int8   )             , dimension(:)          , intent(  out)           :: datasetValue
     class    (hdf5Object       )                                     , intent(inout)           :: thisObject
@@ -6618,14 +6682,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a long integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
-          &                          H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
-          &                          h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-          &                          h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
+          &                                      h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer  (kind=kind_int8   ), allocatable, dimension(:  ), intent(  out)          , target :: datasetValue
     class    (hdf5Object       )                             , intent(inout)                   :: thisObject
@@ -6985,14 +7051,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
-          &                          H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
-          &                          h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-          &                          h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
+          &                                      h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer         (kind_int8        ), dimension(:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: thisObject
@@ -7363,14 +7431,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double 2-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
-          &                          H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
-          &                          h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-          &                          h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                 , HSIZE_T                    , h5dclose_f          , &
+          &                                      h5dget_space_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f     , size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer         (kind_int8        ), allocatable, dimension(:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: thisObject
@@ -7735,10 +7805,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_1D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: commentText                , datasetName
@@ -7903,13 +7974,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                         size_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
+          &                                      size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim
     implicit none
     double precision                   , dimension(:)  , intent(  out)           :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: thisObject
@@ -8270,14 +8343,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                          size_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
+          &                                      size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: thisObject
@@ -8643,10 +8718,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 2-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                , intent(inout)           :: thisObject
     character       (len=*         )                , intent(in   ), optional :: commentText                 , datasetName
@@ -8824,13 +8900,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                         size_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
+          &                                      size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim
     implicit none
     double precision                   , dimension(:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: thisObject
@@ -9197,14 +9275,16 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double 2-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                          size_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T                , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_elements_f   , h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
+          &                                      size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: thisObject
@@ -9569,10 +9649,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_3D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 3-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                  , intent(inout)           :: thisObject
     character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
@@ -9750,12 +9831,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     double precision                   , dimension(:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                  , intent(inout)           :: thisObject
@@ -10042,13 +10125,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double 3-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                               , intent(inout)           :: thisObject
@@ -10333,10 +10418,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_4D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 4-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                    , intent(inout)           :: thisObject
     character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
@@ -10514,12 +10600,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     double precision                   , dimension(:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                    , intent(inout)           :: thisObject
@@ -10806,13 +10894,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double 4-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                 , intent(inout)           :: thisObject
@@ -11097,10 +11187,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_5D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 5-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                      , intent(inout)           :: thisObject
     character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
@@ -11278,12 +11369,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     double precision                   , dimension(:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                      , intent(inout)           :: thisObject
@@ -11570,13 +11663,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double 5-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                   , intent(inout)           :: thisObject
@@ -11860,10 +11955,11 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Double_6D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 6-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                        , intent(inout)           :: thisObject
     character       (len=*         )                        , intent(in   ), optional :: commentText                 , datasetName
@@ -12041,12 +12137,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                         H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                         h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                         h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
     implicit none
     double precision                   , dimension(:,:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                        , intent(inout)           :: thisObject
@@ -12332,14 +12430,16 @@ contains
   end subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
-    !% Open and read a double 5-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
-          &                          H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
-          &                          h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
-          &                          h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                          h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    !% Open and read a double 6-D array dataset in {\normalfont \ttfamily thisObject}.
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG    , HID_T             , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f         , h5dread_f         , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f             , h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)      , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                     , intent(inout)           :: thisObject
@@ -12623,11 +12723,12 @@ contains
 
   subroutine IO_HDF5_Write_Dataset_Character_1D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a character 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5S_SELECT_SET_F       , H5T_NATIVE_CHARACTER       , HID_T                , HSIZE_T   , &
-          &                         h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
-          &                         h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, h5tclose_f, &
-          &                         h5tcopy_f              , h5tset_size_f              , hsize_t              , size_t
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_CHARACTER       , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, h5tclose_f, &
+          &                           h5tcopy_f              , h5tset_size_f              , hsize_t              , size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
@@ -12832,12 +12933,14 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a character scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
-          &                         HID_T                  , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
-          &                         h5dread_f              , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
-          &                         h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                         h5tclose_f             , hdset_reg_ref_t_f     , hsize_t
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
+          &                                      HID_T                  , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
+          &                                      h5dread_f              , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
+          &                                      h5tclose_f             , hdset_reg_ref_t_f     , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
     implicit none
     character(len=*            ), dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )              , intent(inout)           :: thisObject
@@ -13139,13 +13242,15 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: HDF5             , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
-          &                          HID_T                  , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
-          &                          h5dread_f              , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
-          &                          h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                          h5tclose_f             , hdset_reg_ref_t_f     , hsize_t
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
+          &                                      HID_T                  , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
+          &                                      h5dread_f              , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
+          &                                      h5screate_simple_f     , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
+          &                                      h5tclose_f             , hdset_reg_ref_t_f     , hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , trim
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     character(len=*            ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                           , intent(inout)           :: thisObject
@@ -13445,8 +13550,9 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable(thisObject,datasetName,datasetValue)
     !% Open and read an varying string 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5dget_type_f, h5tclose_f, h5tget_size_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5dget_type_f, h5tclose_f, h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     type     (varying_string), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -13533,7 +13639,8 @@ contains
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
     !% Open and read an varying string 1-D array dataset in {\normalfont \ttfamily thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
-    use :: Memory_Management, only : Memory_Usage_Record, deallocateArray
+    use :: ISO_Varying_String, only : assignment(=)
+    use :: Memory_Management , only : Memory_Usage_Record, deallocateArray
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object      )                           , intent(inout)           :: thisObject
@@ -13555,8 +13662,9 @@ contains
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static(thisObject,datasetName,datasetValue)
     !% Open and read an varying string 1-D array dataset in {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : HID_T                  , h5dget_type_f, h5tclose_f, h5tget_size_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : HID_T                  , h5dget_type_f, h5tclose_f, h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//) , trim
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )              , intent(inout)           :: thisObject
@@ -13643,6 +13751,7 @@ contains
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
     !% Open and read an varying string 1-D array dataset in {\normalfont \ttfamily thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type     (varying_string  ), dimension(:)                 , intent(  out)           :: datasetValue
     class    (hdf5Object      )                               , intent(inout)           :: thisObject
@@ -13663,10 +13772,11 @@ contains
 
   subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
     !% Open and read a real 1D array from a table {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: H5TB             , only : h5tbget_table_info_f   , h5tbread_field_name_f
-    use :: HDF5             , only : H5T_NATIVE_REAL        , HSIZE_T              , h5tget_size_f
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: H5TB              , only : h5tbget_table_info_f   , h5tbread_field_name_f
+    use :: HDF5              , only : H5T_NATIVE_REAL        , HSIZE_T              , h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     real                     , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -13746,10 +13856,11 @@ contains
 
   subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
     !% Open and read an integer 1D array from a table {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: H5TB             , only : h5tbget_table_info_f   , h5tbread_field_name_f
-    use :: HDF5             , only : H5T_NATIVE_REAL        , HSIZE_T              , h5tget_size_f
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: H5TB              , only : h5tbget_table_info_f   , h5tbread_field_name_f
+    use :: HDF5              , only : H5T_NATIVE_REAL        , HSIZE_T              , h5tget_size_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer                  , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )                           , intent(inout)           :: thisObject
@@ -13827,11 +13938,13 @@ contains
 
   subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
     !% Open and read a real scalar from a table {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: H5TB             , only : h5tbget_table_info_f
-    use :: HDF5             , only : H5T_NATIVE_INTEGER_8   , HSIZE_T        , h5tget_size_f
-    use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: H5TB              , only : h5tbget_table_info_f
+    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HSIZE_T        , h5tget_size_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc                  , c_null_char
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     integer  (kind=kind_int8     ), allocatable, dimension(:), intent(  out), target   :: datasetValue
     class    (hdf5Object         )                           , intent(inout)           :: thisObject
@@ -13911,10 +14024,11 @@ contains
 
   subroutine IO_HDF5_Read_Table_Character_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
     !% Open and read a real 1D array from a table {\normalfont \ttfamily thisObject}.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: H5TB             , only : h5tbget_table_info_f   , h5tbread_field_name_f
-    use :: HDF5             , only : HSIZE_T
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: H5TB              , only : h5tbget_table_info_f   , h5tbread_field_name_f
+    use :: HDF5              , only : HSIZE_T
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
     character(len=*                ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object           )                           , intent(inout)           :: thisObject
@@ -13999,11 +14113,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 1-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                         HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                         h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
+          &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
+          &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14116,11 +14232,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_2D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 2-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                         HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                         h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
+          &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
+          &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14233,11 +14351,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_3D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 3-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                         HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                         h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
+          &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
+          &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14350,11 +14470,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_4D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 4-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                         HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                         h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
+          &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
+          &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14467,11 +14589,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_5D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 5-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                         HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                         h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                         h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
+          &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
+          &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
+          &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14584,9 +14708,10 @@ contains
 
   logical function IO_HDF5_Is_Reference(thisDataset)
     !% Return true if the input dataset is a scalar reference.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : H5T_STD_REF_DSETREG    , HID_T, h5dget_type_f, h5tclose_f, &
-          &                         h5tequal_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5T_STD_REF_DSETREG    , HID_T, h5dget_type_f, h5tclose_f, &
+          &                           h5tequal_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class  (hdf5Object    ), intent(in   ) :: thisDataset
     integer                                :: errorCode
@@ -14625,8 +14750,9 @@ contains
 
   subroutine IO_HDF5_Copy(self,source,targetObject)
     !% Copy the named object to the target object.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5            , only : h5ocopy_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : h5ocopy_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    ), intent(in   ) :: self
     character(len=*         ), intent(in   ) :: source
@@ -14672,7 +14798,8 @@ contains
 
   subroutine IO_HDF5_Deep_Copy(self,destination)
     !% Make a deep copy of the object, with a new HDF5 object identifier.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(hdf5Object) , intent(in   ) :: self
     type (hdf5Object) , intent(inout) :: destination

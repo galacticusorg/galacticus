@@ -22,7 +22,7 @@
 
   use               :: Galactic_Filters                        , only : galacticFilterClass
   use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
-  use               :: ISO_Varying_String
+  use               :: ISO_Varying_String                      , only : varying_string
   use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
   !$ use            :: OMP_Lib                                 , only : omp_lock_kind
   use               :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerClass

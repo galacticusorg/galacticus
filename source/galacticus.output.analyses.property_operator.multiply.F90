@@ -72,7 +72,7 @@ contains
 
   double precision function multiplyOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an multiply output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorMultiply), intent(inout)           :: self
     double precision                                        , intent(in   )           :: propertyValue

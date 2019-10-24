@@ -89,7 +89,7 @@ contains
   double precision function standardTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple} and
     !% {\normalfont \ttfamily satellite} timesteps.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
     type            (treeNode                        ), intent(inout), target            :: node

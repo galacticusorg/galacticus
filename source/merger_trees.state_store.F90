@@ -21,7 +21,7 @@
 
 module Merger_Tree_State_Store
   !% Provides state store/restore functionality for merger trees.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   public
 
   integer(c_size_t  ) :: treeStateStoreSequence=-1_c_size_t
@@ -35,7 +35,7 @@ contains
   subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID
@@ -52,7 +52,7 @@ contains
   subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID

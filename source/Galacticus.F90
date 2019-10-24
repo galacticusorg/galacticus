@@ -30,7 +30,7 @@ program Galacticus
   use    :: Galacticus_Error_Wait               , only : Galacticus_Error_Wait_Set_From_Parameters
   use    :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use    :: Galacticus_Output_Open              , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
-  use    :: ISO_Varying_String
+  use    :: ISO_Varying_String                  , only : varying_string                           , assignment(=)
   use    :: Input_Parameters                    , only : inputParameter                           , inputParameters
 #ifdef USEMPI
   use    :: MPI                                 , only : MPI_Thread_Single                        , MPI_Thread_Multiple        , MPI_Comm_World

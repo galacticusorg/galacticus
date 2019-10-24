@@ -99,7 +99,7 @@ contains
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSimple), intent(inout), target            :: self
     type            (treeNode                      ), intent(inout), target            :: node

@@ -126,7 +126,6 @@ contains
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionBetaProfile
     use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileVirial
-    use :: ISO_Varying_String
     implicit none
     type (coolingRadiusBetaProfile      )                        :: self
     class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_

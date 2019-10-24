@@ -133,7 +133,7 @@ contains
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use            :: FGSL                          , only : fgsl_interp_accel
     use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Numerical_Interpolation       , only : Interpolate_Done      , Interpolate_Locate
     use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities
     use            :: Stellar_Populations           , only : stellarPopulationClass

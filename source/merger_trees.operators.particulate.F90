@@ -27,7 +27,7 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: HDF5                    , only : hsize_t
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String      , only : varying_string
   use :: Input_Parameters        , only : inputParameters
   use :: Kind_Numbers            , only : kind_int8
   use :: Tables                  , only : table1D                  , table1DLogarithmicCSpline
@@ -343,7 +343,7 @@ contains
     use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition, nodeComponentSatellite, &
           &                                              treeNode
     use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
-    use    :: ISO_Varying_String
+    use    :: ISO_Varying_String                , only : varying_string
     use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
     use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
     use    :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize

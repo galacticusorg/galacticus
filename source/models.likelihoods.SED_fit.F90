@@ -170,7 +170,7 @@ contains
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_) result(self)
     !% Constructor for ``sedFit'' posterior sampling likelihood class.
     use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String , only : var_str                , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index       , Filter_Vega_Offset, Filter_Wavelength_Effective
     use :: Memory_Management  , only : allocateArray
     implicit none
@@ -234,7 +234,7 @@ contains
     use            :: FGSL                             , only : FGSL_Integ_Gauss61                  , fgsl_function                            , fgsl_integration_workspace
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Models_Likelihoods_Constants     , only : logImpossible
     use            :: Numerical_Integration            , only : Integrate                           , Integrate_Done
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass

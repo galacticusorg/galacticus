@@ -50,7 +50,7 @@ contains
 
   double precision function antiLog10Operate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an antiLog10 output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none
     class           (outputAnalysisPropertyOperatorAntiLog10), intent(inout)           :: self

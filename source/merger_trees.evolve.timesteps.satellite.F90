@@ -84,7 +84,7 @@ contains
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSatellite), intent(inout), target            :: self
     type            (treeNode                         ), intent(inout), target            :: node
@@ -152,7 +152,7 @@ contains
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     !# <include directive="satelliteMergerTask" type="moduleUse">

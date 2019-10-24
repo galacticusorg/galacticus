@@ -224,13 +224,12 @@ contains
 
   subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
     !% Tabulate the halo spin distribution.
-    use            :: FGSL                          , only : fgsl_function                , fgsl_integration_workspace
-    use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: Memory_Management             , only : allocateArray                , deallocateArray
-    use            :: Numerical_Integration         , only : Integrate                    , Integrate_Done
+    use :: FGSL                          , only : fgsl_function                , fgsl_integration_workspace
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use :: Memory_Management             , only : allocateArray                , deallocateArray
+    use :: Numerical_Integration         , only : Integrate                    , Integrate_Done
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &

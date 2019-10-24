@@ -22,7 +22,7 @@
 module Node_Component_Merging_Statistics_Recent
   !% Implements the recent merging statistics component.
   use            :: Dark_Matter_Halo_Scales                      , only : darkMatterHaloScaleClass
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding                                , only : c_size_t
   use            :: Node_Component_Merging_Statistics_Recent_Data, only : Node_Component_Merging_Statistics_Recent_Count
   use            :: Output_Times                                 , only : outputTimesClass
   implicit none
@@ -72,7 +72,7 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Initialize(globalParameters_)
     !% Initializes the recent merging statistics component.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : char                   , var_str        , varying_string
     use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
@@ -191,7 +191,7 @@ contains
     !% Record any major merger of {\normalfont \ttfamily node}.
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use            :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     type            (treeNode                      ), intent(inout)         , pointer :: node
     type            (treeNode                      )                        , pointer :: nodeDescendent

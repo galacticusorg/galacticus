@@ -21,7 +21,6 @@
 
 module FFTW3
   !% Imports the FFTW3 library Fortran interface.
-  use, intrinsic :: ISO_C_Binding
   private
   public  :: FFTW_Wavenumber , FFTW_Forward     , FFTW_Estimate, FFTW_Plan_DFT_3D, &
        &     FFTW_Execute_DFT, FFTW_Destroy_Plan

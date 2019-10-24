@@ -73,7 +73,7 @@ contains
 
   double precision function metallicity12LogNHOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an metallicity output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
     use            :: Numerical_Constants_Atomic, only : atomicMassHydrogen
     implicit none
     class           (outputAnalysisPropertyOperatorMetallicity12LogNH), intent(inout)           :: self

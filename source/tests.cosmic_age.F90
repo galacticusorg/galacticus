@@ -23,7 +23,7 @@ program Tests_Cosmic_Age
   use :: Cosmology_Functions     , only : cosmologyFunctions            , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple     , hubbleUnitsTime
   use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String      , only : varying_string                , assignment(=)
   use :: Input_Parameters        , only : inputParameters
   use :: Numerical_Constants_Math, only : Pi
   use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group              , Unit_Tests_Finish

@@ -21,7 +21,7 @@
 !: $(BUILDPATH)/utility.hashes.cryptographic.md5.o
 
 module Hashes_Cryptographic
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_char, c_int
   private
   public :: Hash_MD5
 
@@ -38,7 +38,8 @@ module Hashes_Cryptographic
 contains
 
   function Hash_MD5(text)
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : assignment(=)      , extract, len, operator(//), &
+          &                           varying_string
     use :: String_Handling   , only : String_C_to_Fortran, char
     implicit none
     type     (varying_string)                               :: Hash_MD5

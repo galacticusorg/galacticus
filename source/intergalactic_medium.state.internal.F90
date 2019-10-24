@@ -116,7 +116,7 @@ contains
   double precision function internalElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the internal model.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -163,7 +163,7 @@ contains
   double precision function internalNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -203,7 +203,7 @@ contains
   double precision function internalNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction of the \gls{igm} in the internal model.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)  :: self
@@ -243,7 +243,7 @@ contains
   double precision function internalSinglyIonizedHeliumFraction(self,time)
     !% Return the singly ionized helium fraction of the \gls{igm} in the internal model.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -283,7 +283,7 @@ contains
   double precision function internalTemperature(self,time)
     !% Return the temperature of the \gls{igm} in the internal model.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self

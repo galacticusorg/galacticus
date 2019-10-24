@@ -21,7 +21,7 @@
 
 module Geometry_Surveys
   !% Implements geometries of galaxy surveys.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_double_complex
   private
 
   !# <functionClass>

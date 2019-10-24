@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling convergence class which resume converges.
 
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
   !#  <description>A posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.</description>

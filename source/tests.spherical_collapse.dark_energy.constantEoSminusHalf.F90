@@ -28,7 +28,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
   use :: Input_Parameters          , only : inputParameters
   use :: Linear_Growth             , only : linearGrowth                  , linearGrowthClass
   use :: Numerical_Constants_Math  , only : Pi

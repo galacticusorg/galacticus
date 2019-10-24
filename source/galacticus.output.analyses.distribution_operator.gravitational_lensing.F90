@@ -88,7 +88,7 @@ contains
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource) result(self)
     !% Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                        :: self
     class           (gravitationalLensingClass                    ), intent(in   ), target :: gravitationalLensing_

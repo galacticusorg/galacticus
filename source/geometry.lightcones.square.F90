@@ -259,7 +259,7 @@ contains
   function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi                     , e
     use :: Sort                    , only : Sort_Do
@@ -408,7 +408,7 @@ contains
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
     use            :: Arrays_Search   , only : Search_Array_For_Closest
     use            :: Galacticus_Nodes, only : nodeComponentBasic      , nodeComponentPosition, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
     class  (geometryLightconeSquare), intent(inout) :: self
@@ -430,8 +430,8 @@ contains
     use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
           &                                        nodeComponentSatellite   , treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
+    use            :: ISO_Varying_String  , only : varying_string
     use            :: Memory_Management   , only : allocateArray
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
@@ -614,8 +614,8 @@ contains
     use            :: Arrays_Search       , only : Search_Array_For_Closest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
+    use            :: ISO_Varying_String  , only : varying_string
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
@@ -671,7 +671,7 @@ contains
   subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
     !% Compute quantities related to the number of replicants in which a node appears.
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Vectors         , only : Vector_Magnitude
     implicit none
     class           (geometryLightconeSquare), intent(inout)                           :: self
@@ -818,7 +818,7 @@ contains
 
   function squarePositionAtOutput(self,output,nodePosition,instance)
     !% Return the position of the node in lightcone coordinates.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     double precision                                        , dimension(3) :: squarePositionAtOutput
     class           (geometryLightconeSquare), intent(inout)               :: self

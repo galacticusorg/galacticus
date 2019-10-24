@@ -19,9 +19,8 @@
 
 !% Contains a module which implements a cosmological luminosity distance corrector analysis property operator class.
 
-  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use, intrinsic :: ISO_C_Binding
-  use            :: Output_Times       , only : outputTimesClass
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Output_Times       , only : outputTimesClass
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc">
   !#  <description>A cosmological luminosity distance corrector analysis property operator class.</description>
@@ -72,7 +71,7 @@ contains
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self

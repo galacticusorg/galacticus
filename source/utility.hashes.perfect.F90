@@ -23,7 +23,7 @@ module Hashes_Perfect
   !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   !% specific implementation follows the general structure of that given in a Dr. Dobbs
   !% \href{http://drdobbs.com/architecture-and-design/184404506}{article}.
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: hashPerfect
 

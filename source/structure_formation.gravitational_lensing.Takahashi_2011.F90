@@ -314,17 +314,16 @@ contains
 
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
     !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
-    use            :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
-    use            :: File_Utilities       , only : Directory_Make              , File_Exists
-    use            :: Galacticus_Error     , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
-    use            :: IO_HDF5              , only : hdf5Access                  , hdf5Object
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Comparison , only : Values_Differ
-    use            :: Numerical_Integration, only : Integrate                   , Integrate_Done
-    use            :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
-    use            :: Root_Finder          , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use            :: Table_Labels         , only : extrapolationTypeExtrapolate, extrapolationTypeFix
+    use :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
+    use :: File_Utilities       , only : Directory_Make              , File_Exists
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
+    use :: IO_HDF5              , only : hdf5Access                  , hdf5Object
+    use :: Numerical_Comparison , only : Values_Differ
+    use :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
+    use :: Root_Finder          , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Table_Labels         , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource

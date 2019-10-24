@@ -24,8 +24,8 @@ program Test_Stellar_Populations
   use :: Abundances_Structure                      , only : abundances
   use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set         , verbosityWorking
   use :: Galacticus_Paths                          , only : galacticusPath                         , pathTypeDataStatic
-  use :: ISO_Varying_String
   use :: Input_Parameters                          , only : inputParameters
+  use :: ISO_Varying_String                        , only : char
   use :: Numerical_Constants_Astronomical          , only : metallicitySolar
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
   use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile

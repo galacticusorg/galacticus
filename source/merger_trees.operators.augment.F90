@@ -19,7 +19,7 @@
 
   !% Contains a module which implements an augmenting operator on merger trees.
   use            :: Cosmology_Functions  , only : cosmologyFunctionsClass
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding        , only : c_size_t
   use            :: Merger_Trees_Builders, only : mergerTreeBuilderClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorAugment">
@@ -299,7 +299,7 @@ contains
     use            :: Galacticus_Display , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
           &                                       verbosityWorking
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic        , treeNode                   , treeNodeList
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     use            :: Sort               , only : Sort_Index_Do
     use            :: String_Handling    , only : operator(//)
@@ -479,7 +479,7 @@ contains
     use            :: Arrays_Search       , only : Search_Array_For_Closest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report , errorStatusSuccess
     use            :: Galacticus_Nodes    , only : mergerTree              , nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
@@ -1355,10 +1355,9 @@ contains
 
   subroutine augmentFinalize(self)
     !% Output augmentation histogram.
-    use :: Galacticus_HDF5   , only : galacticusOutputFile
-    use :: IO_HDF5           , only : hdf5Access          , hdf5Object
-    use :: ISO_Varying_String
-    use :: Memory_Management , only : allocateArray       , deallocateArray
+    use :: Galacticus_HDF5  , only : galacticusOutputFile
+    use :: IO_HDF5          , only : hdf5Access          , hdf5Object
+    use :: Memory_Management, only : allocateArray       , deallocateArray
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)               :: self
     integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount

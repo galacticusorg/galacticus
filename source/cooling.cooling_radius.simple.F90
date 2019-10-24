@@ -125,7 +125,6 @@ contains
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
-    use :: ISO_Varying_String
     implicit none
     type (coolingRadiusSimple           )                        :: self
     class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_

@@ -110,10 +110,9 @@ contains
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     !% \cite{van_hoof_accurate_2014}.
-    use            :: Galacticus_Error            , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Constants_Physical, only : boltzmannsConstant
-    use            :: Numerical_Constants_Units   , only : rydbergs
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant
+    use :: Numerical_Constants_Units   , only : rydbergs
     implicit none
     class           (gauntFactorVanHoof2014), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber

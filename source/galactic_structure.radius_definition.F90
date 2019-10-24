@@ -21,7 +21,7 @@
 
 module Galactic_Structure_Radii_Definitions
   !% Provides parsing of radii definitions used in output specifiers.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String, only : varying_string
   private
   public :: radiusSpecifier, Galactic_Structure_Radii_Definition_Decode
 
@@ -67,10 +67,12 @@ contains
 
   subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,radiusVirialRequired,radiusScaleRequired)
     !% Decode a set of radii descriptors and return the corresponding specifiers.
-    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass, &
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass , &
           &                                       weightIndexNull
     use :: Galacticus_Error              , only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, treeNode
+    use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=), &
+         &                                        operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: String_Handling               , only : String_Count_Words               , String_Split_Words       , char
     implicit none

@@ -153,12 +153,12 @@ contains
 
   subroutine Atomic_Data_Initialize
     !% Ensure that the module is initialized by reading in data.
-    use :: FoX_dom           , only : node                   , nodeList                         , parseFile, getElementsByTagname, &
-         &                            getLength              , extractDataContent               , item     , destroy
+    use :: FoX_dom           , only : destroy                , extractDataContent               , getElementsByTagname, getLength, &
+          &                           item                   , node                             , nodeList            , parseFile
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
     use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : char
     use :: Memory_Management , only : Memory_Usage_Record    , allocateArray
     use :: String_Handling   , only : String_Lower_Case      , char
     implicit none

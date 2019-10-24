@@ -21,7 +21,7 @@
 
 module Chemical_Structures
   !% Implements structures that describe chemicals.
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String          , only : varying_string
   use :: Numerical_Constants_Atomic  , only : atomicMassHydrogen, atomicMassUnit
   use :: Numerical_Constants_Physical, only : electronMass
   implicit none
@@ -100,10 +100,11 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use :: FoX_dom         , only : Node                   , NodeList          , destroy, extractDataContent, &
-          &                         getElementsByTagname   , getLength         , item   , parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataStatic
+    use :: FoX_dom           , only : Node                   , NodeList          , destroy, extractDataContent, &
+          &                           getElementsByTagname   , getLength         , item   , parseFile
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
+    use :: ISO_Varying_String, only : char                   , assignment(=)
     implicit none
     type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
     type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList
@@ -180,8 +181,9 @@ contains
 
   subroutine Chemical_Structure_Export(thisChemical,outputFile)
     !% Export a chemical structure to a chemical markup language (CML) file.
-    use :: FoX_wxml, only : xmlf_t        , xml_OpenFile, xml_NewElement, xml_AddCharacters, &
-         &                  xml_EndElement, xml_Close
+    use :: FoX_wxml          , only : xml_AddCharacters, xml_Close, xml_EndElement, xml_NewElement, &
+          &                           xml_OpenFile     , xmlf_t
+    use :: ISO_Varying_String, only : char
     implicit none
     class    (chemicalStructure), intent(in   ) :: thisChemical
     character(len=*            ), intent(in   ) :: outputFile
@@ -253,7 +255,8 @@ contains
 
   integer function Chemical_Database_Get_Index(chemicalName)
     !% Find a chemical in the database and return it.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in   ) :: chemicalName
     integer                         :: iChemical

@@ -38,7 +38,7 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string            , operator(//)       , assignment(=)       , char
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -123,7 +123,8 @@ contains
           &                                         File_Remove
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String              , only : var_str                , varying_string , operator(//)       , char     , &
+         &                                          trim
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
     use :: String_Handling                 , only : operator(//)

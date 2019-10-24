@@ -31,7 +31,7 @@ contains
     !% Promotes a subhalo to be an isolated node.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level    , verbosityInfo
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeComponentMergingStatistics, nodeEvent    , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                 , only : varying_string               , assignment(=)                 , operator(//)
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Merger_Trees_Evolve_Node           , only : mergerTreeNodeEvolver        , mergerTreeNodeEvolverClass
     use :: String_Handling                    , only : operator(//)

@@ -88,7 +88,7 @@ contains
     !% independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
     !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Linear_Algebra     , only : assignment(=)                , matrix            , operator(*), vector
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none

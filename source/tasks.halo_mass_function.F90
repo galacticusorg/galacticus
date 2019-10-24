@@ -293,7 +293,7 @@ contains
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic         , nodeComponentDarkMatterProfile, treeNode
     use            :: IO_HDF5                         , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi

@@ -191,8 +191,7 @@ contains
 
   subroutine simpleRestore(self,stateVector,first)
     !% Restore the state object.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(:) :: stateVector

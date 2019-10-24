@@ -164,7 +164,7 @@ contains
   double precision function fileSpectrum(self,node,wavelength)
     !% Return the accretion disk spectrum for tabulated spectra.
     use            :: Galacticus_Nodes                , only : nodeComponentBlackHole             , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : gigaYear                           , luminositySolar   , massSolar
     use            :: Numerical_Constants_Physical    , only : speedLight
     use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate

@@ -23,8 +23,8 @@
 module Galacticus_State
   !% Implements storage and recovery of the Galacticus internal state. Used for restoring random number
   !% generator sequences for example.
-  use, intrinsic :: ISO_C_Binding
-  use            :: ISO_Varying_String
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: Galacticus_State_Store, Galacticus_State_Retrieve
@@ -54,12 +54,13 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
-    use    :: FGSL           , only : FGSL_Close        , FGSL_Open      , fgsl_file
+    use    :: FGSL              , only : FGSL_Close        , FGSL_Open      , fgsl_file
 #ifdef USEMPI
-    use    :: MPI_Utilities  , only : mpiSelf
+    use    :: MPI_Utilities     , only : mpiSelf
 #endif
-    !$ use :: OMP_Lib        , only : omp_get_thread_num, omp_in_parallel
-    use    :: String_Handling, only : operator(//)
+    !$ use :: OMP_Lib           , only : omp_get_thread_num, omp_in_parallel
+    use    :: ISO_Varying_String, only : operator(//)      , char
+    use    :: String_Handling   , only : operator(//)
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
@@ -129,12 +130,13 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Retrieve
     !% Retrieve the internal state.
-    use    :: FGSL           , only : FGSL_Close        , FGSL_Open      , fgsl_file
+    use    :: FGSL              , only : FGSL_Close        , FGSL_Open      , fgsl_file
 #ifdef USEMPI
-    use    :: MPI_Utilities  , only : mpiSelf
+    use    :: MPI_Utilities     , only : mpiSelf
 #endif
-    !$ use :: OMP_Lib        , only : omp_get_thread_num, omp_in_parallel
-    use    :: String_Handling, only : operator(//)
+    !$ use :: OMP_Lib           , only : omp_get_thread_num, omp_in_parallel
+    use    :: ISO_Varying_String, only : operator(//)      , char
+    use    :: String_Handling   , only : operator(//)
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
@@ -195,7 +197,8 @@ contains
   subroutine State_Initialize
     !% Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to
     !% retrieve a state.
-    use :: Input_Parameters, only : globalParameters, inputParameter
+    use :: Input_Parameters  , only : globalParameters, inputParameter
+    use :: ISO_Varying_String, only : var_str         , operator(/=)
     implicit none
 
     if (.not.stateInitialized) then

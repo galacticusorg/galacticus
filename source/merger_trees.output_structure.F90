@@ -49,7 +49,7 @@ contains
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic      , treeNode
     use :: IO_HDF5                         , only : hdf5Access                   , hdf5Object
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String              , only : varying_string               , assignment(=)           , char
     use :: Input_Parameters                , only : globalParameters             , inputParameter
     use :: Kind_Numbers                    , only : kind_int8
     use :: Memory_Management               , only : allocateArray                , deallocateArray

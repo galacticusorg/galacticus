@@ -1077,12 +1077,12 @@ contains
   subroutine evolveForestsSuspendTree(self,tree)
     !% Suspend processing of a tree.
 #ifdef USEMPI
-    use :: Galacticus_Error         , only : Galacticus_Error_Report
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
 #endif
-    use :: ISO_Varying_String
-    use :: Kind_Numbers             , only : kind_int8
-    use ::  Merger_Tree_Construction, only : mergerTreeStateStore
-    use :: String_Handling          , only : operator(//)
+    use :: ISO_Varying_String      , only : varying_string         , operator(//)
+    use :: Kind_Numbers            , only : kind_int8
+    use :: Merger_Tree_Construction, only : mergerTreeStateStore
+    use :: String_Handling         , only : operator(//)
     implicit none
     class  (taskEvolveForests)         , intent(inout) :: self
     type   (mergerTree       ), pointer, intent(inout) :: tree
@@ -1120,7 +1120,7 @@ contains
 
   subroutine evolveForestsResumeTree(self,tree)
     !% Resume processing of a tree.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String      , only : varying_string         , operator(//)
     use :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use :: String_Handling         , only : operator(//)
     implicit none

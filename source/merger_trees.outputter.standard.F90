@@ -229,7 +229,7 @@ contains
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic       , treeNode
     use            :: IO_HDF5                       , only : hdf5Access                   , hdf5Object
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
     use            :: Multi_Counters                , only : multiCounter
     use            :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
@@ -451,7 +451,7 @@ contains
   subroutine standardMakeGroup(self,tree,indexOutput)
     !% Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}.
     use            :: Galacticus_Nodes                , only : mergerTree
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : megaParsec
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -510,7 +510,7 @@ contains
   subroutine standardDumpDoubleBuffer(self,indexOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
     use            :: IO_HDF5      , only : hdf5Access, hdf5DataTypeDouble
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -624,7 +624,7 @@ contains
 
   subroutine standardBuffersAllocate(self,indexOutput)
     !% Allocate buffers for storage of properties.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self

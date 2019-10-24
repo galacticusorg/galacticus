@@ -32,7 +32,7 @@ contains
 
   subroutine Galacticus_Version(gitHash_,gitBranch_,buildTime_)
     !% Return version information
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     character(len=42        ), intent(  out), optional :: gitHash_
     type     (varying_string), intent(  out), optional :: gitBranch_  , buildTime_
@@ -45,7 +45,7 @@ contains
 
   function Galacticus_Version_String()
     !% Returns a string describing the version of \glc.
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : var_str, varying_string, operator(//)
     implicit none
     type(varying_string) :: Galacticus_Version_String
 
@@ -60,13 +60,13 @@ contains
     !% Output version information to the main output file.
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : parseFile                        , extractDataContent, destroy, node
+    use :: FoX_dom           , only : destroy                          , extractDataContent, node, parseFile
     use :: FoX_utils         , only : generate_UUID
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_HDF5   , only : galacticusOutputFile
     use :: IO_HDF5           , only : hdf5Access                       , hdf5Object
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode
     integer                            :: ioErr

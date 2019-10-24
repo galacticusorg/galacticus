@@ -249,10 +249,9 @@ contains
 
   double precision function enzoHydrostaticRadialMoment(self,node,moment,radius)
     !% Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use            :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
-    use            :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Integration, only : Integrate           , Integrate_Done
+    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
+    use :: Numerical_Integration, only : Integrate           , Integrate_Done
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

@@ -29,7 +29,7 @@ program Test_Stellar_Populations_Luminosities
   use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set               , verbosityWorking
   use :: Galacticus_Output_Open                    , only : Galacticus_Output_Close_File                 , Galacticus_Output_Open_File
   use :: Galacticus_Paths                          , only : galacticusPath                               , pathTypeDataDynamic                      , pathTypeDataStatic
-  use :: ISO_Varying_String
+  use :: ISO_Varying_String                        , only : var_str                                      , char
   use :: Input_Parameters                          , only : inputParameters
   use :: Instruments_Filters                       , only : Filter_Get_Index
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                          , stellarAstrophysicsFile

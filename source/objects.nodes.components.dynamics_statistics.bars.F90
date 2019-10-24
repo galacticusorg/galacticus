@@ -226,8 +226,8 @@ contains
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars, treeNode
     use            :: IO_HDF5                         , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding
-    use            :: ISO_Varying_String
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: ISO_Varying_String              , only : assignment(=)                  , char                               , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear
     use            :: String_Handling                 , only : operator(//)

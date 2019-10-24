@@ -203,7 +203,7 @@ contains
     !% Update the differential evolution simulator state.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
           &                           verbosityInfo
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none

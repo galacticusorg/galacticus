@@ -78,7 +78,7 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
     use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String        , only : varying_string            , assignment(=)                , operator(//)
     use :: Kind_Numbers              , only : kind_int8
     use :: Root_Finder               , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: String_Handling           , only : operator(//)
@@ -167,7 +167,6 @@ contains
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic       , treeNode
-    use :: ISO_Varying_String
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode

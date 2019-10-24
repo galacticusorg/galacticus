@@ -604,7 +604,7 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile         , treeNode
     use            :: Gamma_Functions        , only : Gamma_Function_Incomplete_Complementary
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate                            , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
@@ -721,7 +721,7 @@ contains
   double precision function einastoRadiusFromSpecificAngularMomentumScaleFree(self,alpha,specificAngularMomentumScaleFree)
     !% Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
     !% profile.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate, Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)  :: self
@@ -874,7 +874,7 @@ contains
   double precision function einastoEnergy(self,node)
     !% Return the energy of an Einasto halo density profile.
     use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile     , treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate       , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
@@ -925,7 +925,7 @@ contains
   double precision function einastoEnergyGrowthRate(self,node)
     !% Return the energy of an Einasto halo density profile.
     use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate       , Interpolate_Derivative        , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
@@ -1208,7 +1208,7 @@ contains
   double precision function einastoKSpace(self,node,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)).
     use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile, treeNode
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Interpolation, only : Interpolate                   , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   )                , intent(inout)          :: self
@@ -1421,7 +1421,7 @@ contains
     !% Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
     use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
     use            :: Numerical_Interpolation         , only : Interpolate                            , Interpolate_Linear_Generate_Factors, Interpolate_Locate
@@ -1495,7 +1495,7 @@ contains
     !% Gyr).
     use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
     use            :: Numerical_Interpolation         , only : Interpolate_Derivative                 , Interpolate_Linear_Generate_Factors, Interpolate_Locate

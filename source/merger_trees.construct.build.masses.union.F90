@@ -99,7 +99,7 @@ contains
   subroutine unionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray          , deallocateArray
     use            :: Sort             , only : Sort_Index_Do
     implicit none

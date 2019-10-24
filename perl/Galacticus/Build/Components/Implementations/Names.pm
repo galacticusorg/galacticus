@@ -35,6 +35,10 @@ sub Implementation_Type {
 	type        => "type(varying_string) => name",
 	name        => $implementationTypeName."Type",
 	description => "Returns the type name for the ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component class.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {

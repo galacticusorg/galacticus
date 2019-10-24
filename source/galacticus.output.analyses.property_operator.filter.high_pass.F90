@@ -72,7 +72,7 @@ contains
 
   double precision function filterHighPassOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an filterHighPass output analysis property operator.
-    use, intrinsic :: ISO_C_Binding
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorFilterHighPass), intent(inout)           :: self
     double precision                                              , intent(in   )           :: propertyValue

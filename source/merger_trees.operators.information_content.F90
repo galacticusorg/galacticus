@@ -20,7 +20,7 @@
   !% Contains a module which implements a merger tree operator which computes the cladistic
   !% information content \cite{thorley_information_1998} of merger trees.
 
-  use, intrinsic :: ISO_C_Binding
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
 
   !# <mergerTreeOperator name="mergerTreeOperatorInformationContent">

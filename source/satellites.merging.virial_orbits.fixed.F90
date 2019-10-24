@@ -114,7 +114,7 @@ contains
     use :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Verbosity_Level_Set, verbosityStandard
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                  , only : varying_string
     implicit none
     type            (keplerOrbit       )                        :: fixedOrbit
     class           (virialOrbitFixed  ), intent(inout), target :: self

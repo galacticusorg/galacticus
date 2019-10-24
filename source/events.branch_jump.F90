@@ -31,7 +31,7 @@ contains
     !% Moves a satellite node to a different branch of the merger tree.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
     use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                 , only : varying_string               , assignment(=), operator(//)
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     !# <include directive="branchJumpPostProcess" type="moduleUse">

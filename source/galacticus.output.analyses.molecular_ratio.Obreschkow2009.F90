@@ -148,9 +148,8 @@ contains
 
   double precision function obreschkow2009Ratio(self,massISM,node)
     !% Compute the molecular fraction in the {\normalfont \ttfamily obreschkow2009} class.
-    use            :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
-    use, intrinsic :: ISO_C_Binding
-    use            :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
+    use :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
     implicit none
     class           (outputAnalysisMolecularRatioObreschkow2009), intent(inout) :: self
     double precision                                            , intent(in   ) :: massISM

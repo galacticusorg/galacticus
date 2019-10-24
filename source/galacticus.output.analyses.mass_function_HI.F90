@@ -231,7 +231,7 @@ contains
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: Geometry_Surveys                        , only : surveyGeometryClass
-    use :: ISO_Varying_String
+    use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassISM
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
