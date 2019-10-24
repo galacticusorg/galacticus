@@ -353,7 +353,7 @@ contains
     {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   )               :: Value
     type            (varying_string        )                         , intent(in   )               :: Key
     class           ({Type¦label}ScalarHash)                         , intent(inout)               :: thisHash
-    integer         (c_size_t              )                                                       :: iKey
+    integer         (c_size_t              )                                                       :: iKey           , i
     logical                                                                                        :: keyExists
     type            ({Type¦label}Container )                         , allocatable  , dimension(:) :: valuesTemporary
     type            (varying_string        )                         , allocatable  , dimension(:) :: keysTemporary
@@ -402,11 +402,13 @@ contains
           thisHash%hashValues  (thisHash%elementCount)%object {Type¦assignment} value
        else
           ! Shift array then insert.
-          thisHash%hashKeys        (iKey+2:thisHash%elementCount+1)        =                 thisHash%hashKeys  (iKey+1:thisHash%elementCount)
-          thisHash%hashValues      (iKey+2:thisHash%elementCount+1)        =                 thisHash%hashValues(iKey+1:thisHash%elementCount)
-          thisHash%hashKeys        (iKey+1                        )        =                 key
-          thisHash%hashValues      (iKey+1                        )%object {Type¦assignment} value
-          thisHash%elementCount                                            =                 thisHash%elementCount+1
+          do i=thisHash%elementCount+1,iKey+2,-1
+             thisHash%hashKeys    (i     )        =                 thisHash%hashKeys    (i-1)
+             thisHash%hashValues  (i     )        =                 thisHash%hashValues  (i-1)
+          end do
+          thisHash   %hashKeys    (iKey+1)        =                 key
+          thisHash   %hashValues  (iKey+1)%object {Type¦assignment} value
+          thisHash   %elementCount                =                 thisHash%elementCount     +1
        end if
     end if
     return

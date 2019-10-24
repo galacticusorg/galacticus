@@ -39,12 +39,21 @@ program Test_Hashes
   ! Tests of integer scalar hashes.
   !! Initialize the hash.
   call myHash%initialize()
-  !! Create some entries in the hash.
+  !! Create some entries in the hash. These are chosen to ensure that the hash must be re-ordered as they entries are added - this
+  !! therefore tests that the re-ordering works correctly.
+  call myHash%set("node092", 34)
+  call myHash%set("node078", 12)
+  call myHash%set("node077",-86)
+  call Assert("hash entries exist",                                                         &
+       &      [myHash%exists("node092"),myHash%exists("node078"),myHash%exists("node077")], &
+       &      [.true.                  ,.true.                  ,.true.                  ]  &
+       &     )
+  !! Create some more entries in the hash. 
   call myHash%set("dude"    , 34)
   call myHash%set("zuncular", 12)
   call myHash%set("munky"   ,-86)
   !! Assert the size of the hash.
-  call Assert("hash size is correct",myHash%size(),3)
+  call Assert("hash size is correct",myHash%size(),6)
   !! Assert that the set entries exist.
   call Assert("hash entries exist",                                                      &
        &      [myHash%exists("dude") ,myHash%exists("munky"),myHash%exists("zuncular")], &
