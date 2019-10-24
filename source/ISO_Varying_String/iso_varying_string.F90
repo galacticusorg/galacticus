@@ -85,6 +85,7 @@ module iso_varying_string
 ! Interface blocks
 
   interface assignment(=)
+     module procedure op_assign_VS_VS
      module procedure op_assign_CH_VS
      module procedure op_assign_VS_CH
   end interface assignment(=)
@@ -314,6 +315,7 @@ module iso_varying_string
   public :: replace
   public :: split
 
+  private :: op_assign_VS_VS
   private :: op_assign_CH_VS
   private :: op_assign_VS_CH
   private :: op_concat_VS_VS
@@ -415,6 +417,31 @@ module iso_varying_string
 contains
 
 !****
+
+  elemental subroutine op_assign_VS_VS (var, exp)
+
+    type(varying_string), intent(inout) :: var
+    type(varying_string), intent(in)    :: exp
+
+    integer                             :: length
+    integer                             :: i_char
+
+! Assign a varying string to another varying string
+
+    if (allocated(var%chars)) deallocate(var%chars)
+
+    length = LEN(exp)
+    ALLOCATE(var%chars(length))
+
+    forall(i_char = 1:length)
+       var%chars(i_char) = exp%chars(i_char)
+    end forall
+
+! Finish
+
+    return
+
+  end subroutine op_assign_VS_VS
 
   elemental subroutine op_assign_CH_VS (var, exp)
 

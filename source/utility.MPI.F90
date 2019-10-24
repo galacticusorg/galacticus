@@ -258,7 +258,8 @@ contains
     use :: Memory_Management , only : allocateArray
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Hashes            , only : integerScalarHash
-    use :: ISO_Varying_String, only : assignment(=)          , operator(==)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(==), var_str, operator(//), char
+    use :: String_Handling   , only : operator(//)
 #endif
     implicit none
     integer                              , optional    , intent(in   ) :: mpiThreadingRequired
@@ -269,6 +270,7 @@ contains
     character(len=MPI_Max_Processor_Name), dimension(1)                :: processorName
     character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
     type     (integerScalarHash         )                              :: processCount
+    type     (varying_string            )                              :: message
     !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
 
     if (mpiThreadingRequired_ == MPI_Thread_Single) then
@@ -307,10 +309,17 @@ contains
     mpiself%nodeCountValue=processCount%size()
     allocate(mpiSelf%nodeAffinities(0:mpiSelf%countValue-1))
     mpiSelf%nodeAffinities=-1
-    do i=1,mpiSelf%nodeCountValue
-       do iProcess=0,mpiSelf%countValue-1
+    do iProcess=0,mpiSelf%countValue-1
+       do i=1,mpiSelf%nodeCountValue
           if (trim(processorNames(iProcess)) == processCount%key(i)) mpiSelf%nodeAffinities(iProcess)=i
        end do
+       if (mpiSelf%nodeAffinities(iProcess) < 0) then
+          message=var_str('failed to determine node affinity for process ')//iProcess//' with processor name "'//processorNames(iProcess)//' - known processor names are:'
+          do i=1,mpiSelf%nodeCountValue
+             message=message//char(10)//'   '//processCount%key(i)
+          end do
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
     end do
     deallocate(processorNames)
     ! Record that MPI is active.

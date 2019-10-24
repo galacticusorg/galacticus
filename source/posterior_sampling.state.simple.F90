@@ -103,6 +103,7 @@ contains
 
     self%parameterCount=parameterCount
     allocate(self%current(parameterCount))
+    self%current=-huge(0.0d0)
     return
   end subroutine simpleParameterCountSet
 
