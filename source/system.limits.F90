@@ -43,21 +43,22 @@ module System_Limits
 
 contains
 
-  subroutine System_Limits_Set()
+  subroutine System_Limits_Set(parameters)
     !% Set system resource limits.
     use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: Input_Parameters, only : globalParameters       , inputParameter
+    use    :: Input_Parameters, only : inputParameters        , inputParameter
     !$ use :: OMP_Lib         , only : OMP_Get_Max_Threads
     implicit none
-    integer(c_int ) :: status
-    integer(c_long) :: cpuLimit
+    type   (inputParameters), intent(inout) :: parameters
+    integer(c_int          )                :: status
+    integer(c_long         )                :: cpuLimit
 
     !# <inputParameter>
     !#   <name>cpuLimit</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0_c_long</defaultValue>
     !#   <description>The CPU time limit for the run, in seconds.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
     if (cpuLimit > 0_c_long) then

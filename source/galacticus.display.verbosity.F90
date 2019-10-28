@@ -27,12 +27,13 @@ module Galacticus_Display_Verbosity
 
 contains
 
-  subroutine Galacticus_Verbosity_Set_From_Parameters()
+  subroutine Galacticus_Verbosity_Set_From_Parameters(parameters)
     !% Read the parameter that controls the verbosity level, and set that level.
     use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set
-    use :: Input_Parameters  , only : globalParameters              , inputParameter
+    use :: Input_Parameters  , only : inputParameters               , inputParameter
     implicit none
-    integer :: verbosityLevel
+    type   (inputParameters), intent(inout) :: parameters
+    integer                                 :: verbosityLevel
 
     ! Get the verbosity level parameter.
     !# <inputParameter>
@@ -40,7 +41,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1</defaultValue>
     !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
