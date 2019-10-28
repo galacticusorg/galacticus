@@ -685,7 +685,7 @@ program Tests_IO_HDF5
 
      ! Retrieve a list of datasets in the group.
      if (iPass == 2) then
-        datasetNames         =groupObject%datasets()
+        call groupObject%datasets(datasetNames)
         datasetNamesReference=[                              &
              &                 "anotherReference          ", &
              &                 "characterDataset1dArray   ", &

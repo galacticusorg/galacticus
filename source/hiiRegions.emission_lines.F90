@@ -71,7 +71,7 @@ contains
           !$omp critical (HDF5_Access)
           call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
-          lineNames=lines%datasets()
+          call lines%datasets(lineNames)
           do i=1,size(lineNames)
              dataset=lines%openDataset(char(lineNames(i)))
              call dataset%readAttribute("wavelength",wavelengths(i))
