@@ -61,14 +61,14 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Basic_Non_Evolving_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Basic_Non_Evolving_Thread_Initialize(parameters_)
     !% Initializes the tree node scale dark matter profile module.
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultBasicComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
-    !GCC$ attributes unused :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
 
     if (defaultBasicComponent%nonEvolvingIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicNonEvolving')

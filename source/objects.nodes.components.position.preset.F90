@@ -92,14 +92,14 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Position_Preset_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Position_Preset_Thread_Initialize(parameters_)
     !% Initializes the tree node scale dark matter profile module.
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultPositionComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
-    !GCC$ attributes unused :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
 
     if (defaultPositionComponent%presetIsActive()) &
          call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPreset')

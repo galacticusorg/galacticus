@@ -68,14 +68,14 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Init</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init(globalParameters_)
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init(parameters_)
     !% Initializes the tree node scale dark matter profile module.
     use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
-    !GCC$ attributes unused :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
 
     if (defaultFormationTimeComponent%massFractionIsActive()) &
          call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeMassFraction')
