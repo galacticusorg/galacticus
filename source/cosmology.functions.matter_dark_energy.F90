@@ -201,20 +201,12 @@ contains
     double precision                                                              :: expansionFactorActual
     !GCC$ attributes unused :: collapsingPhase
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
-       end if
-    end if
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     matterDarkEnergyOmegaDarkEnergyEpochal                                                                                      &
          & =                        self%cosmologyParameters_%OmegaDarkEnergy       (                                         ) &
          &  *expansionFactorActual**self                     %exponentDarkEnergy    (expansionFactor    =expansionFactorActual) &
@@ -306,21 +298,13 @@ contains
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual, sqrtArgument
-
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
-       end if
-    end if
+    
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     ! Compute the Hubble parameter at the specified expansion factor.
     sqrtArgument=                                                                                            &
          &       max(                                                                                        &
@@ -355,20 +339,12 @@ contains
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
-       end if
-    end if
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     ! Compute the rat of change of the Hubble parameter.
     matterDarkEnergyHubbleParameterRateOfChange                                                                &
          & =0.5d0                                                                                              &
@@ -595,20 +571,22 @@ contains
              self%collapsingUniverse=.true.
              ! Record the maximum expansion factor.
              self%expansionFactorMaximum=self%ageTableExpansionFactor(iTime-1)
-             ! Find the time of maximum expansion by bisection.
-             self%timeTurnaround=(self%ageTableTime(iTime-1)+self%ageTableTime(iTime-2))/2.0d0
-             deltaTime          =(self%ageTableTime(iTime-1)-self%ageTableTime(iTime-2))/2.0d0
-             solutionFound      =.false.
+             ! Find the time of maximum expansion by bisection. Disable checks of epoch ranges while we search for the maximum
+             ! expansion factor as we may exceed the maximum while searching.
+             self%timeTurnaround   =(self%ageTableTime(iTime-1)+self%ageTableTime(iTime-2))/2.0d0
+             deltaTime             =(self%ageTableTime(iTime-1)-self%ageTableTime(iTime-2))/2.0d0
+             solutionFound         =.false.
+             self%enableRangeChecks=.false.
              do while (.not.solutionFound)
                 timeExceeded=(                                                                &
-                &              matterDarkEnergyExpansionFactorChange(                         &
-                &                                      self%ageTableTime           (iTime-2), &
-                &                                      self%timeTurnaround                  , &
-                &                                      self%ageTableExpansionFactor(iTime-2)  &
-                &                                     )                                       &
-                &             >=                                                              &
-                &              self%ageTableExpansionFactor(iTime-1)                          &
-                &            )
+                     &         matterDarkEnergyExpansionFactorChange(                         &
+                     &                                 self%ageTableTime           (iTime-2), &
+                     &                                 self%timeTurnaround                  , &
+                     &                                 self%ageTableExpansionFactor(iTime-2)  &
+                     &                                )                                       &
+                     &        >=                                                              &
+                     &         self%ageTableExpansionFactor(iTime-1)                          &
+                     &       )
                 solutionFound=timeExceeded .and. deltaTime < turnaroundTimeTolerance*self%timeTurnaround
                 if (.not.solutionFound) then
                    deltaTime=0.5d0*deltaTime
@@ -619,7 +597,8 @@ contains
                    end if
                 end if
              end do
-             self%timeMaximum=2.0d0*self%timeTurnaround
+             self%enableRangeChecks=.true.
+             self%timeMaximum      =2.0d0*self%timeTurnaround
              ! Limit the tables to the expanding part of the evolution.
              self%iTableTurnaround=iTime-2
              call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )

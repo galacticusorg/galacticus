@@ -70,6 +70,7 @@
      logical                                                               :: resetInterpolationDistance                      =.true.  , resetInterpolationDistanceInverse                   =.true., &
           &                                                                   resetInterpolationLuminosityDistance            =.true.  , resetInterpolationLuminosityDistanceKCorrected      =.true.
      !$ integer      (omp_lock_kind           )                            :: expansionFactorTableLock                                 , distanceTableLock
+     logical                                                               :: enableRangeChecks
    contains
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
@@ -171,6 +172,7 @@ contains
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
     self%collapsingUniverse    =.false.
+    self%enableRangeChecks     =.true.
     self%expansionFactorMaximum=0.0d0
     self%timeTurnaround        =0.0d0
     self%timeMaximum           =0.0d0
@@ -373,10 +375,12 @@ contains
     ! If we have a time, check that it is a valid, and compute outputs as required.
     if (present(timeIn)) then
        ! Validate.
-       if (                              timeIn < 0.0d0           )                                 &
-            & call Galacticus_Error_Report('time preceeds the Big Bang' //{introspection:location})
-       if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                 &
-            & call Galacticus_Error_Report('time exceeds the Big Crunch'//{introspection:location})
+       if (self%enableRangeChecks) then
+          if (                              timeIn < 0.0d0           )                                 &
+               & call Galacticus_Error_Report('time preceeds the Big Bang' //{introspection:location})
+          if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                 &
+               & call Galacticus_Error_Report('time exceeds the Big Crunch'//{introspection:location})
+       end if
        ! Set outputs.
        if (present(timeOut           )) timeOut           =                           timeIn
        if (present(expansionFactorOut)) expansionFactorOut= self%expansionFactor     (timeIn)
@@ -387,10 +391,12 @@ contains
     ! If we have an expansion factor, check that it is valid, and compute outputs as required.
     if (present(expansionFactorIn)) then
        ! Validate.
-       if (                              expansionFactorIn <                       0.0d0) &
-            & call Galacticus_Error_Report('expansion factor preceeds the Big Bang'    //{introspection:location})
-       if (self%collapsingUniverse .and. expansionFactorIn > self%expansionFactorMaximum) &
-            & call Galacticus_Error_Report('expansion factor exceeds maximum expansion'//{introspection:location})
+       if (self%enableRangeChecks) then
+          if (                              expansionFactorIn <                       0.0d0) &
+               & call Galacticus_Error_Report('expansion factor preceeds the Big Bang'    //{introspection:location})
+          if (self%collapsingUniverse .and. expansionFactorIn > self%expansionFactorMaximum) &
+               & call Galacticus_Error_Report('expansion factor exceeds maximum expansion'//{introspection:location})
+       end if
        ! Determine collapse status.
        collapsingActual=.false.
        if (present(collapsingIn)) collapsingActual=collapsingIn
