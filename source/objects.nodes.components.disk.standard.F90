@@ -628,7 +628,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, treeNode
     use :: Histories       , only : history
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
+    type   (treeNode             ), intent(inout), target  :: node
     class  (nodeComponentDisk    )               , pointer :: disk
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     class  (nodeComponentBasic   )               , pointer :: basic

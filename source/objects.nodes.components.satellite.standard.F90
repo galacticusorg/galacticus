@@ -351,8 +351,8 @@ contains
     !% Reset the orbits of satellite galaxies on halo formation events.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
     implicit none
-    type(treeNode), intent(inout), pointer :: node
-    type(treeNode)               , pointer :: satelliteNode
+    type(treeNode), intent(inout) :: node
+    type(treeNode), pointer       :: satelliteNode
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return

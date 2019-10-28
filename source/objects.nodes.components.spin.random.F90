@@ -24,9 +24,8 @@ module Node_Component_Spin_Random
   use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
   implicit none
   private
-  public :: Node_Component_Spin_Random_Initialize         , Node_Component_Spin_Random_Initialize_Spins , &
-       &    Node_Component_Spin_Random_Promote            , Node_Component_Spin_Random_Thread_Initialize, &
-       &    Node_Component_Spin_Random_Thread_Uninitialize
+  public :: Node_Component_Spin_Random_Initialize       , Node_Component_Spin_Random_Initialize_Spins   , &
+       &    Node_Component_Spin_Random_Thread_Initialize, Node_Component_Spin_Random_Thread_Uninitialize
 
   !# <component>
   !#  <class>spin</class>
@@ -85,6 +84,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Random_Thread_Initialize(parameters_)
     !% Initializes the tree node random spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
@@ -92,6 +92,7 @@ contains
 
     if (defaultSpinComponent%randomIsActive()) then
        !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters_"/>
+       call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinRandom')
     end if
     return
   end subroutine Node_Component_Spin_Random_Thread_Initialize
@@ -101,11 +102,13 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spin_Random_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
     if (defaultSpinComponent%randomIsActive()) then
        !# <objectDestructor name="haloSpinDistribution_"/>
+       call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Spin_Random_Thread_Uninitialize
@@ -158,34 +161,30 @@ contains
     end if
     return
   end subroutine Node_Component_Spin_Random_Initialize_Spins
-
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Spin_Random_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Spin_Random_Promote(node)
+  
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, nodeComponentSpinRandom, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    type (treeNode          )               , pointer :: nodeParent
-    class(nodeComponentSpin )               , pointer :: spinParent , spin
-    class(nodeComponentBasic)               , pointer :: basicParent, basic
+    class(*                 ), intent(inout) :: self
+    type (treeNode          ), intent(inout) :: node
+    type (treeNode          ), pointer       :: nodeParent
+    class(nodeComponentSpin ), pointer       :: spinParent , spin
+    class(nodeComponentBasic), pointer       :: basicParent, basic
+    !GCC$ attributes unused :: self
 
     ! Ensure that the spin component is of the random class.
-    spin => node%spin()
-    select type (spin)
-    class is (nodeComponentSpinRandom)
-       nodeParent => node%parent
-       basic      => node%basic ()
-       basicParent => nodeParent%basic()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-       ! Adjust the mass to that of the parent node.
-       spinParent => nodeParent%spin()
-       call spin%spinSet(spinParent%spin())
-    end select
+    spin        => node     %spin  ()
+    nodeParent  => node     %parent
+    basic       => node     %basic ()
+    basicParent => nodeParent%basic()
+    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
+    ! Adjust the spin to that of the parent node.
+    spinParent => nodeParent%spin()
+    call spin%spinSet(spinParent%spin())
     return
-  end subroutine Node_Component_Spin_Random_Promote
+  end subroutine nodePromotion
 
 end module Node_Component_Spin_Random

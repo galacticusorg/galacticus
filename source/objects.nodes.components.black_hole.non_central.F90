@@ -294,7 +294,7 @@ contains
     !% Merge two black holes.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
          &                                                              blackHolePrimary, blackHoleSecondary
     double precision                                                 :: blackHoleMassNew, blackHoleSpinNew  , &
@@ -345,7 +345,7 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBasic    )               , pointer :: basic
     class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary          , blackHoleCentral           , &
          &                                                              ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
@@ -449,11 +449,11 @@ contains
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Nodes             , only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: recoilVelocity        , radius
-    logical                   , intent(in   )          :: ignoreCentralBlackHole
-    double precision                                   :: potentialCentral      , potentialCentralSelf, &
-         &                                                potentialHalo         , potentialHaloSelf
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: recoilVelocity        , radius
+    logical                   , intent(in   ) :: ignoreCentralBlackHole
+    double precision                          :: potentialCentral      , potentialCentralSelf, &
+         &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
     potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )

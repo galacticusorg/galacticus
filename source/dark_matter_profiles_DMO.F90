@@ -104,7 +104,7 @@ module Dark_Matter_Profiles_DMO
   !#   <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer  :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout), target   :: node</argument>
   !#   <argument>double precision          , intent(in   )           :: radius</argument>
   !#   <argument>integer                   , intent(  out), optional :: status</argument>
   !#  </method>

@@ -28,9 +28,9 @@ module Node_Component_Hot_Halo_Very_Simple
   private
   public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging, Node_Component_Hot_Halo_Very_Simple_Promote            , &
        &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger        , &
-       &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
+       &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -123,6 +123,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent     , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -132,6 +133,7 @@ contains
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters_"/>
        !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters_"/>
+       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple')
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
@@ -141,6 +143,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -148,6 +151,7 @@ contains
        !# <objectDestructor name="darkMatterHaloScale_"/>
        !# <objectDestructor name="coolingRate_"        />
        !# <objectDestructor name="accretionHalo_"      />
+       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
@@ -408,30 +412,27 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
+    class(*                   ), intent(inout)          :: self
+    type (treeNode            ), intent(inout), target  :: node
     type (treeNode            )               , pointer :: nodeParent
     class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
+    !GCC$ attributes unused :: self
 
-    ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of specified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimple)
-       ! Get the parent node of this node.
-       nodeParent             => node  %parent
+       nodeParent    => node      %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (hotHaloParent)
-       class is (nodeComponentHotHaloVerySimple)
+          class is (nodeComponentHotHaloVerySimple)
           call hotHalo%unaccretedMassSet(                                &
                &                         +hotHalo      %unaccretedMass() &
                &                         +hotHaloParent%unaccretedMass() &
@@ -447,7 +448,7 @@ contains
        end select
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Very_Simple_Promote
+  end subroutine nodePromotion
 
   !# <postEvolveTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Post_Evolve</unitName>

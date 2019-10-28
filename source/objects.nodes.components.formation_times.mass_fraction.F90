@@ -22,8 +22,8 @@ module Node_Component_Formation_Times_Mass_Fraction
   !% Implement tracking of halo formation times.
   implicit none
   private
-  public :: Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Time_Mass_Fraction_Node_Promotion, &
-       &    Node_Component_Formation_Times_Mass_Fraction_Initialize
+  public :: Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Times_Mass_Fraction_Initialize   , &
+       &    Node_Component_Formation_Times_Mass_Fraction_Thread_Init    , Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit
 
   !# <component>
   !#  <class>formationTime</class>
@@ -65,36 +65,60 @@ contains
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Formation_Time_Mass_Fraction_Node_Promotion</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion(node)
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Init</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init(globalParameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
+    !GCC$ attributes unused :: globalParameters_
+
+    if (defaultFormationTimeComponent%massFractionIsActive()) &
+         call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeMassFraction')
+    return
+  end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    implicit none
+
+    if (defaultFormationTimeComponent%massFractionIsActive()) &
+         & call nodePromotionEvent%detach(defaultFormationTimeComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit
+
+  subroutine nodePromotion(self,node)
     !% Handle node promotion for formation times.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentFormationTime, nodeComponentFormationTimeMassFraction, treeNode
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: node
+    class(*                         ), intent(inout)          :: self
+    type (treeNode                  ), intent(inout), target  :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime, formationTimeParent
     type (treeNode                  )               , pointer :: nodeParent
-
-    ! Get the formationTime component.
-    formationTime => node%formationTime()
-    ! Ensure that it is of the standard class.
-    select type (formationTime)
-    class is (nodeComponentFormationTimeMassFraction)
-       ! Get the parent node and its formation time component.
-       nodeParent          => node      %parent
-       formationTimeParent => nodeParent%formationTime()
-        ! Adjust the formation time to that of the parent node.
-        call formationTime%formationTimeSet(formationTimeParent%formationTime())
-     end select
+    !GCC$ attributes unused :: self
+    
+    formationTime       => node      %formationTime()
+    nodeParent          => node      %parent
+    formationTimeParent => nodeParent%formationTime()
+    ! Adjust the formation time to that of the parent node.
+    call formationTime%formationTimeSet(formationTimeParent%formationTime())
     return
-  end subroutine Node_Component_Formation_Time_Mass_Fraction_Node_Promotion
+  end subroutine nodePromotion
 
   !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize</unitName>
+  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize(node)
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
@@ -134,6 +158,6 @@ contains
     end do
     call formationTime%formationTimeSet(timeFormation)
     return
-  end subroutine Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize
+  end subroutine Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize
 
 end module Node_Component_Formation_Times_Mass_Fraction

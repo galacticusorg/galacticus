@@ -39,13 +39,13 @@ module Node_Component_Hot_Halo_Standard
   use :: Radiation_Fields                          , only : radiationFieldClass                , radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset              , &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging  , &
-       &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation          , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
-       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Thread_Uninitialize
+  public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
+       &    Node_Component_Hot_Halo_Standard_Post_Evolve        , Node_Component_Hot_Halo_Standard_Reset            , &
+       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger        , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
+       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_Formation        , &
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute       , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -431,6 +431,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent                   , openMPThreadBindingAtLevel
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
@@ -454,6 +455,7 @@ contains
        !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters_"/>
        !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters_"/>
        !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters_"/>
+       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard')
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
@@ -483,6 +485,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -504,6 +507,7 @@ contains
        !# <objectDestructor name="radiationIntergalacticBackground"  />
        !# <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        !# <objectDestructor name="radiation"                         />
+       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -1721,29 +1725,25 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Hot_Halo_Standard_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
     use :: Abundances_Structure         , only : abundances            , zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
     implicit none
-    type (treeNode                ), intent(inout), pointer :: node
-    type (treeNode                )               , pointer :: nodeParent
-    class(nodeComponentHotHalo    )               , pointer :: hotHaloParent, hotHalo
-
-    ! Get the hot halo component.
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
+    !GCC$ attributes unused :: self
+    
     hotHalo => node%hotHalo()
     ! Ensure that it is of specified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
-       ! Get the parent node of this node and its hot halo component.
-       nodeParent             => node  %parent
+       nodeParent    => node      %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-
        ! Update the outer radius to match the virial radius of the parent halo.
        call hotHalo%outerRadiusSet(                                              &
             &                      darkMatterHaloScale_%virialRadius(nodeParent) &
@@ -1751,8 +1751,8 @@ contains
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (hotHaloParent)
-       class is (nodeComponentHotHaloStandard)
-          ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
+          class is (nodeComponentHotHaloStandard)
+             ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
           if (hotHalo%         mass() <= 0.0d0) then
              call hotHalo%massSet           (0.0d0                 )
              call hotHalo%angularMomentumSet(0.0d0                 )
@@ -1799,7 +1799,7 @@ contains
        end select
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Promote
+  end subroutine nodePromotion
 
   subroutine Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
@@ -1882,14 +1882,14 @@ contains
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentBasic  )               , pointer :: basic
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    type            (abundances          ), save                   :: outflowedAbundances
-    type            (chemicalAbundances  ), save                   :: chemicalDensities    , chemicalMasses
+    type            (treeNode            ), intent(inout) :: node
+    class           (nodeComponentBasic  ), pointer       :: basic
+    class           (nodeComponentHotHalo), pointer       :: hotHalo
+    type            (abundances          ), save          :: outflowedAbundances
+    type            (chemicalAbundances  ), save          :: chemicalDensities    , chemicalMasses
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
-    double precision                                               :: hydrogenByMass       , massToDensityConversion, &
-         &                                                            numberDensityHydrogen, temperature
+    double precision                                      :: hydrogenByMass       , massToDensityConversion, &
+         &                                                   numberDensityHydrogen, temperature
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return

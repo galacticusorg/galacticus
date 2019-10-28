@@ -50,7 +50,7 @@ contains
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                ), intent(inout)          , pointer :: thisNode
+    type            (treeNode                ), intent(inout)                    :: thisNode
     integer                                   , intent(in   ), optional          :: componentType             , massType
     double precision                          , intent(in   )                    :: radius
     integer                                   , intent(  out), optional          :: status

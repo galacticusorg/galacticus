@@ -23,8 +23,9 @@ module Node_Component_Position_Preset
   !% Implements a preset position component.
   implicit none
   private
-  public :: Node_Component_Position_Preset_Node_Promotion, Node_Component_Position_Preset_Initialize       , &
-  &         Node_Component_Position_Preset_Move          , Node_Component_Position_Preset_Inter_Tree_Insert
+  public :: Node_Component_Position_Preset_Initialize         , Node_Component_Position_Preset_Inter_Tree_Insert, &
+       &    Node_Component_Position_Preset_Move               , Node_Component_Position_Preset_Thread_Initialize, &
+       &    Node_Component_Position_Preset_Thread_Uninitialize
 
   !# <component>
   !#  <class>position</class>
@@ -88,41 +89,68 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Initialize
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Position_Preset_Node_Promotion</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Position_Preset_Node_Promotion(thisNode)
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Position_Preset_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Position_Preset_Thread_Initialize(globalParameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultPositionComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
+    !GCC$ attributes unused :: globalParameters_
+
+    if (defaultPositionComponent%presetIsActive()) &
+         call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPreset')
+    return
+  end subroutine Node_Component_Position_Preset_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Position_Preset_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Position_Preset_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultPositionComponent
+    implicit none
+
+    if (defaultPositionComponent%presetIsActive()) &
+         & call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Position_Preset_Thread_Uninitialize
+
+  subroutine nodePromotion(self,thisNode)
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
     !% thisNode} to that of the parent.
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPreset, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(*                    ), intent(inout)          :: self
+    type (treeNode             ), intent(inout), target  :: thisNode
     class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
          &                                                  satellitePosition
     type (treeNode             )               , pointer :: satelliteNode
-
-    thisPositionComponent => thisNode%position()
-    select type (thisPositionComponent)
+    !GCC$ attributes unused :: self
+    
+    thisPositionComponent   => thisNode       %position()
+    parentPositionComponent => thisNode%parent%position()
+    select type (parentPositionComponent)
     class is (nodeComponentPositionPreset)
-       parentPositionComponent => thisNode%parent%position()
-       select type (parentPositionComponent)
-       class is (nodeComponentPositionPreset)
-          call thisPositionComponent%       positionSet(parentPositionComponent%position       ())
-          call thisPositionComponent%       velocitySet(parentPositionComponent%velocity       ())
-          call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())
-       end select
-       if (positionsPresetSatelliteToHost) then
-          satelliteNode => thisNode%firstSatellite
-          do while (associated(satelliteNode))
-             satellitePosition => satelliteNode%position()
-             call satellitePosition%positionSet(parentPositionComponent%position())
-             call satellitePosition%velocitySet(parentPositionComponent%velocity())
-             satelliteNode => satelliteNode%sibling
-          end do
-       end if
+       call thisPositionComponent%       positionSet(parentPositionComponent%position       ())
+       call thisPositionComponent%       velocitySet(parentPositionComponent%velocity       ())
+       call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())
     end select
+    if (positionsPresetSatelliteToHost) then
+       satelliteNode => thisNode%firstSatellite
+       do while (associated(satelliteNode))
+          satellitePosition => satelliteNode%position()
+          call satellitePosition%positionSet(parentPositionComponent%position())
+          call satellitePosition%velocitySet(parentPositionComponent%velocity())
+          satelliteNode => satelliteNode%sibling
+       end do
+    end if
     return
-  end subroutine Node_Component_Position_Preset_Node_Promotion
+  end subroutine nodePromotion
 
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Position_Preset_Move</unitName>

@@ -185,7 +185,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Satellite_Orbits        , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: node
+    type            (treeNode                       ), intent(inout), target  :: node
     class           (nodeComponentBasic             )               , pointer :: basic
     class           (nodeComponentDisk              )               , pointer :: disk
     class           (nodeComponentSatellite         )               , pointer :: satellite

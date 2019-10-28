@@ -545,7 +545,7 @@ contains
     !% Trigger a merger of the satellite by setting the time until merging to zero.
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
+    type (treeNode              ), intent(inout), target  :: thisNode
     class(nodeComponentSatellite)               , pointer :: satelliteComponent
 
     satelliteComponent => thisNode%satellite()

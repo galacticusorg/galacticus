@@ -778,7 +778,7 @@ contains
     !% Creates a black hole component for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
+    type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentBlackHole)               , pointer :: blackHole
 
     ! Create the black hole.

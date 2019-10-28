@@ -17,63 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which optionally shifts the index of a node about to be promoted to its parent node, allowing indices to be
-!% tracked along merger trees.
+!% Contains a module which implements a physical process class that shifts node indices at node promotion.
 
-module Node_Promotion_Index_Shifts
-  !% Implements optional shifting of the index of a node about to be promoted to its parent node, allowing indices to be
-  !% tracked along merger trees.
-  implicit none
-  private
-  public :: Node_Promotion_Index_Shift
+  !# <physicalProcess name="physicalProcessIndexShift">
+  !#  <description>A  physical process class that shifts node indices at node promotion.</description>
+  !# </physicalProcess>
+  type, extends(physicalProcessClass) :: physicalProcessIndexShift
+     !% A  physical process class that shifts node indices at node promotion.
+     private
+   contains
+     procedure :: nodePromote => indexShiftNodePromote
+  end type physicalProcessIndexShift
 
-  ! Flag indicating if this module has been initialized.
-  logical :: indexShiftInitialized  =.false.
-
-  ! Flag indicating whether or not to shift indices.
-  logical :: nodePromotionIndexShift
+  interface physicalProcessIndexShift
+     !% Constructors for the {\normalfont \ttfamily indexShift} physical process class.
+     module procedure indexShiftConstructorParameters
+  end interface physicalProcessIndexShift
 
 contains
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Promotion_Index_Shift</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Promotion_Index_Shift(thisNode)
-    !% Shifts the index of {\normalfont \ttfamily thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
-    !% through the tree.
-    use :: Galacticus_Nodes, only : treeNode
-    use :: Input_Parameters, only : globalParameters, inputParameter
+  function indexShiftConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily indexShift} physical process class which takes a parameter set as input.
+    use :: Input_Parameters, only : inputParameters
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(treeNode)               , pointer :: parentNode
-
-    ! Ensure that the module is initialized.
-    if (.not.indexShiftInitialized) then
-       !$omp critical (Node_Promotion_Index_Shift_Initialize)
-       if (.not.indexShiftInitialized) then
-          !# <inputParameter>
-          !#   <name>nodePromotionIndexShift</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Flag that the module is now initialized.
-          indexShiftInitialized=.true.
-       end if
-       !$omp end critical (Node_Promotion_Index_Shift_Initialize)
-    end if
-
-    ! Check if we are to perform an index shift.
-    if (nodePromotionIndexShift) then
-       ! Get the parent node.
-       parentNode => thisNode%parent
-       ! Shift the index from thisNode to the parent node.
-       call parentNode%indexSet(thisNode%index())
-    end if
-
+    type(physicalProcessIndexShift)                :: self
+    type(inputParameters          ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=physicalProcessIndexShift()
     return
-  end subroutine Node_Promotion_Index_Shift
+  end function indexShiftConstructorParameters
 
-end module Node_Promotion_Index_Shifts
+  subroutine indexShiftNodePromote(self,node)
+    !% Act on node promotion.
+    implicit none
+    class(physicalProcessIndexShift), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    !GCC$ attributes unused :: self
+
+    ! Shift the index from our node to the parent node.
+    call node%parent%indexSet(node%index())
+    return
+  end subroutine indexShiftNodePromote

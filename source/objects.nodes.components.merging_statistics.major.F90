@@ -23,8 +23,8 @@ module Node_Component_Merging_Statistics_Major
   !% Implements the major merging statistics component.
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Major_Satellite_Merging, Node_Component_Merging_Statistics_Major_Node_Promotion, &
-      &     Node_Component_Merging_Statistics_Major_Output
+  public :: Node_Component_Merging_Statistics_Major_Satellite_Merging, Node_Component_Merging_Statistics_Major_Output             , &
+       &    Node_Component_Merging_Statistics_Major_Thread_Initialize, Node_Component_Merging_Statistics_Major_Thread_Uninitialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -41,6 +41,37 @@ module Node_Component_Merging_Statistics_Major
   !# </component>
 
 contains
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Major_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize(parameters_)
+    !% Initializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
+    use :: Input_Parameters, only : inputParameter                   , inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+
+    if (defaultMergingStatisticsComponent%majorIsActive()) &
+         & call nodePromotionEvent%attach(defaultMergingStatisticsComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor')
+    return
+  end subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Major_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
+    implicit none
+
+    if (defaultMergingStatisticsComponent%majorIsActive()) &
+         & call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Satellite_Merging</unitName>
@@ -82,21 +113,17 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Major_Node_Promotion</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Major_Node_Promotion(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
-    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer      :: node
-    class(nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
-    double precision                     , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
-         &                                                                timeMajorMergerNew
-
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
-    ! Get the merging statistics components.
+    class           (*                             ), intent(inout)               :: self
+    type            (treeNode                      ), intent(inout), target       :: node
+    class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
+    double precision                                , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
+         &                                                                           timeMajorMergerNew
+    !GCC$ attributes unused :: self
+    
     mergingStatisticsParent => node%parent            %mergingStatistics(autoCreate=.true.)
     mergingStatistics       => node                   %mergingStatistics(autoCreate=.true.)
     timeMajorMerger         =  mergingStatistics      %majorMergerTime  (                 )
@@ -106,7 +133,7 @@ contains
     timeMajorMergerNew(size(timeMajorMerger)+1:size(timeMajorMerger)+size(timeMajorMergerParent))=timeMajorMergerParent
     call mergingStatistics%majorMergerTimeSet(timeMajorMergerNew)
     return
-  end subroutine Node_Component_Merging_Statistics_Major_Node_Promotion
+  end subroutine nodePromotion
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>

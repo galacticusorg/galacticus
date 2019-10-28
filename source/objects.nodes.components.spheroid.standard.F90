@@ -1589,7 +1589,7 @@ contains
     !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
+    type (treeNode             ), intent(inout), target  :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
     type (history              )                         :: historyStarFormation
 
@@ -1606,7 +1606,7 @@ contains
     !% Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
+    type (treeNode             ), intent(inout), target  :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
     type (history              )                         :: stellarPropertiesHistory
 

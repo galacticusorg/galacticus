@@ -34,7 +34,7 @@ contains
     include 'events.halo_formation.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Allow arbitrary routines to perform tasks.
     !# <include directive="haloFormationTask" type="functionCall" functionType="void">

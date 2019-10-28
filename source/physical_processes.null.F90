@@ -26,7 +26,7 @@
      !% A null physical process class.
      private
    contains
-     procedure :: type => nullNodePromote
+     procedure :: nodePromote => nullNodePromote
   end type physicalProcessNull
 
   interface physicalProcessNull
@@ -48,7 +48,7 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullNodePromotion(self,node)
+  subroutine nullNodePromote(self,node)
     !% Act on node promotion.
     implicit none
     class(physicalProcessNull), intent(inout) :: self
@@ -57,4 +57,4 @@ contains
 
     ! This is a null process - do nothing.
     return
-  end subroutine nullNodePromotion
+  end subroutine nullNodePromote

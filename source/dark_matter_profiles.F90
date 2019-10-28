@@ -106,7 +106,7 @@ module Dark_Matter_Profiles
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type            (treeNode), intent(inout), pointer  :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout), target   :: node</argument>
   !#   <argument>double precision          , intent(in   )           :: radius</argument>
   !#   <argument>integer                   , intent(  out), optional :: status</argument>
   !#  </method>

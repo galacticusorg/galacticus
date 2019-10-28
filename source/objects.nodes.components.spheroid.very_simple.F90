@@ -371,7 +371,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     use :: Histories       , only : history
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
+    type   (treeNode             ), intent(inout), target  :: node
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: stellarPropertiesHistory
     logical                                                :: createStellarPropertiesHistory
