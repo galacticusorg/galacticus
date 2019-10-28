@@ -240,7 +240,7 @@ contains
        return
     end if
     self%stepCount=0
-    ! Allocate chain mask and Rhat arrays.
+    ! Allocate Rhat array.
     if (.not.allocated(self%correctedHatR)) call allocateArray(self%correctedHatR,[simulationState%dimension()])
     ! Find outlier chains using a Grubb's outlier test.
     ! Initialize chain mask to all chains accepted.
@@ -253,6 +253,8 @@ contains
     outlierCount    =0
     activeChainCount=mpiSelf%count()
     newOutliersFound=.true.
+    allocate(currentStateMean       (simulationState%dimension()))
+    allocate(currentStateMeanSquared(simulationState%dimension()))
     do while (outlierCount < self%outlierCountMaximum .and. newOutliersFound)
        ! Find interchain mean and variance of current states.
        currentStateMean       =mpiSelf%average(simulationState%get()   ,self%chainMask)
