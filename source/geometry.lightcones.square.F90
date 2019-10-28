@@ -456,12 +456,10 @@ contains
 
     ! Get the basic component.
     basic => node%basic()
-    ! Check if this node exists prior to any lightcone time.
-    if (basic%time() < self%outputTimes(1)*(1.0d0-timeTolerance)) then
-       ! It does, so it will not be output.
-       squareIsInLightcone=.false.
-       return
-    end if
+    ! Assume not in the lightcone by default.
+    squareIsInLightcone=.false.
+    ! Check if this node exists prior to any lightcone time. If it does it will not be output.
+    if (basic%time() < self%outputTimes(1)*(1.0d0-timeTolerance)) return
     ! Check that we can get the position of a node.
     if (.not.self%positionGettableChecked) then
        self%positionGettableChecked=.true.
@@ -524,7 +522,6 @@ contains
              outputMinimum=outputMinimum+1
           else
              ! No output time exists after our node, so it can not be in the lightcone.
-             squareIsInLightcone=.false.
              return
           end if
        end if
@@ -547,7 +544,6 @@ contains
                 outputMaximum=outputMaximum-1
              else
                 ! The earliest output time is after the parent time, so the node can not be in the lightcone.
-                squareIsInLightcone=.false.
                 return
              end if
           end if
@@ -569,7 +565,6 @@ contains
                 outputMaximum=outputMaximum-1
              else
                 ! The earliest output time is after the parent time, so the node can not be in the lightcone.
-                squareIsInLightcone=.false.
                 return
              end if
           end if
