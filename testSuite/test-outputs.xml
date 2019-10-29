@@ -108,8 +108,13 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeStructureOutput value="true"/>
-    <mergerTreeStructureOutputVirialQuantities value="true"/>
+    <mergerTreeOperatorMethod value="outputStructure">
+      <nodePropertyExtractorMethod value="multi">
+	<nodePropertyExtractorMethod value="time"            />
+	<nodePropertyExtractorMethod value="virialProperties"/>
+	<nodePropertyExtractorMethod value="nodeIndices"     />
+      </nodePropertyExtractorMethod>
+    </mergerTreeOperatorMethod>
   </parameters>
   
   <!-- Satellite merger events -->
