@@ -31,8 +31,8 @@
      class(virialOrbitClass               ), pointer :: virialOrbit_ => null()
      class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
    contains
-     final     ::            assignOrbitsDestructor
-     procedure :: operate => assignOrbitsOperate
+     final     ::                        assignOrbitsDestructor
+     procedure :: operatePreEvolution => assignOrbitsOperatePreEvolution
   end type mergerTreeOperatorAssignOrbits
 
   interface mergerTreeOperatorAssignOrbits
@@ -82,7 +82,7 @@ contains
     return
   end subroutine assignOrbitsDestructor
 
-  subroutine assignOrbitsOperate(self,tree)
+  subroutine assignOrbitsOperatePreEvolution(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Kepler_Orbits      , only : keplerOrbit
@@ -252,4 +252,4 @@ contains
        end if
     end do
     return
-  end subroutine assignOrbitsOperate
+  end subroutine assignOrbitsOperatePreEvolution

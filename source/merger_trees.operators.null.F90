@@ -26,8 +26,6 @@
      !% A null merger tree operator class.
      private
    contains
-     final     ::            nullDestructor
-     procedure :: operate => nullOperate
   end type mergerTreeOperatorNull
 
   interface mergerTreeOperatorNull
@@ -48,24 +46,3 @@ contains
     nullConstructorParameters=mergerTreeOperatorNull()
     return
   end function nullConstructorParameters
-
-  elemental subroutine nullDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine nullDestructor
-
-  subroutine nullOperate(self,tree)
-    !% Perform a null operation on a merger tree.
-    implicit none
-    class(mergerTreeOperatorNull), intent(inout), target :: self
-    type (mergerTree            ), intent(inout), target :: tree
-    !GCC$ attributes unused :: self, tree
-
-    ! Nothing to do.
-    return
-  end subroutine nullOperate

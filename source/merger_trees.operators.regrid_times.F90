@@ -36,8 +36,8 @@
      double precision                                                      :: snapTolerance
      double precision                          , allocatable, dimension(:) :: timeGrid
    contains
-     final     ::            regridTimesDestructor
-     procedure :: operate => regridTimesOperate
+     final     ::                        regridTimesDestructor
+     procedure :: operatePreEvolution => regridTimesOperatePreEvolution
   end type mergerTreeOperatorRegridTimes
 
   interface mergerTreeOperatorRegridTimes
@@ -248,7 +248,7 @@ contains
     return
   end subroutine regridTimesDestructor
 
-  subroutine regridTimesOperate(self,tree)
+  subroutine regridTimesOperatePreEvolution(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use            :: FGSL                   , only : fgsl_interp_accel
     use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
@@ -573,4 +573,4 @@ contains
        currentTree => currentTree%nextTree
     end do
     return
-  end subroutine regridTimesOperate
+  end subroutine regridTimesOperatePreEvolution

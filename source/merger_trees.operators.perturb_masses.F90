@@ -33,8 +33,8 @@
      class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_ => null()
      type (distributionFunction1DNormal)          :: standardNormal
    contains
-     final     ::             perturbMassesDestructor
-     procedure :: operate  => perturbMassesOperate
+     final     ::                         perturbMassesDestructor
+     procedure :: operatePreEvolution  => perturbMassesOperatePreEvolution
   end type mergerTreeOperatorPerturbMasses
 
   interface mergerTreeOperatorPerturbMasses
@@ -83,7 +83,7 @@ contains
     return
   end subroutine perturbMassesDestructor
 
-  subroutine perturbMassesOperate(self,tree)
+  subroutine perturbMassesOperatePreEvolution(self,tree)
     !% Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
     !% independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
     !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
@@ -175,5 +175,5 @@ contains
        end if
     end do
     return
-  end subroutine perturbMassesOperate
+  end subroutine perturbMassesOperatePreEvolution
 

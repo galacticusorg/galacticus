@@ -37,8 +37,7 @@
      private
      integer :: hierarchyDepth
    contains
-     final     ::            pruneHierarchyDestructor
-     procedure :: operate => pruneHierarchyOperate
+     procedure :: operatePreEvolution => pruneHierarchyOperatePreEvolution
   end type mergerTreeOperatorPruneHierarchy
 
   interface mergerTreeOperatorPruneHierarchy
@@ -81,17 +80,7 @@ contains
     return
   end function pruneHierarchyConstructorInternal
 
-  elemental subroutine pruneHierarchyDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorPruneHierarchy), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine pruneHierarchyDestructor
-
-  subroutine pruneHierarchyOperate(self,tree)
+  subroutine pruneHierarchyOperatePreEvolution(self,tree)
     !% Perform a prune-hierarchy operation on a merger tree.
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
@@ -151,5 +140,5 @@ contains
     ! Uniqueify nodes.
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
-  end subroutine pruneHierarchyOperate
+  end subroutine pruneHierarchyOperatePreEvolution
 

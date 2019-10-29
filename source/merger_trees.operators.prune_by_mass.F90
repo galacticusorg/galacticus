@@ -28,8 +28,7 @@
      double precision :: massThreshold
      logical          :: preservePrimaryProgenitor
    contains
-     final     ::            pruneByMassDestructor
-     procedure :: operate => pruneByMassOperate
+     procedure :: operatePreEvolution => pruneByMassOperatePreEvolution
   end type mergerTreeOperatorPruneByMass
 
   interface mergerTreeOperatorPruneByMass
@@ -81,17 +80,7 @@ contains
     return
   end function pruneByMassConstructorInternal
 
-  elemental subroutine pruneByMassDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorPruneByMass), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine pruneByMassDestructor
-
-  subroutine pruneByMassOperate(self,tree)
+  subroutine pruneByMassOperatePreEvolution(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -165,4 +154,4 @@ contains
     ! Uniqueify nodes.
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
-  end subroutine pruneByMassOperate
+  end subroutine pruneByMassOperatePreEvolution

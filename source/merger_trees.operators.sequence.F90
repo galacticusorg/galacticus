@@ -33,10 +33,10 @@
      private
      type(operatorList), pointer :: operators => null()
   contains
-     final     ::             sequenceDestructor
-     procedure :: operate  => sequenceOperate
-     procedure :: finalize => sequenceFinalize
-     procedure :: deepCopy => sequenceDeepCopy
+     final     ::                        sequenceDestructor
+     procedure :: operatePreEvolution => sequenceOperatePreEvolution
+     procedure :: finalize            => sequenceFinalize
+     procedure :: deepCopy            => sequenceDeepCopy
   end type mergerTreeOperatorSequence
 
   interface mergerTreeOperatorSequence
@@ -105,7 +105,7 @@ contains
     return
   end subroutine sequenceDestructor
 
-  subroutine sequenceOperate(self,tree)
+  subroutine sequenceOperatePreEvolution(self,tree)
     !% Perform a sequence operation on a merger tree.
     implicit none
     class(mergerTreeOperatorSequence), intent(inout), target :: self
@@ -114,11 +114,11 @@ contains
 
     operator_ => self%operators
     do while (associated(operator_))
-       call operator_%operator_%operate(tree)
+       call operator_%operator_%operatePreEvolution(tree)
        operator_ => operator_%next
     end do
     return
-  end subroutine sequenceOperate
+  end subroutine sequenceOperatePreEvolution
 
   subroutine sequenceFinalize(self)
     !% Perform a finalization on a sequence of operators on a merger tree.

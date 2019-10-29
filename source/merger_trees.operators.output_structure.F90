@@ -31,9 +31,9 @@
      class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_
      type (hdf5Object                )          :: outputGroup
    contains
-     final     ::             outputStructureDestructor
-     procedure :: operate  => outputStructureOperate
-     procedure :: finalize => outputStructureFinalize
+     final     ::                        outputStructureDestructor
+     procedure :: operatePreEvolution => outputStructureOperatePreEvolution
+     procedure :: finalize            => outputStructureFinalize
   end type mergerTreeOperatorOutputStructure
 
   interface mergerTreeOperatorOutputStructure
@@ -80,7 +80,7 @@ contains
     return
   end subroutine outputStructureDestructor
   
-  subroutine outputStructureOperate(self,tree)
+  subroutine outputStructureOperatePreEvolution(self,tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
     use    :: Galacticus_Error        , only : Galacticus_Error_Report
     use    :: Galacticus_HDF5         , only : galacticusOutputFile
@@ -238,7 +238,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine outputStructureOperate
+  end subroutine outputStructureOperatePreEvolution
 
   subroutine outputStructureFinalize(self)
     !% Close the merger tree structure group.

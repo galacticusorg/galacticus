@@ -32,8 +32,8 @@
      class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
      logical                                            :: bufferIsolatedHalos         , positionHistoryAvailable
    contains
-     final     ::            pruneLightconeDestructor
-     procedure :: operate => pruneLightconeOperate
+     final     ::                        pruneLightconeDestructor
+     procedure :: operatePreEvolution => pruneLightconeOperatePreEvolution
   end type mergerTreeOperatorPruneLightcone
 
   interface mergerTreeOperatorPruneLightcone
@@ -130,7 +130,7 @@ contains
     return
   end subroutine pruneLightconeValidate
 
-  subroutine pruneLightconeOperate(self,tree)
+  subroutine pruneLightconeOperatePreEvolution(self,tree)
     !% Perform a prune-by-lightcone operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, &
           &                                       treeNode
@@ -221,4 +221,4 @@ contains
        treeCurrent => treeNext
     end do
     return
-  end subroutine pruneLightconeOperate
+  end subroutine pruneLightconeOperatePreEvolution

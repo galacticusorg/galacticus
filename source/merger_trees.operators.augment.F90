@@ -74,7 +74,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          augmentDestructor
-     procedure :: operate               => augmentOperate
+     procedure :: operatePreEvolution   => augmentOperatePreEvolution
      procedure :: finalize              => augmentFinalize
      procedure :: buildTreeFromNode     => augmentBuildTreeFromNode
      procedure :: acceptTree            => augmentAcceptTree
@@ -294,7 +294,7 @@ contains
     return
   end subroutine augmentDestructor
 
-  subroutine augmentOperate(self,tree)
+  subroutine augmentOperatePreEvolution(self,tree)
     !% Augment the resolution of a merger tree by inserting high resolution branches.
     use            :: Galacticus_Display , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
           &                                       verbosityWorking
@@ -473,7 +473,7 @@ contains
     end do
     call Galacticus_Display_Unindent('done',verbosityWorking)
     return
-  end subroutine augmentOperate
+  end subroutine augmentOperatePreEvolution
 
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use            :: Arrays_Search       , only : Search_Array_For_Closest
@@ -597,11 +597,11 @@ contains
     ! Determine the mass to use for the base mass of the new tree. This will be the mass of the node in the original tree if this
     ! exceeds the scale mass of the child nodes, otherwise, set to the scaled mass of the child nodes.
     newTreeBaseMass=max(basic%mass(),massInChildren)
-    call baseBasic  %                   timeSet        (basic          %time())
-    call baseBasic  %                   massSet        (newTreeBaseMass       )
-    call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest          )
-    call self       %mergerTreeBuilder_%build          (newTree               )
-    call pruneByTime%operate                           (newTree               )
+    call baseBasic  %                    timeSet        (basic          %time())
+    call baseBasic  %                    massSet        (newTreeBaseMass       )
+    call self       %mergerTreeBuilder_ %timeEarliestSet(timeEarliest          )
+    call self       %mergerTreeBuilder_ %build          (newTree               )
+    call pruneByTime%operatePreEvolution                (newTree               )
     ! Assert that the new tree has some branches.
     if (.not.(extendingEndNode.or.associated(newTree%baseNode%firstChild))) then
        message="proposed tree has no branches - check cut off mass settings"//char(10)

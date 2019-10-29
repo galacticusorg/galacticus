@@ -28,8 +28,7 @@
      double precision :: massMinimum , massMaximum, &
           &              timeEarliest
    contains
-     final     ::            pruneByTimeDestructor
-     procedure :: operate => pruneByTimeOperate
+     procedure :: operatePreEvolution => pruneByTimeOperatePreEvolution
   end type mergerTreeOperatorPruneByTime
 
   interface mergerTreeOperatorPruneByTime
@@ -100,17 +99,7 @@ contains
     return
   end function pruneByTimeConstructorInternal
 
-  elemental subroutine pruneByTimeDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorPruneByTime), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine pruneByTimeDestructor
-
-  subroutine pruneByTimeOperate(self,tree)
+  subroutine pruneByTimeOperatePreEvolution(self,tree)
     !% Perform a prune-by-time operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -203,4 +192,4 @@ contains
        end if
     end do
     return
-  end subroutine pruneByTimeOperate
+  end subroutine pruneByTimeOperatePreEvolution

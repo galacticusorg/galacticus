@@ -584,7 +584,7 @@ contains
                 !#  <functionArgs>tree</functionArgs>
                 include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
                 !# </include>
-                call evolveForestsMergerTreeOperator_%operate(tree)
+                call evolveForestsMergerTreeOperator_%operatePreEvolution(tree)
                 message="Evolving tree number "
              else
                 message="Resuming tree number "

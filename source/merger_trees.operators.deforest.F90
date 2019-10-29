@@ -26,8 +26,7 @@
      !% A deforestation merger tree operator class.
      private
    contains
-     final     ::            deforestDestructor
-     procedure :: operate => deforestOperate
+     procedure :: operatePreEvolution => deforestOperatePreEvolution
   end type mergerTreeOperatorDeforest
 
   interface mergerTreeOperatorDeforest
@@ -49,17 +48,7 @@ contains
     return
   end function deforestConstructorParameters
 
-  elemental subroutine deforestDestructor(self)
-    !% Destructor for the deforestation merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorDeforest), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine deforestDestructor
-
-  subroutine deforestOperate(self,tree)
+  subroutine deforestOperatePreEvolution(self,tree)
     !% Perform a deforestation operation on a merger tree.
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     implicit none
@@ -105,5 +94,5 @@ contains
        currentTree => currentTree%nextTree
     end do
     return
-  end subroutine deforestOperate
+  end subroutine deforestOperatePreEvolution
 
