@@ -29,7 +29,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute     , Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize    , &
        &    Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize, &
        &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Initialize       , Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
+       &    Node_Component_Dark_Matter_Profile_Scale_Initialize
 
   !# <component>
   !#  <class>darkMatterProfile</class>
