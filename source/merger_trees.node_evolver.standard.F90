@@ -74,6 +74,7 @@
      procedure :: promote    => standardPromote
      procedure :: merge      => standardMerge
      procedure :: isAccurate => standardIsAccurate
+     procedure :: autoHook   => standardAutoHook
   end type mergerTreeNodeEvolverStandard
 
   interface mergerTreeNodeEvolverStandard
@@ -294,14 +295,26 @@ contains
      return
    end function standardConstructorInternal
 
+  subroutine standardAutoHook(self)
+    !% Attach to various event hooks.
+    use :: Events_Hooks, only : subhaloPromotionEvent, openMPThreadBindingAtLevel
+    implicit none
+    class(mergerTreeNodeEvolverStandard), intent(inout) :: self
+
+    call subhaloPromotionEvent%attach(self,standardNodeSubhaloPromotion,openMPThreadBindingAtLevel,label='mergerTreeNodeEvolver')
+    return
+  end subroutine standardAutoHook
+
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+    use :: Events_Hooks , only : subhaloPromotionEvent
     use :: ODEIV2_Solver, only : ODEIV2_Solver_Free
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeNodeMerger_"/>
     !# <objectDestructor name="self%physicalProcess_"     />
+    call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
     if (.not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
     return
   end subroutine standardDestructor
@@ -1195,3 +1208,20 @@ contains
     call self%mergerTreeNodeMerger_%process(node)
     return
   end subroutine standardMerge
+
+  subroutine standardNodeSubhaloPromotion(self,node,nodePromotion)
+    !% Promote a recently promoted subhalo to its new parent.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout)          :: self
+    type (treeNode), intent(inout), pointer :: node, nodePromotion
+    !GCC$ attributes unused :: nodePromotion
+    
+    select type (self)
+    class is (mergerTreeNodeEvolverStandard)
+       call self%promote(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine standardNodeSubhaloPromotion

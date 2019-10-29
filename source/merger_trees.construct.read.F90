@@ -1591,8 +1591,8 @@ contains
 
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
-    use :: Galacticus_Nodes          , only : nodeEvent             , nodeEventSubhaloPromotion, treeNode, treeNodeList
-    use :: Node_Subhalo_Promotions   , only : Node_Subhalo_Promotion
+    use :: Galacticus_Nodes          , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList
+    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                              :: self
@@ -1638,7 +1638,7 @@ contains
                    call promotionNode%attachEvent(pairEvent)
                    newEvent %time =  descendentNode%nodeTime
                    newEvent %node => promotionNode
-                   newEvent %task => Node_Subhalo_Promotion
+                   newEvent %task => nodeSubhaloPromotionPerform
                    pairEvent%time =  descendentNode%nodeTime
                    pairEvent%node => node
                    pairEvent%task => null()

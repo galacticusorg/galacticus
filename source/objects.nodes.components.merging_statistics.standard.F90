@@ -149,7 +149,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard merging statistics module.
-    use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
+         &                          dependencyDirectionBefore
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
@@ -157,7 +158,8 @@ contains
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
-       call nodePromotionEvent%attach(defaultMergingStatisticsComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard')
+       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                                                                  )
+       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=[dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')])
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
@@ -167,13 +169,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
-       call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
+       call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
+       call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
@@ -360,6 +363,22 @@ contains
     return
   end subroutine nodePromotion
 
+  subroutine nodeSubhaloPromotion(self,node,nodePromotion)
+    !% Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    implicit none
+    class(*                             ), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), pointer :: node             , nodePromotion
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    class(nodeComponentBasic            )               , pointer :: basicParent
+    !GCC$ attributes unused :: self
+
+    mergingStatistics => node         %mergingStatistics()
+    basicParent       => nodePromotion%basic            ()
+    call mergingStatistics%massWhenFirstIsolatedSet(basicParent%mass())
+    return
+  end subroutine nodeSubhaloPromotion
+     
   !# <postEvolveTask>
   !# <unitName>Node_Component_Merging_Statistics_Standard_Reset_Hierarchy</unitName>
   !# </postEvolveTask>
