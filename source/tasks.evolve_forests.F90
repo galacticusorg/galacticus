@@ -391,18 +391,9 @@ contains
     use               :: Sort                                , only : Sort_Index_Do
     use               :: String_Handling                     , only : operator(//)
     use               :: System_Load                         , only : System_Load_Get
-    ! Include modules needed for pre- and post-evolution and pre-construction tasks.
-    !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
-    include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
-    !# </include>
-    !# <include directive="mergerTreePostEvolveTask" type="moduleUse">
-    include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
-    !# </include>
+    ! Include modules needed for tasks.
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
-    !# </include>
-    !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
-    include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
@@ -537,9 +528,7 @@ contains
           ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
           ! the stack waiting to be processed.
           ! Perform any pre-tree construction tasks.
-          !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
-          include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
-          !# </include>
+          call evolveForestsMergerTreeOperator_%operatePreConstruction()
           ! Get the number of the next tree to process.
           treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
           ! Get a tree.
@@ -580,10 +569,6 @@ contains
              end do
              ! If this is a new tree, perform any pre-evolution tasks on it.
              if (treeIsNew) then
-                !# <include directive="mergerTreePreEvolveTask" type="functionCall" functionType="void">
-                !#  <functionArgs>tree</functionArgs>
-                include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
-                !# </include>
                 call evolveForestsMergerTreeOperator_%operatePreEvolution(tree)
                 message="Evolving tree number "
              else
@@ -939,12 +924,8 @@ contains
              end do
              nullify(tree)
           end if
-          ! Perform any post-evolution tasks on the tree.
-          if (treeIsFinished) then
-             !# <include directive="mergerTreePostEvolveTask" type="functionCall" functionType="void">
-             include 'galacticus.tasks.evolve_tree.postEvolveTask.inc'
-             !# </include>
-          end if
+          ! Perform any post-evolution operations on the tree.
+          if (treeIsFinished) call evolveForestsMergerTreeOperator_%operatePostEvolution()
        end if singleForestTreeDestroy
        ! For single forest evolution, block all threads until tree destruction is completed by the master thread.
        if (self%evolveSingleForest) then

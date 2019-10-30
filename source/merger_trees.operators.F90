@@ -27,14 +27,34 @@ module Merger_Tree_Operators
   !#  <descriptiveName>Merger Tree Operators</descriptiveName>
   !#  <description>Class providing operators acting on merger trees.</description>
   !#  <default>null</default>
+  !#  <method name="operatePreConstruction" >
+  !#   <description>Perform an operation on the merger tree prior to construction.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    ! Nothing to do.
+  !#    return
+  !#   </code>
+  !#  </method>
   !#  <method name="operatePreEvolution" >
-  !#   <description>Perform an operation on the merger tree.</description>
+  !#   <description>Perform an operation on the merger tree prior to evolution.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#   <code>
   !#    !GCC$ attributes unused :: self, tree
+  !#    ! Nothing to do.
+  !#    return
+  !#   </code>
+  !#  </method>
+  !#  <method name="operatePostEvolution" >
+  !#   <description>Perform an operation on the merger tree after evolution.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
   !#    ! Nothing to do.
   !#    return
   !#   </code>
