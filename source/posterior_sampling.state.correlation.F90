@@ -130,14 +130,14 @@ contains
   subroutine correlationUpdate(self,stateNew,logState,isConverged,outlierMask)
     !% Update the current state.
     implicit none
-    class           (posteriorSampleStateCorrelation), intent(inout)                                      :: self
-    double precision                                 , intent(in   ), dimension(:             )           :: stateNew
-    logical                                          , intent(in   )                                      :: logState
-    logical                                          , intent(in   )                                      :: isConverged
-    logical                                          , intent(in   ), dimension(:)             , optional :: outlierMask
-    double precision                                 , allocatable  , dimension(:,:           )           :: statesTmp
-    integer                                                                                               :: storedStateCountMaximum
-    integer                                                                                               :: stepComputeInterval
+    class           (posteriorSampleStateCorrelation), intent(inout)                           :: self
+    double precision                                 , intent(in   ), dimension(:  )           :: stateNew
+    logical                                          , intent(in   )                           :: logState
+    logical                                          , intent(in   )                           :: isConverged
+    logical                                          , intent(in   ), dimension(:  ), optional :: outlierMask
+    double precision                                 , allocatable  , dimension(:,:)           :: statesTmp
+    integer                                                                                    :: storedStateCountMaximum
+    integer                                                                                    :: stepComputeInterval
 
     call self%posteriorSampleStateHistory%update(stateNew,logState,isConverged,outlierMask)
     ! Return if not logging states.
