@@ -21,16 +21,54 @@
 
 module Events_Hooks
   !% Handles hooking of object function class into events.
-  use :: Locks, only : ompReadWriteLock
+  use :: Locks              , only : ompReadWriteLock
+  use :: Regular_Expressions, only : regEx
   private
-  public :: hook, hookUnspecified
+  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx
 
+  type :: dependency
+     !% Base class for event hook dependencies.
+     private
+     integer            :: direction
+     character(len=128) :: label
+  end type dependency
+
+  type, extends(dependency) :: dependencyExact
+     !% Type for exactly matching event hook dependencies.
+  end type dependencyExact
+
+  type, extends(dependency) :: dependencyRegEx
+     !% Type for matching event hook dependencies via a regular expression.
+     private
+     type(regEx) :: regEx_
+  end type dependencyRegEx
+
+  interface dependencyExact
+     !% Constructor for exactly matching event hook dependencies.
+     module procedure depdendencyExactConstructor
+  end interface dependencyExact
+
+  interface dependencyRegEx
+     !% Constructor for matching event hook dependencies via a regular expression.
+     module procedure depdendencyRegExConstructor
+  end interface dependencyRegEx
+
+  !# <enumeration>
+  !#  <name>dependencyDirection</name>
+  !#  <description>Used to specify direction of event hook dependencies.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="before"/>
+  !#  <entry label="after" />
+  !# </enumeration>
+  
   type :: hook
      !% Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
-     class  (*   ), pointer                   :: object_             => null()
-     class  (hook), pointer                   :: next                => null()
-     integer                                  :: openMPThreadBinding          , openMPLevel
-     integer      , dimension(:), allocatable :: openMPThread
+     class  (*             ), pointer                   :: object_             => null()
+     class  (hook          ), pointer                   :: next                => null()
+     integer                                            :: openMPThreadBinding          , openMPLevel
+     integer                , dimension(:), allocatable :: openMPThread
+     character(len=128     )                            :: label
+     class  (dependency    ), dimension(:), allocatable :: dependencies
   end type hook
 
   type, extends(hook) :: hookUnspecified
@@ -38,6 +76,11 @@ module Events_Hooks
      procedure(), pointer, nopass :: function_ => null()
   end type hookUnspecified
 
+  type :: hookList
+     !% List of pointers to hooks.
+     class(hook), pointer :: hook_
+  end type hookList
+  
   type :: eventHook
      !% Class used to define a set of hooked function calls for a given event.
      private
@@ -78,12 +121,19 @@ module Events_Hooks
      !@     <arguments></arguments>
      !@     <description>Unlock the event.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>resolveDependencies</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reorder hooked functions to resolved any dependencies.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: count      => eventHookCount
-     procedure :: first      => eventHookFirst
-     procedure :: initialize => eventHookInitialize
-     procedure :: lock       => eventHookLock
-     procedure :: unlock     => eventHookUnlock
+     procedure :: count               => eventHookCount
+     procedure :: first               => eventHookFirst
+     procedure :: initialize          => eventHookInitialize
+     procedure :: lock                => eventHookLock
+     procedure :: unlock              => eventHookUnlock
+     procedure :: resolveDependencies => eventHookResolveDependencies
   end type eventHook
 
   type, extends(eventHook) :: eventHookUnspecified
@@ -186,19 +236,20 @@ contains
     end if
     return
   end subroutine eventHookUnlock
-
-  subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding)
+  
+  subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding,label,dependencies)
     !% Attach an object to an event hook.
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
-    class    (eventHookUnspecified), intent(inout)           :: self
-    class    (*                   ), intent(in   ), target   :: object_
-    integer                        , intent(in   ), optional :: openMPThreadBinding
-    procedure(                    )                          :: function_
-    class    (hook                )               , pointer  :: hook_
-    integer                                                  :: i
-    !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
+    class    (eventHookUnspecified), intent(inout)                         :: self
+    class    (*                   ), intent(in   ), target                 :: object_
+    integer                        , intent(in   ), optional               :: openMPThreadBinding
+    character(len=*               ), intent(in   ), optional               :: label
+    class    (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
+    procedure(                    )                                        :: function_
+    class    (hook                )                         , pointer      :: hook_
+     !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
 
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
@@ -221,6 +272,11 @@ contains
        hook_%object_             => object_
        hook_%function_           => function_
        hook_%openMPThreadBinding =  openMPThreadBinding_
+       if (present(label)) then
+          hook_%label=label
+       else
+          hook_%label=""
+       end if
        if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
           hook_%openMPLevel=OMP_Get_Level()
           allocate(hook_%openMPThread(0:hook_%openMPLevel))
@@ -229,12 +285,123 @@ contains
           end do
        end if
     end select
-    ! Increment the count of hooks into this event.
+    ! Increment the count of hooks into this event and resolve dependencies.
     self%count_=self%count_+1
-    call self%unlock()
+    call self%resolveDependencies(hook_,dependencies)
+    call self%unlock             (                  )
     return
   end subroutine eventHookUnspecifiedAttach
 
+  subroutine eventHookResolveDependencies(self,hookNew,dependencies)
+    !% Resolve dependencies between hooked function calls.
+    use :: Galacticus_Error   , only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Sorting_Topological, only : Sort_Topological
+    implicit none
+    class    (eventHook ), intent(inout)                           :: self
+    class    (hook      ), intent(inout)                           :: hookNew
+    class    (dependency), intent(in   ), dimension(:  ), optional :: dependencies
+    integer              , allocatable  , dimension(:  )           :: order
+    integer              , allocatable  , dimension(:,:)           :: dependentIndices, dependentIndicesTmp
+    type     (hookList  ), allocatable  , dimension(:  )           :: hooksUnordered  , hooksOrdered
+    class    (hook      )               , pointer                  :: hook_           , hook__
+    integer                                                        :: i               , j                  , &
+         &                                                            k               , dependencyCount    , &
+         &                                                            countOrdered    , status             , &
+         &                                                            l
+    logical                                                        :: matches
+    
+    ! Add dependencies to the new hooked function.
+    if (present(dependencies)) then
+       allocate(hookNew%dependencies(size(dependencies)),mold=dependencies)
+       hookNew%dependencies=dependencies
+       do i=1,size(dependencies)
+          select type (dependency_ => hookNew%dependencies(i))
+          type is (dependencyRegEx)
+             dependency_%regEx_=regEx(dependency_%label)
+          end select
+       end do
+    end if
+    ! Build the dependency array.
+    allocate(dependentIndices(1,2))
+    hook_           => self%first_
+    i               =  0
+    dependencyCount =  0
+    do while (associated(hook_))
+       i=i+1
+       if (allocated(hook_%dependencies)) then
+          do k=1,size(hook_%dependencies)
+             j    = 0
+             hook__ => self%first_
+             do while (associated(hook__))
+                j      =j      +1
+                matches=.false.
+                select type (dependency_ => hook_%dependencies(k))
+                type is (dependencyExact)
+                   ! Exact match dependency.
+                   matches=dependency_%label  ==      hook__%label
+                type is (dependencyRegEx )
+                   ! Regular expression dependency.
+                   matches=dependency_%regEx_%matches(hook__%label)
+                class default
+                   call Galacticus_Error_Report('unknown dependency'//{introspection:location})
+                end select
+                if (matches) then                   
+                   dependencyCount=dependencyCount+1
+                   if (dependencyCount > size(dependentIndices,dim=1)) then
+                      call move_alloc(dependentIndices,dependentIndicesTmp)
+                      allocate(dependentIndices(2*size(dependentIndicesTmp,dim=1),2))
+                      do l=1,size(dependentIndicesTmp,dim=1)
+                         dependentIndices(l,:)=dependentIndicesTmp(l,:)
+                      end do
+                      deallocate(dependentIndicesTmp)
+                   end if
+                   select case (hook_%dependencies(k)%direction)
+                   case (dependencyDirectionBefore)
+                      dependentIndices(dependencyCount,:)=[j,i]
+                   case (dependencyDirectionAfter)
+                      dependentIndices(dependencyCount,:)=[i,j]
+                   case default
+                      call Galacticus_Error_Report('unknown dependency direction'//{introspection:location})
+                   end select
+                end if
+                hook__ => hook__%next
+             end do
+           end do
+       end if
+       hook_ => hook_%next
+    end do
+    ! Generate an ordering which satisfies all dependencies.
+    allocate(order(self%count_))
+    call Sort_Topological(self%count_,dependencyCount,dependentIndices(1:dependencyCount,:),order,countOrdered,status)
+    if (status /= errorStatusSuccess) call Galacticus_Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
+    ! Build an array of pointers to our hooks with this ordering.
+    allocate(hooksUnordered(self%count_))
+    allocate(hooksOrdered  (self%count_))
+    hook_ => self%first_
+    i     =  0
+    do while (associated(hook_))
+       i=i+1
+       hooksUnordered(i)%hook_ => hook_
+       hook_ => hook_%next
+    end do
+    do i=1,self%count_
+       hooksOrdered(i)%hook_ => hooksUnordered(order(i))%hook_
+    end do
+    self%first_ => hooksOrdered(1)%hook_
+    do i=1,self%count_-1
+       hooksOrdered(i)%hook_%next => hooksOrdered(i+1)%hook_
+    end do
+    hooksOrdered(self%count_)%hook_%next => null()
+    ! Clean up.
+    deallocate(dependentIndices)
+    deallocate(order           )
+    deallocate(hooksUnordered  )
+    deallocate(hooksOrdered    )
+    nullify   (hook_           )
+    nullify   (hook__          )
+    return
+  end subroutine eventHookResolveDependencies
+  
   logical function eventHookUnspecifiedIsAttached(self,object_,function_)
     !% Return true if an object is attached to an event hook.
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -322,12 +489,35 @@ contains
     !% Return a pointer to the first hook into this event.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(hook     ), pointer      :: eventHookFirst
-    class(eventHook), intent(inout):: self
+    class(hook     ), pointer       :: eventHookFirst
+    class(eventHook), intent(inout) :: self
 
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
     eventHookFirst => self%first_
     return
   end function eventHookFirst
+
+  function depdendencyExactConstructor(direction,label) result(self)
+    !% Constructor for an exact dependency.
+    implicit none
+    type     (dependencyExact) :: self
+    integer                    :: direction
+    character(len=*          ) :: label
+    !# <constructorAssign variables="direction, label"/>
+
+    return
+  end function depdendencyExactConstructor
+  
+  function depdendencyRegExConstructor(direction,label) result(self)
+    !% Constructor for a regular expression dependency.
+    implicit none
+    type     (dependencyRegEx) :: self
+    integer                    :: direction
+    character(len=*          ) :: label
+    !# <constructorAssign variables="direction, label"/>
+
+    self%regEx_=regEx(label)
+    return
+  end function depdendencyRegExConstructor
 
 end module Events_Hooks

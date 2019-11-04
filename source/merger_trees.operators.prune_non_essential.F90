@@ -35,8 +35,7 @@
      integer         (kind=kind_int8) :: essentialNodeID
      double precision                 :: essentialNodeTime
    contains
-     final     ::            pruneNonEssentialDestructor
-     procedure :: operate => pruneNonEssentialOperate
+     procedure :: operatePreEvolution => pruneNonEssentialOperatePreEvolution
   end type mergerTreeOperatorPruneNonEssential
 
   interface mergerTreeOperatorPruneNonEssential
@@ -86,17 +85,7 @@ contains
    return
   end function pruneNonEssentialConstructorInternal
 
-  elemental subroutine pruneNonEssentialDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorPruneNonEssential), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine pruneNonEssentialDestructor
-
-  subroutine pruneNonEssentialOperate(self,tree)
+  subroutine pruneNonEssentialOperatePreEvolution(self,tree)
     !% Perform a prune-non-essential operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -175,4 +164,4 @@ contains
     ! Uniqueify nodes.
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
-  end subroutine pruneNonEssentialOperate
+  end subroutine pruneNonEssentialOperatePreEvolution

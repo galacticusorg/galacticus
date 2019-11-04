@@ -190,6 +190,34 @@ sub parameterVector {
     return $parameterVector;
 }
 
+sub parameterMatrix {
+    my $config  =   shift() ;
+    my $chain   =   shift() ;
+    my %options = %{shift()};
+    # Determine the MCMC directory.
+    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
+    # Determine number of chains.
+    my $chainCount = &chainCount($config,\%options);
+    die('Galacticus::Constraints::Parameters::parameterMatrix(): chain index out of range')
+	if ( $chain >= $chainCount );
+    # Parse the chain.
+    my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chain);
+    my $stateCount    = -1;
+    my $parameterMatrix = pdl zeros(&parameterCount($config,\%options),&stepCount($config,\%options));
+    open(my $chainFile,$chainFileName);
+    while ( my $line = <$chainFile> ) {
+	++$stateCount;
+	$line =~ s/^\s*//;
+	$line =~ s/\s*$//;
+	my @columns = split(/\s+/,$line);
+	my @state = @columns[6..$#columns];
+	$parameterMatrix->(:,$stateCount) .= pdl @state;
+    }
+    close($chainFile);
+    return $parameterMatrix;
+}
+
 sub parameterFind {
     # Locate a named parameter in a parameters structure.
     my $parameters    = shift();

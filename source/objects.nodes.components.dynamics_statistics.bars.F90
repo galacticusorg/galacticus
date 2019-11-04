@@ -74,12 +74,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(globalParameters_)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(parameters_)
     !% Initializes the tree node standard disk methods module.
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
        !# <inputParameter>
@@ -88,7 +88,7 @@ contains
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
        !#   <group>timeStepping</group>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if
@@ -98,16 +98,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="globalParameters_"/>
-       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters_"/>
+       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize
@@ -185,7 +185,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Satellite_Orbits        , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: node
+    type            (treeNode                       ), intent(inout), target  :: node
     class           (nodeComponentBasic             )               , pointer :: basic
     class           (nodeComponentDisk              )               , pointer :: disk
     class           (nodeComponentSatellite         )               , pointer :: satellite

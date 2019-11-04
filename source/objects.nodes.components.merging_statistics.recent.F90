@@ -28,10 +28,9 @@ module Node_Component_Merging_Statistics_Recent
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger        , &
-       &    Node_Component_Merging_Statistics_Recent_Node_Promotion   , Node_Component_Merging_Statistics_Recent_Output_Names       , &
        &    Node_Component_Merging_Statistics_Recent_Output_Count     , Node_Component_Merging_Statistics_Recent_Output             , &
        &    Node_Component_Merging_Statistics_Recent_Thread_Initialize, Node_Component_Merging_Statistics_Recent_Thread_Uninitialize, &
-       &    Node_Component_Merging_Statistics_Recent_Initialize
+       &    Node_Component_Merging_Statistics_Recent_Initialize       , Node_Component_Merging_Statistics_Recent_Output_Names 
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -69,13 +68,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Recent_Initialize(parameters_)
     !% Initializes the recent merging statistics component.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char                   , var_str        , varying_string
     use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
     type(varying_string )                :: nodeRecentMajorMergerIntervalTypeText
 
     !# <inputParameter>
@@ -83,7 +82,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -91,7 +90,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -99,7 +98,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('dynamical')</defaultValue>
     !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
     !# </inputParameter>
@@ -116,7 +115,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -125,18 +124,20 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters_)
     !% Initializes the tree node recent merging flow statistics module.
+    use :: Events_Hooks                                 , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                             , only : defaultMergingStatisticsComponent
     use :: Input_Parameters                             , only : inputParameter                   , inputParameters
     use :: Memory_Management                            , only : allocateArray
     use :: Node_Component_Merging_Statistics_Recent_Data, only : mergingStatisticsRecentCount
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="globalParameters_"/>
-       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
+       call nodePromotionEvent%attach(defaultMergingStatisticsComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsRecent')
        !$omp critical (Node_Component_Merging_Statistics_Recent_Thread_Initialize)
        if (.not.allocated(zeroCount)) then
           mergingStatisticsRecentCount=outputTimes_%count()
@@ -153,12 +154,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize()
     !% Uninitializes the tree node recent merging flow statistics module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"/>
        !# <objectDestructor name="outputTimes_"        />
+       call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize
@@ -253,20 +256,15 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Node_Merger
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Recent_Node_Promotion</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
-    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
+    class(*                             ), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
-
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
-
-    ! Get the merging statistics components.
+    !GCC$ attributes unused :: self
+    
     mergingStatisticsParent => node%parent%mergingStatistics()
     mergingStatistics       => node       %mergingStatistics()
     call      mergingStatistics%recentMajorMergerCountSet        &
@@ -279,7 +277,7 @@ contains
          &  zeroCount                                            &
          & )
     return
-  end subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion
+  end subroutine nodePromotion
 
   !# <mergerTreeOutputNames>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output_Names</unitName>

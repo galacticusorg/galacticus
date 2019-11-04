@@ -31,8 +31,8 @@
      class(accretionHaloClass        ), pointer :: accretionHalo_         => null()
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
-     final     ::            pruneBaryonsDestructor
-     procedure :: operate => pruneBaryonsOperate
+     final     ::                        pruneBaryonsDestructor
+     procedure :: operatePreEvolution => pruneBaryonsOperatePreEvolution
   end type mergerTreeOperatorPruneBaryons
 
   interface mergerTreeOperatorPruneBaryons
@@ -82,7 +82,7 @@ contains
     return
   end subroutine pruneBaryonsDestructor
 
-  subroutine pruneBaryonsOperate(self,tree)
+  subroutine pruneBaryonsOperatePreEvolution(self,tree)
     !% Prune branches from {\normalfont \ttfamily tree}.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -155,4 +155,4 @@ contains
     ! Uniqueify nodes.
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
-  end subroutine pruneBaryonsOperate
+  end subroutine pruneBaryonsOperatePreEvolution

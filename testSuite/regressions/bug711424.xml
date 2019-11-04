@@ -148,7 +148,6 @@
     <exponent value="2.0"/>
     <velocityCharacteristic value="50.0"/>
   </starFormationFeedbackSpheroidsMethod>
-  <mergerTreeStructureOutput value="false"/>
   <mergerTreeEvolverMethod value="standard">
     <timestepHostRelative value="0.1"/>
     <timestepHostAbsolute value="1"/>

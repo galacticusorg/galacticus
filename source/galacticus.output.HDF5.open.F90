@@ -31,7 +31,7 @@ module Galacticus_Output_Open
 
 contains
 
-  subroutine Galacticus_Output_Open_File
+  subroutine Galacticus_Output_Open_File(parameters)
     !% Open the file for \glc\ output.
     use :: Galacticus_HDF5   , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
          &                            galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
@@ -39,7 +39,7 @@ contains
     use :: IO_HDF5           , only : hdf5Access                , IO_HDF5_Set_Defaults
     use :: ISO_Varying_String, only : var_str                   , char                , operator(//)        , extract               , &
          &                            len                       , operator(==)
-    use :: Input_Parameters  , only : globalParameters          , inputParameter
+    use :: Input_Parameters  , only : inputParameters           , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
 #endif
@@ -48,9 +48,10 @@ contains
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer(hsize_t) :: chunkSize
-    integer          :: sieveBufferSize
-    integer(size_t ) :: cacheElementsCount, cacheSizeBytes
+    type   (inputParameters), intent(inout) :: parameters
+    integer(hsize_t        )                :: chunkSize
+    integer                                 :: sieveBufferSize
+    integer(size_t         )                :: cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
        !# <inputParameter>
@@ -59,7 +60,7 @@ contains
        !#   <defaultValue>var_str('galacticus.hdf5')</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -68,7 +69,7 @@ contains
        !#   <defaultValue>galacticusOutputFileName</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -77,7 +78,7 @@ contains
        !#   <defaultValue>65536</defaultValue>
        !#   <description>The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>integer</type>
        !#   <variable>sieveBufferSize</variable>
        !# </inputParameter>
@@ -88,7 +89,7 @@ contains
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether to use the latest HDF5 file format.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -97,7 +98,7 @@ contains
        !#   <defaultValue>521_size_t</defaultValue>
        !#   <description>Number of elements in the raw data chunk cache.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheElementsCount</variable>
        !# </inputParameter>
@@ -108,7 +109,7 @@ contains
        !#   <defaultValue>1048576_size_t</defaultValue>
        !#   <description>Size of the raw data chunk cache in bytes.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheSizeBytes</variable>
        !# </inputParameter>
@@ -139,7 +140,7 @@ contains
             &                            )
        !$ call hdf5Access%unset()
        ! Now that the parameter file is open, we can open an output group in it for parameters.
-       call globalParameters%parametersGroupOpen(galacticusOutputFile)
+       call parameters%parametersGroupOpen(galacticusOutputFile)
        ! Read parameters.
        !# <inputParameter>
        !#   <name>hdf5ChunkSize</name>
@@ -147,7 +148,7 @@ contains
        !#   <defaultValue>1024_hsize_t</defaultValue>
        !#   <description>The chunk size used for outputting HDF5 datasets.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>integer</type>
        !#   <variable>chunksize</variable>
        !# </inputParameter>
@@ -158,7 +159,7 @@ contains
        !#   <defaultValue>-1</defaultValue>
        !#   <description>The compression level used for outputting HDF5 datasets.</description>
        !#   <group>output</group>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>integer</type>
        !# </inputParameter>
 

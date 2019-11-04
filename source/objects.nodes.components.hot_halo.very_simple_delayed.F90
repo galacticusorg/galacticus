@@ -25,10 +25,11 @@ module Node_Component_Hot_Halo_VS_Delayed
   !% with delayed reincorporation.
   implicit none
   private
-  public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger      , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute   , &
-       &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set        , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize, &
-       &    Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging, Node_Component_Hot_Halo_VS_Delayed_Promote        , &
-       &    Node_Component_Hot_Halo_VS_Delayed_Post_Evolve      , Node_Component_Hot_Halo_VS_Delayed_Initialize
+  public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger        , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute     , &
+       &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set          , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_VS_Delayed_Post_Evolve        , Node_Component_Hot_Halo_VS_Delayed_Initialize       , &
+       &    Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging  , Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize, &
+       &    Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -64,12 +65,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters_)
     !% Initializes the very simple hot halo component module.
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentHotHaloVerySimpleDelayed
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters                      ), intent(inout) :: globalParameters_
+    type(inputParameters                      ), intent(inout) :: parameters_
     type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHaloComponent
 
     !$omp critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
@@ -83,13 +84,44 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if
     !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize(parameters_)
+    !% Initializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent     , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+
+    if (defaultHotHaloComponent%verySimpleDelayedIsActive()) &
+         & call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimpleDelayed')
+    return
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultHotHaloComponent
+    implicit none
+
+    if (defaultHotHaloComponent%verySimpleDelayedIsActive()) &
+         & call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize
 
   subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
@@ -264,42 +296,35 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
+    class(*                   ), intent(inout)          :: self
+    type (treeNode            ), intent(inout), target  :: node
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHalo, hotHalo
-
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that it is of specified class.
-    select type (hotHalo)
+    !GCC$ attributes unused :: self
+    
+    hotHalo       => node      %hotHalo(                 )
+    parentNode    => node      %parent
+    parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
+    ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
+    ! promotion.
+    select type (parentHotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
-       ! Get the parent node of this node.
-       parentNode    => node      %parent
-       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
-       ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
-       ! promotion.
-       select type (parentHotHalo)
-       class is (nodeComponentHotHaloVerySimpleDelayed)
-          call hotHalo%outflowedMassSet      (                                     &
-               &                              +      hotHalo%outflowedMass      () &
-               &                              +parentHotHalo%outflowedMass      () &
-               &                             )
-          call hotHalo%outflowedAbundancesSet(                                     &
-               &                              +      hotHalo%outflowedAbundances() &
-               &                              +parentHotHalo%outflowedAbundances() &
-               &                             )
-       end select
+       call hotHalo%outflowedMassSet      (                                     &
+            &                              +      hotHalo%outflowedMass      () &
+            &                              +parentHotHalo%outflowedMass      () &
+            &                             )
+       call hotHalo%outflowedAbundancesSet(                                     &
+            &                              +      hotHalo%outflowedAbundances() &
+            &                              +parentHotHalo%outflowedAbundances() &
+            &                             )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_VS_Delayed_Promote
+  end subroutine nodePromotion
 
   !# <postEvolveTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Post_Evolve</unitName>

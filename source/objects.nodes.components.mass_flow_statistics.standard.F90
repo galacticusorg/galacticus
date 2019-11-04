@@ -56,18 +56,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize(parameters_)
     !% Initializes the standard mass flow statistics component.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>massFlowStatisticsResetOnOutput</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -76,15 +76,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard mass flow statistics module.
     use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
     use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultMassFlowStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="coolingRate" name="coolingRate_" source="globalParameters_"/>
+       !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize

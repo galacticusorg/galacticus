@@ -125,7 +125,7 @@ contains
 
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
     !% Return the proposal size.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityStandard
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -147,7 +147,7 @@ contains
        self%lastUpdateCount=simulationState%count()
        ! Find the mean acceptance rate across all chains.
        acceptanceRate=mpiSelf%average([simulationState%acceptanceRate()])
-       if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
           write (label,'(f5.3)') acceptanceRate(1)
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
@@ -156,13 +156,13 @@ contains
        ! If the acceptance rate is out of range, adjust gamma.
        if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
           self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
              write (label,'(f8.5)') self%gammaCurrent
              call Galacticus_Display_Message('Adjusting gamma up to '//label)
           end if
        else if (acceptanceRate(1) < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
           self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
              write (label,'(f8.5)') self%gammaCurrent
              call Galacticus_Display_Message('Adjusting gamma down to '//label)
           end if

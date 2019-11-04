@@ -39,8 +39,8 @@
      integer                                         :: exportFormat
      logical                                         :: snapshotsRequired
    contains
-     final     ::             exportDestructor
-     procedure :: operate  => exportOperate
+     final     ::                         exportDestructor
+     procedure :: operatePreEvolution  => exportOperatePreEvolution
   end type mergerTreeOperatorExport
 
   interface mergerTreeOperatorExport
@@ -125,7 +125,7 @@ contains
     return
   end subroutine exportDestructor
 
-  subroutine exportOperate(self,tree)
+  subroutine exportOperatePreEvolution(self,tree)
     !% Output the structure of {\normalfont \ttfamily thisTree}.
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
@@ -295,4 +295,4 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine exportOperate
+  end subroutine exportOperatePreEvolution

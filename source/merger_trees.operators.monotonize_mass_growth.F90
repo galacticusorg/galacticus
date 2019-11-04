@@ -29,8 +29,7 @@
      !% A merger tree operator class makes mass growth along branch monotonically increasing.
      private
    contains
-     final     ::             monotonizeMassGrowthDestructor
-     procedure :: operate  => monotonizeMassGrowthOperate
+     procedure :: operatePreEvolution => monotonizeMassGrowthOperatePreEvolution
   end type mergerTreeOperatorMonotonizeMassGrowth
 
   interface mergerTreeOperatorMonotonizeMassGrowth
@@ -53,17 +52,7 @@ contains
     return
   end function monotonizeMassGrowthConstructorParameters
 
-  elemental subroutine monotonizeMassGrowthDestructor(self)
-    !% Destructor for the mass growth monotonizing merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorMonotonizeMassGrowth), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine monotonizeMassGrowthDestructor
-
-  subroutine monotonizeMassGrowthOperate(self,tree)
+  subroutine monotonizeMassGrowthOperatePreEvolution(self,tree)
     !% Perform a mass growth monotonizing operation on a merger tree.
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -111,5 +100,5 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine monotonizeMassGrowthOperate
+  end subroutine monotonizeMassGrowthOperatePreEvolution
 

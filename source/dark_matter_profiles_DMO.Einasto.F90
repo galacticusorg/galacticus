@@ -246,10 +246,8 @@ contains
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileDMOEinasto)                              :: self
-    class(darkMatterHaloScaleClass   ), intent(in   ), target       :: darkMatterHaloScale_
-    type (varying_string             ), allocatable  , dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
-         &                                                             matchingComponents
+    type (darkMatterProfileDMOEinasto)                        :: self
+    class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
     ! Initialize table states.
@@ -300,20 +298,17 @@ contains
          &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                       &
          &       )                                                                                                           &
          & ) then
-       matchingComponentsShape=defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)
-       matchingComponentsScale=defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)
-       matchingComponents     = matchingComponentsShape &
-            &                  .intersection.           &
-            &                   matchingComponentsScale
-       call Galacticus_Error_Report                                                                                     &
-            &        (                                                                                                  &
-            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
-            &         '"scale" and "shape" properties.'                                                             //  &
-            &         Galacticus_Component_List(                                                                        &
-            &                                   'darkMatterProfile'                                                   , &
-            &                                    matchingComponents                                                     &
-            &                                  )                                                                    //  &
-            &         {introspection:location}                                                                          &
+       call Galacticus_Error_Report                                                                                               &
+            &        (                                                                                                            &
+            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '          //  &
+            &         '"scale" and "shape" properties.'                                                                       //  &
+            &         Galacticus_Component_List(                                                                                  &
+            &                                   'darkMatterProfile'                                                             , &
+            &                                    defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)    &
+            &                                   .intersection.                                                                    &
+            &                                    defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)    &
+            &                                  )                                                                              //  &
+            &         {introspection:location}                                                                                    &
             &        )
     end if
     ! Initialize the tabulations.
@@ -662,7 +657,7 @@ contains
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), pointer  :: node
+    type            (treeNode                      ), intent(inout), target   :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
     class           (nodeComponentBasic            )               , pointer  :: basic

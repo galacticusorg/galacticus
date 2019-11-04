@@ -27,8 +27,7 @@
      private
      double precision :: baseMassMinimum, baseMassMaximum
    contains
-     final     ::            selectWithinRangeDestructor
-     procedure :: operate => selectWithinRangeOperate
+     procedure :: operatePreEvolution => selectWithinRangeOperatePreEvolution
   end type mergerTreeOperatorSelectWithinRange
 
   interface mergerTreeOperatorSelectWithinRange
@@ -79,17 +78,7 @@ contains
     return
   end function selectWithinRangeConstructorInternal
 
-  elemental subroutine selectWithinRangeDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorSelectWithinRange), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine selectWithinRangeDestructor
-
-  subroutine selectWithinRangeOperate(self,tree)
+  subroutine selectWithinRangeOperatePreEvolution(self,tree)
     !% Perform a select-within-range operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
@@ -126,4 +115,4 @@ contains
        currentTree => currentTree%nextTree
     end do
     return
-  end subroutine selectWithinRangeOperate
+  end subroutine selectWithinRangeOperatePreEvolution

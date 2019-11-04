@@ -27,12 +27,13 @@ module Galacticus_Error_Wait
 
 contains
 
-  subroutine Galacticus_Error_Wait_Set_From_Parameters()
+  subroutine Galacticus_Error_Wait_Set_From_Parameters(parameters)
     !% Read the parameter that controls the verbosity level, and set that level.
     use :: Galacticus_Error, only : Galacticus_Error_Wait_Set
-    use :: Input_Parameters, only : globalParameters         , inputParameter
+    use :: Input_Parameters, only : inputParameters          , inputParameter
     implicit none
-    integer :: errorWaitTime
+    type   (inputParameters), intent(inout) :: parameters
+    integer                                 :: errorWaitTime
 
     ! Get the verbosity level parameter.
     !# <inputParameter>
@@ -40,7 +41,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>86400</defaultValue>
     !#   <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
     call Galacticus_Error_Wait_Set(errorWaitTime)

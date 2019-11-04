@@ -38,9 +38,9 @@
      double precision                                                       :: massMinimumLogarithmic     , timeMinimumLogarithmic     , &
           &                                                                    massLogarithmicDeltaInverse, timeLogarithmicDeltaInverse
    contains
-     final     ::             profilerDestructor
-     procedure :: operate  => profilerOperate
-     procedure :: finalize => profilerFinalize
+     final     ::                        profilerDestructor
+     procedure :: operatePreEvolution => profilerOperatePreEvolution
+     procedure :: finalize            => profilerFinalize
   end type mergerTreeOperatorProfiler
 
   interface mergerTreeOperatorProfiler
@@ -159,7 +159,7 @@ contains
     return
   end subroutine profilerDestructor
 
-  subroutine profilerOperate(self,tree)
+  subroutine profilerOperatePreEvolution(self,tree)
     !% Perform a information content operation on a merger tree.
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -195,7 +195,7 @@ contains
        end if
      end do
     return
-  end subroutine profilerOperate
+  end subroutine profilerOperatePreEvolution
 
   subroutine profilerFinalize(self)
     !% Outputs tree information content function.

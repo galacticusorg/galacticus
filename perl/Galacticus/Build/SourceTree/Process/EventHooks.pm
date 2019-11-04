@@ -97,16 +97,19 @@ end interface
 CODE
 		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding)
-  use Galacticus_Error, only : Galacticus_Error_Report
-  !$ use OMP_Lib
+subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding,label,dependencies)
+  use    :: Galacticus_Error  , only : Galacticus_Error_Report
+  use    :: ISO_Varying_String, only : assignment(=)
+  !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
   implicit none
-  class    (eventHook{$interfaceType}), intent(inout)           :: self
-  class    (*                        ), intent(in   ), target   :: object_
-  integer                             , intent(in   ), optional :: openMPThreadBinding
-  procedure(interface{$interfaceType})                          :: function_
-  class    (hook                     )               , pointer  :: hook_
-  integer                                                       :: i                  , openMPThreadBinding_
+  class    (eventHook{$interfaceType}), intent(inout)                         :: self
+  class    (*                        ), intent(in   ), target                 :: object_
+  integer                             , intent(in   ), optional               :: openMPThreadBinding
+  character(len=*                    ), intent(in   ), optional               :: label
+  class    (dependency               ), intent(in   ), optional, dimension(:) :: dependencies
+  procedure(interface{$interfaceType})                                        :: function_
+  class    (hook                     )               , pointer                :: hook_
+  integer                                                                     :: i                  , openMPThreadBinding_
 
   !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
   call self%lock()
@@ -131,6 +134,11 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
      hook_%object_             => object_
      hook_%function_           => function_
      hook_%openMPThreadBinding =  openMPThreadBinding_
+       if (present(label)) then
+          hook_%label=label
+       else
+          hook_%label=""
+       end if
      if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
         hook_%openMPLevel=OMP_Get_Level()
         allocate(hook_%openMPThread(0:hook_%openMPLevel))
@@ -140,7 +148,13 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
      end if
   end select
   self%count_=self%count_+1
-  call self%unlock()
+  ! Add any dependencies to the hook.
+  if (present(dependencies)) then
+     allocate(hook_%dependencies(size(dependencies)),mold=dependencies)
+     hook_%dependencies=dependencies
+  end if
+  call self%resolveDependencies(hook_,dependencies)
+  call self%unlock             (                  )
   return
 end subroutine eventHook{$interfaceType}Attach
 CODE
@@ -345,6 +359,7 @@ CODE
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
 call {$eventName}Event%lock(writeLock=.false.)
 ompAncestorGot_=.false.
+ompLevelCurrent_=-1
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)

@@ -24,5 +24,8 @@
 
 program fftw3_config
   !% Test code used to see if FFTW3 is available.
+  use, intrinsic :: ISO_C_Binding, only : c_ptr           , c_int     , c_funptr, c_float        , &
+       &                                  c_double        , c_int32_t , c_size_t, c_float_complex, &
+       &                                  c_double_complex, c_intptr_t, c_char
   include 'fftw3.f03'
 end program fftw3_config

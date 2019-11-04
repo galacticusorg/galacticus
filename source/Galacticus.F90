@@ -73,19 +73,19 @@ program Galacticus
   ! Establish global functions.
   call Functions_Global_Set()
   ! Set verbosity.
-  call Galacticus_Verbosity_Set_From_Parameters()
+  call Galacticus_Verbosity_Set_From_Parameters (parameters)
   ! Set error wait times.
-  call Galacticus_Error_Wait_Set_From_Parameters()
+  call Galacticus_Error_Wait_Set_From_Parameters(parameters)
   ! Set resource limits.
-  Call System_Limits_Set()
+  Call System_Limits_Set                        (parameters)
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Perform task.
   !# <objectBuilder class="task" name="task_" source="parameters"/>
-  if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
+  if (task_%requiresOutputFile()) call Galacticus_Output_Open_File (parameters)
   call task_     %perform()
   call parameters%destroy()
-  if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
+  if (task_%requiresOutputFile()) call Galacticus_Output_Close_File(          )
   !# <objectDestructor name="task_"/>
   call taskDoDestroy()
   call Galacticus_Function_Classes_Destroy()

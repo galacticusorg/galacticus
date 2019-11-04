@@ -23,8 +23,8 @@ module Node_Component_Basic_Non_Evolving
   !% A non-evolving implementation of basic tree node methods.
   implicit none
   private
-  public :: Node_Component_Basic_Non_Evolving_Rate_Compute, Node_Component_Basic_Non_Evolving_Scale_Set   , &
-       &    Node_Component_Basic_Non_Evolving_Promote
+  public :: Node_Component_Basic_Non_Evolving_Rate_Compute     , Node_Component_Basic_Non_Evolving_Scale_Set          , &
+       &    Node_Component_Basic_Non_Evolving_Thread_Initialize, Node_Component_Basic_Non_Evolving_Thread_Uninitialize
 
   !# <component>
   !#  <class>basic</class>
@@ -57,6 +57,37 @@ module Node_Component_Basic_Non_Evolving
   !# </component>
 
 contains
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Basic_Non_Evolving_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Basic_Non_Evolving_Thread_Initialize(parameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+
+    if (defaultBasicComponent%nonEvolvingIsActive()) &
+         call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicNonEvolving')
+    return
+  end subroutine Node_Component_Basic_Non_Evolving_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Basic_Non_Evolving_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Basic_Non_Evolving_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    implicit none
+
+    if (defaultBasicComponent%nonEvolvingIsActive()) &
+         & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Basic_Non_Evolving_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Rate_Compute</unitName>
@@ -112,33 +143,26 @@ contains
     return
   end subroutine Node_Component_Basic_Non_Evolving_Scale_Set
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Basic_Non_Evolving_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Basic_Non_Evolving_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicNonEvolving, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
+    class(*                 ), intent(inout)          :: self
+    type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentBasic)               , pointer :: basicParent, basic
+    !GCC$ attributes unused :: self
 
-    ! Get the basic component.
-    basic => node%basic()
-    ! Ensure that it is of the standard class.
-    select type (basic)
-    class is (nodeComponentBasicNonEvolving)
-       ! Get the parent node and its basic component.
-       nodeParent  => node      %parent
-       basicParent => nodeParent%basic ()
-       ! Ensure the two halos exist at the same time.
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-       ! Adjust the mass to that of the parent node.
-       call basic%massSet(basicParent%mass())
-    end select
+    basic       => node      %basic ()
+    nodeParent  => node      %parent
+    basicParent => nodeParent%basic ()
+    ! Ensure the two halos exist at the same time.
+    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
+    ! Adjust the mass to that of the parent node.
+    call basic%massSet(basicParent%mass())
     return
-  end subroutine Node_Component_Basic_Non_Evolving_Promote
+  end subroutine nodePromotion
 
 end module Node_Component_Basic_Non_Evolving

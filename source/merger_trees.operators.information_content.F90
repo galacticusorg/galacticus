@@ -42,9 +42,8 @@
      integer         (kind=kind_int8), dimension(:), allocatable :: treeIndex
      double precision                , dimension(:), allocatable :: informationContent
    contains
-     final     ::             informationContentDestructor
-     procedure :: operate  => informationContentOperate
-     procedure :: finalize => informationContentFinalize
+     procedure :: operatePreEvolution => informationContentOperatePreEvolution
+     procedure :: finalize            => informationContentFinalize
   end type mergerTreeOperatorInformationContent
 
   interface mergerTreeOperatorInformationContent
@@ -87,17 +86,7 @@ contains
    return
   end function informationContentConstructorInternal
 
-  elemental subroutine informationContentDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorInformationContent), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine informationContentDestructor
-
-  subroutine informationContentOperate(self,tree)
+  subroutine informationContentOperatePreEvolution(self,tree)
     !% Perform a information content operation on a merger tree.
     use :: Factorials         , only : Logarithmic_Double_Factorial
     use :: Memory_Management  , only : allocateArray                , deallocateArray
@@ -165,7 +154,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine informationContentOperate
+  end subroutine informationContentOperatePreEvolution
 
   subroutine informationContentFinalize(self)
     !% Outputs tree information content function.

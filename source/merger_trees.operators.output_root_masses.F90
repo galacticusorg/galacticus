@@ -34,8 +34,8 @@
      type            (varying_string)                                        :: fileName
      logical                                                                 :: alwaysIsolatedHalosOnly
    contains
-     procedure :: operate  => outputRootMassesOperate
-     procedure :: finalize => outputRootMassesFinalize
+     procedure :: operatePreEvolution => outputRootMassesOperatePreEvolution
+     procedure :: finalize            => outputRootMassesFinalize
   end type mergerTreeOperatorOutputRootMasses
 
   interface mergerTreeOperatorOutputRootMasses
@@ -114,7 +114,7 @@ contains
     return
   end function outputRootMassesConstructorInternal
 
-  subroutine outputRootMassesOperate(self,tree)
+  subroutine outputRootMassesOperatePreEvolution(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
@@ -203,7 +203,7 @@ contains
        end if
     end do
     return
-  end subroutine outputRootMassesOperate
+  end subroutine outputRootMassesOperatePreEvolution
 
   subroutine outputRootMassesFinalize(self)
     !% Outputs conditional mass function.

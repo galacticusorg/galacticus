@@ -26,8 +26,7 @@
      !% A clone pruning merger tree operator class.
      private
    contains
-     final     ::            pruneClonesDestructor
-     procedure :: operate => pruneClonesOperate
+     procedure :: operatePreEvolution => pruneClonesOperatePreEvolution
   end type mergerTreeOperatorPruneClones
 
   interface mergerTreeOperatorPruneClones
@@ -49,17 +48,7 @@ contains
     return
   end function pruneClonesConstructorParameters
 
-  elemental subroutine pruneClonesDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorPruneClones), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine pruneClonesDestructor
-
-  subroutine pruneClonesOperate(self,tree)
+  subroutine pruneClonesOperatePreEvolution(self,tree)
     !% Perform a clone pruning operation on a merger tree.
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -94,4 +83,4 @@ contains
        end if
     end do
     return
-  end subroutine pruneClonesOperate
+  end subroutine pruneClonesOperatePreEvolution

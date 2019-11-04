@@ -73,11 +73,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Initialize(globalParameters_)
+  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters_)
     !% Initializes the noncentral black hole component module.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>tripleBlackHoleInteraction</name>
@@ -85,7 +85,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -94,18 +94,18 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters_)
     !% Initializes the tree node random spin module.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize
@@ -294,7 +294,7 @@ contains
     !% Merge two black holes.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
          &                                                              blackHolePrimary, blackHoleSecondary
     double precision                                                 :: blackHoleMassNew, blackHoleSpinNew  , &
@@ -345,7 +345,7 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBasic    )               , pointer :: basic
     class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary          , blackHoleCentral           , &
          &                                                              ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
@@ -449,11 +449,11 @@ contains
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Nodes             , only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: recoilVelocity        , radius
-    logical                   , intent(in   )          :: ignoreCentralBlackHole
-    double precision                                   :: potentialCentral      , potentialCentralSelf, &
-         &                                                potentialHalo         , potentialHaloSelf
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: recoilVelocity        , radius
+    logical                   , intent(in   ) :: ignoreCentralBlackHole
+    double precision                          :: potentialCentral      , potentialCentralSelf, &
+         &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
     potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )

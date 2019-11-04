@@ -23,8 +23,9 @@ module Node_Component_Spin_Preset3D
   !% Implements the preset spin component.
   implicit none
   private
-  public :: Node_Component_Spin_Preset3D_Initialize  , Node_Component_Spin_Preset3D_Promote     , &
-       &    Node_Component_Spin_Preset3D_Scale_Set   , Node_Component_Spin_Preset3D_Rate_Compute
+  public :: Node_Component_Spin_Preset3D_Initialize  , Node_Component_Spin_Preset3D_Rate_Compute     , &
+       &    Node_Component_Spin_Preset3D_Scale_Set   , Node_Component_Spin_Preset3D_Thread_Initialize, &
+       &    Node_Component_Spin_Preset3D_Thread_Uninitialize
 
   !# <component>
   !#  <class>spin</class>
@@ -91,6 +92,37 @@ contains
     return
   end subroutine Node_Component_Spin_Preset3D_Initialize
 
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Spin_Preset3D_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Spin_Preset3D_Thread_Initialize(parameters_)
+    !% Initializes the tree node preset3D spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultSpinComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+    
+    if (defaultSpinComponent%preset3DIsActive()) &
+         & call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinPreset3D')
+    return
+  end subroutine Node_Component_Spin_Preset3D_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spin_Preset3D_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spin_Preset3D_Thread_Uninitialize()
+    !% Uninitializes the tree node preset spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultSpinComponent
+    implicit none
+
+    if (defaultSpinComponent%preset3DIsActive()) &
+         & call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Spin_Preset3D_Thread_Uninitialize
+  
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Preset3D_Rate_Compute</unitName>
   !# </rateComputeTask>
@@ -143,34 +175,29 @@ contains
     return
   end subroutine Node_Component_Spin_Preset3D_Scale_Set
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Spin_Preset3D_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Spin_Preset3D_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, nodeComponentSpinPreset3D, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
+    class(*                 ), intent(inout)          :: self
+    type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentSpin )               , pointer :: spinParent , spin
     class(nodeComponentBasic)               , pointer :: basicParent, basic
+    !GCC$ attributes unused :: self
 
-    ! Ensure that the spin component is of the preset3D class.
-    spin => node%spin()
-    select type (spin)
-    class is (nodeComponentSpinPreset3D)
-       nodeParent  => node      %parent
-       basic       => node      %basic ()
-       basicParent => nodeParent%basic ()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-       ! Adjust the spin growth rate to that of the parent node.
-       spinParent => nodeParent%spin()
-       call spin%spinVectorSet          (spinParent%spinVector          ())
-       call spin%spinVectorGrowthRateSet(spinParent%spinVectorGrowthRate())
-    end select
+    spin        => node      %spin  ()
+    nodeParent  => node      %parent
+    basic       => node      %basic ()
+    basicParent => nodeParent%basic ()
+    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
+    ! Adjust the spin growth rate to that of the parent node.
+    spinParent => nodeParent%spin()
+    call spin%spinVectorSet          (spinParent%spinVector          ())
+    call spin%spinVectorGrowthRateSet(spinParent%spinVectorGrowthRate())
     return
-  end subroutine Node_Component_Spin_Preset3D_Promote
+  end subroutine nodePromotion
 
 end module Node_Component_Spin_Preset3D

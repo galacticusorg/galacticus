@@ -26,9 +26,9 @@ module Node_Component_Merging_Statistics_Standard
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init , Node_Component_Merging_Statistics_Standard_Node_Merger        , &
-       &    Node_Component_Merging_Statistics_Standard_Node_Promotion   , Node_Component_Merging_Statistics_Standard_Satellite_Merging  , &
        &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy  , Node_Component_Merging_Statistics_Standard_Initialize         , &
-       &    Node_Component_Merging_Statistics_Standard_Thread_Initialize, Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
+       &    Node_Component_Merging_Statistics_Standard_Thread_Initialize, Node_Component_Merging_Statistics_Standard_Thread_Uninitialize, &
+       &    Node_Component_Merging_Statistics_Standard_Satellite_Merging
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -108,18 +108,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Standard_Initialize(parameters_)
     !% Initializes the standard merging statistics component.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>nodeMajorMergerFraction</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -127,7 +127,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -135,7 +135,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d100</defaultValue>
     !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
@@ -147,15 +147,19 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard merging statistics module.
+    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
+         &                          dependencyDirectionBefore
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
+       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                                                                  )
+       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=[dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')])
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
@@ -165,11 +169,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
+    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+       call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
+       call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
@@ -335,32 +342,43 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Merger
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Promotion</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
-    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
+    class(*                             ), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
     class(nodeComponentBasic            )               , pointer :: basicParent
-
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-
-    ! Get the merging statistics components.
-    mergingStatisticsParent => node%parent%mergingStatistics()
+    !GCC$ attributes unused :: self
+    
     mergingStatistics       => node       %mergingStatistics()
+    mergingStatisticsParent => node%parent%mergingStatistics()
     basicParent             => node%parent%basic            ()
     call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     if (mergingStatisticsParent%nodeMajorMergerTime() > mergingStatistics%nodeMajorMergerTime()) &
          & call mergingStatistics%nodeMajorMergerTimeSet(mergingStatisticsParent%nodeMajorMergerTime())
-    call mergingStatistics%nodeHierarchyLevelSet(mergingStatisticsParent%nodeHierarchyLevel())
-    call mergingStatistics%nodeFormationTimeSet (mergingStatisticsParent%nodeFormationTime ())
+    call        mergingStatistics% nodeHierarchyLevelSet(mergingStatisticsParent%nodeHierarchyLevel ())
+    call        mergingStatistics%  nodeFormationTimeSet(mergingStatisticsParent%nodeFormationTime  ())
     return
-  end subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion
+  end subroutine nodePromotion
 
+  subroutine nodeSubhaloPromotion(self,node,nodePromotion)
+    !% Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    implicit none
+    class(*                             ), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), pointer :: node             , nodePromotion
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    class(nodeComponentBasic            )               , pointer :: basicParent
+    !GCC$ attributes unused :: self
+
+    mergingStatistics => node         %mergingStatistics()
+    basicParent       => nodePromotion%basic            ()
+    call mergingStatistics%massWhenFirstIsolatedSet(basicParent%mass())
+    return
+  end subroutine nodeSubhaloPromotion
+     
   !# <postEvolveTask>
   !# <unitName>Node_Component_Merging_Statistics_Standard_Reset_Hierarchy</unitName>
   !# </postEvolveTask>
@@ -368,7 +386,7 @@ contains
     !% Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
+    type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentBasic            )               , pointer :: basic
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
 

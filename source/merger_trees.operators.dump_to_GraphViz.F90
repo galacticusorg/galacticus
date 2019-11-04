@@ -29,8 +29,7 @@
      double precision                 :: massMinimum        , massMaximum
      logical                          :: scaleNodesByLogMass, edgeLengthsToTimes
    contains
-     final     ::            dumpToGraphVizDestructor
-     procedure :: operate => dumpToGraphVizOperate
+     procedure :: operatePreEvolution => dumpToGraphVizOperatePreEvolution
   end type mergerTreeOperatorDumpToGraphViz
 
   interface mergerTreeOperatorDumpToGraphViz
@@ -110,17 +109,7 @@ contains
     return
   end function dumpToGraphVizConstructorInternal
 
-  elemental subroutine dumpToGraphVizDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorDumpToGraphViz), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine dumpToGraphVizDestructor
-
-  subroutine dumpToGraphVizOperate(self,tree)
+  subroutine dumpToGraphVizOperatePreEvolution(self,tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
     use :: Galacticus_Nodes , only : mergerTree      , nodeComponentBasic
     use :: Merger_Trees_Dump, only : Merger_Tree_Dump
@@ -150,4 +139,4 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine dumpToGraphVizOperate
+  end subroutine dumpToGraphVizOperatePreEvolution

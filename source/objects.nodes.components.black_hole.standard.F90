@@ -144,12 +144,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Black_Hole_Standard_Initialize(parameters_)
     !% Initializes the standard black hole component module.
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentBlackHoleStandard
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters               ), intent(inout) :: globalParameters_
+    type(inputParameters               ), intent(inout) :: parameters_
     type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
 
     ! Get accretion rate enhancement factors.
@@ -159,7 +159,7 @@ contains
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -168,7 +168,7 @@ contains
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -177,7 +177,7 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
 
@@ -188,7 +188,7 @@ contains
     !#   <defaultValue>1.0d2</defaultValue>
     !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
 
@@ -199,7 +199,7 @@ contains
     !#   <defaultValue>2.4d-3</defaultValue>
     !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -208,7 +208,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
 
@@ -219,7 +219,7 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -228,7 +228,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
     !#   <group>blackHoles</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
 
@@ -239,7 +239,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
     !#   <group>output</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
 
@@ -250,7 +250,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
     !#   <group>output</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
 
@@ -260,7 +260,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
     !#   <group>output</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
 
@@ -275,23 +275,23 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard black hole module.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="globalParameters_"/>
-       !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinaryInitialSeparation"    name="blackHoleBinaryInitialSeparation_"    source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="globalParameters_"/>
-       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="globalParameters_"/>
-       !# <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="globalParameters_"/>
+       !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
+       !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryInitialSeparation"    name="blackHoleBinaryInitialSeparation_"    source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       !# <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters_"/>
+       !# <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
@@ -778,7 +778,7 @@ contains
     !% Creates a black hole component for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
+    type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentBlackHole)               , pointer :: blackHole
 
     ! Create the black hole.

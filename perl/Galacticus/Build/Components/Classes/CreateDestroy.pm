@@ -170,7 +170,7 @@ sub Class_Create_By_Interrupt {
 	     {
 		 intrinsic  => "type",
 		 type       => "treeNode",
-		 attributes => [ "pointer", "intent(inout)" ],
+		 attributes => [ "target", "intent(inout)" ],
 		 variables  => [ "self" ]
 	     },
 	     {

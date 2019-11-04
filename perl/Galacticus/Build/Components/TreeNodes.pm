@@ -297,7 +297,7 @@ sub Insert_Interrupt_Interface {
 	     {
 		 intrinsic  => "type",
 		 type       => "treeNode",
-		 attributes => [ "pointer", "intent(inout)" ],
+		 attributes => [ "target", "intent(inout)" ],
 		 variables  => [ "node" ]
 	     }
 	    ]		

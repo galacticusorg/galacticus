@@ -36,11 +36,14 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputHaloModelData value="true"/>
     <taskMethod value="multi">
       <taskMethod value="evolveForests"/>
       <taskMethod value="powerSpectra"/>
     </taskMethod>
+    <mergerTreeOutputterMethod value="multi">
+      <mergerTreeOutputterMethod value="standard"           />
+      <mergerTreeOutputterMethod value="haloFourierProfiles"/>
+    </mergerTreeOutputterMethod>
     <nodePropertyExtractMethod value="multi">
       <nodePropertyExtractMethod value="haloBias"/>
       <nodePropertyExtractMethod value="indicesHost">

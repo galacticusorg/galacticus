@@ -23,10 +23,10 @@ module Node_Component_Basic_Standard
   !% The standard implementation of basic tree node methods.
   implicit none
   private
-  public :: Node_Component_Basic_Standard_Rate_Compute   , Node_Component_Basic_Standard_Scale_Set     , &
-       &    Node_Component_Basic_Standard_Tree_Initialize, Node_Component_Basic_Standard_Stop_Accretion, &
-       &    Node_Component_Basic_Standard_Promote        , Node_Component_Basic_Standard_Plausibility  , &
-       &    Node_Component_Basic_Standard_Post_Step
+  public :: Node_Component_Basic_Standard_Rate_Compute     , Node_Component_Basic_Standard_Scale_Set          , &
+       &    Node_Component_Basic_Standard_Tree_Initialize  , Node_Component_Basic_Standard_Stop_Accretion     , &
+       &    Node_Component_Basic_Standard_Plausibility     , Node_Component_Basic_Standard_Post_Step          , &
+       &    Node_Component_Basic_Standard_Thread_Initialize, Node_Component_Basic_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>basic</class>
@@ -71,6 +71,37 @@ module Node_Component_Basic_Standard
   !# </component>
 
 contains
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Basic_Standard_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Basic_Standard_Thread_Initialize(parameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+
+    if (defaultBasicComponent%standardIsActive()) &
+         call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicStandard')
+    return
+  end subroutine Node_Component_Basic_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Basic_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Basic_Standard_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    implicit none
+
+    if (defaultBasicComponent%standardIsActive()) &
+         & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Basic_Standard_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
@@ -229,49 +260,41 @@ contains
     end select
     return
   end subroutine Node_Component_Basic_Standard_Stop_Accretion
+  
+  subroutine nodePromotion(self,node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
+    !% to be that of its parent.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic     , nodeComponentBasicStandard, treeNode
+    use :: ISO_Varying_String, only : var_str                , varying_string            , operator(//)
+    use :: String_Handling   , only : operator(//)
+    implicit none
+    class    (*                 ), intent(inout) :: self
+    type     (treeNode          ), intent(inout) :: node
+    type     (treeNode          ), pointer       :: nodeParent
+    class    (nodeComponentBasic), pointer       :: basicParent, basic
+    type     (varying_string    )                :: message
+    character(len=12            )                :: label
+    !GCC$ attributes unused :: self
 
-   !# <nodePromotionTask>
-   !#  <unitName>Node_Component_Basic_Standard_Promote</unitName>
-   !# </nodePromotionTask>
-   subroutine Node_Component_Basic_Standard_Promote(node)
-     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
-     !% to be that of its parent.
-     use :: Galacticus_Error  , only : Galacticus_Error_Report
-     use :: Galacticus_Nodes  , only : nodeComponentBasic     , nodeComponentBasicStandard, treeNode
-     use :: ISO_Varying_String, only : var_str                , varying_string            , operator(//)
-     use :: String_Handling   , only : operator(//)
-     implicit none
-     type     (treeNode          ), intent(inout), pointer :: node
-     type     (treeNode          )               , pointer :: nodeParent
-     class    (nodeComponentBasic)               , pointer :: basicParent, basic
-     type     (varying_string    )                         :: message
-     character(len=12            )                         :: label
-
-     ! Get the basic component.
-     basic => node%basic()
-     ! Ensure that it is of the standard class.
-     select type (basic)
-     class is (nodeComponentBasicStandard)
-        ! Get the parent node and its basic component.
-        nodeParent           => node  %parent
-        basicParent => nodeParent%basic()
-        ! Ensure the two halos exist at the same time.
-        if (basic%time() /= basicParent%time()) then
-           message=var_str("node [")//node%index()//"] has not been evolved to its parent ["//nodeParent%index()//"]"//char(10)
-           write (label,'(f12.6)') basic%time()
-           message=message//"    node is at time: "//label//" Gyr"//char(10)
-           write (label,'(f12.6)') basicParent%time()
-           message=message//"  parent is at time: "//label//" Gyr"
-           call Galacticus_Error_Report(message//{introspection:location})
-        end if
-        ! Adjust the mass and target to that of the parent node.
-        call basic%massSet         (basicParent%mass         ())
-        call basic%massTargetSet   (basicParent%massTarget   ())
-        ! Adjust the accretion rate to that of the parent node.
-        call basic%accretionRateSet(basicParent%accretionRate())
-     end select
-     return
-   end subroutine Node_Component_Basic_Standard_Promote
+    basic       => node      %basic ()
+    nodeParent  => node      %parent
+    basicParent => nodeParent%basic ()
+    ! Ensure the two halos exist at the same time.
+    if (basic%time() /= basicParent%time()) then
+       message=var_str("node [")//node%index()//"] has not been evolved to its parent ["//nodeParent%index()//"]"//char(10)
+       write (label,'(f12.6)') basic%time()
+       message=message//"    node is at time: "//label//" Gyr"//char(10)
+       write (label,'(f12.6)') basicParent%time()
+       message=message//"  parent is at time: "//label//" Gyr"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Adjust the mass, target, and accretion rate to that of the parent node.
+    call basic%massSet         (basicParent%mass         ())
+    call basic%massTargetSet   (basicParent%massTarget   ())
+    call basic%accretionRateSet(basicParent%accretionRate())
+    return
+  end subroutine nodePromotion
 
   double precision function Node_Component_Basic_Standard_Unresolved_Mass(node)
     !% Return the unresolved mass for {\normalfont \ttfamily node}.

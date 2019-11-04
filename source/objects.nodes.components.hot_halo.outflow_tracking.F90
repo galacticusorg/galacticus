@@ -68,15 +68,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize

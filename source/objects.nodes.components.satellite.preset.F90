@@ -25,9 +25,10 @@ module Node_Component_Satellite_Preset
   !% Implements a preset satellite orbit component.
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Promote               , Node_Component_Satellite_Preset_Inter_Tree_Attach    , &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Insert     , Node_Component_Satellite_Preset_Rate_Compute         , &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess, Node_Component_Satellite_Preset_Satellite_Host_Change
+  public :: Node_Component_Satellite_Preset_Satellite_Host_Change , Node_Component_Satellite_Preset_Inter_Tree_Attach, &
+       &    Node_Component_Satellite_Preset_Inter_Tree_Insert     , Node_Component_Satellite_Preset_Rate_Compute     , &
+       &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess, Node_Component_Satellite_Preset_Thread_Initialize, &
+       &    Node_Component_Satellite_Preset_Thread_Uninitialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -99,22 +100,50 @@ module Node_Component_Satellite_Preset
 
 contains
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Satellite_Preset_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Satellite_Preset_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
-    !% from the parent.
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Satellite_Preset_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Satellite_Preset_Thread_Initialize(parameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Input_Parameters, only : inputParameters
     implicit none
-    type (treeNode), intent(inout), pointer :: thisNode
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
 
-    ! Return immediately if the preset satellite implementation is not active.
-    if (.not.defaultSatelliteComponent%presetIsActive()) return
-    ! Move the satellite orbit from the parent node.
-    call thisnode%parent%satelliteMove(thisNode,overwrite=.true.)
+    if (defaultSatelliteComponent%presetIsActive()) &
+         call nodePromotionEvent%attach(defaultSatelliteComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
     return
-  end subroutine Node_Component_Satellite_Preset_Promote
+  end subroutine Node_Component_Satellite_Preset_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Satellite_Preset_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Satellite_Preset_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    implicit none
+
+    if (defaultSatelliteComponent%presetIsActive()) &
+         & call nodePromotionEvent%detach(defaultSatelliteComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize
+
+  subroutine nodePromotion(self,node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    !% from the parent.
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
+    !GCC$ attributes unused :: self
+    
+    ! Move the satellite orbit from the parent node.
+    call node%parent%satelliteMove(node,overwrite=.true.)
+    return
+  end subroutine nodePromotion
 
   !# <interTreeSatelliteInsert>
   !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Insert</unitName>
@@ -389,7 +418,7 @@ contains
     use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
+    type (treeNode              ), intent(inout), target  :: node
     type (treeNode              )               , pointer :: nodeHost
     class(nodeComponentBasic    )               , pointer :: basic    , basicHost
     class(nodeComponentSatellite)               , pointer :: satellite

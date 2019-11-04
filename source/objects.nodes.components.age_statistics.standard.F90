@@ -75,12 +75,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Age_Statistics_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Age_Statistics_Standard_Initialize(parameters_)
     !% Initializes the tree node standard disk methods module.
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
     use :: Input_Parameters, only : inputParameter               , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        !# <inputParameter>
@@ -88,7 +88,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
     end if

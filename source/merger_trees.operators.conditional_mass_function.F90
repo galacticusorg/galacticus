@@ -187,11 +187,11 @@
      !@     <description>Compute weights for a halo in each bin of a 2D mass function.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                 conditionalMFDestructor
-     procedure :: operate      => conditionalMFOperate
-     procedure :: finalize     => conditionalMFFinalize
-     procedure :: binWeights   => conditionalMFBinWeights
-     procedure :: binWeights2D => conditionalMFBinWeights2D
+     final     ::                        conditionalMFDestructor
+     procedure :: operatePreEvolution => conditionalMFOperatePreEvolution
+     procedure :: finalize            => conditionalMFFinalize
+     procedure :: binWeights          => conditionalMFBinWeights
+     procedure :: binWeights2D        => conditionalMFBinWeights2D
   end type mergerTreeOperatorConditionalMF
 
   interface mergerTreeOperatorConditionalMF
@@ -618,7 +618,7 @@ contains
     return
   end subroutine conditionalMFDestructor
 
-  subroutine conditionalMFOperate(self,tree)
+  subroutine conditionalMFOperatePreEvolution(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
     use    :: Galacticus_Error    , only : Galacticus_Error_Report
     use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
@@ -1045,7 +1045,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine conditionalMFOperate
+  end subroutine conditionalMFOperatePreEvolution
 
   function conditionalMFBinWeights(self,mass,time,massLogarithmicMinimumBins,massLogarithmicWidthInverseBins,countBins)
     !% Computes the weight that a given halo contributes to an array of bins.

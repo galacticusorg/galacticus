@@ -56,8 +56,8 @@
      ! Pointer to the parameters for this task.
      type            (inputParameters          )          :: parameters
    contains
-     final     ::            particulateDestructor
-     procedure :: operate => particulateOperate
+     final     ::                        particulateDestructor
+     procedure :: operatePreEvolution => particulateOperatePreEvolution
   end type mergerTreeOperatorParticulate
 
   interface mergerTreeOperatorParticulate
@@ -331,7 +331,7 @@ contains
     return
   end subroutine particulateDestructor
 
-  subroutine particulateOperate(self,tree)
+  subroutine particulateOperatePreEvolution(self,tree)
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
     use    :: Cosmology_Parameters              , only : hubbleUnitsLittleH
@@ -707,7 +707,7 @@ contains
        end if
     end do
     return
-  end subroutine particulateOperate
+  end subroutine particulateOperatePreEvolution
 
   subroutine particulateTabulateEnergyDistribution(radius,energyDistributionPointsPerDecade)
     !% Construct the energy distribution function assuming a spherical dark matter halo with

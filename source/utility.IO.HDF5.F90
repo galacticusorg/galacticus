@@ -156,8 +156,8 @@ module IO_HDF5
      !@   <objectMethod>
      !@     <method>datasets</method>
      !@     <description>Get a list of datasets in a group object.</description>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater} datasetNames(:)</type>
-     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(varying\_string)\textgreater} datasetNames(:)\argout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>assertAttributeType</method>
@@ -4299,21 +4299,21 @@ contains
     return
   end function IO_HDF5_Has_Dataset
 
-  function IO_HDF5_Datasets(thisObject)
+  subroutine IO_HDF5_Datasets(thisObject,datasetNames)
     !% Return a list of all datasets present within {\normalfont \ttfamily thisObject}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : h5g_dataset_f          , h5gget_obj_info_idx_f, h5gn_members_f, hid_t
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim          , char
     use :: String_Handling   , only : operator(//)
     implicit none
-    type     (varying_string), allocatable  , dimension(:) :: IO_HDF5_Datasets
-    class    (hdf5Object    ), intent(in   )               :: thisObject
-    integer                                                :: errorCode
-    integer  (hid_t         )                              :: locationIdentifier
-    type     (varying_string)                              :: message           , objectName
-    character(len=1024      )                              :: memberName
-    integer                                                :: memberType        , groupMemberCount, &
-         &                                                    i                 , datasetCount
+    type     (varying_string), intent(inout), allocatable, dimension(:) :: datasetNames
+    class    (hdf5Object    ), intent(in   )                            :: thisObject
+    integer                                                             :: errorCode
+    integer  (hid_t         )                                           :: locationIdentifier
+    type     (varying_string)                                           :: message           , objectName
+    character(len=1024      )                                           :: memberName
+    integer                                                             :: memberType        , groupMemberCount, &
+         &                                                                 i                 , datasetCount
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -4353,7 +4353,8 @@ contains
        if (memberType == h5g_dataset_f) datasetCount=datasetCount+1
     end do
     ! Allocate the array of dataset names and retrieve them.
-    allocate(IO_HDF5_Datasets(datasetCount))
+    if (allocated(datasetNames)) deallocate(datasetNames)
+    allocate(datasetnames(datasetCount))
     datasetCount=0
     do i=0,groupMemberCount-1
        call h5gget_obj_info_idx_f(locationIdentifier,char(objectName),i,memberName,memberType,errorCode)
@@ -4362,14 +4363,14 @@ contains
           message=message//i//" in '"//trim(objectName)//"'"
           call Galacticus_Error_Report(message//{introspection:location})
        end if
-       ! Count datasets.
+       ! Store dataset name.
        if (memberType == h5g_dataset_f) then
           datasetCount=datasetCount+1
-          IO_HDF5_Datasets(datasetCount)=trim(memberName)
+          datasetNames(datasetCount)=trim(memberName)
        end if
     end do
     return
-  end function IO_HDF5_Datasets
+  end subroutine IO_HDF5_Datasets
 
   subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank)
     !% Asserts that an dataset is of a certain type and rank.

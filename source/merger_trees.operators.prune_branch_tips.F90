@@ -27,7 +27,7 @@
      !% sibling).
      private
    contains
-     procedure :: operate => pruneBranchTipsOperate
+     procedure :: operatePreEvolution => pruneBranchTipsOperatePreEvolution
   end type mergerTreeOperatorPruneBranchTips
 
   interface mergerTreeOperatorPruneBranchTips
@@ -48,7 +48,7 @@ contains
     return
   end function pruneBranchTipsConstructorParameters
 
-  subroutine pruneBranchTipsOperate(self,tree)
+  subroutine pruneBranchTipsOperatePreEvolution(self,tree)
     !% Perform a prune-branchTips operation on a merger tree.
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
@@ -94,5 +94,5 @@ contains
     end do
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
-  end subroutine pruneBranchTipsOperate
+  end subroutine pruneBranchTipsOperatePreEvolution
 

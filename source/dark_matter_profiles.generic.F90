@@ -279,7 +279,7 @@ contains
     use :: Numerical_Integration     , only : Integrate                , Integrate_Done
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout), target   :: self
-    type            (treeNode                  ), intent(inout), pointer  :: node
+    type            (treeNode                  ), intent(inout), target   :: node
     double precision                            , intent(in   )           :: radius
     integer                                     , intent(  out), optional :: status
     double precision                            , parameter               :: radiusMaximumFactor =1.0d2

@@ -28,9 +28,9 @@ module Node_Component_Basic_Standard_Extended
   implicit none
   private
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
-       &    Node_Component_Basic_Standard_Extended_Promote   , Node_Component_Basic_Standard_Extended_Rate_Compute, &
        &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings             , &
-       &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize
+       &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize  , &
+       &    Node_Component_Basic_Standard_Extended_Rate_Compute
 
   !# <component>
   !#  <class>basic</class>
@@ -94,14 +94,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Basic_Extended_Bindings(globalParameters_)
+  subroutine Node_Component_Basic_Extended_Bindings(parameters_)
     !% Initializes the ``extended'' implementation of the basic component.
     use :: Galacticus_Nodes          , only : nodeComponentBasicStandardExtended
     use :: ISO_Varying_String        , only : var_str                                       , varying_string , char
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
-    type(inputParameters                   ), intent(inout) :: globalParameters_
+    type(inputParameters                   ), intent(inout) :: parameters_
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
     type(nodeComponentBasicStandardExtended)                :: basic
 
@@ -111,7 +111,7 @@ contains
     !#   <defaultValue>var_str('matterLambda')</defaultValue>
     !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
     !#   <group>cosmology</group>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>string</type>
     !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
     !# </inputParameter>
@@ -128,7 +128,7 @@ contains
        !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
        !#     \citealt{percival_cosmological_2005}; \S8.).</description>
        !#   <group>cosmology</group>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>string</type>
        !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
        !# </inputParameter>
@@ -145,16 +145,18 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Basic_Extended_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters_)
     !% Initializes the tree node random spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultBasicComponent
     use :: Input_Parameters, only : inputParameter       , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
-       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="globalParameters_"/>
-       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="globalParameters_"/>
+       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters_"/>
+       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters_"/>
+       call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicExtended')
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Initialize
@@ -164,12 +166,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !# <objectDestructor name="cosmologyParameters_"/>
        !# <objectDestructor name="cosmologyFunctions_" />
+       call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Uninitialize
@@ -419,41 +423,31 @@ contains
     end select
     return
   end subroutine Node_Component_Basic_Standard_Extended_Node_Merger
-
-   !# <nodePromotionTask>
-   !#  <unitName>Node_Component_Basic_Standard_Extended_Promote</unitName>
-   !# </nodePromotionTask>
-   subroutine Node_Component_Basic_Standard_Extended_Promote(node)
-     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
-     !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
-     use :: Galacticus_Error, only : Galacticus_Error_Report
-     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicStandardExtended, treeNode
-     implicit none
-     type (treeNode          ), intent(inout), pointer :: node
-     type (treeNode          )               , pointer :: nodeParent
-     class(nodeComponentBasic)               , pointer :: basicParent, basic
-
-     ! Get the basic component.
-     basic => node%basic()
-     ! Ensure that it is of the standard class.
-     select type (basic)
-     class is (nodeComponentBasicStandardExtended)
-        ! Get the parent node and its basic component.
-        nodeParent  => node      %parent
-        basicParent => nodeParent%basic ()
-        ! Ensure the two halos exist at the same time.
-        if (basic%time() /= basicParent%time())                                                                  &
-             & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-        ! Adjust the mass to that of the parent node.
-        call basic%massBertschingerSet          (basicParent%massBertschinger          ())
-        ! Adjust the accretion rate to that of the parent node.
-        call basic%accretionRateBertschingerSet (basicParent%accretionRateBertschinger ())
-        ! Adjust the turnaround radius to that of the parent node.
-        call basic%radiusTurnaroundSet          (basicParent%radiusTurnaround          ())
-        ! Adjust the accretion rate to that of the parent node.
-        call basic%radiusTurnaroundGrowthRateSet(basicParent%radiusTurnaroundGrowthRate())
-     end select
-     return
-   end subroutine Node_Component_Basic_Standard_Extended_Promote
+  
+  subroutine nodePromotion(self,node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
+    !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicStandardExtended, treeNode
+    implicit none
+    class(*                 ), intent(inout) :: self
+    type (treeNode          ), intent(inout) :: node
+    type (treeNode          ), pointer       :: nodeParent
+    class(nodeComponentBasic), pointer       :: basicParent, basic
+    !GCC$ attributes unused :: self
+    
+    basic       => node      %basic ()
+    nodeParent  => node      %parent
+    basicParent => nodeParent%basic ()
+    ! Ensure the two halos exist at the same time.
+    if (basic%time() /= basicParent%time())                                                                  &
+         & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
+    ! Adjust mass, turnaround radius, and their growth rates to those of the parent node.
+    call basic%massBertschingerSet          (basicParent%massBertschinger          ())
+    call basic%accretionRateBertschingerSet (basicParent%accretionRateBertschinger ())
+    call basic%radiusTurnaroundSet          (basicParent%radiusTurnaround          ())
+    call basic%radiusTurnaroundGrowthRateSet(basicParent%radiusTurnaroundGrowthRate())
+    return
+  end subroutine nodePromotion
 
 end module Node_Component_Basic_Standard_Extended

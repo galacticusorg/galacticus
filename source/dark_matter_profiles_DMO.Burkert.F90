@@ -469,7 +469,7 @@ contains
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     class           (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), pointer  :: node
+    type            (treeNode                      ), intent(inout), target   :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
     class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile

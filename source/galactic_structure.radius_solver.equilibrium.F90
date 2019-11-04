@@ -127,14 +127,14 @@ contains
   subroutine equilibriumAutoHook(self)
     !% Attach to various event hooks.
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
-          &                     satelliteMergerEvent
+          &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel)
-    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
-    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
-    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
+    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                             )
+    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel                                                                                                             )
+    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel                                                                                                             )
+    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     return
   end subroutine equilibriumAutoHook
 

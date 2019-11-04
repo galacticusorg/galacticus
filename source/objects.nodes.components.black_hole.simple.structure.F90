@@ -120,7 +120,7 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , nodeComponentBlackHoleSimple, treeNode
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(inout), optional :: status

@@ -39,13 +39,13 @@ module Node_Component_Hot_Halo_Standard
   use :: Radiation_Fields                          , only : radiationFieldClass                , radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset              , &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging  , &
-       &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation          , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
-       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Thread_Uninitialize
+  public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
+       &    Node_Component_Hot_Halo_Standard_Post_Evolve        , Node_Component_Hot_Halo_Standard_Reset            , &
+       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger        , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
+       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_Formation        , &
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute       , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -260,7 +260,7 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_Standard_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters_)
     !% Initializes the standard hot halo component module.
     use :: Abundances_Structure                 , only : Abundances_Property_Count           , abundances
     use :: Chemical_Abundances_Structure        , only : Chemicals_Property_Count
@@ -271,7 +271,7 @@ contains
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                         , formationNode                  , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode   , &
           &                                              hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed
     implicit none
-    type(inputParameters             ), intent(inout) :: globalParameters_
+    type(inputParameters             ), intent(inout) :: parameters_
     type(varying_string              )                :: hotHaloCoolingFromText
     type(nodeComponentHotHaloStandard)                :: hotHaloComponent
 
@@ -289,7 +289,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -298,7 +298,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -308,7 +308,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not gas stripped from the hot halo should be tracked.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -318,7 +318,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -330,7 +330,7 @@ contains
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
        !#      for the purposes of computing the hot halo angular momentum.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -340,7 +340,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('currentNode')</defaultValue>
        !#   <description>Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>integer</type>
        !#   <variable>hotHaloCoolingFromText</variable>
        !# </inputParameter>
@@ -359,7 +359,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>integer</type>
        !# </inputParameter>
 
@@ -369,7 +369,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -379,7 +379,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -389,7 +389,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.3d0</defaultValue>
        !#   <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -402,7 +402,7 @@ contains
        !#     merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
        !#     removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
        !#     fraction where possible.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outer radius get function.
@@ -429,38 +429,40 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent                   , openMPThreadBindingAtLevel
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
     use :: Radiation_Fields, only : radiationFieldIntergalacticBackground
     implicit none
-    type(inputParameters   ), intent(inout) :: globalParameters_
+    type(inputParameters   ), intent(inout) :: parameters_
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
     if (defaultHotHaloComponent%standardIsActive()) then
-       !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="globalParameters_"/>
-       !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="globalParameters_"/>
-       !# <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="globalParameters_"/>
-       !# <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="globalParameters_"/>
-       !# <objectBuilder class="accretionHalo"                  name="accretionHalo_"                  source="globalParameters_"/>
-       !# <objectBuilder class="chemicalReactionRate"           name="chemicalReactionRate_"           source="globalParameters_"/>
-       !# <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="globalParameters_"/>
-       !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="globalParameters_"/>
+       !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters_"/>
+       !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters_"/>
+       !# <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="parameters_"/>
+       !# <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="parameters_"/>
+       !# <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="parameters_"/>
+       !# <objectBuilder class="accretionHalo"                  name="accretionHalo_"                  source="parameters_"/>
+       !# <objectBuilder class="chemicalReactionRate"           name="chemicalReactionRate_"           source="parameters_"/>
+       !# <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="parameters_"/>
+       !# <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="parameters_"/>
+       !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters_"/>
+       !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters_"/>
+       !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters_"/>
+       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard')
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
        !# <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
-       if (globalParameters_%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
-          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="globalParameters_"/>
+       if (parameters_%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
+          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="parameters_"/>
           select type (radiationIntergalacticBackground)
           class is (radiationFieldIntergalacticBackground)
              ! This is as expected.
@@ -483,6 +485,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -504,6 +507,7 @@ contains
        !# <objectDestructor name="radiationIntergalacticBackground"  />
        !# <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        !# <objectDestructor name="radiation"                         />
+       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -1721,29 +1725,25 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Hot_Halo_Standard_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
     use :: Abundances_Structure         , only : abundances            , zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
     implicit none
-    type (treeNode                ), intent(inout), pointer :: node
-    type (treeNode                )               , pointer :: nodeParent
-    class(nodeComponentHotHalo    )               , pointer :: hotHaloParent, hotHalo
-
-    ! Get the hot halo component.
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
+    !GCC$ attributes unused :: self
+    
     hotHalo => node%hotHalo()
     ! Ensure that it is of specified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
-       ! Get the parent node of this node and its hot halo component.
-       nodeParent             => node  %parent
+       nodeParent    => node      %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-
        ! Update the outer radius to match the virial radius of the parent halo.
        call hotHalo%outerRadiusSet(                                              &
             &                      darkMatterHaloScale_%virialRadius(nodeParent) &
@@ -1751,8 +1751,8 @@ contains
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (hotHaloParent)
-       class is (nodeComponentHotHaloStandard)
-          ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
+          class is (nodeComponentHotHaloStandard)
+             ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
           if (hotHalo%         mass() <= 0.0d0) then
              call hotHalo%massSet           (0.0d0                 )
              call hotHalo%angularMomentumSet(0.0d0                 )
@@ -1799,7 +1799,7 @@ contains
        end select
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Promote
+  end subroutine nodePromotion
 
   subroutine Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
@@ -1882,14 +1882,14 @@ contains
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentBasic  )               , pointer :: basic
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    type            (abundances          ), save                   :: outflowedAbundances
-    type            (chemicalAbundances  ), save                   :: chemicalDensities    , chemicalMasses
+    type            (treeNode            ), intent(inout) :: node
+    class           (nodeComponentBasic  ), pointer       :: basic
+    class           (nodeComponentHotHalo), pointer       :: hotHalo
+    type            (abundances          ), save          :: outflowedAbundances
+    type            (chemicalAbundances  ), save          :: chemicalDensities    , chemicalMasses
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
-    double precision                                               :: hydrogenByMass       , massToDensityConversion, &
-         &                                                            numberDensityHydrogen, temperature
+    double precision                                      :: hydrogenByMass       , massToDensityConversion, &
+         &                                                   numberDensityHydrogen, temperature
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return

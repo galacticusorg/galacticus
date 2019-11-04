@@ -168,7 +168,7 @@ contains
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: node
+    type            (treeNode              ), intent(inout)           :: node
     integer                                 , intent(in   )           :: componentType, massType
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(inout), optional :: status

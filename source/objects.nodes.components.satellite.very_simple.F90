@@ -72,11 +72,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Satellite_Very_Simple_Initialize(globalParameters_)
+  subroutine Node_Component_Satellite_Very_Simple_Initialize(parameters_)
     !% Initializes the tree node satellite orbit methods module.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     ! Determine if satellite orbits are to be reset on halo formation events.
     !# <inputParameter>
@@ -84,7 +84,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -93,16 +93,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple satellite module.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
-       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="globalParameters_"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
+       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize
@@ -129,8 +129,8 @@ contains
     !% Reset the orbits of satellite galaxies on halo formation events.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(treeNode)               , pointer :: satelliteNode
+    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), pointer       :: satelliteNode
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return

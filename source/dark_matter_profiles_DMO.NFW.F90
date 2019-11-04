@@ -543,7 +543,7 @@ contains
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), pointer  :: node
+    type            (treeNode                      ), intent(inout), target   :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
     class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile

@@ -135,7 +135,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   ! Uninitialize node components.
-  call nodeClassHierarchyFinalize         ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
+  call nodeClassHierarchyFinalize         ()
 end program Test_Dark_Matter_Halo_Radius_Enclosing_Mass

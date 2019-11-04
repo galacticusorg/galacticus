@@ -86,13 +86,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Initialize(globalParameters_)
+  subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters_)
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters                   ), intent(inout) :: globalParameters_
+    type(inputParameters                   ), intent(inout) :: parameters_
     type(nodeComponentPositionPresetOrphans)                :: position
-    !GCC$ attributes unused :: globalParameters_
+    !GCC$ attributes unused :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then
@@ -106,15 +106,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters_)
     !% Initializes the tree node preset orphans position module.
     use :: Galacticus_Nodes, only : defaultPositionComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultPositionComponent%presetOrphansIsActive()) then
-       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="globalParameters_"/>
+       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize

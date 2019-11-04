@@ -400,7 +400,7 @@ contains
     !% \ttfamily radius} (given in units of Mpc).
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
-    type            (treeNode                                ), intent(inout), pointer  :: node
+    type            (treeNode                                ), intent(inout), target   :: node
     double precision                                          , intent(in   )           :: radius
     integer                                                   , intent(  out), optional :: status
 

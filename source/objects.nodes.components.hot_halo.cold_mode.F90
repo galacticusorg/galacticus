@@ -33,8 +33,8 @@ module Node_Component_Hot_Halo_Cold_Mode
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
+       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Cold_Mode_Formation
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -96,13 +96,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(parameters_)
     !% Initializes the tree node hot halo methods module.
     use :: Abundances_Structure, only : Abundances_Property_Count
     use :: Galacticus_Nodes    , only : defaultHotHaloComponent  , nodeComponentHotHaloColdMode
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters             ), intent(inout) :: globalParameters_
+    type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentHotHaloColdMode)                :: hotHaloComponent
 
     ! Initialize the module if necessary.
@@ -116,7 +116,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.</description>
-       !#   <source>globalParameters_</source>
+       !#   <source>parameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
@@ -130,22 +130,24 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo cold mode methods module.
+    use :: Events_Hooks                                     , only : nodePromotionEvent       , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Hot_Halo_Cold_Mode_Density_Core_Radii            , only : hotHaloColdModeCoreRadii
     use :: Input_Parameters                                 , only : inputParameter           , inputParameters
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
-       !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="globalParameters_"/>
-       !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="globalParameters_"/>
-       !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="globalParameters_"/>
-       !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="globalParameters_"/>
+       !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters_"/>
+       !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters_"/>
+       !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters_"/>
+       !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters_"/>
+       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode')
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
@@ -155,6 +157,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo cold mode methods module.
+    use :: Events_Hooks                                     , only : nodePromotionEvent
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
     implicit none
@@ -166,7 +169,8 @@ contains
        !# <objectDestructor name="accretionHalo_"           />
        !# <objectDestructor name="coldModeInfallRate_"      />
        !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>
-    end if
+       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
+   end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
 
@@ -677,47 +681,40 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
     !% update the cold mode mass of {\normalfont \ttfamily node} to account for any cold mode gas already in the
     !% parent.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeParent
-    class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
+    !GCC$ attributes unused :: self
 
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that it is of specified class.
-    select type (hotHalo)
+    hotHalo       => node      %hotHalo(                 )
+    nodeParent    => node      %parent
+    hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
+    ! If the parent node has a hot halo component, then add its cold mode to that of this node,
+    ! and perform other changes needed prior to promotion.
+    select type (hotHaloParent)
     class is (nodeComponentHotHaloColdMode)
-       ! Get the parent node of this node and its hot halo component.
-       nodeParent    => node  %parent
-       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-       ! If the parent node has a hot halo component, then add its cold mode to that of this node,
-       ! and perform other changes needed prior to promotion.
-       select type (hotHaloParent)
-       class is (nodeComponentHotHaloColdMode)
-          call hotHalo%           massColdSet(                                      &
-               &                                hotHalo      %massCold           () &
-               &                               +hotHaloParent%massCold           () &
-               &                              )
-          call hotHalo%angularMomentumColdSet(                                      &
-               &                                hotHalo      %angularMomentumCold() &
-               &                               +hotHaloParent%angularMomentumCold() &
-               &                              )
-          call hotHalo%     abundancesColdSet(                                      &
-               &                                hotHalo      %abundancesCold     () &
-               &                               +hotHaloParent%abundancesCold     () &
-               &                              )
-        end select
+       call hotHalo%           massColdSet(                                      &
+            &                                hotHalo      %massCold           () &
+            &                               +hotHaloParent%massCold           () &
+            &                              )
+       call hotHalo%angularMomentumColdSet(                                      &
+            &                                hotHalo      %angularMomentumCold() &
+            &                               +hotHaloParent%angularMomentumCold() &
+            &                              )
+       call hotHalo%     abundancesColdSet(                                      &
+            &                                hotHalo      %abundancesCold     () &
+            &                               +hotHaloParent%abundancesCold     () &
+            &                              )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Promote
+  end subroutine nodePromotion
 
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Formation</unitName>
@@ -728,8 +725,8 @@ contains
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo           , nodeComponentHotHaloColdMode, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnOnFormation
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo)               , pointer :: hotHalo
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentHotHalo), pointer       :: hotHalo
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return

@@ -256,10 +256,10 @@ contains
           call hdf5Access%set()
           call cambOutput%openFile(char(fileName_))
           speciesGroup=cambOutput%openGroup('darkMatter')
-          datasetNames=speciesGroup%datasets()
-          call speciesGroup%close()
-          call cambOutput  %close()
-          call hdf5Access  %unset()
+          call speciesGroup%datasets(datasetNames)
+          call speciesGroup%close   (            )
+          call cambOutput  %close   (            )
+          call hdf5Access  %unset   (            )
        else
           allocate(datasetNames(0))
        end if

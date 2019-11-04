@@ -23,8 +23,9 @@ module Node_Component_Formation_Times_Cole2000
   !% Implement tracking of halo formation times.
   implicit none
   private
-  public :: Node_Component_Formation_Times_Cole2000_Initialize    , Node_Component_Formation_Time_Cole2000_Rate_Compute  , &
-       &    Node_Component_Formation_Time_Cole2000_Tree_Initialize, Node_Component_Formation_Time_Cole2000_Node_Promotion
+  public :: Node_Component_Formation_Times_Cole2000_Initialize         , Node_Component_Formation_Times_Cole2000_Rate_Compute     , &
+       &    Node_Component_Formation_Times_Cole2000_Tree_Initialize    , Node_Component_Formation_Times_Cole2000_Thread_Initialize, &
+       &    Node_Component_Formation_Times_Cole2000_Thread_Uninitialize
 
   !# <component>
   !#  <class>formationTime</class>
@@ -53,18 +54,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Formation_Times_Cole2000_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Formation_Times_Cole2000_Initialize(globalParameters_)
+  subroutine Node_Component_Formation_Times_Cole2000_Initialize(parameters_)
     !% Initializes the tree node formation time tracking module.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>haloReformationMassFactor</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -73,16 +74,48 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
     !#      the halo mass has increased sufficiently in mass.</description>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Initialize
 
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Cole2000_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Formation_Times_Cole2000_Thread_Initialize(parameters_)
+    !% Initializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent           , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    use :: Input_Parameters, only : inputParameter               , inputParameters
+    implicit none
+    type(inputParameters   ), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+    
+    ! Check if this implementation is selected.
+    if (defaultFormationTimeComponent%cole2000IsActive()) &
+         & call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeCole2000',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponentHotHalo')])
+    return
+  end subroutine Node_Component_Formation_Times_Cole2000_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Cole2000_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Formation_Times_Cole2000_Thread_Uninitialize()
+    !% Uninitializes the tree node hot halo methods module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
+    implicit none
+
+    if (defaultFormationTimeComponent%cole2000IsActive()) &
+         & call nodePromotionEvent%detach(defaultFormationTimeComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Formation_Times_Cole2000_Thread_Uninitialize
+
   !# <rateComputeTask>
-  !#  <unitName>Node_Component_Formation_Time_Cole2000_Rate_Compute</unitName>
+  !#  <unitName>Node_Component_Formation_Times_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, interruptTask, nodeComponentBasic, nodeComponentFormationTime, &
           &                         propertyTypeInactive         , treeNode
@@ -109,48 +142,42 @@ contains
           basicFormation => node%formationNode%basic()
           if (basic%mass() > haloReformationMassFactor*basicFormation%mass()) then
              interrupt=.true.
-             interruptProcedure => Node_Component_Formation_Time_Cole2000_Create
+             interruptProcedure => Node_Component_Formation_Times_Cole2000_Create
              return
           end if
        end if
     end if
     return
-  end subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute
+  end subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Formation_Time_Cole2000_Node_Promotion</unitName>
-  !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(node)
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, nodeComponentFormationTimeCole2000, treeNode
+  subroutine nodePromotion(self,node)
+    !% Check if the node has undergone a formation event.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: node
-    class(nodeComponentFormationTime)               , pointer :: formationTime
-    class(nodeComponentBasic        )               , pointer :: basicFormation, basicParent
-
-    ! Get the formation time component.
-    formationTime => node%formationTime()
-    ! Ensure that it is of specified class.
-    select type (formationTime)
-    class is (nodeComponentFormationTimeCole2000)
-       if (haloReformationOnPromotionOnly) then
-          basicParent    => node%parent       %basic()
-          basicFormation => node%formationNode%basic()
-          if (basicParent%mass() > haloReformationMassFactor*basicFormation%mass()) &
-               & call Node_Component_Formation_Time_Cole2000_Create(node)
-       end if
-    end select
+    class(*                         ), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+    class(nodeComponentFormationTime), pointer       :: formationTime
+    class(nodeComponentBasic        ), pointer       :: basicFormation, basicParent
+    !GCC$ attributes unused :: self
+    
+    if (haloReformationOnPromotionOnly) then
+       formationTime  => node              %formationTime()
+       basicParent    => node%parent       %basic        ()
+       basicFormation => node%formationNode%basic        ()
+       if (basicParent%mass() > haloReformationMassFactor*basicFormation%mass()) &
+            & call Node_Component_Formation_Times_Cole2000_Create(node)
+    end if
     return
-  end subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion
+  end subroutine nodePromotion
 
-  subroutine Node_Component_Formation_Time_Cole2000_Create(node)
+  subroutine Node_Component_Formation_Times_Cole2000_Create(node)
     !% Creates a halo formation time component for {\normalfont \ttfamily node}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
     use :: Events_Halo_Formation, only : Event_Halo_Formation
     use :: Galacticus_Nodes     , only : nodeComponentFormationTime, treeNode
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: node
-    class(nodeComponentFormationTime)               , pointer :: formationTime
+    type (treeNode                  ), intent(inout), target :: node
+    class(nodeComponentFormationTime), pointer               :: formationTime
 
     ! Trigger a halo formation event.
     call Event_Halo_Formation(node)
@@ -171,12 +198,12 @@ contains
     node%formationNode%siblingMergee  => null()
     node%formationNode%formationNode  => null()
     return
-  end subroutine Node_Component_Formation_Time_Cole2000_Create
+  end subroutine Node_Component_Formation_Times_Cole2000_Create
 
   !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Formation_Time_Cole2000_Tree_Initialize</unitName>
+  !#  <unitName>Node_Component_Formation_Times_Cole2000_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(node)
+  subroutine Node_Component_Formation_Times_Cole2000_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, treeNode
     implicit none
@@ -184,9 +211,9 @@ contains
 
     ! If this method is selected and the node has no child then initialize it.
     if (defaultFormationTimeComponent%cole2000IsActive().and..not.associated(node%firstChild)) &
-         & call Node_Component_Formation_Time_Cole2000_Create(node)
+         & call Node_Component_Formation_Times_Cole2000_Create(node)
 
     return
-  end subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize
+  end subroutine Node_Component_Formation_Times_Cole2000_Tree_Initialize
 
 end module Node_Component_Formation_Times_Cole2000

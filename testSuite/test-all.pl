@@ -516,6 +516,11 @@ my @executablesToRun = (
 	name     => "tests.merger_tree_branching.exe",                                    # Tests of merger tree branching rate functions.
 	valgrind => 0,
 	mpi      => 0
+    },
+    {
+	name     => "tests.event_hooks.exe",                                              # Tests of event hook infrastructure.
+	valgrind => 0,
+	mpi      => 0
     }
     );
 

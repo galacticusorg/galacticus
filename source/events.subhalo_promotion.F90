@@ -23,38 +23,31 @@ module Node_Subhalo_Promotions
   !% Handles subhalo promotion events.
   implicit none
   private
-  public :: Node_Subhalo_Promotion
+  public :: nodeSubhaloPromotionPerform
 
 contains
 
-  logical function Node_Subhalo_Promotion(event,node,deadlockStatus)
+  logical function nodeSubhaloPromotionPerform(event,node,deadlockStatus)
     !% Promotes a subhalo to be an isolated node.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level    , verbosityInfo
-    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeComponentMergingStatistics, nodeEvent    , treeNode
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent    , treeNode
     use :: ISO_Varying_String                 , only : varying_string               , assignment(=)                 , operator(//)
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
-    use :: Merger_Trees_Evolve_Node           , only : mergerTreeNodeEvolver        , mergerTreeNodeEvolverClass
     use :: String_Handling                    , only : operator(//)
-    !# <include directive="subhaloPromotionPostProcess" type="moduleUse">
-    include 'events.subhalo_promotion.post_process.modules.inc'
-    !# </include>
     implicit none
-    class    (nodeEvent                     ), intent(in   )          :: event
-    type     (treeNode                      ), intent(inout), pointer :: node
-    integer                                  , intent(inout)          :: deadlockStatus
-    type     (treeNode                      )               , pointer :: nodePromotion
-    class    (nodeComponentBasic            )               , pointer :: basicParent
-    class    (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    class    (mergerTreeNodeEvolverClass    )               , pointer :: mergerTreeNodeEvolver_
-    type     (varying_string                )                         :: message
-    character(len=12                        )                         :: label
+    class    (nodeEvent     ), intent(in   )          :: event
+    type     (treeNode      ), intent(inout), pointer :: node
+    integer                  , intent(inout)          :: deadlockStatus
+    type     (treeNode      )               , pointer :: nodePromotion
+    type     (varying_string)                         :: message
+    character(len=12        )                         :: label
 
     ! Find the node to promote to.
     nodePromotion => event%node
     ! If the target node has a child, we must wait for that child to be processed before promoting. Note that this should only
     ! happen in cases where the target node was cloned to be its own primary progenitor.
     if (associated(nodePromotion%firstChild)) then
-       Node_Subhalo_Promotion=.false.
+       nodeSubhaloPromotionPerform=.false.
        return
     end if
     ! Report.
@@ -68,28 +61,18 @@ contains
     call node%removeFromHost  ()
     call node%removeFromMergee()
     ! Make node the primary progenitor of the target node.
-    node%parent          => nodePromotion
-    node%sibling         => null()
+    node         %parent     => nodePromotion
+    node         %sibling    => null()
     nodePromotion%firstChild => node
-    ! Reset the mass-when-first-isolated property of the merging statistics component if possible.
-    mergingStatistics => node%mergingStatistics()
-    if (mergingStatistics%massWhenFirstIsolatedIsSettable()) then
-       basicParent => nodePromotion%basic()
-       call mergingStatistics%massWhenFirstIsolatedSet(basicParent%mass())
-    end if
-    ! Allow any postprocessing of the subhalo promotion event that may be necessary.
-    !# <include directive="subhaloPromotionPostProcess" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
-    include 'events.subhalo_promotion.postprocess.inc'
-    !# </include>
-    ! Promote the halo.
-    mergerTreeNodeEvolver_ => mergerTreeNodeEvolver()
-    call mergerTreeNodeEvolver_%promote(node)
+    ! Trigger the event.
+    !# <eventHook name="subhaloPromotion">
+    !#  <callWith>node,nodePromotion</callWith>
+    !# </eventHook>
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.
-    Node_Subhalo_Promotion=.true.
+    nodeSubhaloPromotionPerform=.true.
     return
-  end function Node_Subhalo_Promotion
+  end function nodeSubhaloPromotionPerform
 
 end module Node_Subhalo_Promotions

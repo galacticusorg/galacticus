@@ -23,7 +23,8 @@ module Node_Component_Basic_Extended_Tracking
   !% Extends the extended implementation of basic component to track the maximum progenitor mass.
   implicit none
   private
-  public :: Node_Component_Basic_Extended_Tree_Tracking_Initialize, Node_Component_Basic_Extended_Tracking_Promote
+  public :: Node_Component_Basic_Extended_Tree_Tracking_Initialize    , Node_Component_Basic_Extended_Tracking_Thread_Initialize, &
+       &    Node_Component_Basic_Extended_Tracking_Thread_Uninitialize
 
   !# <component>
   !#  <class>basic</class>
@@ -75,31 +76,55 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Tree_Tracking_Initialize
 
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Basic_Extended_Tracking_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Basic_Extended_Tracking_Promote(node)
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Basic_Extended_Tracking_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Basic_Extended_Tracking_Thread_Initialize(parameters_)
+    !% Initializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !GCC$ attributes unused :: parameters_
+
+    if (defaultBasicComponent%extendedTrackingIsActive()) &
+         call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicExtendedTracking')
+    return
+  end subroutine Node_Component_Basic_Extended_Tracking_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Basic_Extended_Tracking_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Basic_Extended_Tracking_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultBasicComponent
+    implicit none
+
+    if (defaultBasicComponent%extendedTrackingIsActive()) &
+         & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
+    return
+  end subroutine Node_Component_Basic_Extended_Tracking_Thread_Uninitialize
+
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum
     !% mass of {\normalfont \ttfamily node} to be that of its parent.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicExtendedTracking, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
+    class(*                 ), intent(inout)          :: self
+    type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-
-    ! Get the basic component.
-    basic => node%basic()
-    ! Ensure that it is of the extended tracking class.
-    select type (basic)
-    class is (nodeComponentBasicExtendedTracking)
-       ! Get the parent node and its basic component.
-       nodeParent  => node      %parent
-       basicParent => nodeParent%basic ()
-       ! Adjust the maximum mass to that of the parent node.
-       call basic%massMaximumSet(basicParent%massMaximum())
-    end select
+    !GCC$ attributes unused :: self
+    
+    basic       => node      %basic ()
+    nodeParent  => node      %parent
+    basicParent => nodeParent%basic ()
+    ! Adjust the maximum mass to that of the parent node.
+    call basic%massMaximumSet(basicParent%massMaximum())
     return
-  end subroutine Node_Component_Basic_Extended_Tracking_Promote
+  end subroutine nodePromotion
 
 end module Node_Component_Basic_Extended_Tracking

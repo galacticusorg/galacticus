@@ -41,11 +41,11 @@
      type   (hdf5Object             )          :: outputGroup
      type   (varying_string         )          :: outputGroupName
      class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     logical                                   :: includeSpin        , includeSpinVector
+     logical                                   :: includeSpin                  , includeSpinVector
    contains
-     final     ::             massAccretionHistoryDestructor
-     procedure :: operate  => massAccretionHistoryOperate
-     procedure :: finalize => massAccretionHistoryFinalize
+     final     ::                        massAccretionHistoryDestructor
+     procedure :: operatePreEvolution => massAccretionHistoryOperatePreEvolution
+     procedure :: finalize            => massAccretionHistoryFinalize
   end type mergerTreeOperatorMassAccretionHistory
 
   interface mergerTreeOperatorMassAccretionHistory
@@ -143,7 +143,7 @@ contains
     return
   end subroutine massAccretionHistoryDestructor
 
-  subroutine massAccretionHistoryOperate(self,tree)
+  subroutine massAccretionHistoryOperatePreEvolution(self,tree)
     !% Output the mass accretion history for a merger tree.
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
@@ -239,7 +239,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine massAccretionHistoryOperate
+  end subroutine massAccretionHistoryOperatePreEvolution
 
   subroutine massAccretionHistoryFinalize(self)
     !% Close the mass accretion history group before closing the HDF5 file.
