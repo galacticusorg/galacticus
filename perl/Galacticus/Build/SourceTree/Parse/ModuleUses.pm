@@ -288,6 +288,8 @@ sub UpdateUses {
 		    $useLine .= ", ";
 		    if ( $j == 3 ) {
 			$useLine .= "&\n";
+			$useLine .= "!\$"
+			    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
 			$useLine .= "          &".(" " x ($offsetLength-11));
 		    }
 		}
