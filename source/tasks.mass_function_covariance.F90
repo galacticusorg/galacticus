@@ -1205,7 +1205,7 @@ contains
     type            (fgsl_integration_workspace)                                  :: integrationWorkspace
 
     countFields=massFunctionCovarianceSelf%surveyGeometry_%fieldCount()
-    call omp_set_nested(.true.)
+    !$ call OMP_Set_Nested(.true.)
     taskTotal  =massBinCount*(massBinCount+1)/2
     taskCount  =0
     !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrationReset,integrandFunction,integrationWorkspace)

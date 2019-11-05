@@ -21,8 +21,7 @@
 
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
-  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
-          &                             omp_lock_kind
+  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !# <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">

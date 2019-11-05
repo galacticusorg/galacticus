@@ -134,18 +134,18 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
      hook_%object_             => object_
      hook_%function_           => function_
      hook_%openMPThreadBinding =  openMPThreadBinding_
-       if (present(label)) then
-          hook_%label=label
-       else
-          hook_%label=""
-       end if
-     if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
-        hook_%openMPLevel=OMP_Get_Level()
-        allocate(hook_%openMPThread(0:hook_%openMPLevel))
-        do i=0,hook_%openMPLevel
-           hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
-        end do
+     if (present(label)) then
+        hook_%label=label
+     else
+        hook_%label=""
      end if
+     !$ if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
+     !$    hook_%openMPLevel=OMP_Get_Level()
+     !$    allocate(hook_%openMPThread(0:hook_%openMPLevel))
+     !$    do i=0,hook_%openMPLevel
+     !$       hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+     !$    end do
+     !$ end if
   end select
   self%count_=self%count_+1
   ! Add any dependencies to the hook.
@@ -358,57 +358,57 @@ CODE
             $code::location      = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
 call {$eventName}Event%lock(writeLock=.false.)
-ompAncestorGot_=.false.
-ompLevelCurrent_=-1
+!$ ompAncestorGot_=.false.
+!$ ompLevelCurrent_=-1
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
    type is (hook{$interfaceType})
       select case (hook_%openMPThreadBinding)
       case (openMPThreadBindingAtLevel,openMPThreadBindingAllLevels)
-         if (.not.ompAncestorGot_) then
-            ompLevelCurrent_=OMP_Get_Level()
-            allocate(ompAncestorThreadNum_(0:ompLevelCurrent_))
-            do ompLevel_=0,ompLevelCurrent_
-               ompAncestorThreadNum_(ompLevel_)=OMP_Get_Ancestor_Thread_Num(ompLevel_)
-            end do
-            ompAncestorGot_=.true.
-         end if
+         !$ if (.not.ompAncestorGot_) then
+         !$    ompLevelCurrent_=OMP_Get_Level()
+         !$    allocate(ompAncestorThreadNum_(0:ompLevelCurrent_))
+         !$    do ompLevel_=0,ompLevelCurrent_
+         !$       ompAncestorThreadNum_(ompLevel_)=OMP_Get_Ancestor_Thread_Num(ompLevel_)
+         !$    end do
+         !$    ompAncestorGot_=.true.
+         !$ end if
       end select
-      select case (hook_%openMPThreadBinding)
-      case (openMPThreadBindingNone)
+      !$ select case (hook_%openMPThreadBinding)
+      !$ case (openMPThreadBindingNone)
          ! Not bound to any OpenMP thread, so always call.
          functionActive_=.true.
-      case (openMPThreadBindingAtLevel)
-         ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
-         if (hook_%openMPLevel == ompLevelCurrent_) then
-            functionActive_=.true.
-            do ompLevel_=0,hook_%openMPLevel
-               if (hook_%openMPThread(ompLevel_) /= ompAncestorThreadNum_(ompLevel_)) then
-                  functionActive_=.false.
-                  exit
-               end if
-            end do
-         else
-            functionActive_=.false.
-         end if
-      case (openMPThreadBindingAllLevels)
-         ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
-         if (hook_%openMPLevel <= ompLevelCurrent_) then
-            functionActive_=.true.
-            do ompLevel_=0,ompLevelCurrent_
-               if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= ompAncestorThreadNum_(ompLevel_)) then
-                  functionActive_=.false.
-                  exit
-               end if
-            end do
-         else
-            functionActive_=.false.
-         end if
-      case default
-         functionActive_=.false.
-         call Galacticus_Error_Report('unknown OpenMP binding'//{$location})
-      end select
+      !$ case (openMPThreadBindingAtLevel)
+      !$    ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
+      !$    if (hook_%openMPLevel == ompLevelCurrent_) then
+      !$       functionActive_=.true.
+      !$       do ompLevel_=0,hook_%openMPLevel
+      !$          if (hook_%openMPThread(ompLevel_) /= ompAncestorThreadNum_(ompLevel_)) then
+      !$             functionActive_=.false.
+      !$             exit
+      !$          end if
+      !$       end do
+      !$    else
+      !$       functionActive_=.false.
+      !$    end if
+      !$ case (openMPThreadBindingAllLevels)
+      !$    ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
+      !$    if (hook_%openMPLevel <= ompLevelCurrent_) then
+      !$       functionActive_=.true.
+      !$       do ompLevel_=0,ompLevelCurrent_
+      !$          if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= ompAncestorThreadNum_(ompLevel_)) then
+      !$             functionActive_=.false.
+      !$             exit
+      !$          end if
+      !$       end do
+      !$    else
+      !$       functionActive_=.false.
+      !$    end if
+      !$ case default
+      !$    functionActive_=.false.
+      !$    call Galacticus_Error_Report('unknown OpenMP binding'//{$location})
+      !$ end select
       if (functionActive_) call hook_%function_(hook_%object_{$callWith})
    end select
    hook_ => hook_%next

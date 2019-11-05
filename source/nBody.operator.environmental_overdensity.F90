@@ -119,10 +119,10 @@ contains
 
   subroutine environmentalOverdensityOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: Nearest_Neighbors , only : nearestNeighbors
-    use :: OMP_Lib           , only : omp_get_thread_num
+    use    :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
+    use    :: Memory_Management , only : allocateArray             , deallocateArray
+    use    :: Nearest_Neighbors , only : nearestNeighbors
+    !$ use :: OMP_Lib           , only : omp_get_thread_num
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
     type            (nBodyData                            ), intent(inout)                 :: simulation
@@ -214,7 +214,9 @@ contains
        overdensity(k)=float(neighborCount)/self%particleCountMean-1.0d0
        !$omp atomic
        j=j+self%sampleRate
-       if (omp_get_thread_num() == 0) call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(simulation%position,dim=2,kind=c_size_t))),.false.)
+       !$ if (omp_get_thread_num() == 0) then
+          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(simulation%position,dim=2,kind=c_size_t))),.false.)
+       !$ end if
     end do
     !$omp end parallel do
     call Galacticus_Display_Counter_Clear()

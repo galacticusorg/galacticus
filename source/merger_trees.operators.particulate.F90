@@ -492,10 +492,10 @@ contains
           !# <deepCopy source="self" destination="particulateSelf"/>
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
-             if (OMP_Get_Thread_Num() == 0) then
+             !$ if (OMP_Get_Thread_Num() == 0) then
                 call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
                 isNew=.false.
-             end if
+             !$ end if
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
              !$omp critical (mergerTreeOperatorParticulateSample)
