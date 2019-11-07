@@ -26,8 +26,8 @@
      !% A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
      private
      class           (nodePropertyExtractorClass), pointer :: propertyNumerator_ => null(), propertyDenominator_ => null()
-     type            (varying_string                      )          :: name_                       , description_
-     double precision                                                :: unitsInSI_
+     type            (varying_string            )          :: name_                       , description_
+     double precision                                      :: unitsInSI_
    contains
      final     ::                ratioDestructor
      procedure :: extract     => ratioExtract
@@ -49,10 +49,10 @@ contains
     !% Constructor for the ``ratio'' output analysis property extractor class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorRatio )                :: self
-    type (inputParameters                      ), intent(inout) :: parameters
-    class(nodePropertyExtractorClass ), pointer       :: propertyNumerator_, propertyDenominator_
-    type (varying_string                       )                :: name              , description
+    type (nodePropertyExtractorRatio)                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(nodePropertyExtractorClass), pointer       :: propertyNumerator_, propertyDenominator_
+    type (varying_string            )                :: name              , description
 
     !# <inputParameter>
     !#   <name>name</name>
@@ -83,7 +83,7 @@ contains
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_
-    character(len=*                               ), intent(in   )         :: name              , description
+    character(len=*                     ), intent(in   )         :: name              , description
     !# <constructorAssign variables="*propertyNumerator_, *propertyDenominator_"/>
 
     self%name_       =name
@@ -149,7 +149,7 @@ contains
   function ratioName(self)
     !% Return the name of this property.
     implicit none
-    type (varying_string                      )                :: ratioName
+    type (varying_string            )                :: ratioName
     class(nodePropertyExtractorRatio), intent(inout) :: self
 
     ratioName=self%name_
@@ -159,7 +159,7 @@ contains
   function ratioDescription(self)
     !% Return the description of this property.
     implicit none
-    type (varying_string                      )                :: ratioDescription
+    type (varying_string            )                :: ratioDescription
     class(nodePropertyExtractorRatio), intent(inout) :: self
 
     ratioDescription=self%description_
