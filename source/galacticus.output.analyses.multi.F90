@@ -33,6 +33,7 @@
      type(multiAnalysisList), pointer :: analyses => null()
    contains
      final     ::                  multiDestructor
+     procedure :: newTree       => multiNewTree
      procedure :: analyze       => multiAnalyze
      procedure :: finalize      => multiFinalize
      procedure :: reduce        => multiReduce
@@ -105,6 +106,22 @@ contains
     end if
     return
   end subroutine multiDestructor
+
+  subroutine multiNewTree(self,tree,iOutput)
+    !% Output from all analyses.
+    implicit none
+    class  (outputAnalysisMulti), intent(inout) :: self
+    type   (mergerTree         ), intent(inout) :: tree
+    integer(c_size_t           ), intent(in   ) :: iOutput
+    type   (multiAnalysisList  ), pointer       :: analysis_
+
+    analysis_ => self%analyses
+    do while (associated(analysis_))
+       call analysis_%analysis_%newTree(tree,iOutput)
+       analysis_ => analysis_%next
+    end do
+    return
+  end subroutine multiNewTree
 
   subroutine multiAnalyze(self,node,iOutput)
     !% Output from all analyses.
