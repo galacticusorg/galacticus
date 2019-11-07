@@ -99,6 +99,8 @@ contains
     do while (associated(treeCurrent))
        ! Iterate over nodes.
        treeWalker=mergerTreeWalkerAllNodes(treeCurrent,spanForest=.false.)
+       ! Inform analyzers that a new tree is being output.
+       call self%outputAnalysis_%newTree(treeCurrent,indexOutput)
        do while (treeWalker%next(node))
           ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
           ! calculations would not be automatically reset because the node unique ID will not have changed).
