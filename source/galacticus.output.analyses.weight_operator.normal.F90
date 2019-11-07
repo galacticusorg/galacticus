@@ -89,12 +89,12 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
+    !# <objectBuilder class="nodePropertyExtractor"          name="nodePropertyExtractor_"          source="parameters"/>
+    !# <objectBuilder class="outputAnalysisPropertyOperator" name="outputAnalysisPropertyOperator_" source="parameters"/>
     self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
+    !# <objectDestructor name="nodePropertyExtractor_"         />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"/>
     return
   end function normalConstructorParameters
 
@@ -159,11 +159,11 @@ contains
     !GCC$ attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
 
     ! Extract property and operate on it.
-    normalPropertyType    =self%nodePropertyExtractor_%type   (                                                       )
+    normalPropertyType    =self%nodePropertyExtractor_          %type   (                                                       )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        normalPropertyValue=                           extractor_%extract(                    node                               )
-    class default
+       class default
        normalPropertyValue=+0.0d0
     end select
     normalPropertyValue   =self%outputAnalysisPropertyOperator_ %operate(normalPropertyValue,node,normalPropertyType,outputIndex)
@@ -176,12 +176,24 @@ contains
        normalOperate=+0.0d0
     else
        rootVariance =+self%rootVariance(node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-       normalOperate=+weightValue                                                                      &
-            &        *(                                                                                &
-            &          +Error_Function((self%rangeUpper-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
-            &          -Error_Function((self%rangeLower-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
-            &         )                                                                                &
-            &        /2.0d0
+       if (rootVariance <= 0.0d0) then
+          ! If the root variance is zero we assume that the normal distribution has the limiting case of a delta function, such
+          ! that the weight is multiplied by 0 or 1 depending on whether the property values lies inside or outside of our
+          ! integration range.
+          normalOperate=0.0d0
+          if     (                                        &
+               &   normalPropertyValue >= self%rangeLower &
+               &  .and.                                   &
+               &   normalPropertyValue <  self%rangeUpper &
+               & ) normalOperate=weightValue
+       else
+          normalOperate=+weightValue                                                                      &
+               &        *(                                                                                &
+               &          +Error_Function((self%rangeUpper-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
+               &          -Error_Function((self%rangeLower-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
+               &         )                                                                                &
+               &        /2.0d0
+       end if
     end if
     return
   end function normalOperate
