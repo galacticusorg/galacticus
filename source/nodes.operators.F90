@@ -19,15 +19,15 @@
 
 !% Contains a module which provides a class that implements physical processes.
 
-module Physical_Processes
+module Nodes_Operators
   !% Provides a class that implements physical processes.
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
-  !#  <name>physicalProcess</name>
-  !#  <descriptiveName>Physical Processes</descriptiveName>
-  !#  <description>Class providing physical processes.</description>
+  !#  <name>nodeOperator</name>
+  !#  <descriptiveName>Node Operators</descriptiveName>
+  !#  <description>Class providing operators acting on nodes.</description>
   !#  <default>null</default>
   !#  <method name="nodePromote" >
   !#   <description>Act on the promotion of a node to its parent.</description>
@@ -37,4 +37,4 @@ module Physical_Processes
   !#  </method>
   !# </functionClass>
 
-end module Physical_Processes
+end module Nodes_Operators

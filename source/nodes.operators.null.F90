@@ -17,42 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null physical process class.
+!% Contains a module which implements a null node operator class.
 
-  !# <physicalProcess name="physicalProcessNull">
-  !#  <description>A null physical process class.</description>
-  !# </physicalProcess>
-  type, extends(physicalProcessClass) :: physicalProcessNull
-     !% A null physical process class.
+  !# <nodeOperator name="nodeOperatorNull">
+  !#  <description>A null node operator class.</description>
+  !# </nodeOperator>
+  type, extends(nodeOperatorClass) :: nodeOperatorNull
+     !% A null node operator class.
      private
    contains
      procedure :: nodePromote => nullNodePromote
-  end type physicalProcessNull
+  end type nodeOperatorNull
 
-  interface physicalProcessNull
-     !% Constructors for the ``null'' physical process class.
+  interface nodeOperatorNull
+     !% Constructors for the {\normalfont \ttfamily null} node operator class.
      module procedure nullConstructorParameters
-  end interface physicalProcessNull
+  end interface nodeOperatorNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the ``null'' physical process class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily null} node operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(physicalProcessNull)                :: self
-    type(inputParameters    ), intent(inout) :: parameters
+    type(nodeOperatorNull)                :: self
+    type(inputParameters ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    self=physicalProcessNull()
+    self=nodeOperatorNull()
     return
   end function nullConstructorParameters
 
   subroutine nullNodePromote(self,node)
     !% Act on node promotion.
     implicit none
-    class(physicalProcessNull), intent(inout) :: self
-    type (treeNode           ), intent(inout) :: node
+    class(nodeOperatorNull), intent(inout) :: self
+    type (treeNode        ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
 
     ! This is a null process - do nothing.

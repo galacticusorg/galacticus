@@ -22,7 +22,7 @@
   use :: FODEIV2                , only : fodeiv2_driver      , fodeiv2_step_type        , fodeiv2_system
   use :: Kind_Numbers           , only : kind_int8
   use :: Merger_Trees_Merge_Node, only : mergerTreeNodeMerger, mergerTreeNodeMergerClass
-  use :: Physical_Processes     , only : physicalProcessClass
+  use :: Nodes_Operators        , only : nodeOperatorClass
   
   !# <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
   !#  <description>The standard merger tree noe evolver.</description>
@@ -45,7 +45,7 @@
      double precision                                                          :: odeToleranceAbsolute               , odeToleranceRelative         , &
           &                                                                       odeJacobianStepSizeRelative
      class           (galacticStructureSolverClass), pointer                   :: galacticStructureSolver_
-     class           (physicalProcessClass        ), pointer                   :: physicalProcess_
+     class           (nodeOperatorClass           ), pointer                   :: nodeOperator_
      integer                                                                   :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
           &                                                                       odeLatentIntegratorIntervalsMaximum
      integer                                                                   :: propertyCountAll                   , propertyCountMaximum         , &
@@ -123,7 +123,7 @@ contains
     type            (mergerTreeNodeEvolverStandard)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (mergerTreeNodeMergerClass    ), pointer       :: mergerTreeNodeMerger_
-    class           (physicalProcessClass         ), pointer       :: physicalProcess_
+    class           (nodeOperatorClass            ), pointer       :: nodeOperator_
     type            (varying_string               )                :: odeAlgorithm               , odeAlgorithmNonJacobian            , &
          &                                                            odeLatentIntegratorType
     integer                                                        :: odeLatentIntegratorOrder   , odeLatentIntegratorIntervalsMaximum
@@ -210,7 +210,7 @@ contains
     !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeNodeMerger" name="mergerTreeNodeMerger_" source="parameters"/>
-    !# <objectBuilder class="physicalProcess"      name="physicalProcess_"      source="parameters"/>
+    !# <objectBuilder class="nodeOperator"         name="nodeOperator_"         source="parameters"/>
     self=mergerTreeNodeEvolverStandard(                                                                                                         &
          &                                                                        odeToleranceAbsolute                                        , &
          &                                                                        odeToleranceRelative                                        , &
@@ -222,14 +222,14 @@ contains
          &                                                                        odeLatentIntegratorIntervalsMaximum                         , &
          &                                                                        profileOdeEvolver                                           , &
          &                                                                        mergerTreeNodeMerger_                                       , &
-         &                                                                        physicalProcess_                                              &
+         &                                                                        nodeOperator_                                                 &
          &                            )
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="mergerTreeNodeMerger_" />
     return
   end function standardConstructorParameters
 
-   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,physicalProcess_) result(self)
+   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,nodeOperator_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
      use :: FODEIV2         , only : Fodeiv2_Step_RK2       , Fodeiv2_Step_RK4    , Fodeiv2_Step_RK8PD, Fodeiv2_Step_RKCK       , &
           &                          Fodeiv2_Step_RKF45     , Fodeiv2_Step_msAdams, Fodeiv2_step_BSimp, Fodeiv2_step_MSBDFActive
@@ -243,8 +243,8 @@ contains
           &                                                                    odeJacobianStepSizeRelative
      logical                                        , intent(in   )         :: profileOdeEvolver
      class           (mergerTreeNodeMergerClass    ), intent(in   ), target :: mergerTreeNodeMerger_
-     class           (physicalProcessClass         ), intent(in   ), target :: physicalProcess_
-    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, *mergerTreeNodeMerger_, *physicalProcess_"/>
+     class           (nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
+    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, *mergerTreeNodeMerger_, *nodeOperator_"/>
 
      ! Construct ODE solver object.
      self%useJacobian=.false.
@@ -313,7 +313,7 @@ contains
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeNodeMerger_"/>
-    !# <objectDestructor name="self%physicalProcess_"     />
+    !# <objectDestructor name="self%nodeOperator_"        />
     call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
     if (.not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
     return
@@ -1118,7 +1118,7 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
     ! Perform any processing necessary before this halo is promoted.
-    call self%physicalProcess_%nodePromote(node)
+    call self%nodeOperator_%nodePromote(node)
     !# <eventHook name="nodePromotion">
     !#  <callWith>node</callWith>
     !# </eventHook>

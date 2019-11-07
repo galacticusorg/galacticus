@@ -17,18 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a multi physical process class.
+  !% Contains a module which implements a multi node operator class.
 
   type, public :: multiProcessList
-     class(physicalProcessClass), pointer :: process_
-     type (multiProcessList    ), pointer :: next     => null()
+     class(nodeOperatorClass), pointer :: process_
+     type (multiProcessList ), pointer :: next     => null()
   end type multiProcessList
 
-  !# <physicalProcess name="physicalProcessMulti">
-  !#  <description>A multi physical process property process class.</description>
-  !# </physicalProcess>
-  type, extends(physicalProcessClass) :: physicalProcessMulti
-     !% A multi physical process output process class, which applies multiple physical processes.
+  !# <nodeOperator name="nodeOperatorMulti">
+  !#  <description>A multi node operator property process class.</description>
+  !# </nodeOperator>
+  type, extends(nodeOperatorClass) :: nodeOperatorMulti
+     !% A multi node operator output process class, which applies multiple node operatores.
      !% processs.
      private
      type(multiProcessList), pointer :: processs => null()
@@ -36,28 +36,28 @@
      final     ::                multiDestructor
      procedure :: nodePromote => multiNodePromote
      procedure :: deepCopy    => multiDeepCopy
-  end type physicalProcessMulti
+  end type nodeOperatorMulti
 
-  interface physicalProcessMulti
-     !% Constructors for the ``multi'' physical process class.
+  interface nodeOperatorMulti
+     !% Constructors for the {\normalfont \ttfamily multi} node operator class.
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
-  end interface physicalProcessMulti
+  end interface nodeOperatorMulti
 
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the ``multi'' physical process property process class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily multi} node operator property process class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (physicalProcessMulti)                :: self
-    type   (inputParameters     ), intent(inout) :: parameters
-    type   (multiProcessList    ), pointer       :: process_
-    integer                                      :: i
+    type   (nodeOperatorMulti)                :: self
+    type   (inputParameters  ), intent(inout) :: parameters
+    type   (multiProcessList ), pointer       :: process_
+    integer                                   :: i
 
     self    %processs => null()
     process_          => null()
-    do i=1,parameters%copiesCount('physicalProcessMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nodeOperatorMethod',zeroIfNotPresent=.true.)
        if (associated(process_)) then
           allocate(process_%next)
           process_ => process_%next
@@ -65,17 +65,17 @@ contains
           allocate(self%processs)
           process_ => self%processs
        end if
-       !# <objectBuilder class="physicalProcess" name="process_%process_" source="parameters" copy="i" />
+       !# <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(processs) result(self)
-    !% Internal constructor for the ``multi'' output process property process class.
+    !% Internal constructor for the {\normalfont \ttfamily multi} output process property process class.
     implicit none
-    type(physicalProcessMulti)                         :: self
-    type(multiProcessList    ), target , intent(in   ) :: processs
-    type(multiProcessList    ), pointer                :: process_
+    type(nodeOperatorMulti)                         :: self
+    type(multiProcessList ), target , intent(in   ) :: processs
+    type(multiProcessList ), pointer                :: process_
 
     self    %processs => processs
     process_          => processs
@@ -89,8 +89,8 @@ contains
   subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} output process property process class.
     implicit none
-    type(physicalProcessMulti), intent(inout) :: self
-    type(multiProcessList    ), pointer       :: process_, processNext
+    type(nodeOperatorMulti), intent(inout) :: self
+    type(multiProcessList ), pointer       :: process_, processNext
 
     if (associated(self%processs)) then
        process_ => self%processs
@@ -107,9 +107,9 @@ contains
   subroutine multiNodePromote(self,node)
     !% Act on a node promotion event.
     implicit none
-    class(physicalProcessMulti), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
-    type (multiProcessList    ), pointer       :: process_
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
 
     process_ => self%processs
     do while (associated(process_))
@@ -123,14 +123,14 @@ contains
     !% Perform a deep copy for the {\normalfont \ttfamily multi} process class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(physicalProcessMulti), intent(inout) :: self
-    class(physicalProcessClass), intent(inout) :: destination
-    type (multiProcessList    ), pointer       :: process_   , processDestination_, &
-         &                                        processNew_
+    class(nodeOperatorMulti), intent(inout) :: self
+    class(nodeOperatorClass), intent(inout) :: destination
+    type (multiProcessList ), pointer       :: process_   , processDestination_, &
+         &                                     processNew_
 
-    call self%physicalProcessClass%deepCopy(destination)
+    call self%nodeOperatorClass%deepCopy(destination)
     select type (destination)
-    type is (physicalProcessMulti)
+    type is (nodeOperatorMulti)
        ! Copy list of processs.
        destination%processs => null         ()
        processDestination_  => null         ()
