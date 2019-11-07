@@ -51,7 +51,7 @@ foreach my $analysisName ( @analyses ) {
 	    (
 	     {name => 'xDataset'         , required => 1},
 	     {name => 'yDataset'         , required => 1},
-	     {name => 'yDatasetTarget'   , required => 1},
+	     {name => 'yDatasetTarget'   , required => 0},
 	     {name => 'yCovariance'      , required => 0},
 	     {name => 'yCovarianceTarget', required => 0},
 	     {name => 'yErrorLower'      , required => 0},
@@ -124,6 +124,10 @@ sub function1DPlot {
     my $data         = shift();
     my $attributes   = shift();
     my $analysisName = shift();
+    # Fill in missing target dataset.
+    my $haveTarget   = exists($data->{'yDatasetTarget'});
+    $data->{'yDatasetTarget'} = $data->{'yDataset'}->copy()
+	unless ( $haveTarget );
     # Determine non-zero entries.
     my $nonZero       = which( $data->{'yDataset'      } != 0.0)                                      ;
     my $nonZeroTarget = which(                                      $data->{'yDatasetTarget'} != 0.0) ;
@@ -162,8 +166,8 @@ sub function1DPlot {
     $yLowerTarget -= $yErrorLowerTarget if ( defined($yErrorLowerTarget) );
     $yUpperTarget += $yErrorUpperTarget if ( defined($yErrorUpperTarget) );
     if ( $attributes->{'yAxisIsLog'} ) {
-	my $negativeY                      = which($yLower       <= 0.0);
-	my $negativeYTarget                = which($yLowerTarget <= 0.0);
+	my $negativeY                      = which($yLower       <= 1.0e-10*$data->{'yDataset'      });
+	my $negativeYTarget                = which($yLowerTarget <= 1.0e-10*$data->{'yDatasetTarget'});
 	$yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
 	$yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
     }
@@ -262,7 +266,8 @@ sub function1DPlot {
 	    $data->{'xDataset'      }->($nonZeroTarget),
 	    $data->{'yDatasetTarget'}->($nonZeroTarget),
 	    %plotOptionsTarget
-	);
+	)
+	if ( $haveTarget );
     my %plotOptions =
 	(
 	 style      => "point",
@@ -278,8 +283,7 @@ sub function1DPlot {
     &GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $data->{'xDataset'}->($nonZero),
-	$data->{'yDataset'}->($nonZero),
-	errorUp => $yErrorUpper,
+	    $data->{'yDataset'}->($nonZero),
 	    %plotOptions
 	);
     &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
