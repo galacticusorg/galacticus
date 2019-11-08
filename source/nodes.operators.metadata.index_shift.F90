@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a node operator class that shifts node indices at node promotion.
+!% Implements a node operator class that shifts node indices at node promotion.
 
   !# <nodeOperator name="nodeOperatorIndexShift">
   !#  <description>A node operator class that shifts node indices at node promotion.</description>

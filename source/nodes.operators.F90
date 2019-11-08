@@ -34,6 +34,18 @@ module Nodes_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, node
+  !#   </code>
+  !#  </method>
+  !#  <method name="galaxiesMerge" >
+  !#   <description>Act on the merging of two galaxies.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, node
+  !#   </code>
   !#  </method>
   !# </functionClass>
 

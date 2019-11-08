@@ -225,7 +225,8 @@ contains
          &                                                                        nodeOperator_                                                 &
          &                            )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeNodeMerger_" />
+    !# <objectDestructor name="mergerTreeNodeMerger_"/>
+    !# <objectDestructor name="nodeOperator_"        />
     return
   end function standardConstructorParameters
 

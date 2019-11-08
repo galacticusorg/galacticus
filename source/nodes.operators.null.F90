@@ -26,7 +26,6 @@
      !% A null node operator class.
      private
    contains
-     procedure :: nodePromote => nullNodePromote
   end type nodeOperatorNull
 
   interface nodeOperatorNull
@@ -47,14 +46,3 @@ contains
     self=nodeOperatorNull()
     return
   end function nullConstructorParameters
-
-  subroutine nullNodePromote(self,node)
-    !% Act on node promotion.
-    implicit none
-    class(nodeOperatorNull), intent(inout) :: self
-    type (treeNode        ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
-
-    ! This is a null process - do nothing.
-    return
-  end subroutine nullNodePromote
