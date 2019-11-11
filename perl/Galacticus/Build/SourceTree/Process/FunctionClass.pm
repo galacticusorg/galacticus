@@ -869,7 +869,7 @@ CODE
 					$assignments .= "nullify(destination%".$name.")\n";
 					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 					$assignments .= "call destination%".$name."%autoHook()\n";
 				    }
@@ -931,7 +931,7 @@ CODE
 						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    $assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 					    $assignments .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
@@ -1079,7 +1079,7 @@ CODE
 				$assignments .= "nullify(destination%".$name.")\n";
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				    if ( $debugging );
 			       	$assignments .= "call destination%".$name."%autoHook()\n";
 			    }
@@ -1137,7 +1137,7 @@ CODE
 				    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				}
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				    if ( $debugging );
 				$assignments .= "call destination%".$name."%autoHook()\n";
 				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
@@ -1226,7 +1226,7 @@ CODE
 					$assignments .= "nullify(destination%".$name.")\n";
 					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 					$assignments .= "call destination%".$name."%autoHook()\n";
 				    }
@@ -1255,7 +1255,7 @@ CODE
 						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    $assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 				   	    $assignments .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
@@ -2588,7 +2588,7 @@ CODE
 		$postContains->[0]->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 		$postContains->[0]->{'content'} .= "      use Input_Parameters, only : inputParameters, globalParameters\n";
 		$postContains->[0]->{'content'} .= "      use Galacticus_Error, only : Galacticus_Error_Report\n";
-		$postContains->[0]->{'content'} .= "      use Function_Classes, only : debugStackPush, debugStackPop\n"
+		$postContains->[0]->{'content'} .= "      use Function_Classes, only : debugStackPush, debugStackPop, debugReporting\n"
 		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "      implicit none\n";
 		$postContains->[0]->{'content'} .= "      class  (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."RecursiveDefault\n";
@@ -2862,13 +2862,15 @@ CODE
 		my @argumentDefinitions;
 		foreach my $argument ( @arguments ) {
 		    if ( $argument =~ $Fortran::Utils::variableDeclarationRegEx ) {
-			my $intrinsic     = $1;
-			my $type          = $2;
-			my $attributeList = $3;
-			my $variableList  = $4;
+			my $openMP        = defined($1);
+			my $intrinsic     = $2;
+			my $type          = $3;
+			my $attributeList = $4;
+			my $variableList  = $5;
 			my @variables  = &Fortran::Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
 			my $declaration =
 			{
+			    openMP     => $openMP,
 			    intrinsic  => $intrinsic,
 			    attributes => $attributeList,
 			    variables  => \@variables
