@@ -56,6 +56,7 @@ contains
          &                                )                                                                                                  // &
          &       {introspection:location}                                                                                                       &
          &      )
+    self=galacticFilterHaloAlwaysIsolated()
     return
   end function haloAlwaysIsolatedConstructorParameters
 
