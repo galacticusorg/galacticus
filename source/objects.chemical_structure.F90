@@ -100,16 +100,16 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use :: FoX_dom           , only : Node                   , NodeList          , destroy, extractDataContent, &
-          &                           getElementsByTagname   , getLength         , item   , parseFile
+    use :: FoX_dom           , only : Node                        , destroy           , extractDataContent, parseFile
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
-    use :: ISO_Varying_String, only : char                   , assignment(=)
+    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
-    type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
-    type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList
-    integer                      :: iAtom   , iBond   , iChemical   , ioErr       , jAtom
-    character(len=128 )          :: name
+    type     (Node       ), pointer                   :: doc     , thisAtom, thisBond    , thisChemical, thisElement
+    type     (xmlNodeList), allocatable, dimension(:) :: atomList, bondList, chemicalList, thisList
+    integer                                           :: iAtom   , iBond   , iChemical   , ioErr       , jAtom
+    character(len=128    )                            :: name
 
     ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
@@ -117,35 +117,35 @@ contains
        doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to find chemical database file'//{introspection:location})
        ! Get a list of all chemicals.
-       chemicalList => getElementsByTagname(doc,"chemical")
+       call XML_Get_Elements_By_Tag_Name(doc,"chemical",chemicalList)
        ! Allocate the array of chemicals.
-       allocate(chemicals(getLength(chemicalList)))
+       allocate(chemicals(size(chemicalList)))
        ! Loop over all chemicals.
-       do iChemical=0,getLength(chemicalList)-1
+       do iChemical=0,size(chemicalList)-1
        ! Set the index for this chemical.
           chemicals(iChemical+1)%index=iChemical+1
           ! Get the chemical.
-          thisChemical => item(chemicalList,iChemical)
+          thisChemical => chemicalList(iChemical)%element
           ! Get the name of the chemical.
-          thisList    => getElementsByTagname(thisChemical,"id")
-          thisElement => item(thisList,0)
+          call XML_Get_Elements_By_Tag_Name(thisChemical,"id",thisList)
+          thisElement => thisList(0)%element
           call extractDataContent(thisElement,name)
           chemicals(iChemical+1)%name=trim(name)
           ! Get the charge of the chemical.
-          thisList    => getElementsByTagname(thisChemical,"formalCharge")
-          thisElement => item(thisList,0)
+          call XML_Get_Elements_By_Tag_Name(thisChemical,"formalCharge",thisList)
+          thisElement => thisList(0)%element
           call extractDataContent(thisElement,chemicals(iChemical+1)%chargeValue)
           ! Get a list of atoms in the chemical.
-          atomList => getElementsByTagname(thisChemical,"atom")
+          call XML_Get_Elements_By_Tag_Name(thisChemical,"atom",atomList)
           ! Allocate array for atoms
-          allocate(chemicals(iChemical+1)%atom(getLength(atomList)))
+          allocate(chemicals(iChemical+1)%atom(size(atomList)))
           ! Loop over atoms.
-          do iAtom=0,getLength(atomList)-1
+          do iAtom=0,size(atomList)-1
              ! Get the atom.
-             thisAtom => item(atomList,iAtom)
+             thisAtom => atomList(iAtom)%element
              ! Get the element type.
-             thisList    => getElementsByTagname(thisAtom,"elementType")
-             thisElement => item(thisList,0)
+             call XML_Get_Elements_By_Tag_Name(thisAtom,"elementType",thisList)
+             thisElement => thisList(0)%element
              call extractDataContent(thisElement,name)
              ! Find the element in the list of atoms.
              do jAtom=1,size(atoms)
@@ -155,18 +155,18 @@ contains
           ! Compute the mass of the chemical.
           chemicals(iChemical+1)%massValue=sum(chemicals(iChemical+1)%atom(:)%mass)
           ! Get a list of bonds in the chemical.
-          bondList => getElementsByTagname(thisChemical,"bond")
+          call XML_Get_Elements_By_Tag_Name(thisChemical,"bond",bondList)
           ! Retrieve bonds if any were found.
-          if (getLength(bondList) > 0) then
+          if (size(bondList) > 0) then
              ! Allocate array for bonds.
-             allocate(chemicals(iChemical+1)%bond(getLength(bondList)))
+             allocate(chemicals(iChemical+1)%bond(size(bondList)))
              ! Loop over bond.
-             do iBond=0,getLength(bondList)-1
+             do iBond=0,size(bondList)-1
                 ! Get the bond.
-                thisBond => item(bondList,iBond)
+                thisBond => bondList(iBond)%element
                 ! Get the atom references.
-                thisList    => getElementsByTagname(thisBond,"atomRefs2")
-                thisElement => item(thisList,0)
+                call XML_Get_Elements_By_Tag_Name(thisBond,"atomRefs2",thisList)
+                thisElement => thisList(0)%element
                 call extractDataContent(thisElement,chemicals(iChemical+1)%bond(iBond+1)%atom)
              end do
           end if

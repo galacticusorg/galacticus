@@ -153,24 +153,24 @@ contains
 
   subroutine Atomic_Data_Initialize
     !% Ensure that the module is initialized by reading in data.
-    use :: FoX_dom           , only : destroy                , extractDataContent               , getElementsByTagname, getLength, &
-          &                           item                   , node                             , nodeList            , parseFile
+    use :: FoX_dom           , only : destroy                , extractDataContent               , getElementsByTagname        , node       , &
+         &                            parseFile
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: ISO_Varying_String, only : char
     use :: Memory_Management , only : Memory_Usage_Record    , allocateArray
     use :: String_Handling   , only : String_Lower_Case      , char
     implicit none
-    type            (Node    )              , pointer :: abundanceTypeElement, doc              , thisAtom, &
-         &                                               thisElement
-    type            (NodeList)              , pointer :: elementList
-    integer                   , dimension(1)          :: elementValueInteger
-    double precision          , dimension(1)          :: elementValueDouble
-    integer                                           :: atomicNumber        , iAbundancePattern, iAtom   , &
-         &                                               ioErr
-    double precision                                  :: abundance           , totalMass
-    character       (len=100 )                        :: abundanceType
+    type            (Node       )              , pointer     :: abundanceTypeElement, doc              , thisAtom, &
+         &                                                      thisElement
+    type            (xmlNodeList), dimension(:), allocatable :: elementList
+    integer                      , dimension(1)              :: elementValueInteger
+    double precision             , dimension(1)              :: elementValueDouble
+    integer                                                  :: atomicNumber        , iAbundancePattern, iAtom   , &
+         &                                                      ioErr
+    double precision                                         :: abundance           , totalMass
+    character       (len=100    )                            :: abundanceType
 
     ! Check if module is initialized.
     if (.not.atomicDataInitialized) then
@@ -181,13 +181,13 @@ contains
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
        ! Get list of all element elements.
-       elementList => getElementsByTagname(doc,"element")
+       call XML_Get_Elements_By_Tag_Name(doc,"element",elementList)
 
        ! Allocate storage space.
-       allocate(atoms(getLength(elementList)))
+       allocate(atoms(size(elementList)))
        call Memory_Usage_Record(sizeof(atoms))
        ! Allocate abundance pattern array for elements.
-       do iAtom=1,getLength(elementList)
+       do iAtom=1,size(elementList)
           call allocateArray(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
           atoms(iAtom)%abundanceByMass=0.0d0
        end do
@@ -219,12 +219,12 @@ contains
           if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
           ! Get list of all element elements.
-          elementList => getElementsByTagname(doc,"element")
+          call XML_Get_Elements_By_Tag_Name(doc,"element",elementList)
 
           ! Loop over elements.
-          do iAtom=1,getLength(elementList)
+          do iAtom=1,size(elementList)
              ! Get atom.
-             thisAtom => item(elementList,iAtom-1)
+             thisAtom => elementList(iAtom-1)%element
              ! Get atomic number.
              thisElement => XML_Get_First_Element_By_Tag_Name(thisAtom,"atomicNumber")
              call extractDataContent(thisElement,elementValueInteger)
@@ -238,7 +238,6 @@ contains
           end do
 
           ! Determine the type of abundance just loaded.
-          abundanceTypeElement => item(getElementsByTagname(doc,"abundanceType"),0)
           abundanceTypeElement => XML_Get_First_Element_By_Tag_Name(doc,"abundanceType")
           call extractDataContent(abundanceTypeElement,abundanceType)
           if (trim(abundanceType) == "number relative to hydrogen") then
@@ -257,7 +256,7 @@ contains
 
           ! Compute the normalization for unit metal mass in this abundance pattern.
           metalMassNormalization(iAbundancePattern)=0.0d0
-          do iAtom=1,getLength(elementList)
+          do iAtom=1,size(elementList)
              if (atoms(iAtom)%atomicNumber > 2) metalMassNormalization(iAbundancePattern)&
                   &=metalMassNormalization(iAbundancePattern)+atoms(iAtom)%abundanceByMass(iAbundancePattern)
           end do

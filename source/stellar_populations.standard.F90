@@ -501,7 +501,7 @@ contains
        end if
        call File_Unlock(lock)
 #ifndef OFDAVAIL
-       !$omp endcritical (stellarPopulationStandardLock)
+       !$omp end critical (stellarPopulationStandardLock)
 #endif
        ! Record that this IMF has now been tabulated.
        property%computed=.true.

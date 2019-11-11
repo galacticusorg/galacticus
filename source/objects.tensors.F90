@@ -241,23 +241,23 @@ contains
 
   subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
     !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
-    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, item, &
-          &                         node                   , nodeList
+    use :: FoX_DOM         , only : extractDataContent          , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
-    class    (tensorRank2Dimension3Symmetric), intent(inout)            :: self
-    type     (node                          ), intent(in   ), pointer   :: tensorDefinition
-    type     (node                          )               , pointer   :: element
-    type     (nodeList                      )               , pointer   :: elementList
-    character(len=3                         ), dimension(6) , parameter :: elementNames=['x00','x01','x02','x11','x12','x22']
-    integer                                                             :: i
+    class    (tensorRank2Dimension3Symmetric), intent(inout)              :: self
+    type     (node                          ), intent(in   ), pointer     :: tensorDefinition
+    type     (node                          )               , pointer     :: element
+    type     (xmlNodeList                   ), dimension(:) , allocatable :: elementList
+    character(len=3                         ), dimension(6) , parameter   :: elementNames=['x00','x01','x02','x11','x12','x22']
+    integer                                                               :: i
 
     ! Get the elements
     do i=1,6
-       elementList => getElementsByTagName(tensorDefinition,elementNames(i))
-       if (getLength(elementList) > 1) call Galacticus_Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
-       if (getLength(elementList) < 1) call Galacticus_Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
-       element => item(elementList,0)
+       call XML_Get_Elements_By_Tag_Name(tensorDefinition,elementNames(i),elementList)
+       if (size(elementList) > 1) call Galacticus_Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
+       if (size(elementList) < 1) call Galacticus_Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
+       element => elementList(0)%element
        select case (elementNames(i))
        case ( 'x00' )
           call extractDataContent(element,self%x00)

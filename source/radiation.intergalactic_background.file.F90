@@ -90,22 +90,22 @@ contains
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
-    use :: Array_Utilities  , only : Array_Is_Monotonic     , Array_Reverse     , directionIncreasing
-    use :: FoX_DOM          , only : destroy                , extractDataContent, getElementsByTagname , getLength                        , &
-          &                          item                   , node              , nodeList             , parseFile
+    use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
+    use :: FoX_DOM          , only : destroy                       , extractDataContent, node                 , parseFile
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Array_Length       , XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList
     use :: Memory_Management, only : allocateArray
     implicit none
-    type   (radiationFieldIntergalacticBackgroundFile)                        :: self
-    type   (varying_string                           ), intent(in   )         :: fileName
-    class  (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
-    type   (node                                     ), pointer               :: doc                , datum     , &
-         &                                                                       spectrum           , wavelength
-    type   (nodeList                                 ), pointer               :: spectraList
-    integer                                                                   :: fileFormatVersion  , iSpectrum , &
-         &                                                                       status             , jSpectrum
-    logical                                                                   :: timesIncreasing
+    type   (radiationFieldIntergalacticBackgroundFile)                              :: self
+    type   (varying_string                           ), intent(in   )               :: fileName
+    class  (cosmologyFunctionsClass                  ), intent(in   ), target       :: cosmologyFunctions_
+    type   (node                                     ), pointer                     :: doc                , datum     , &
+         &                                                                             spectrum           , wavelength
+    type   (xmlNodeList                              ), allocatable  , dimension(:) :: spectraList
+    integer                                                                         :: fileFormatVersion  , iSpectrum , &
+         &                                                                             status             , jSpectrum
+    logical                                                                         :: timesIncreasing
     !# <constructorAssign variables="fileName, *cosmologyFunctions_"/>
 
     !$omp critical (FoX_DOM_Access)
@@ -116,19 +116,19 @@ contains
     call extractDataContent(datum,fileFormatVersion)
     if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
     ! Get a list of all spectra.
-    spectraList => getElementsByTagname(doc,"spectra")
+    call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
     ! Get the wavelengths.
     wavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
     call XML_Array_Read(wavelength,"datum",self%spectraWavelengths)
     self%spectraWavelengthsCount=size(self%spectraWavelengths)
     ! Allocate array for spectra.
-    self%spectraTimesCount=getLength(spectraList)
+    self%spectraTimesCount=size(spectraList)
     call allocateArray(self%spectra     ,[self%spectraWavelengthsCount,self%spectraTimesCount])
     call allocateArray(self%spectraTimes,[                             self%spectraTimesCount])
     ! Read times.
     do iSpectrum=1,self%spectraTimesCount
        ! Get the data.
-       spectrum => item(spectraList,iSpectrum-1)
+       spectrum => spectraList(iSpectrum-1)%element
        ! Extract the redshift.
        call extractDataContent(XML_Get_First_Element_By_Tag_Name(spectrum,"redshift"),self%spectraTimes(iSpectrum))
        ! Convert redshift to a time.
@@ -148,9 +148,9 @@ contains
           jSpectrum=self%spectraTimesCount+1-iSpectrum
        end if
        ! Get the data.
-       spectrum => item(spectraList,iSpectrum-1)
+       spectrum => spectraList(iSpectrum-1)%element
        ! Check that we have the correct number of data.
-       if (XML_Array_Length(spectrum,"datum") /= self%spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
        ! Extract the data.
        call XML_Array_Read_Static(spectrum,"datum",self%spectra(:,jSpectrum))
     end do

@@ -19,7 +19,8 @@
 
   !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
 
-  use :: FoX_DOM, only : node, nodeList
+  use :: FoX_DOM, only : node
+  use :: IO_XML , only : xmlNodeList
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
   !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
@@ -30,10 +31,10 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
      !% A class implementing merger tree construction from a full specification of the tree in XML.
      private
-     type   (varying_string   )          :: fileName
-     type   (documentContainer), pointer :: document  => null()
-     type   (nodeList         ), pointer :: trees     => null()
-     integer(c_size_t         )          :: treeCount
+     type   (varying_string   )                            :: fileName
+     type   (documentContainer), pointer                   :: document  => null()
+     type   (xmlNodeList      ), allocatable, dimension(:) :: trees
+     integer(c_size_t         )                            :: treeCount
    contains
      final     ::              fullySpecifiedDestructor
      procedure :: construct => fullySpecifiedConstruct
@@ -42,8 +43,8 @@
   type :: documentContainer
      !% A container for XML docoment.
      private
-     type   (node             ), pointer :: doc       => null()
-     integer                             :: copyCount
+     type   (node), pointer :: doc       => null()
+     integer                :: copyCount
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -76,8 +77,9 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
-    use :: FoX_DOM         , only : getElementsByTagname   , getLength, parseFile
+    use :: FoX_DOM         , only : parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
     type(varying_string                     ), intent(in   ) :: fileName
@@ -91,9 +93,9 @@ contains
     if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     self%document%copyCount = 1
     ! Get the list of trees.
-    self%trees => getElementsByTagname(self%document%doc,"tree")
+    call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
     ! Count the number of trees.
-    self%treeCount=getLength(self%trees)
+    self%treeCount=size(self%trees)
     if (self%treeCount <= 0) call Galacticus_Error_Report('no trees were specified'//{introspection:location})
     !$omp end critical (FoX_DOM_Access)
     return
@@ -120,11 +122,11 @@ contains
 
   function fullySpecifiedConstruct(self,treeNumber) result(tree)
     !% Construct a fully-specified merger tree.
-    use            :: FoX_DOM           , only : getElementsByTagname     , getLength                  , item                      , node         , &
-          &                                      nodeList
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
+    use            :: FoX_DOM           , only : node
+    use            :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes  , only : mergerTree               , treeNode                   , treeNodeList
+    use            :: Galacticus_Nodes  , only : mergerTree                  , treeNode                   , treeNodeList
+    use            :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : Memory_Usage_Record
@@ -135,7 +137,7 @@ contains
     integer         (c_size_t                           ), intent(in   )               :: treeNumber
     type            (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
     type            (node                               ), pointer                     :: treeDefinition, nodeDefinition
-    type            (nodeList                           ), pointer                     :: nodes
+    type            (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
     integer                                                                            :: i             , nodeCount
     integer         (kind_int8                          )                              :: indexValue
     double precision                                                                   :: uniformRandom
@@ -144,10 +146,10 @@ contains
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
        !$omp critical (FoX_DOM_Access)
        ! Select one tree.
-       treeDefinition => item(self%trees,int(treeNumber-1))
+       treeDefinition => self%trees(int(treeNumber-1))%element
        ! Get the list of nodes in this tree.
-       nodes => getElementsByTagname(treeDefinition,"node")
-       nodeCount=getLength(nodes)
+       call XML_Get_Elements_By_Tag_Name(treeDefinition,"node",nodes)
+       nodeCount=size(nodes)
        if (nodeCount <= 0) call Galacticus_Error_Report('no nodes were specified'//{introspection:location})
        ! Create the tree.
        allocate(tree)
@@ -159,7 +161,7 @@ contains
           ! Create the node.
           nodeArray(i)%node => treeNode(hostTree=tree)
           ! Get the node definition.
-          nodeDefinition => item(nodes,i-1)
+          nodeDefinition => nodes(i-1)%element
           ! Assign an index to the node.
           call nodeArray(i)%node%indexSet(indexNode(nodeDefinition,'index'))
        end do
@@ -180,7 +182,7 @@ contains
        do i=1,nodeCount
           ! Get the node definition.
           !$omp critical (FoX_DOM_Access)
-          nodeDefinition => item(nodes,i-1)
+          nodeDefinition => nodes(i-1)%element
           ! Build parent pointers.
           indexValue=indexNode(nodeDefinition,'parent'        )
           nodeArray(i)%node%parent         => nodeLookup(nodeArray,indexValue)
@@ -219,24 +221,24 @@ contains
 
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
-      use :: FoX_Dom         , only : extractDataContent     , getElementsByTagname, getLength, item, &
-          &                           node                   , nodeList
+      use :: FoX_Dom         , only : extractDataContent          , node
       use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
       use :: Kind_Numbers    , only : kind_int8
       implicit none
-      integer  (kind=kind_int8)                          :: indexNode
-      type     (node          ), intent(in   ), pointer  :: nodeDefinition
-      character(len=*         ), intent(in   )           :: indexType
-      logical                  , intent(in   ), optional :: required
-      type     (nodeList      )               , pointer  :: indexElements
-      type     (node          )               , pointer  :: indexElement
-      integer                                            :: indexValue
+      integer  (kind=kind_int8)                             :: indexNode
+      type     (node          ), intent(in   ), pointer     :: nodeDefinition
+      character(len=*         ), intent(in   )              :: indexType
+      logical                  , intent(in   ), optional    :: required
+      type     (xmlNodeList   ), dimension(:) , allocatable :: indexElements
+      type     (node          )               , pointer     :: indexElement
+      integer                                               :: indexValue
       !# <optionalArgument name="required" defaultsTo=".true." />
-
+      
       ! Find all matching tags.
-      indexElements => getElementsByTagname(nodeDefinition,indexType)
-      if (getLength(indexElements) > 1) call Galacticus_Error_Report('multiple indices specified'//{introspection:location})
-      if (getLength(indexElements) < 1) then
+      call XML_Get_Elements_By_Tag_Name(nodeDefinition,indexType,indexElements)
+      if (size(indexElements) > 1) call Galacticus_Error_Report('multiple indices specified'//{introspection:location})
+      if (size(indexElements) < 1) then
          if (required_) then
             call Galacticus_Error_Report('required index not specified'//{introspection:location})
          else
@@ -245,7 +247,7 @@ contains
          end if
       end if
       ! Get the index element.
-      indexElement => item(indexElements,0)
+      indexElement => indexElements(0)%element
       ! Extract the value.
       call extractDataContent(indexElement,indexValue)
       ! Transfer to function result.

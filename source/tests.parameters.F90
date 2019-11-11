@@ -25,12 +25,12 @@ program Test_Parameters
   use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass
   use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: IO_HDF5                   , only : hdf5Object
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
+  use :: ISO_Varying_String        , only : varying_string                , assignment(=), var_str
   use :: Input_Parameters          , only : inputParameters
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type (hdf5Object                   )          :: outputFile
-  type (varying_string               )          :: parameterFile
+  type (varying_string               )          :: parameterFile            , parameterValue
   class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
   class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
   type (inputParameters              ), target  :: testParameters
@@ -59,6 +59,19 @@ program Test_Parameters
   call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                                ),0.912d0,relTol=1.0d-6)
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVarianceMethod'),.true.               )
   call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVarianceMethod'),1                    )
+  call Unit_Tests_End_Group()
+  ! Test adding, retrieving, reseting, readding a parameter.
+  call Unit_Tests_Begin_Group("Parameter adding")
+  call testParameters%addParameter('addedParameter','qwertyuiop'  )
+  call testParameters%value       ('addedParameter',parameterValue)
+  call Assert('added parameter exists'                      ,testParameters%isPresent('addedParameter'),.true.               )
+  call Assert('added parameter value is correct'            ,parameterValue                            ,var_str('qwertyuiop'))
+  call testParameters%reset()
+  call Assert('added parameter no longer exists after reset',testParameters%isPresent('addedParameter'),.false.              )
+  call testParameters%addParameter('addedParameter','asdfghjkl'   )
+  call testParameters%value       ('addedParameter',parameterValue)
+  call Assert('re-added parameter exists'                   ,testParameters%isPresent('addedParameter'),.true.               )
+  call Assert('re-added parameter value is correct'         ,parameterValue                            ,var_str('asdfghjkl' ))
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -116,23 +116,22 @@ contains
   subroutine fileRead(self)
     !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     use :: Atomic_Data      , only : Atomic_Short_Label
-    use :: FoX_DOM          , only : destroy                          , extractDataContent, getElementsByTagname, getLength, &
-          &                          item                             , node              , nodeList            , parseFile
+    use :: FoX_DOM          , only : destroy                          , extractDataContent          , node       , parseFile
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: Memory_Management, only : allocateArray
     implicit none
-    class           (stellarAstrophysicsFile), intent(inout) :: self
-    type            (node                   ), pointer       :: doc              , datum                   , &
-         &                                                      star
-    type            (nodeList               ), pointer       :: propertyList     , starList
-    integer                                                  :: countMassEjected , countYieldElementMaximum, &
-         &                                                      fileFormatVersion, iElement                , &
-         &                                                      iStar            , ioErr                   , &
-         &                                                      countLifetime    , mapToIndex              , &
-         &                                                      countYieldMetals
-    double precision                                         :: massInitial      , metallicity
-    logical                                                  :: starHasElements
+    class           (stellarAstrophysicsFile), intent(inout)               :: self
+    type            (node                   ), pointer                     :: doc              , datum                   , &
+         &                                                                    star
+    type            (xmlNodeList            ), allocatable  , dimension(:) :: propertyList     , starList
+    integer                                                                :: countMassEjected , countYieldElementMaximum, &
+         &                                                                    fileFormatVersion, iElement                , &
+         &                                                                    iStar            , ioErr                   , &
+         &                                                                    countLifetime    , mapToIndex              , &
+         &                                                                    countYieldMetals
+    double precision                                                       :: massInitial      , metallicity
+    logical                                                                :: starHasElements
 
     if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
@@ -144,31 +143,31 @@ contains
     call extractDataContent(datum,fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
     ! Get a list of all stars.
-    starList => getElementsByTagname(doc,"star")
+    call XML_Get_Elements_By_Tag_Name(doc,"star",starList)
     ! Count up number of stars with given properties.
     countLifetime         =0
     countMassEjected      =0
     countYieldMetals      =0
     self%countYieldElement=0
-    do iStar=0,getLength(starList)-1
-       star         => item(starList,iStar)
-       propertyList => getElementsByTagname(star,"initialMass"    )
-       if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one initial mass'//{introspection:location})
-       propertyList => getElementsByTagname(star,"metallicity")
-       if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one metallicity' //{introspection:location})
-       propertyList => getElementsByTagname(star,"lifetime"       )
-       if (getLength(propertyList) == 1) countLifetime=countLifetime      +1
-       if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple lifetimes'              //{introspection:location})
-       propertyList => getElementsByTagname(star,"ejectedMass"    )
-       if (getLength(propertyList) == 1) countMassEjected=countMassEjected+1
-       if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple ejected masses'         //{introspection:location})
-       propertyList => getElementsByTagname(star,"metalYieldMass")
-       if (getLength(propertyList) == 1) countYieldMetals=countYieldMetals+1
-       if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple metal yield masses'     //{introspection:location})
+    do iStar=0,size(starList)-1
+       star         => starList(iStar)%element
+       call XML_Get_Elements_By_Tag_Name(star,"initialMass",propertyList)
+       if (size(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one initial mass'//{introspection:location})
+       call XML_Get_Elements_By_Tag_Name(star,"metallicity",propertyList)
+       if (size(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one metallicity' //{introspection:location})
+       call XML_Get_Elements_By_Tag_Name(star,"lifetime",propertyList)
+       if (size(propertyList) == 1) countLifetime=countLifetime      +1
+       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple lifetimes'              //{introspection:location})
+       call XML_Get_Elements_By_Tag_Name(star,"ejectedMass",propertyList)
+       if (size(propertyList) == 1) countMassEjected=countMassEjected+1
+       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple ejected masses'         //{introspection:location})
+       call XML_Get_Elements_By_Tag_Name(star,"metalYieldMass",propertyList)
+       if (size(propertyList) == 1) countYieldMetals=countYieldMetals+1
+       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple metal yield masses'     //{introspection:location})
        do iElement=1,size(self%countYieldElement)
-          propertyList => getElementsByTagname(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)))
-          if (getLength(propertyList) == 1) self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
-          if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
+          call XML_Get_Elements_By_Tag_Name(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)),propertyList)
+          if (size(propertyList) == 1) self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
+          if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
        end do
     end do
     ! Find number of elements for which some yield data is available.
@@ -202,36 +201,36 @@ contains
     countMassEjected      =0
     countYieldMetals      =0
     self%countYieldElement=0
-    do iStar=0,getLength(starList)-1
-       star         => item(starList,iStar)
-       propertyList => getElementsByTagname(star,"initialMass")
-       datum        => item(propertyList,0)
+    do iStar=0,size(starList)-1
+       star         => starList(iStar)%element
+       call XML_Get_Elements_By_Tag_Name(star,"initialMass",propertyList)
+       datum        => propertyList(0)%element
        call extractDataContent(datum,massInitial)
-       propertyList => getElementsByTagname(star,"metallicity")
-       datum        => item(propertyList,0)
+       call XML_Get_Elements_By_Tag_Name(star,"metallicity",propertyList)
+       datum        => propertyList(0)%element
        call extractDataContent(datum,metallicity)
        ! Process stellar lifetimes.
-       propertyList => getElementsByTagname(star,"lifetime")
-       if (getLength(propertyList) == 1) then
-          datum => item(propertyList,0)
+       call XML_Get_Elements_By_Tag_Name(star,"lifetime",propertyList)
+       if (size(propertyList) == 1) then
+          datum => propertyList(0)%element
           countLifetime=countLifetime+1
           call extractDataContent(datum,self%lifetimeLifetime      (countLifetime   ))
           self%lifetimeMass       (countLifetime)=massInitial
           self%lifetimeMetallicity(countLifetime)=metallicity
        end if
        ! Process ejected masses.
-       propertyList => getElementsByTagname(star,"ejectedMass")
-       if (getLength(propertyList) == 1) then
-          datum => item(propertyList,0)
+       call XML_Get_Elements_By_Tag_Name(star,"ejectedMass",propertyList)
+       if (size(propertyList) == 1) then
+          datum => propertyList(0)%element
           countMassEjected=countMassEjected+1
           call extractDataContent(datum,self%massEjectedMassEjected(countMassEjected))
           self%massEjectedMass       (countMassEjected)=massInitial
           self%massEjectedMetallicity(countMassEjected)=metallicity
        end if
        ! Process metal yields.
-       propertyList => getElementsByTagname(star,"metalYieldMass")
-       if (getLength(propertyList) == 1) then
-          datum => item(propertyList,0)
+       call XML_Get_Elements_By_Tag_Name(star,"metalYieldMass",propertyList)
+       if (size(propertyList) == 1) then
+          datum => propertyList(0)%element
           countYieldMetals=countYieldMetals+1
           call extractDataContent(datum,self%yieldMetals           (countYieldMetals))
           self%yieldMetalsMass       (countYieldMetals)=massInitial
@@ -240,10 +239,10 @@ contains
        ! Process element yields.
        starHasElements=.false.
        do iElement=1,size(self%countYieldElement)
-          propertyList => getElementsByTagname(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)))
-          if (getLength(propertyList) == 1) then
+          call XML_Get_Elements_By_Tag_Name(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)),propertyList)
+          if (size(propertyList) == 1) then
              starHasElements=.true.
-             datum => item(propertyList,0)
+             datum => propertyList(0)%element
              self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
              call extractDataContent(datum,self%yieldElement(self%countYieldElement(iElement),self%atomIndexMap(iElement)))
              self%yieldElementMass       (self%countYieldElement(iElement),self%atomIndexMap(iElement))=massInitial

@@ -496,32 +496,33 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, getNodeName, &
-          &                         item                   , node                , nodeList
+    use :: FoX_DOM         , only : extractDataContent          , getNodeName, node
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(keplerOrbit), intent(inout) :: self
-    type (node       ), pointer       :: keplerOrbitDefinition
-    type (node       ), pointer       :: property
-    type (nodeList   ), pointer       :: propertyList
-    character(len=18     ), parameter    , dimension(5) :: propertyNames=                       &
-         &                                                               [                      &
-         &                                                                'massHost          ', &
-         &                                                                'massSatellite     ', &
-         &                                                                'velocityRadial    ', &
-         &                                                                'velocityTangential', &
-         &                                                                'radius            '  &
-         &                                                               ]
-    integer          :: i
-    double precision :: massHost   , massSatellite   , propertyValue
-    logical          :: massHostSet, massSatelliteSet
+    class           (keplerOrbit), intent(inout)               :: self
+    type            (node       ), pointer                     :: keplerOrbitDefinition
+    type            (node       ), pointer                     :: property
+    type            (xmlNodeList), allocatable  , dimension(:) :: propertyList
+    character       (len=18     ), parameter    , dimension(5) :: propertyNames        =                                         &
+         &                                                                              [                                        &
+         &                                                                               'massHost          ',                   &
+         &                                                                               'massSatellite     ',                   &
+         &                                                                               'velocityRadial    ',                   &
+         &                                                                               'velocityTangential',                   &
+         &                                                                               'radius            '                    &
+         &                                                                              ]
+    integer                                                    :: i
+    double precision                                           :: massHost                                   , massSatellite   , &
+         &                                                        propertyValue
+    logical                                                    :: massHostSet                                , massSatelliteSet
 
     ! Get the radius.
     do i=1,size(propertyNames)
-       propertyList => getElementsByTagName(keplerOrbitDefinition,trim(propertyNames(i)))
-       if (getLength(propertyList) >  1) call Galacticus_Error_Report('multiple '//trim(propertyNames(i))//' values specified'//{introspection:location})
-       if (getLength(propertyList) == 1) then
-          property => item(propertyList,0)
+       call XML_Get_Elements_By_Tag_Name(keplerOrbitDefinition,trim(propertyNames(i)),propertyList)
+       if (size(propertyList) >  1) call Galacticus_Error_Report('multiple '//trim(propertyNames(i))//' values specified'//{introspection:location})
+       if (size(propertyList) == 1) then
+          property => propertyList(0)%element
           call extractDataContent(property,propertyValue)
           select case (getNodeName(property))
           case ( 'radius'             )

@@ -61,22 +61,21 @@ contains
 
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
-    use :: Atomic_Data      , only : Atom_Lookup            , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                , extractDataContent               , getElementsByTagname, getLength, &
-          &                          item                   , node                             , nodeList            , parseFile
+    use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
+    use :: FoX_dom          , only : destroy                       , extractDataContent               , node                        , parseFile
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Galacticus_Paths , only : galacticusPath         , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Array_Length       , XML_Get_First_Element_By_Tag_Name
+    use :: Galacticus_Paths , only : galacticusPath                , pathTypeDataStatic
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: Memory_Management, only : allocateArray
     implicit none
-    type            (supernovaeTypeIaNagashima2005)                        :: self
-    class           (stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
-    type            (node                         ), pointer               :: doc                 , atom        , &
-         &                                                                    isotope             , yield
-    type            (nodeList                     ), pointer               :: isotopesList
-    integer                                                                :: atomicIndex         , atomicNumber, &
-         &                                                                    iIsotope            , ioErr
-    double precision                                                       :: isotopeYield
+    type            (supernovaeTypeIaNagashima2005)                              :: self
+    class           (stellarAstrophysicsClass     ), intent(in   ), target       :: stellarAstrophysics_
+    type            (node                         ), pointer                     :: doc                 , atom        , &
+         &                                                                          isotope             , yield
+    type            (xmlNodeList                  ), allocatable  , dimension(:) :: isotopesList
+    integer                                                                      :: atomicIndex         , atomicNumber, &
+         &                                                                          iIsotope            , ioErr
+    double precision                                                             :: isotopeYield
     !# <constructorAssign variables="*stellarAstrophysics_"/>
 
     ! Allocate an array to store individual element yields.
@@ -88,15 +87,15 @@ contains
     doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
-    isotopesList => getElementsByTagname(doc,"isotope")
+    call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)
     ! Loop through isotopes and compute the net metal yield.
-    do iIsotope=0,getLength(isotopesList)-1
-       isotope  => item(isotopesList,iIsotope)
-       if (XML_Array_Length(isotope,"yield") /= 1) call Galacticus_Error_Report('isotope must have precisely one yield'//{introspection:location})
+    do iIsotope=0,size(isotopesList)-1
+       isotope  => isotopesList(iIsotope)%element
+       if (XML_Count_Elements_By_Tag_Name(isotope,"yield") /= 1) call Galacticus_Error_Report('isotope must have precisely one yield'//{introspection:location})
        yield => XML_Get_First_Element_By_Tag_Name(isotope,"yield")
        call extractDataContent(yield,isotopeYield)
        self%totalYield=self%totalYield+isotopeYield
-       if (XML_Array_Length(isotope,"atomicNumber") /= 1) call Galacticus_Error_Report('isotope must have precisely one atomic number'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(isotope,"atomicNumber") /= 1) call Galacticus_Error_Report('isotope must have precisely one atomic number'//{introspection:location})
        atom => XML_Get_First_Element_By_Tag_Name(isotope,"atomicNumber")
        call extractDataContent(atom,atomicNumber)
        atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)

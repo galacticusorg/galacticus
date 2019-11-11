@@ -64,10 +64,10 @@ contains
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
-    use :: FoX_dom                         , only : destroy                , node              , parseFile
+    use :: FoX_dom                         , only : destroy                       , node              , parseFile
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataStatic
-    use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
+    use :: Galacticus_Paths                , only : galacticusPath                , pathTypeDataStatic
+    use :: IO_XML                          , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : ergs
@@ -90,7 +90,7 @@ contains
     ! Read the arrays.
     call XML_Array_Read(massElement  ,"data",self%massHeliumCore)
     call XML_Array_Read(energyElement,"data",self%energy        )
-    self%countTable=XML_Array_Length(massElement,"data")
+    self%countTable=XML_Count_Elements_By_Tag_Name(massElement,"data")
     ! Convert energies to M☉ (km/s)².
     self%energy=self%energy*(1.0d51*ergs/massSolar/kilo**2)
     ! Destroy the document.
