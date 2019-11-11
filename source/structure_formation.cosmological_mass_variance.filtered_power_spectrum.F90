@@ -529,190 +529,210 @@ contains
          &                                                                                  labelHigh                 , labelTarget
 
     if (self%remakeTable(mass,time)) then
+#ifndef OFDAVAIL
+       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+       ! will not block access to the same file by another thread.
+       !$omp critical (cosmologicalMassVarianceFilteredPowerLock)
+#endif
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(filteredPowerFileLock,sync=.false.)
+#ifndef OFDAVAIL
+       !$omp end critical (cosmologicalMassVarianceFilteredPowerLock)
+#endif
     end if
     if (self%remakeTable(mass,time)) then
+#ifndef OFDAVAIL
+       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+       ! will not block access to the same file by another thread.
+       !$omp critical (cosmologicalMassVarianceFilteredPowerLock)
+#endif
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.false.)
-       ! Compute the mass at which the mass variance is normalized.
-       smoothingMass=+(                                                               &
-            &          +4.0d0                                                         &
-            &          /3.0d0                                                         &
-            &          *Pi                                                            &
-            &         )                                                               &
-            &        *  self%cosmologyParameters_%OmegaMatter    (                  ) &
-            &        *  self%cosmologyParameters_%densityCritical(                  ) &
-            &        *(                                                               &
-            &          +radiusNormalization                                           &
-            &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
-            &         )**3
-       ! Determine the normalization of the power spectrum.
-       self%sigmaNormalization=+self%sigma8Value                                                                &
-            &                  /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
-       ! Find suitable range of masses to tabulate.
-       if (present(mass)) then
-          countNewLower=0
-          countNewUpper=0
-          if (self%initialized) then
-             massMinimum     =min(mass/10.0d0,self%massMinimum)
-             massMaximum     =max(mass*10.0d0,self%massMaximum)
-          else
-             self%massMinimum=    mass
-             self%massMaximum=    mass
-             massMinimum     =    mass/10.0d0
-             massMaximum     =    mass*10.0d0
-          end if
-          ! Determine how many points the table must be extended by in each direction to span the new required range.
-          if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
-          if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
-          ! Adjust the limits of the table by an integer number of steps.
-          self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
-          self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
-       end if
-       rootVarianceTableCount=int(                                         &
-            &                     +log10(                                  &
-            &                            +self%massMaximum                 &
-            &                            /self%massMinimum                 &
-            &                           )                                  &
-            &                     *dble(filteredPowerTablePointsPerDecade) &
-            &                    )
-       ! Find suitable range of times to tabulate.
-       if (self%growthIsMassDependent_) then
-          if (present(time)) then
+       ! Try again to read the file - another process/thread may have already created the file in which case we may not need to do so again.
+       call self%fileRead()
+       if (self%remakeTable(mass,time)) then
+          ! Compute the mass at which the mass variance is normalized.
+          smoothingMass=+(                                                               &
+               &          +4.0d0                                                         &
+               &          /3.0d0                                                         &
+               &          *Pi                                                            &
+               &         )                                                               &
+               &        *  self%cosmologyParameters_%OmegaMatter    (                  ) &
+               &        *  self%cosmologyParameters_%densityCritical(                  ) &
+               &        *(                                                               &
+               &          +radiusNormalization                                           &
+               &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
+               &         )**3
+          ! Determine the normalization of the power spectrum.
+          self%sigmaNormalization=+self%sigma8Value                                                                &
+               &                  /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
+          ! Find suitable range of masses to tabulate.
+          if (present(mass)) then
              countNewLower=0
              countNewUpper=0
              if (self%initialized) then
-                timeMinimum     =min(time/2.0d0,self%timeMinimum)
-                timeMaximum     =max(time*2.0d0,self%timeMaximum)
+                massMinimum     =min(mass/10.0d0,self%massMinimum)
+                massMaximum     =max(mass*10.0d0,self%massMaximum)
              else
-                self%timeMinimum=    time
-                self%timeMaximum=    time
-                timeMinimum     =    time/2.0d0
-                timeMaximum     =    time*2.0d0
+                self%massMinimum=    mass
+                self%massMaximum=    mass
+                massMinimum     =    mass/10.0d0
+                massMaximum     =    mass*10.0d0
              end if
              ! Determine how many points the table must be extended by in each direction to span the new required range.
-             if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
-             if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+             if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
+             if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
              ! Adjust the limits of the table by an integer number of steps.
-             self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
-             self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
+             self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
+             self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
           end if
-          rootVarianceTimeCount =int(                                         &
+          rootVarianceTableCount=int(                                         &
                &                     +log10(                                  &
-               &                            +self%timeMaximum                 &
-               &                            /self%timeMinimum                 &
+               &                            +self%massMaximum                 &
+               &                            /self%massMinimum                 &
                &                           )                                  &
-               &                     *dble(filteredPowerTimePointsPerDecade ) &
+               &                     *dble(filteredPowerTablePointsPerDecade) &
                &                    )
-          self%timeMinimumLogarithmic     =                              log(                 self%timeMinimum)
-          self%timeLogarithmicDeltaInverse=dble(rootVarianceTimeCount-1)/log(self%timeMaximum/self%timeMinimum)
-       else
-          ! Growth of the transferred power spectrum is independent of mass - we can therefore tabulate σ(M) at a single epoch
-          ! and use the linear growth factor to transform it to other epochs.
-          self%timeMinimum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
-          self%timeMaximum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
-          rootVarianceTimeCount           =1
-          self%timeMinimumLogarithmic     =0.0d0
-          self%timeLogarithmicDeltaInverse=0.0d0
-       end if
-       if (allocated(self%times                  )) deallocate(self%times                  )
-       if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
-       allocate(self%rootVarianceUniqueTable(rootVarianceTimeCount))
-       allocate(self%times                  (rootVarianceTimeCount))
-       if (self%growthIsMassDependent_) then
-          self%times=Make_Range(self%timeMinimum,self%timeMaximum,rootVarianceTimeCount,rangeTypeLogarithmic)
-       else
-          self%times=self%timeMinimum
-       end if
-       ! Allocate table grid.
-       if (allocated(self%rootVarianceTable)) then
-          do i=1,size(self%rootVarianceTable)
-             call self%rootVarianceTable(i)%destroy()
-          end do
-          deallocate(self%rootVarianceTable)
-       end if
-       if (self%monotonicInterpolation) then
-          allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(rootVarianceTimeCount))
-       else
-          allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
-       end if
-       call Galacticus_Display_Indent("retabulating σ(M)",verbosityWorking)
-       write    (labelLow   ,'(e9.2)') self%massMinimum
-       write    (labelHigh  ,'(e9.2)') self%massMaximum
-       if (present(mass)) then
-          write (labelTarget,'(e9.2)')      mass
-       else
-          labelTarget="unspecified"
-       end if
-       call Galacticus_Display_Message("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityWorking)
-       write    (labelLow   ,'(f9.4)') self%timeMinimum
-       write    (labelHigh  ,'(f9.4)') self%timeMaximum
-       if (present(time)) then
-          write (labelTarget,'(f9.4)')      time
-       else
-          labelTarget="unspecified"
-       end if
-       call Galacticus_Display_Message("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityWorking)
-       do k=1,rootVarianceTimeCount
-          call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
-          allocate(rootVarianceIsUnique(rootVarianceTableCount))
-          rootVarianceIsUnique=.true.
-          ! Compute σ(M) at each tabulated point.
-          massMinimum=-1.0d0
-          do i=1,rootVarianceTableCount
-             smoothingMass=+self        %rootVarianceTable(k)%x(                                    i)
-             sigma        =+rootVariance                       (time_=self%times(k),useTopHat=.false.) &
-                  &        *self%sigmaNormalization
-             ! Enforce monotonicity.
-             if (i > 1) then
-                if (sigma >= self%rootVarianceTable(k)%y(i-1)) then
-                   massMinimum            =smoothingMass
-                   rootVarianceIsUnique(i)=.false.
+          ! Find suitable range of times to tabulate.
+          if (self%growthIsMassDependent_) then
+             if (present(time)) then
+                countNewLower=0
+                countNewUpper=0
+                if (self%initialized) then
+                   timeMinimum     =min(time/2.0d0,self%timeMinimum)
+                   timeMaximum     =max(time*2.0d0,self%timeMaximum)
+                else
+                   self%timeMinimum=    time
+                   self%timeMaximum=    time
+                   timeMinimum     =    time/2.0d0
+                   timeMaximum     =    time*2.0d0
                 end if
-                sigma=min(sigma,self%rootVarianceTable(k)%y(i-1))
+                ! Determine how many points the table must be extended by in each direction to span the new required range.
+                if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+                if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+                ! Adjust the limits of the table by an integer number of steps.
+                self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
+                self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
              end if
-             ! Store the value.
-             call self%rootVarianceTable(k)%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
-          end do
-          ! Find unique values in the variance table.
-          rootVarianceUniqueCount=count(rootVarianceIsUnique)
-          allocate(self%rootVarianceUniqueTable(k)%rootVariance(rootVarianceUniqueCount))
-          allocate(self%rootVarianceUniqueTable(k)%index       (rootVarianceUniqueCount))
-          j=1
-          do i=1,rootVarianceTableCount
-             if (rootVarianceIsUnique(i)) then
-                self%rootVarianceUniqueTable(k)%rootVariance(j)=self%rootVarianceTable(k)%y(i)
-                self%rootVarianceUniqueTable(k)%index       (j)=i
-                j                                              =j+1
-             end if
-          end do
-          deallocate(rootVarianceIsUnique)
-          ! Abort or warn if σ(M) has no increase below some mass scale.
-          if (massMinimum > 0.0d0) then
-             if (self%nonMonotonicIsFatal) then
-                message=         ""
-             else
-                message=         "WARNING: "
-             end if
-             write (label,'(e12.6)') massMinimum
-             message=         "σ(M) is non-increasing below mass M="//label//"M☉"
-             write (label,'(e12.6)') self%times(k)
-             message=message//" at time t="//label//"Gyr."//char(10)
-             if (self%nonMonotonicIsFatal) then
-                call Galacticus_Error_Report(message//{introspection:location})
-             else
-                message=message//"         If problems occur consider not attempting to model structure below this mass scale."
-                call Galacticus_Warn(message)
-             end if
+             rootVarianceTimeCount =int(                                         &
+                  &                     +log10(                                  &
+                  &                            +self%timeMaximum                 &
+                  &                            /self%timeMinimum                 &
+                  &                           )                                  &
+                  &                     *dble(filteredPowerTimePointsPerDecade ) &
+                  &                    )
+             self%timeMinimumLogarithmic     =                              log(                 self%timeMinimum)
+             self%timeLogarithmicDeltaInverse=dble(rootVarianceTimeCount-1)/log(self%timeMaximum/self%timeMinimum)
+          else
+             ! Growth of the transferred power spectrum is independent of mass - we can therefore tabulate σ(M) at a single epoch
+             ! and use the linear growth factor to transform it to other epochs.
+             self%timeMinimum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
+             self%timeMaximum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
+             rootVarianceTimeCount           =1
+             self%timeMinimumLogarithmic     =0.0d0
+             self%timeLogarithmicDeltaInverse=0.0d0
           end if
-       end do
-       call Galacticus_Display_Unindent("done",verbosityWorking)
-       ! Table is now initialized.
-       self%initialized=.true.
-       ! Store file.
-       call self%fileWrite()
+          if (allocated(self%times                  )) deallocate(self%times                  )
+          if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
+          allocate(self%rootVarianceUniqueTable(rootVarianceTimeCount))
+          allocate(self%times                  (rootVarianceTimeCount))
+          if (self%growthIsMassDependent_) then
+             self%times=Make_Range(self%timeMinimum,self%timeMaximum,rootVarianceTimeCount,rangeTypeLogarithmic)
+          else
+             self%times=self%timeMinimum
+          end if
+          ! Allocate table grid.
+          if (allocated(self%rootVarianceTable)) then
+             do i=1,size(self%rootVarianceTable)
+                call self%rootVarianceTable(i)%destroy()
+             end do
+             deallocate(self%rootVarianceTable)
+          end if
+          if (self%monotonicInterpolation) then
+             allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(rootVarianceTimeCount))
+          else
+             allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
+          end if
+          call Galacticus_Display_Indent("retabulating σ(M)",verbosityWorking)
+          write    (labelLow   ,'(e9.2)') self%massMinimum
+          write    (labelHigh  ,'(e9.2)') self%massMaximum
+          if (present(mass)) then
+             write (labelTarget,'(e9.2)')      mass
+          else
+             labelTarget="unspecified"
+          end if
+          call Galacticus_Display_Message("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityWorking)
+          write    (labelLow   ,'(f9.4)') self%timeMinimum
+          write    (labelHigh  ,'(f9.4)') self%timeMaximum
+          if (present(time)) then
+             write (labelTarget,'(f9.4)')      time
+          else
+             labelTarget="unspecified"
+          end if
+          call Galacticus_Display_Message("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityWorking)
+          do k=1,rootVarianceTimeCount
+             call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
+             allocate(rootVarianceIsUnique(rootVarianceTableCount))
+             rootVarianceIsUnique=.true.
+             ! Compute σ(M) at each tabulated point.
+             massMinimum=-1.0d0
+             do i=1,rootVarianceTableCount
+                smoothingMass=+self        %rootVarianceTable(k)%x(                                    i)
+                sigma        =+rootVariance                       (time_=self%times(k),useTopHat=.false.) &
+                     &        *self%sigmaNormalization
+                ! Enforce monotonicity.
+                if (i > 1) then
+                   if (sigma >= self%rootVarianceTable(k)%y(i-1)) then
+                      massMinimum            =smoothingMass
+                      rootVarianceIsUnique(i)=.false.
+                   end if
+                   sigma=min(sigma,self%rootVarianceTable(k)%y(i-1))
+                end if
+                ! Store the value.
+                call self%rootVarianceTable(k)%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
+             end do
+             ! Find unique values in the variance table.
+             rootVarianceUniqueCount=count(rootVarianceIsUnique)
+             allocate(self%rootVarianceUniqueTable(k)%rootVariance(rootVarianceUniqueCount))
+             allocate(self%rootVarianceUniqueTable(k)%index       (rootVarianceUniqueCount))
+             j=1
+             do i=1,rootVarianceTableCount
+                if (rootVarianceIsUnique(i)) then
+                   self%rootVarianceUniqueTable(k)%rootVariance(j)=self%rootVarianceTable(k)%y(i)
+                   self%rootVarianceUniqueTable(k)%index       (j)=i
+                   j                                              =j+1
+                end if
+             end do
+             deallocate(rootVarianceIsUnique)
+             ! Abort or warn if σ(M) has no increase below some mass scale.
+             if (massMinimum > 0.0d0) then
+                if (self%nonMonotonicIsFatal) then
+                   message=         ""
+                else
+                   message=         "WARNING: "
+                end if
+                write (label,'(e12.6)') massMinimum
+                message=         "σ(M) is non-increasing below mass M="//label//"M☉"
+                write (label,'(e12.6)') self%times(k)
+                message=message//" at time t="//label//"Gyr."//char(10)
+                if (self%nonMonotonicIsFatal) then
+                   call Galacticus_Error_Report(message//{introspection:location})
+                else
+                   message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+                   call Galacticus_Warn(message)
+                end if
+             end if
+          end do
+          call Galacticus_Display_Unindent("done",verbosityWorking)
+          ! Table is now initialized.
+          self%initialized=.true.
+          ! Store file.
+          call self%fileWrite()
+       end if
        call File_Unlock(filteredPowerFileLock)
+#ifndef OFDAVAIL
+       !$omp end critical (cosmologicalMassVarianceFilteredPowerLock)
+#endif
     end if
     return
 
@@ -1000,21 +1020,21 @@ contains
     end do
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (self%times                      ,'times'                                                                      )
-    call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                       )
-    call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                               )
-    call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                         )
-    call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                )
-    call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                 )
-    call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                         )
-    call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                )
-    call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                )
-    call dataFile%writeAttribute(self%timeMinimum                ,'timeMinimum'                                                                )
-    call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                )
-    call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                     )
-    call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                )
-    call dataFile%close         (                                                                                                              )
+    call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
+    call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
+    call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )
+    call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                                                    )
+    call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                                           )
+    call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                                            )
+    call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                                                    )
+    call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                                           )
+    call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                                           )
+    call dataFile%writeAttribute(self%timeMinimum                ,'timeMinimum'                                                                                           )
+    call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                                           )
+    call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                                                )
+    call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                                           )
+    call dataFile%close         (                                                                                                                                         )
     !$ call hdf5Access%unset()
     deallocate(rootVarianceTmp      )
     deallocate(rootVarianceUniqueTmp)
