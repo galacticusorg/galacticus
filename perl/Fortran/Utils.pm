@@ -13,7 +13,7 @@ use Fcntl qw(SEEK_SET);
 # RegEx's useful for matching Fortran code.
 our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
@@ -23,7 +23,7 @@ our %unitOpeners = (
     program            => { unitName => 0, regEx => qr/^\s*program\s+(${label})/ },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
     subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})/},
-    # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
+    # Find function openings, allowing for pure, elemental, and recursive functions, and different function types.
     function           => { unitName => 5, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})/},
     # Find interfaces.
     interface          => { unitName => 1, regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
@@ -606,7 +606,7 @@ sub Format_Variable_Definitions {
 		    if ( $i+$variableColumnCount < scalar(@{$_->{'variables'}}) );
 		if ( $i == 0 ) {
 		    $dataTable->add(
-			$_->{'intrinsic'},
+			(exists($_->{'openMP'}) && $_->{'openMP'} ? "!\$ " : "").$_->{'intrinsic'},
 			@typeDefinition,
 			@attributeList,
 			":: ",
@@ -628,14 +628,14 @@ sub Format_Variable_Definitions {
 	    }
 	} else {
 	    $dataTable->add(
-		$_->{'intrinsic'},
+		(exists($_->{'openMP'}) && $_->{'openMP'} ? "!\$ " : "").$_->{'intrinsic'},
 		@typeDefinition,
 		@attributeList,
 		join(", ",@{$_->{'variables'}}),
 		$comment
 		);
 	}
-	# Add any OpenMP threadpriavte statement.
+	# Add any OpenMP threadprivate statement.
 	$ompPrivateTable->add(join(", ",@{$_->{'variables'}}))
 	    if ( exists($_->{'ompPrivate'}) && $_->{'ompPrivate'} );
 	# Add a comment after this row.
