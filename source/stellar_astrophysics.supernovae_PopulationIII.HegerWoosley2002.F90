@@ -15,12 +15,13 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
-
-  use :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
-  use :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
+  
+  use            :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
+  use, intrinsic :: ISO_C_Binding       , only : c_size_t
+  use            :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
   !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
@@ -29,7 +30,7 @@
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
-     integer                                                               :: countTable
+     integer         (c_size_t                )                            :: countTable
      double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
      type            (fgsl_interp             )                            :: interpolationObject
      type            (fgsl_interp_accel       )                            :: interpolationAccelerator
