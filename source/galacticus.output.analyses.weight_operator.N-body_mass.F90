@@ -48,7 +48,7 @@ contains
     implicit none
     type            (outputAnalysisWeightOperatorNbodyMass)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
-    class           (nodePropertyExtractorClass ), pointer       :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass           ), pointer       :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass  ), pointer       :: outputAnalysisPropertyOperator_
     class           (nbodyHaloMassErrorClass              ), pointer       :: nbodyHaloMassError_
     double precision                                                       :: rangeLower                      , rangeUpper
@@ -68,7 +68,7 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !# <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
     self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
@@ -127,11 +127,11 @@ contains
     nbodyMassPropertyType   =+self%nodePropertyExtractor_%type           (    )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
-       nbodyMassPropertyValue=+                          extractor_%extract        (node)
+       nbodyMassPropertyValue=+                extractor_%extract        (node)
     class default
        nbodyMassPropertyValue=+0.0d0
     end select
-    nbodyMassRootVariance   =+self%nbodyHaloMassError_             %errorFractional(node) &
+    nbodyMassRootVariance   =+self%nbodyHaloMassError_   %errorFractional(node) &
          &                   *nbodyMassPropertyValue
     return
   end function nbodyMassRootVariance

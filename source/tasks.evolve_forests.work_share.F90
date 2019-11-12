@@ -63,7 +63,7 @@ module Task_Evolve_Forests_Work_Shares
 contains
 
   subroutine evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
-    !% Returns an ID for this worker which is unique across all MPI and OpenMP threads.
+    !% Constructs an ID for this worker which is unique across all MPI and OpenMP threads.
 #ifdef USEMPI
     use    :: MPI_Utilities, only : mpiSelf
 #endif

@@ -76,13 +76,20 @@
      !@     <type>\void</type>
      !@     <description>Return the results of the volume function operator.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>finalizeAnalysis</method>
+     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <description>Finalize the analysis of this function.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                  volumeFunction1DDestructor
-     procedure :: analyze       => volumeFunction1DAnalyze
-     procedure :: finalize      => volumeFunction1DFinalize
-     procedure :: results       => volumeFunction1DResults
-     procedure :: reduce        => volumeFunction1DReduce
-     procedure :: logLikelihood => volumeFunction1DLogLikelihood
+     final     ::                     volumeFunction1DDestructor
+     procedure :: analyze          => volumeFunction1DAnalyze
+     procedure :: finalize         => volumeFunction1DFinalize
+     procedure :: results          => volumeFunction1DResults
+     procedure :: reduce           => volumeFunction1DReduce
+     procedure :: logLikelihood    => volumeFunction1DLogLikelihood
+     procedure :: finalizeAnalysis => volumeFunction1DFinalizeAnalysis
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
@@ -500,7 +507,7 @@ contains
     implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodePropertyExtractor_"     />
+    !# <objectDestructor name="self%nodePropertyExtractor_"               />
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_"      />
     !# <objectDestructor name="self%outputAnalysisPropertyUnoperator_"    />
     !# <objectDestructor name="self%outputAnalysisWeightOperator_"        />
@@ -637,7 +644,7 @@ contains
          &                                                  dataset
 
     ! Finalize analysis.
-    call volumeFunction1DFinalizeAnalysis(self)
+    call self%finalizeAnalysis()
     ! Output.
     !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
@@ -651,9 +658,11 @@ contains
     call    analysisGroup%writeAttribute(          self%       yAxisIsLog                        ,'yAxisIsLog'                                                                                                           )
     call    analysisGroup%writeAttribute(     char(self%    propertyLabel)                       ,'xDataset'                                                                                                             )
     call    analysisGroup%writeAttribute(     char(self%distributionLabel)                       ,'yDataset'                                                                                                             )
-    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Target"             ,'yDatasetTarget'                                                                                                       )
     call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Covariance"         ,'yCovariance'                                                                                                          )
-    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"CovarianceTarget"   ,'yCovarianceTarget'                                                                                                    )
+    if (allocated(self%functionValueTarget)) then
+       call analysisGroup%writeAttribute(     char(self%distributionLabel)//"Target"             ,'yDatasetTarget'                                                                                                       )
+       call analysisGroup%writeAttribute(     char(self%distributionLabel)//"CovarianceTarget"   ,'yCovarianceTarget'                                                                                                    )
+    end if
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)                   ,char(self%   propertyComment)                  ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%    propertyUnits    )                   ,'units'                                                                                                                )
@@ -760,7 +769,7 @@ contains
     double precision                                , allocatable, dimension(:,:), intent(inout), optional :: functionCovariance
 
     ! Finalize analysis.
-    call volumeFunction1DFinalizeAnalysis(self)
+    call self%finalizeAnalysis()
     ! Return results.
     if (present(binCenter         )) then
        if (allocated(binCenter         )) call deallocateArray(binCenter         )
@@ -796,7 +805,7 @@ contains
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
-       call volumeFunction1DFinalizeAnalysis(self)
+       call self%finalizeAnalysis()
        ! If model has everywhere zero return an improbable likelihood.
        if (all(self%functionValue == 0.0d0) .and. all(self%functionCovariance == 0.0d0)) then
           volumeFunction1DLogLikelihood=logImprobable

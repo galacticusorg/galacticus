@@ -29,8 +29,10 @@ my %options =
 my $config = &Galacticus::Constraints::Parameters::parseConfig($parameterFile);
 
 # Compute acceptance rates.
-my $chainCount = &Galacticus::Constraints::Parameters::chainCount($config,\%options);
-my $stepCount  = &Galacticus::Constraints::Parameters::stepCount ($config,\%options);
+my $chainCount      = &Galacticus::Constraints::Parameters::chainCount($config,\%options);
+my $stepCount       = &Galacticus::Constraints::Parameters::stepCount ($config,\%options);
+die('acceptanceRate.pl: too few steps to compute acceptance rates')
+    if ( $stepCount < $options{'stateSampleCount'} );
 my $acceptanceRates = pdl zeros($chainCount,$stepCount-$options{'stateSampleCount'});
 for(my $chain=0;$chain<$chainCount;++$chain) {
     my $parameterStates = &Galacticus::Constraints::Parameters::parameterMatrix($config,$chain,\%options);

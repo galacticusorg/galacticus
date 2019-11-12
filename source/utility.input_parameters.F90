@@ -61,10 +61,10 @@ module Input_Parameters
      !% A class to handle input parameters for \glc.
      private
      type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent , firstChild, &
-          &                                                   sibling, referenced
+     type   (inputParameter   ), pointer    , public       :: parent         , firstChild        , &
+          &                                                   sibling        , referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
-     logical :: created=.false.
+     logical                                               :: created=.false., removed   =.false.
    contains
      !@ <objectMethods>
      !@   <object>inputParameter</object>
@@ -580,21 +580,21 @@ contains
 
   recursive subroutine inputParametersBuildTree(self,parentParameter,parametersNode)
     !% Build a tree representation of the input parameter file.
-    use :: FoX_dom, only : ELEMENT_NODE, getChildNodes, getLength, getNodeType, &
-          &                item        , node         , nodeList
+    use :: FoX_DOM, only : ELEMENT_NODE, getNodeType           , node
+    use :: IO_XML , only : xmlNodeList , XML_Get_Child_Elements
     implicit none
-    class  (inputParameters), intent(inout)          :: self
-    type   (inputParameter ), intent(inout), pointer :: parentParameter
-    type   (node           ), intent(in   ), pointer :: parametersNode
-    type   (nodeList       )               , pointer :: childNodes
-    type   (node           )               , pointer :: childNode
-    type   (inputParameter )               , pointer :: currentParameter
-    integer                                          :: i
+    class  (inputParameters), intent(inout)              :: self
+    type   (inputParameter ), intent(inout), pointer     :: parentParameter
+    type   (node           ), intent(in   ), pointer     :: parametersNode
+    type   (xmlNodeList    ), dimension(:) , allocatable :: childNodes
+    type   (node           )               , pointer     :: childNode
+    type   (inputParameter )               , pointer     :: currentParameter
+    integer                                              :: i
 
-    childNodes       => getChildNodes(parametersNode)
+    call XML_Get_Child_Elements(parametersNode,childNodes)
     currentParameter => null()
-    do i=0,getLength(childNodes)-1
-       childNode => item(childNodes,i)
+    do i=0,size(childNodes)-1
+       childNode => childNodes(i)%element
        if (getNodeType(childNode) == ELEMENT_NODE) then
           if (associated(currentParameter)) then
              allocate(currentParameter%sibling)
@@ -857,9 +857,9 @@ contains
     !% Reset objects associated with this parameter and any sub-parameters.
     use :: FoX_dom, only : destroy
     implicit none
-    class  (inputParameter), intent(inout), target :: self
+    class  (inputParameter), intent(inout), target   :: self
     logical                , intent(in   ), optional :: children
-    type   (inputParameter), pointer                 :: child, childNext, parent, self_
+    type   (inputParameter), pointer                 :: child, childNext
     integer                                          :: i
     !# <optionalArgument name="children" defaultsTo=".true."/>
 
@@ -873,29 +873,7 @@ contains
     ! Clean up children if requested.
     if (children_) then
        ! Remove if this parameter was created.
-       if (self%created) then
-          child => self%firstChild
-          do while (associated(child))
-             childNext => child%sibling
-             call child%destroy()
-             deallocate(child)
-             child => childNext
-          end do
-          self_ => self
-          parent => self_%parent
-          ! Find child, unlink and deallocate.
-          if (associated(parent%firstChild,self_))  then
-             parent%firstChild => self_%sibling
-          else
-             child => parent%firstChild
-             do while (.not.associated(child%sibling,self_))
-                child => child%sibling
-             end do
-             child%sibling => self_%sibling
-          end if
-          deallocate(self_)
-          return
-       end if
+       if (self%created) self%removed=.true.
        ! Reset children if requested.
        child => self%firstChild
        do while (associated(child))
@@ -1173,25 +1151,27 @@ contains
     inputParametersNode => self%parameters%firstChild
     skipInstances=copyInstance_-1
     do while (associated(inputParametersNode))
-       thisNode => inputParametersNode%content
-       if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if     (                                     &
-               &   .not.hasAttribute(thisNode,'id'   ) &
-               &  .and.                                &
-               &   (                                   &
-               &    .not.requireValue_                 &
-               &    .or.                               &
-               &        hasAttribute(thisNode,'value') &
-               &    .or.                               &
-               &     XML_Path_Exists(thisNode,"value") &
-               &    .or.                               &
-               &        hasAttribute(thisNode,"idRef") &
-               &   )                                   &
-               & ) then
-             if (skipInstances > 0) then
-                skipInstances=skipInstances-1
-             else
-                exit
+       if (.not.inputParametersNode%removed) then
+          thisNode => inputParametersNode%content
+          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
+             if     (                                     &
+                  &   .not.hasAttribute(thisNode,'id'   ) &
+                  &  .and.                                &
+                  &   (                                   &
+                  &    .not.requireValue_                 &
+                  &    .or.                               &
+                  &        hasAttribute(thisNode,'value') &
+                  &    .or.                               &
+                  &     XML_Path_Exists(thisNode,"value") &
+                  &    .or.                               &
+                  &        hasAttribute(thisNode,"idRef") &
+                  &   )                                   &
+                  & ) then
+                if (skipInstances > 0) then
+                   skipInstances=skipInstances-1
+                else
+                   exit
+                end if
              end if
           end if
        end if
@@ -1222,23 +1202,25 @@ contains
     !$omp critical (FoX_DOM_Access)
     currentParameter => self%parameters%firstChild
     do while (associated(currentParameter))
-       thisNode => currentParameter%content
-       if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if     (                                     &
-               &   .not.hasAttribute(thisNode,'id'   ) &
-               &  .and.                                &
-               &   (                                   &
-               &    .not.requireValue_                 &
-               &    .or.                               &
-               &        hasAttribute(thisNode,'value') &
-               &    .or.                               &
-               &     XML_Path_Exists(thisNode,"value") &
-               &    .or.                               &
-               &        hasAttribute(thisNode,"idRef") &
-               &   )                                   &
-               & ) then
-             inputParametersIsPresent=.true.
-             exit
+       if (.not.currentParameter%removed) then
+          thisNode => currentParameter%content
+          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
+             if     (                                     &
+                  &   .not.hasAttribute(thisNode,'id'   ) &
+                  &  .and.                                &
+                  &   (                                   &
+                  &    .not.requireValue_                 &
+                  &    .or.                               &
+                  &        hasAttribute(thisNode,'value') &
+                  &    .or.                               &
+                  &     XML_Path_Exists(thisNode,"value") &
+                  &    .or.                               &
+                  &        hasAttribute(thisNode,"idRef") &
+                  &   )                                   &
+                  & ) then
+                inputParametersIsPresent=.true.
+                exit
+             end if
           end if
        end if
        currentParameter => currentParameter%sibling
@@ -1268,24 +1250,26 @@ contains
        !$omp critical (FoX_DOM_Access)
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
-          thisNode => currentParameter%content
-          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-             if     (                                       &
-                  &   .not.requireValue_                    &
-                  &  .or.                                   &
-                  &   (                                     &
-                  &     .not.hasAttribute(thisNode,'id'   ) &
-                  &    .and.                                &
-                  &     (                                   &
-                  &          hasAttribute(thisNode,'value') &
-                  &      .or.                               &
-                  &       XML_Path_Exists(thisNode,"value") &
-                  &      .or.                               &
-                  &          hasAttribute(thisNode,"idRef") &
-                  &     )                                   &
-                  &   )                                     &
-                  & )                                       &
-                  & inputParametersCopiesCount=inputParametersCopiesCount+1
+          if (.not.currentParameter%removed) then
+             thisNode => currentParameter%content
+             if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
+                if     (                                       &
+                     &   .not.requireValue_                    &
+                     &  .or.                                   &
+                     &   (                                     &
+                     &     .not.hasAttribute(thisNode,'id'   ) &
+                     &    .and.                                &
+                     &     (                                   &
+                     &          hasAttribute(thisNode,'value') &
+                     &      .or.                               &
+                     &       XML_Path_Exists(thisNode,"value") &
+                     &      .or.                               &
+                     &          hasAttribute(thisNode,"idRef") &
+                     &     )                                   &
+                     &   )                                     &
+                     & )                                       &
+                     & inputParametersCopiesCount=inputParametersCopiesCount+1
+             end if
           end if
           currentParameter => currentParameter%sibling
       end do
@@ -1606,42 +1590,68 @@ contains
 
   subroutine inputParametersAddParameter(self,parameterName,parameterValue)
     !% Add a parameter to the set.
-    use :: FoX_dom, only : appendChild , createElementNS, getNamespaceURI, node, &
-          &                setAttribute
-    implicit none
+    use :: FoX_dom, only : appendChild , createElementNS, getNamespaceURI, node       , &
+         &                 setAttribute, ELEMENT_NODE   , getNodeName    , getNodeType, &
+         &                 hasAttribute 
+         implicit none
     class    (inputParameters), intent(inout) :: self
     character(len=*          ), intent(in   ) :: parameterName   , parameterValue
     type     (node           ), pointer       :: parameterNode   , dummy
     type     (inputParameter ), pointer       :: currentParameter
-
-    !$omp critical(FoX_DOM_Access)
-    parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
-    call setAttribute(parameterNode,"value",trim(parameterValue))
-    dummy           => appendChild  (self%rootNode,parameterNode)
-    !$omp end critical(FoX_DOM_Access)
+    logical                                   :: previouslyAdded
+    
+    ! Check if the parameter was previously added but then removed, in which case it still exists but is just flagged as removed.
+    previouslyAdded=.false.
     if (associated(self%parameters)) then
-       if (associated(self%parameters%firstChild)) then
-          currentParameter => self%parameters%firstChild
-          do while (associated(currentParameter%sibling))
-             currentParameter => currentParameter%sibling
-          end do
-          allocate(currentParameter%sibling)
+       !$omp critical(FoX_DOM_Access)
+       currentParameter => self%parameters%firstChild
+       do while (associated(currentParameter))
+          parameterNode => currentParameter%content
+          if (getNodeType(parameterNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(parameterNode)) then
+             if (.not.hasAttribute(parameterNode,'id')) then
+                previouslyAdded=.true.
+                exit
+             end if
+          end if
           currentParameter => currentParameter%sibling
+       end do
+       !$omp end critical(FoX_DOM_Access)
+    end if
+    if (previouslyAdded) then
+       !$omp critical(FoX_DOM_Access)
+       call setAttribute(parameterNode,"value",trim(parameterValue))
+       !$omp end critical(FoX_DOM_Access)
+    else
+       !$omp critical(FoX_DOM_Access)
+       parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
+       call setAttribute(parameterNode,"value",trim(parameterValue))
+       dummy           => appendChild  (self%rootNode,parameterNode)
+       !$omp end critical(FoX_DOM_Access)
+       if (associated(self%parameters)) then
+          if (associated(self%parameters%firstChild)) then
+             currentParameter => self%parameters%firstChild
+             do while (associated(currentParameter%sibling))
+                currentParameter => currentParameter%sibling
+             end do
+             allocate(currentParameter%sibling)
+             currentParameter => currentParameter%sibling
+          else
+             allocate(self%parameters%firstChild)
+             currentParameter => self%parameters%firstChild
+          end if
        else
+          allocate(self%parameters           )
           allocate(self%parameters%firstChild)
           currentParameter => self%parameters%firstChild
        end if
-    else
-       allocate(self%parameters           )
-       allocate(self%parameters%firstChild)
-       currentParameter => self%parameters%firstChild
+       currentParameter%content    => parameterNode
+       currentParameter%parent     => self%parameters
+       currentParameter%firstChild => null()
+       currentParameter%sibling    => null()
+       currentParameter%referenced => null()
+       currentParameter%created    =  .true.
     end if
-    currentParameter%content    => parameterNode
-    currentParameter%parent     => self%parameters
-    currentParameter%firstChild => null()
-    currentParameter%sibling    => null()
-    currentParameter%referenced => null()
-    currentParameter%created=.true.
+    currentParameter%removed=.false.
     return
   end subroutine inputParametersAddParameter
 

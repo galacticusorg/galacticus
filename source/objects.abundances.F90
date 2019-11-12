@@ -373,29 +373,29 @@ contains
 
   subroutine Abundances_Builder(self,abundancesDefinition)
     !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
-    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, getLength, item, &
-          &                         node                   , nodeList
+    use :: FoX_DOM         , only : extractDataContent          , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
-    class  (abundances), intent(inout)          :: self
-    type   (node      ), intent(in   ), pointer :: abundancesDefinition
-    type   (node      )               , pointer :: abundance
-    type   (nodeList  )               , pointer :: abundanceList
-    integer                                     :: i
+    class  (abundances ), intent(inout)              :: self
+    type   (node       ), intent(in   ), pointer     :: abundancesDefinition
+    type   (node       )               , pointer     :: abundance
+    type   (xmlNodeList), dimension(:) , allocatable :: abundanceList
+    integer                                          :: i
 
     ! Get the metallicity.
-    abundanceList => getElementsByTagName(abundancesDefinition,'metals')
-    if (getLength(abundanceList) >  1) call Galacticus_Error_Report('multiple metallicity values specified'//{introspection:location})
-    if (getLength(abundanceList) == 1) then
-       abundance => item(abundanceList,0)
+    call XML_Get_Elements_By_Tag_Name(abundancesDefinition,'metals',abundanceList)
+    if (size(abundanceList) >  1) call Galacticus_Error_Report('multiple metallicity values specified'//{introspection:location})
+    if (size(abundanceList) == 1) then
+       abundance => abundanceList(0)%element
        call extractDataContent(abundance,self%metallicityValue)
     end if
     if (elementsCount > 0) then
        do i=1,elementsCount
-          abundanceList => getElementsByTagName(abundancesDefinition,trim(elementsToTrack(i)))
-          if (getLength(abundanceList) >  1) call Galacticus_Error_Report('multiple '//trim(elementsToTrack(i))//' values specified'//{introspection:location})
-          if (getLength(abundanceList) == 1) then
-             abundance => item(abundanceList,0)
+          call XML_Get_Elements_By_Tag_Name(abundancesDefinition,trim(elementsToTrack(i)),abundanceList)
+          if (size(abundanceList) >  1) call Galacticus_Error_Report('multiple '//trim(elementsToTrack(i))//' values specified'//{introspection:location})
+          if (size(abundanceList) == 1) then
+             abundance => abundanceList(0)%element
              call extractDataContent(abundance,self%elementalValue(i))
           end if
        end do

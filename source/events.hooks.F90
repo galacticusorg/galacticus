@@ -277,13 +277,13 @@ contains
        else
           hook_%label=""
        end if
-       if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
-          hook_%openMPLevel=OMP_Get_Level()
-          allocate(hook_%openMPThread(0:hook_%openMPLevel))
-          do i=0,hook_%openMPLevel
-             hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
-          end do
-       end if
+       !$ if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
+       !$    hook_%openMPLevel=OMP_Get_Level()
+       !$    allocate(hook_%openMPThread(0:hook_%openMPLevel))
+       !$    do i=0,hook_%openMPLevel
+       !$       hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+       !$    end do
+       !$ end if
     end select
     ! Increment the count of hooks into this event and resolve dependencies.
     self%count_=self%count_+1

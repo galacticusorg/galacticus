@@ -21,22 +21,21 @@
 
 program Tests_IO_XML
   !% Tests the XML I/O module.
-  use :: FoX_DOM           , only : destroy                       , extractDataContent    , getElementsByTagName , node                             , &
-          &                         nodeList                      , serialize
+  use :: FoX_DOM           , only : destroy                       , extractDataContent    , node                 , serialize
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error  , only : Galacticus_Error_Report
-  use :: IO_XML            , only : XML_Array_Length              , XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-          &                         XML_Parse                     , XML_Path_Exists
+  use :: IO_XML            , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                         XML_Parse                     , XML_Path_Exists       , xmlNodeList          , XML_Get_lLements_By_Tag_Name
   use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
-  type            (node    )                           , pointer :: doc        , xmlElement
-  type            (nodeList)                           , pointer :: xmlElements
-  double precision          , allocatable, dimension(:)          :: array1     , array2
-  integer                   , allocatable, dimension(:)          :: iarray1
-  character       (len=1   ), allocatable, dimension(:)          :: carray1
-  integer                                , dimension(1)          :: iValue
-  integer                                                        :: ioErr      , status
+  type            (node       )                           , pointer :: doc        , xmlElement
+  type            (xmlNodeList), allocatable, dimension(:)          :: xmlElements
+  double precision             , allocatable, dimension(:)          :: array1     , array2
+  integer                      , allocatable, dimension(:)          :: iarray1
+  character       (len=1      ), allocatable, dimension(:)          :: carray1
+  integer                                   , dimension(1)          :: iValue
+  integer                                                           :: ioErr      , status
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -59,17 +58,17 @@ program Tests_IO_XML
   call Assert("Read 1D allocatable array from element",array1,[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0],absTol=1.0d-6)
   call XML_Array_Read_Static(xmlElement,"datum",array1       )
   call Assert("Read 1D static array from element"     ,array1,[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0],absTol=1.0d-6)
-  xmlElements => getElementsByTagName            (doc,"array")
+  call XML_Get_Elements_By_Tag_Name(doc,"array",xmlElements)
   call XML_Array_Read       (xmlElements,"value",array1       )
   call Assert("Read 1D allocatable array from list"   ,array1,[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0],absTol=1.0d-6)
   call XML_Array_Read_Static(xmlElements,"value",array1       )
   call Assert("Read 1D static array from list"        ,array1,[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0],absTol=1.0d-6)
   allocate(iarray1(10))
-  xmlElements => getElementsByTagName            (doc,"iarray")
+  call XML_Get_Elements_By_Tag_Name(doc,"iarray",xmlElements)
   call XML_Array_Read_Static(xmlElements,"value",iarray1       )
   call Assert("Read 1D static integer array from list"        ,iarray1,[0,1,2,3,4,5,6,7,8,9])
   allocate(carray1(10))
-  xmlElements => getElementsByTagName            (doc,"carray")
+  call XML_Get_Elements_By_Tag_Name(doc,"carray",xmlElements)
   call XML_Array_Read_Static(xmlElements,"value",carray1       )
   call Assert("Read 1D static integer array from list"        ,carray1,["0","1","2","3","4","5","6","7","8","9"])
   xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"array2")
@@ -81,7 +80,7 @@ program Tests_IO_XML
 
   ! Test array length functions.
   xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"array1")
-  call Assert("Determine array length",XML_Array_Length(xmlElement,"datum"),10)
+  call Assert("Determine array length",XML_Count_Elements_By_Tag_Name(xmlElement,"datum"),10)
 
   ! Test path detection.
   call Assert("Extant path correctly detected"    ,XML_Path_Exists(doc,"test/level1/level2/level3"),.true. )

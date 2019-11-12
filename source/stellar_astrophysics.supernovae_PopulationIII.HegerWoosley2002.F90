@@ -15,12 +15,13 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
-
-  use :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
-  use :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
+  
+  use            :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
+  use, intrinsic :: ISO_C_Binding       , only : c_size_t
+  use            :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
   !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
@@ -29,7 +30,7 @@
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
-     integer                                                               :: countTable
+     integer         (c_size_t                )                            :: countTable
      double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
      type            (fgsl_interp             )                            :: interpolationObject
      type            (fgsl_interp_accel       )                            :: interpolationAccelerator
@@ -64,10 +65,10 @@ contains
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
-    use :: FoX_dom                         , only : destroy                , node              , parseFile
+    use :: FoX_dom                         , only : destroy                       , node              , parseFile
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataStatic
-    use :: IO_XML                          , only : XML_Array_Length       , XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
+    use :: Galacticus_Paths                , only : galacticusPath                , pathTypeDataStatic
+    use :: IO_XML                          , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : ergs
@@ -90,7 +91,7 @@ contains
     ! Read the arrays.
     call XML_Array_Read(massElement  ,"data",self%massHeliumCore)
     call XML_Array_Read(energyElement,"data",self%energy        )
-    self%countTable=XML_Array_Length(massElement,"data")
+    self%countTable=XML_Count_Elements_By_Tag_Name(massElement,"data")
     ! Convert energies to M☉ (km/s)².
     self%energy=self%energy*(1.0d51*ergs/massSolar/kilo**2)
     ! Destroy the document.

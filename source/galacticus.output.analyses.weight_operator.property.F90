@@ -28,7 +28,7 @@
      !% An weight operator class which weights by a property value.
      private
      class(nodePropertyExtractorClass         ), pointer :: extractor_ => null()
-     class(outputAnalysisPropertyOperatorClass), pointer :: operator_ => null()
+     class(outputAnalysisPropertyOperatorClass), pointer :: operator_  => null()
    contains
      final     ::            propertyDestructor
      procedure :: operate => propertyOperate
@@ -52,8 +52,8 @@ contains
     class(outputAnalysisPropertyOperatorClass ), pointer       :: operator_
 
     ! Check and read parameters.
-    !# <objectBuilder class="nodePropertyExtractor" name="extractor_" source="parameters"/>
-    !# <objectBuilder class="outputAnalysisPropertyOperator"  name="operator_"  source="parameters"/>
+    !# <objectBuilder class="nodePropertyExtractor"          name="extractor_" source="parameters"/>
+    !# <objectBuilder class="outputAnalysisPropertyOperator" name="operator_"  source="parameters"/>
     ! Construct the object.
     self=outputAnalysisWeightOperatorProperty(extractor_,operator_)
     !# <inputParametersValidate source="parameters"/>

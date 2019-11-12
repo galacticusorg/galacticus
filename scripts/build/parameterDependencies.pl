@@ -96,7 +96,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		 @{$parametersPerFile->{$fileIdentifier}->{'parameter'}},
 		 map 
 		 {
-		     (! exists($_->{'source'}) || $_->{'source'} eq "globalParameters" || $_->{'source'} eq "globalParameters_")
+		     (! exists($_->{'source'}) || $_->{'source'} eq "globalParameters" || $_->{'source'} eq "parameters_")
 			 ?
 			 (	
 				exists($_->{'regEx'}) 
@@ -123,9 +123,9 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		 map 
 		 {
 		     (
-		      (! exists($_->{'source'       }) || $_->{'source'       } eq "globalParameters"     || $_->{'source'} eq "globalParameters_")
+		      (! exists($_->{'source'       }) || $_->{'source'       } eq "globalParameters"     || $_->{'source'} eq "parameters_")
 		      &&
-		      (  exists($_->{'parameterName'}) && $_->{'parameterName'} ne $_->{'class'}."Method"                                         )
+		      (  exists($_->{'parameterName'}) && $_->{'parameterName'} ne $_->{'class'}."Method"                                   )
 		     )
 			 ?
 			 (	

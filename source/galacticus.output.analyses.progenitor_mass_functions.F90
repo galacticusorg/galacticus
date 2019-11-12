@@ -1,0 +1,580 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Contains a module which implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
+  
+  use :: Galactic_Filters                , only : galacticFilterAll 
+  use :: Node_Property_Extractors        , only : nodePropertyExtractorMassBasic
+  use :: Output_Analysis_Weight_Operators, only : outputAnalysisWeightOperatorNbodyMass
+
+  !# <outputAnalysis name="outputAnalysisProgenitorMassFunction">
+  !#  <description>A dark matter halo progenitor mass function output analysis class.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="galacticFilterParentMass_, outputAnalysisWeightOperatorNbodyMass_, nodePropertyExtractorMassParent_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="galacticFilterParentMass_, outputAnalysisWeightOperatorNbodyMass_, nodePropertyExtractorMassParent_"/>
+  !#  </stateStorable>
+  !# </outputAnalysis>
+  type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisProgenitorMassFunction
+     !% A dark matter halo progenitor mass function output analysis class.
+     private
+     type            (galacticFilterAll                    ), pointer :: galacticFilterParentMass_
+     type            (outputAnalysisWeightOperatorNbodyMass), pointer :: outputAnalysisWeightOperatorNbodyMass_
+     type            (nodePropertyExtractorMassBasic       ), pointer :: nodePropertyExtractorMassParent_
+     double precision                                                 :: massRatioMinimum                      , massRatioMaximum , &
+          &                                                              massParentMinimum                     , massParentMaximum, &
+          &                                                              timeProgenitor                        , timeParent       , &
+          &                                                              weightParents
+     integer         (c_size_t                             )          :: countMassRatio
+     logical                                                          :: alwaysIsolatedOnly
+   contains
+     final                            progenitorMassFunctionDestructor
+     procedure :: newTree          => progenitorMassFunctionNewTree
+     procedure :: reduce           => progenitorMassFunctionReduce
+     procedure :: finalizeAnalysis => progenitorMassFunctionFinalizeAnalysis
+  end type outputAnalysisProgenitorMassFunction
+
+  interface outputAnalysisProgenitorMassFunction
+     !% Constructors for the ``progenitorMassFunction'' output analysis class.
+     module procedure progenitorMassFunctionConstructorParameters
+     module procedure progenitorMassFunctionConstructorFile
+     module procedure progenitorMassFunctionConstructorInternal
+  end interface outputAnalysisProgenitorMassFunction
+
+contains
+  
+  function progenitorMassFunctionConstructorParameters(parameters) result (self)
+    !% Constructor for the ``progenitorMassFunction'' output analysis class which takes a parameter set as input.
+    use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+    use :: Input_Parameters                 , only : inputParameter         , inputParameters
+    use :: ISO_Varying_String               , only : char
+    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+    implicit none
+    type            (outputAnalysisProgenitorMassFunction)                              :: self
+    type            (inputParameters                     ), intent(inout)               :: parameters
+    class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
+    class           (nbodyHaloMassErrorClass             ), pointer                     :: nbodyHaloMassError_
+    class           (outputTimesClass                    ), pointer                     :: outputTimes_
+    double precision                                      , dimension(:  ), allocatable :: functionValueTarget     , functionCovarianceTarget1D
+    double precision                                      , dimension(:,:), allocatable :: functionCovarianceTarget
+    double precision                                                                    :: massRatioMinimum        , massRatioMaximum          , &
+         &                                                                                 massParentMinimum       , massParentMaximum         , &
+         &                                                                                 redshiftProgenitor      , redshiftParent
+    integer         (c_size_t                            )                              :: countMassRatio
+    integer                                                                             :: instance
+    type            (varying_string                      )                              :: label                   , comment                   , &
+         &                                                                                 targetLabel             , fileName
+    logical                                                                             :: alwaysIsolatedOnly
+    
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    if (parameters%isPresent('fileName')) then
+       !# <inputParameter>
+       !#   <name>fileName</name>
+       !#   <source>parameters</source>
+       !#   <description>The name of the file from which to read progenitor mass function parameters.</description>
+       !#   <type>string</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>instance</name>
+       !#   <source>parameters</source>
+       !#   <description>The mass function instance to use from the file.</description>
+       !#   <type>integer</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+    else
+       !# <inputParameter>
+       !#   <name>label</name>
+       !#   <source>parameters</source>
+       !#   <variable>label</variable>
+       !#   <description>A label for the progenitor mass function.</description>
+       !#   <type>string</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>comment</name>
+       !#   <source>parameters</source>
+       !#   <variable>comment</variable>
+       !#   <description>A descriptive comment for the progenitor mass function.</description>
+       !#   <type>string</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>massRatioMinimum</name>
+       !#   <source>parameters</source>
+       !#   <description>Minimum mass ratio for the progenitor mass function.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>massRatioMaximum</name>
+       !#   <source>parameters</source>
+       !#   <description>Maximum mass ratio for the progenitor mass function.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>countMassRatio</name>
+       !#   <source>parameters</source>
+       !#   <description>Number of mass ratios at which to compute the progenitor mass function.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>massParentMinimum</name>
+       !#   <source>parameters</source>
+       !#   <description>Minimum mass of the parent halo for the progenitor mass function.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>massParentMaximum</name>
+       !#   <source>parameters</source>
+       !#   <description>Maximum mass of the parent halo for the progenitor mass function.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>redshiftProgenitor</name>
+       !#   <source>parameters</source>
+       !#   <description>Redshift of the progenitor halos.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>redshiftParent</name>
+       !#   <source>parameters</source>
+       !#   <description>Redshift of the parent halos.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>alwaysIsolatedOnly</name>
+       !#   <source>parameters</source>
+       !#   <description>If true, include only progenitors which have been always isolated halos.</description>
+       !#   <type>boolean</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+       if (parameters%isPresent('targetLabel')) then
+          !# <inputParameter>
+          !#   <name>targetLabel</name>
+          !#   <source>parameters</source>
+          !#   <description>Label for the target dataset.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter>
+       end if
+       if (parameters%isPresent('functionValueTarget')) then
+          if (parameters%isPresent('functionCovarianceTarget')) then
+             !# <inputParameter>
+             !#   <name>functionValueTarget</name>
+             !#   <source>parameters</source>
+             !#   <description>The target function for likelihood calculations.</description>
+             !#   <type>real</type>
+             !#   <cardinality>0..1</cardinality>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>functionCovarianceTarget</name>
+             !#   <source>parameters</source>
+             !#   <variable>functionCovarianceTarget1D</variable>
+             !#   <description>The target function covariance for likelihood calculations.</description>
+             !#   <type>real</type>
+             !#   <cardinality>0..1</cardinality>
+             !# </inputParameter>
+             if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
+                allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
+                functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+             else
+                call Galacticus_Error_Report('functionCovariance has wrong size'//{introspection:location})
+             end if
+          else
+             call Galacticus_Error_Report('functionCovariance must be specified if functionTarget is present'//{introspection:location})
+          end if
+       else
+          if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
+       end if
+       !# <conditionalCall>
+       !#  <call>
+       !#   self=outputAnalysisProgenitorMassFunction(                                                                                                     &amp;
+       !#    &amp;                                    label                                                                                              , &amp;
+       !#    &amp;                                    comment                                                                                            , &amp;
+       !#    &amp;                                    massRatioMinimum                                                                                   , &amp;
+       !#    &amp;                                    massRatioMaximum                                                                                   , &amp;
+       !#    &amp;                                    countMassRatio                                                                                     , &amp;
+       !#    &amp;                                    massParentMinimum                                                                                  , &amp;
+       !#    &amp;                                    massParentMaximum                                                                                  , &amp;
+       !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor)), &amp;
+       !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    )), &amp;
+       !#    &amp;                                    alwaysIsolatedOnly                                                                                 , &amp;
+       !#    &amp;                                    nbodyHaloMassError_                                                                                , &amp;
+       !#    &amp;                                    outputTimes_                                                                                         &amp;
+       !#    &amp;                                    {conditions}                                                                                         &amp;
+       !#    &amp;                                   )
+       !#  </call>
+       !#  <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
+       !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+       !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+       !# </conditionalCall>
+       !# <inputParametersValidate source="parameters"/>
+    end if
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
+    !# <objectDestructor name="nbodyHaloMassError_"/>
+    return
+  end function progenitorMassFunctionConstructorParameters
+  
+  function progenitorMassFunctionConstructorFile(fileName,instance,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
+    !% Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
+    use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+    use :: IO_HDF5                          , only : hdf5Object             , hdf5Access
+    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+    implicit none
+    type            (outputAnalysisProgenitorMassFunction)                        :: self
+    character       (len=*                               ), intent(in   )         :: fileName
+    integer                                               , intent(in   )         :: instance
+    class           (cosmologyFunctionsClass             ), intent(inout), target                     :: cosmologyFunctions_
+    class           (outputTimesClass                    ), intent(inout), target                   :: outputTimes_
+    class           (nbodyHaloMassErrorClass             ), intent(in   ), target                   :: nbodyHaloMassError_
+    type            (varying_string                      )                :: label                                                  , comment
+    double precision                                                                  :: massParentMinimum                                      , massParentMaximum                       , &
+         &                                                                               timeProgenitor                                         , timeParent,&
+         & redshiftProgenitor, redshiftParent
+    integer                       :: alwaysIsolatedOnlyInteger
+    logical                                                                           :: alwaysIsolatedOnly
+    type            (varying_string                      )                :: targetLabel
+    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget, massRatio
+    double precision                                      , allocatable,  dimension(:,:) :: functionCovarianceTarget
+    type            (hdf5Object                          ) :: dataFile, instanceGroup
+    character       (len=32                              ) :: instanceGroupName
+
+    write (instanceGroupName,'(a,i4.4)') 'progenitorMassFunction',instance
+    !$ call hdf5Access%set  ()
+    call dataFile%openFile(fileName,readOnly=.true.)
+    instanceGroup=dataFile%openGroup(instanceGroupName)
+    call instanceGroup%readDataset  ('massRatio'             ,massRatio                )
+    call instanceGroup%readDataset  ('massFunction'          ,functionValueTarget      )
+    call instanceGroup%readDataset  ('massFunctionCovariance',functionCovarianceTarget )
+    call instanceGroup%readAttribute('massParentMinimum'     ,massParentMinimum        )
+    call instanceGroup%readAttribute('massParentMaximum'     ,massParentMaximum        )
+    call instanceGroup%readAttribute('redshiftParent'        ,redshiftParent           )
+    call instanceGroup%readAttribute('redshiftProgenitor'    ,redshiftProgenitor       )
+    call instanceGroup%readAttribute('alwaysIsolatedOnly'    ,alwaysIsolatedOnlyInteger)
+    call instanceGroup%readAttribute('reference'             ,targetLabel              )
+    call instanceGroup%readAttribute('label'                 ,label                    )
+    call instanceGroup%readAttribute('comment'               ,comment                  )
+    call instanceGroup%close        (                                                  )
+    call dataFile     %close        (                                                  )
+    !$ call hdf5Access%unset()
+    alwaysIsolatedOnly=alwaysIsolatedOnlyInteger /= 0
+    timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
+    timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
+    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    return
+  end function progenitorMassFunctionConstructorFile
+
+  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+    !% Internal constructor for the ``progenitorMassFunction'' output analysis class.
+    use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                      , galacticFilterBasicMass                     , galacticFilterDescendentNode                , galacticFilterNot                             , &
+         &                                                  galacticFilterHaloAlwaysIsolated                , filterList
+    use :: Memory_Management                       , only : allocateArray
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendentNode             , nodePropertyExtractorRatio
+    use :: Numerical_Comparison                    , only : Values_Agree
+    use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerLog10ToLog
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorProperty
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorLog10         , outputAnalysisPropertyOperatorIdentity
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
+    implicit none
+    type            (outputAnalysisProgenitorMassFunction            )                                          :: self
+    type            (varying_string                                  ), intent(in   )                           :: label                                                  , comment
+    double precision                                                  , intent(in   )                           :: massRatioMinimum                                       , massRatioMaximum                        , &
+         &                                                                                                         massParentMinimum                                      , massParentMaximum                       , &
+         &                                                                                                         timeProgenitor                                         , timeParent
+    integer         (c_size_t                                        ), intent(in   )                           :: countMassRatio
+    logical                                                           , intent(in   )                           :: alwaysIsolatedOnly
+    class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
+    class           (nbodyHaloMassErrorClass                         ), intent(in   ), target                   :: nbodyHaloMassError_
+    type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
+    double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
+    double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
+    double precision                                                  , parameter                               :: timeTolerance                                  =1.0d-04
+    double precision                                                  , parameter                               :: massRatioBuffer                                =1.0d-01
+    integer                                                           , parameter                               :: covarianceBinomialBinsPerDecade                =2
+    double precision                                                  , parameter                               :: covarianceBinomialMassHaloMinimum              =3.0d+11, covarianceBinomialMassHaloMaximum=1.0d15
+    double precision                                                  , allocatable            , dimension(:  ) :: massRatios
+    double precision                                                  , allocatable            , dimension(:,:) :: outputWeight
+    type            (galacticFilterAll                               ), pointer                                 :: galacticFilter_
+    type            (galacticFilterHaloIsolated                      ), pointer                                 :: galacticFilterHaloIsolated_
+    type            (galacticFilterDescendentNode                    ), pointer                                 :: galacticFilterParentNode_
+    type            (galacticFilterNot                               ), pointer                                 :: galacticFilterNot_
+    type            (galacticFilterBasicMass                         ), pointer                                 :: galacticFilterProgenitorMass_                          , galacticFilterParentMassMinimum_        , &
+         &                                                                                                         galacticFilterParentMassMaximum_
+    type            (galacticFilterHaloAlwaysIsolated                ), pointer                                 :: galacticFilterHaloAlwaysIsolated_
+    type            (filterList                                      ), pointer                                 :: filters_                                               , filtersParent_
+    type            (nodePropertyExtractorMassBasic                  ), pointer                                 :: nodePropertyExtractorMassProgenitor_
+    type            (nodePropertyExtractorRatio                      ), pointer                                 :: nodePropertyExtractorMassRatio_
+    type            (nodePropertyExtractorDescendentNode             ), pointer                                 :: nodePropertyExtractorParentNode_
+    type            (outputAnalysisDistributionNormalizerSequence    ), pointer                                 :: outputAnalysisDistributionNormalizer_
+    type            (outputAnalysisDistributionNormalizerBinWidth    ), pointer                                 :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerLog10ToLog  ), pointer                                 :: outputAnalysisDistributionNormalizerLog10ToLog_
+    type            (normalizerList                                  ), pointer                                 :: normalizer_
+    type            (outputAnalysisWeightOperatorProperty            ), pointer                                 :: outputAnalysisWeightOperator_
+    type            (outputAnalysisDistributionOperatorMassRatioNBody), pointer                                 :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisPropertyOperatorLog10             ), pointer                                 :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                                 :: outputAnalysisPropertyUnoperator_
+    type            (outputAnalysisPropertyOperatorIdentity          ), pointer                                 :: outputAnalysisPropertyIdentity_
+    integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
+    !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly"/>
+
+    ! Build grid of mass ratios.
+    call allocateArray(massRatios,[countMassRatio])
+    massRatios=Make_Range(massRatioMinimum,massRatioMaximum,int(countMassRatio),rangeType=rangeTypeLogarithmic)
+    ! Compute weights that apply to each output redshift.
+    call allocateArray(outputWeight,[countMassRatio,outputTimes_%count()])
+    outputWeight=0.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%time(iOutput),timeProgenitor,absTol=timeTolerance)) outputWeight(:,iOutput)=1.0d0
+    end do
+    ! Initialize accumulated weight of parent nodes.
+    self%weightParents=0.0d0
+    ! Build a filter which selects isolated halos, above a suitable lower mass, and with parents in the correct mass range.
+    allocate(     galacticFilter_                           )
+    allocate(     galacticFilterHaloIsolated_               )
+    allocate(     galacticFilterProgenitorMass_             )
+    allocate(     galacticFilterParentMassMinimum_          )
+    allocate(     galacticFilterParentMassMaximum_          )
+    allocate(self%galacticFilterParentMass_                 )
+    allocate(     galacticFilterNot_                        )
+    allocate(     galacticFilterParentNode_                 )
+    allocate(     filters_                                  )
+    allocate(     filters_                        %next     )
+    allocate(     filters_                        %next%next)
+    allocate(     filtersParent_                            )
+    allocate(     filtersParent_                  %next     )
+    filters_                %filter_ => galacticFilterHaloIsolated_
+    filters_      %next     %filter_ => galacticFilterProgenitorMass_
+    filters_      %next%next%filter_ => galacticFilterParentNode_
+    filtersParent_          %filter_ => galacticFilterParentMassMinimum_
+    filtersParent_%next     %filter_ => galacticFilterNot_
+    if (self%alwaysIsolatedOnly) then
+       allocate(galacticFilterHaloAlwaysIsolated_               )
+       allocate(filters_                         %next%next%next)
+       allocate(filtersParent_                   %next%next     )
+       filters_      %next%next%next%filter_ => galacticFilterHaloAlwaysIsolated_
+       filtersParent_%next%next     %filter_ => galacticFilterHaloAlwaysIsolated_
+       !# <referenceConstruct object="galacticFilterHaloAlwaysIsolated_" constructor="galacticFilterHaloAlwaysIsolated()"/>
+    else
+       nullify(galacticFilterHaloAlwaysIsolated_)
+    end if
+    !# <referenceConstruct                             object="galacticFilterHaloIsolated_"      constructor="galacticFilterHaloIsolated  (                                                                 )"/>
+    !# <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterBasicMass     (massParentMinimum*massRatioMinimum*massRatioBuffer               )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterBasicMass     (massParentMinimum                                                )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterBasicMass     (massParentMaximum                                                )"/>
+    !# <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                 )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                   )"/>
+    !# <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                        ,self%galacticFilterParentMass_)"/>
+    !# <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                         )"/>
+    ! Build a node property extractor which gives the ratio of the progenitor and parent halo masses.
+    allocate(     nodePropertyExtractorMassProgenitor_)
+    allocate(self%nodePropertyExtractorMassParent_    )
+    allocate(     nodePropertyExtractorMassRatio_     )
+    allocate(     nodePropertyExtractorParentNode_    )
+    !# <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassBasic     (                                                                                                                               )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassBasic     (                                                                                                                               )"/>
+    !# <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendentNode(                                                     timeParent                          ,self%nodePropertyExtractorMassParent_)"/>
+    !# <referenceConstruct                             object="nodePropertyExtractorMassRatio_"      constructor="nodePropertyExtractorRatio         ('massRatio','Ratio of progenitor and parent masses.',nodePropertyExtractorMassProgenitor_,     nodePropertyExtractorParentNode_)"/>
+    ! Create a distribution normalizer which normalizes to bin width.
+    allocate(outputAnalysisDistributionNormalizerBinWidth_       )
+    allocate(outputAnalysisDistributionNormalizerLog10ToLog_     )
+    allocate(outputAnalysisDistributionNormalizer_               )
+    allocate(normalizer_                                         )
+    allocate(normalizer_                                    %next)
+    normalizer_     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
+    normalizer_%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  (           )"/>
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog(           )"/>
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_"           constructor="outputAnalysisDistributionNormalizerSequence  (normalizer_)"/>
+    ! Build log10() property operator.
+    allocate(     outputAnalysisPropertyOperator_    )
+    !# <referenceConstruct                             object="outputAnalysisPropertyOperator_"        constructor="outputAnalysisPropertyOperatorLog10             (                                                                                                                                        )"/>
+    ! Build anti-log10() property operator.
+    allocate(     outputAnalysisPropertyUnoperator_  )
+    !# <referenceConstruct                             object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                                                                                                        )"/>
+    ! Build an identity property operator.
+    allocate(     outputAnalysisPropertyIdentity_    )
+    !# <referenceConstruct                             object="outputAnalysisPropertyIdentity_"        constructor="outputAnalysisPropertyOperatorIdentity          (                                                                                                                                        )"/>
+    ! Build a weight operator which weights by the mass ratio.
+    allocate(     outputAnalysisWeightOperator_      )
+    !# <referenceConstruct                             object="outputAnalysisWeightOperator_"          constructor="outputAnalysisWeightOperatorProperty            (                                         nodePropertyExtractorMassRatio_ ,outputAnalysisPropertyIdentity_                               )"/>
+    ! Build a weight operator for the parent node mass uncertainty.
+    allocate(self%outputAnalysisWeightOperatorNbodyMass_      )
+    !# <referenceConstruct isResult="yes" owner="self" object="outputAnalysisWeightOperatorNbodyMass_" constructor="outputAnalysisWeightOperatorNbodyMass           (massParentMinimum,massParentMaximum,self%nodePropertyExtractorMassParent_,outputAnalysisPropertyIdentity_,     nbodyHaloMassError_      )"/>
+    ! Build an identity distribution operator.
+    allocate(     outputAnalysisDistributionOperator_)
+    !# <referenceConstruct                             object="outputAnalysisDistributionOperator_"    constructor="outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,     timeParent                      ,nbodyHaloMassError_            ,self%galacticFilterParentMass_)"/>
+    ! Determine number of buffer bins.
+    bufferCount=0_c_size_t
+    ! Construct the object.
+    self%outputAnalysisVolumeFunction1D=                                                              &
+         & outputAnalysisVolumeFunction1D(                                                            &
+         &                                var_str('progenitorMassFunction')//label                  , &
+         &                                comment                                                   , &
+         &                                var_str('massRatio'                                      ), &
+         &                                var_str('Mass ratio at the bin center'                   ), &
+         &                                var_str('dimensionless'                                  ), &
+         &                                0.0d0                                                     , &
+         &                                var_str('progenitorMassFunction'                         ), &
+         &                                var_str('Progenitor mass function averaged over each bin'), &
+         &                                var_str('dimensionless'                                  ), &
+         &                                0.0d0                                                     , &
+         &                                log10(massRatios)                                         , &
+         &                                bufferCount                                               , &
+         &                                outputWeight                                              , &
+         &                                nodePropertyExtractorMassRatio_                           , &
+         &                                outputAnalysisPropertyOperator_                           , &
+         &                                outputAnalysisPropertyUnoperator_                         , &
+         &                                outputAnalysisWeightOperator_                             , &
+         &                                outputAnalysisDistributionOperator_                       , &
+         &                                outputAnalysisDistributionNormalizer_                     , &
+         &                                galacticFilter_                                           , &
+         &                                outputTimes_                                              , &
+         &                                outputAnalysisCovarianceModelPoisson                      , &
+         &                                covarianceBinomialBinsPerDecade                           , &
+         &                                covarianceBinomialMassHaloMinimum                         , &
+         &                                covarianceBinomialMassHaloMaximum                         , &
+         &                                .false.                                                   , &
+         &                                var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'    ), &
+         &                                var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'       ), &
+         &                                .true.                                                    , &
+         &                                .true.                                                    , &
+         &                                targetLabel                                               , &
+         &                                functionValueTarget                                       , &
+         &                                functionCovarianceTarget                                    &
+         &                               )
+    !# <objectDestructor name="galacticFilterHaloIsolated_"                    />
+    !# <objectDestructor name="galacticFilterProgenitorMass_"                  />
+    !# <objectDestructor name="galacticFilterParentMassMinimum_"               />
+    !# <objectDestructor name="galacticFilterParentMassMaximum_"               />
+    !# <objectDestructor name="galacticFilterParentNode_"                      />
+    !# <objectDestructor name="galacticFilterNot_"                             />
+    !# <objectDestructor name="galacticFilter_"                                />
+    !# <objectDestructor name="nodePropertyExtractorMassProgenitor_"           />
+    !# <objectDestructor name="nodePropertyExtractorParentNode_"               />
+    !# <objectDestructor name="nodePropertyExtractorMassRatio_"                />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"  />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_"/>
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"          />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                  />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"            />
+    if (self%alwaysIsolatedOnly) then
+       !# <objectDestructor name="galacticFilterHaloAlwaysIsolated_"/>
+    end if
+    nullify(filters_      )
+    nullify(filtersParent_)
+    nullify(normalizer_   )
+    return
+  end function progenitorMassFunctionConstructorInternal
+
+  subroutine progenitorMassFunctionDestructor(self)
+    !% Destructor for the ``progenitorMassFunction'' output analysis class.
+    implicit none
+    type(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+
+    !# <objectDestructor name="self%galacticFilterParentMass_"             />
+    !# <objectDestructor name="self%outputAnalysisWeightOperatorNbodyMass_"/>
+    !# <objectDestructor name="self%nodePropertyExtractorMassParent_"      />
+    return
+  end subroutine progenitorMassFunctionDestructor
+  
+  subroutine progenitorMassFunctionNewTree(self,tree,iOutput)
+    !% Record the weight of parent nodes.
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Comparison, only : Values_Agree
+    implicit none
+    class           (outputAnalysisProgenitorMassFunction), intent(inout) :: self
+    type            (mergerTree                          ), intent(inout) :: tree
+    integer         (c_size_t                            ), intent(in   ) :: iOutput
+    double precision                                      , parameter     :: timeTolerance=1.0d-4
+    type            (treeNode                            ), pointer       :: node
+    class           (nodeComponentBasic                  ), pointer       :: basic
+    type            (mergerTreeWalkerIsolatedNodes       )                :: treeWalker
+    double precision                                                      :: weight                , mass
+    integer                                                               :: propertyType          , propertyQuantity
+
+    ! Walk the tree, applying a filter to find parent nodes, and accumulate their weights.
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       basic => node%basic()
+       if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
+          weight            =+node%hostTree%volumeWeight
+          mass              =+self%nodePropertyExtractorMassParent_      %extract      (       node                                                )
+          propertyType      =+self%nodePropertyExtractorMassParent_      %type         (                                                           )
+          propertyQuantity  =+self%nodePropertyExtractorMassParent_      %quantity     (                                                           )
+          weight            =+self%outputAnalysisWeightOperatorNbodyMass_%operate      (weight,node,mass,mass,propertyType,propertyQuantity,iOutput)
+          self%weightParents=+self                                       %weightParents                                                              &
+               &             +                                            weight
+       end if
+    end do
+    return
+  end subroutine progenitorMassFunctionNewTree
+
+  subroutine progenitorMassFunctionReduce(self,reduced)
+    !% Implement reduction over progenitor mass functions.
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    !$ use :: OMP_Lib         , only : OMP_Set_Lock           , OMP_Unset_Lock
+    implicit none
+    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+    class(outputAnalysisClass                 ), intent(inout) :: reduced
+
+    select type (reduced)
+    class is (outputAnalysisProgenitorMassFunction)
+       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       reduced%weightParents=+reduced%weightParents &
+            &                +self   %weightParents
+       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    call self%outputAnalysisVolumeFunction1D%reduce(reduced)
+    return
+  end subroutine progenitorMassFunctionReduce
+
+  subroutine progenitorMassFunctionFinalizeAnalysis(self)
+    !% Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
+    implicit none
+    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+
+    call self%outputAnalysisVolumeFunction1D%finalizeAnalysis()
+    if (self%weightParents > 0.0d0) then
+       self%functionValue     =+self%functionValue         &
+            &                  /self%weightParents
+       self%functionCovariance=+self%functionCovariance    &
+            &                  /self%weightParents     **2
+    end if
+    return
+  end subroutine progenitorMassFunctionFinalizeAnalysis

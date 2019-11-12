@@ -49,7 +49,7 @@ sub Hierarchy_Initialization {
 		 intrinsic  => "type",
 		 type       => "inputParameters",
 		 attributes => [ "intent(inout)" ],
-		 variables  => [ "globalParameters_" ]
+		 variables  => [ "parameters_" ]
 	     },
 	     {
 		 intrinsic  => "type",
@@ -80,7 +80,7 @@ CODE
     !# <inputParameter>
     !#   <name>treeNodeMethod{ucfirst($class->{'name'})}</name>
     !#   <variable>methodSelection</variable>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <defaultValue>var_str('{$defaultImplementation}')</defaultValue>
     !#   <description>Specifies the implementation to be used for the {$class->{'name'}} component of nodes.</description>
     !#   <type>string</type>
@@ -122,7 +122,7 @@ CODE
      !# <inputParameter>
      !#  <name>{$parameterName}</name>
      !#  <variable>{$parameterName}</variable>
-     !#  <source>globalParameters_</source>
+     !#  <source>parameters_</source>
      !#  <defaultValue>.false.</defaultValue>
      !#  <attachedTo>module</attachedTo>
      !#  <description>Specifies whether the \{\\normalfont \\ttfamily {$property->{'name'}}\} method of the \{\\normalfont \\ttfamily {$component->{'name'}}\} implemention of the \{\\normalfont \\ttfamily {$componentClass}\} component class should be output.</description>

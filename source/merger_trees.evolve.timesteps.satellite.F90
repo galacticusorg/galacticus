@@ -17,15 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use :: Nodes_Operators, only : nodeOperatorClass
+
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
      !% Implementation of an output times class which reads a satellite of output times from a parameter.
      private
-     double precision :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
-     logical          :: limitTimesteps
+     class           (nodeOperatorClass), pointer :: nodeOperator_
+     double precision                             :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+     logical                                      :: limitTimesteps
    contains
+     final     ::                 satelliteDestructor
      procedure :: timeEvolveTo => satelliteTimeEvolveTo
   end type mergerTreeEvolveTimestepSatellite
 
@@ -43,6 +47,7 @@ contains
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
+    class           (nodeOperatorClass                ), pointer       :: nodeOperator_
     double precision                                                   :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
 
     !# <inputParameter>
@@ -63,22 +68,34 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative)
+    !# <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
+    self=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="nodeOperator_"/>
     return
   end function satelliteConstructorParameters
 
-  function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
+  function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
-    type            (mergerTreeEvolveTimestepSatellite)                :: self
-    double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
-    !# <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative"/>
+    type            (mergerTreeEvolveTimestepSatellite)                        :: self
+    class           (nodeOperatorClass                ), intent(in   ), target :: nodeOperator_
+    double precision                                   , intent(in   )         :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+    !# <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative, *nodeOperator_"/>
 
     self%limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
     return
   end function satelliteConstructorInternal
+
+  subroutine satelliteDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily satellite} erger tree evolution timestep class.
+    implicit none
+    type(mergerTreeEvolveTimestepSatellite), intent(inout) :: self
+
+    !# <objectDestructor name="self%nodeOperator_"/>
+    return
+  end subroutine satelliteDestructor
 
   double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
@@ -152,6 +169,7 @@ contains
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
@@ -165,7 +183,7 @@ contains
     integer                , intent(inout)          :: deadlockStatus
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
-    !GCC$ attributes unused :: self, tree
+    !GCC$ attributes unused :: tree
 
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -181,6 +199,14 @@ contains
     !#  <functionArgs>node</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'
     !# </include>
+
+    select type (self)
+    class is (mergerTreeEvolveTimestepSatellite)
+       call self%nodeOperator_%galaxiesMerge(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    
     !# <eventHook name="satelliteMerger">
     !#  <callWith>node</callWith>
     !# </eventHook>

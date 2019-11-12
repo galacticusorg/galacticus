@@ -214,7 +214,7 @@ contains
     allocate(state(stateCount)%darkMatterProfileScaleRadius_)
     select type (virialDensityContrast_)
     class is (virialDensityContrastClass)
-       !# <referenceConstruct object="state(stateCount)%darkMatterProfileScaleRadius_">
+       !# <referenceConstruct owner="state(stateCount)" object="darkMatterProfileScaleRadius_">
        !#  <constructor>
        !#   darkMatterProfileScaleRadiusConcentration(                                                                                     &amp;
        !#    &amp;                                    correctForConcentrationDefinition=.true.                                           , &amp;

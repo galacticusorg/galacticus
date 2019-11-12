@@ -19,8 +19,11 @@
 
 //% Implements an interface for getting the current virtual size of the running process.
 #ifdef PROCPS
-#include <stdio.h>
-#include <proc/readproc.h>
+#include <unistd.h>
+#include <ios>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 // Declare our function to be interoperable with Fortran.
 extern "C" 
@@ -29,8 +32,32 @@ extern "C"
 }
 
 long Memory_Usage_Get_C() {
-  struct proc_t usage;
-  look_up_our_self(&usage);
-  return usage.rss;
+  using std::ios_base;
+  using std::ifstream;
+  using std::string;
+
+  // Open a stream to our own stat file in the procfs file system.
+  ifstream stat_stream("/proc/self/stat",ios_base::in);
+
+  // Variables to read all of the entries in "stat" - most of these we will ignore.
+  string pid, comm, state, ppid, pgrp, session, tty_nr;
+  string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+  string utime, stime, cutime, cstime, priority, nice;
+  string O, itrealvalue, starttime;
+
+  // Variables to hold the memory stat data.
+  unsigned long vsize;
+  long rss;
+
+  stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+	      >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+	      >> utime >> stime >> cutime >> cstime >> priority >> nice
+	      >> O >> itrealvalue >> starttime >> vsize >> rss; // No need to read beyond this as we've now got what we want.
+
+  stat_stream.close();
+
+  long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // Get page size so we can convert result to kb.
+  rss *= page_size_kb;
+  return rss;
 }
 #endif

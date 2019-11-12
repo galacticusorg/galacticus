@@ -822,35 +822,44 @@ contains
     !GCC$ attributes unused :: self
 
     status=errorStatusFail
-    if (.not.tableStore           ) return
-    if (.not.File_Exists(fileName)) return
-    call File_Lock_Initialize(               fileLock                    )
-    call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
-    !$ call hdf5Access%set()
-    call file%openFile(char(fileName))
-    call file%readDataset('time',timeTable)
-    if     (                                    &
-         &   timeTable(1              ) <= time &
-         &  .and.                               &
-         &   timeTable(size(timeTable)) >= time &
-         & ) then
-       call file%readDataset('value',valueTable)
-       ! Deallocate table if currently allocated.
-       if (allocated(restoredTable)) then
-          call restoredTable%destroy()
-          deallocate(restoredTable)
+    if (.not.tableStore) return
+#ifndef OFDAVAIL
+    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+    ! will not block access to the same file by another thread.
+    !$omp critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
+#endif
+    if (File_Exists(fileName)) then
+       call File_Lock_Initialize(               fileLock                    )
+       call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile(char(fileName))
+       call file%readDataset('time',timeTable)
+       if     (                                    &
+            &   timeTable(1              ) <= time &
+            &  .and.                               &
+            &   timeTable(size(timeTable)) >= time &
+            & ) then
+          call file%readDataset('value',valueTable)
+          ! Deallocate table if currently allocated.
+          if (allocated(restoredTable)) then
+             call restoredTable%destroy()
+             deallocate(restoredTable)
+          end if
+          allocate(table1DLogarithmicLinear :: restoredTable)
+          select type (restoredTable)
+          type is (table1DLogarithmicLinear)
+             call restoredTable%create  (timeTable (1),timeTable(size(timeTable)),size(timeTable))
+             call restoredTable%populate(valueTable                                              )
+          end select
+          status=errorStatusSuccess
        end if
-       allocate(table1DLogarithmicLinear :: restoredTable)
-       select type (restoredTable)
-       type is (table1DLogarithmicLinear)
-          call restoredTable%create  (timeTable (1),timeTable(size(timeTable)),size(timeTable))
-          call restoredTable%populate(valueTable                                              )
-       end select
-       status=errorStatusSuccess
+       call file%close()
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
     end if
-    call file%close()
-    !$ call hdf5Access%unset()
-    call File_Unlock(fileLock)
+#ifndef OFDAVAIL
+    !$omp end critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
+#endif
     return
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
@@ -871,6 +880,11 @@ contains
     !GCC$ attributes unused :: self
 
     if (.not.tableStore) return
+#ifndef OFDAVAIL
+    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+    ! will not block access to the same file by another thread.
+    !$omp critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
+#endif
     call Directory_Make      (char(File_Path(char(fileName))))
     call File_Lock_Initialize(               fileLock                     )
     call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
@@ -881,5 +895,8 @@ contains
     call file%close       (                                                                                      )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
+#ifndef OFDAVAIL
+    !$omp end critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
+#endif
     return
   end subroutine cllsnlssMttCsmlgclCnstntStoreTable

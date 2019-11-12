@@ -528,21 +528,21 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
-    use :: FoX_DOM         , only : extractDataContent     , getElementsByTagName, item, node, &
-          &                         nodeList
+    use :: FoX_DOM         , only : extractDataContent          , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
-    class  (stellarLuminosities), intent(inout)          :: self
-    type   (node               ), intent(in   ), pointer :: stellarLuminositiesDefinition
-    type   (node               )               , pointer :: luminosity
-    type   (nodeList           )               , pointer :: luminosityList
-    integer                                              :: i
+    class  (stellarLuminosities), intent(inout)              :: self
+    type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
+    type   (node               )               , pointer     :: luminosity
+    type   (xmlNodeList        ), dimension(:) , allocatable :: luminosityList
+    integer                                                  :: i
 
     ! Get the luminosities.
-    luminosityList => getElementsByTagName(stellarLuminositiesDefinition,'luminosity')
+    call XML_Get_Elements_By_Tag_Name(stellarLuminositiesDefinition,'luminosity',luminosityList)
     if (luminosityCount > 0) then
        do i=0,luminosityCount-1
-          luminosity => item(luminosityList,i)
+          luminosity => luminosityList(i)%element
           call extractDataContent(luminosity,self%luminosityValue(i+1))
        end do
     end if

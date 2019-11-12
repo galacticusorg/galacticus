@@ -638,6 +638,11 @@ contains
 
     ! Open the data file.
     call Galacticus_Display_Message('writing D(k,t) data to: '//self%fileName,verbosityWorking)
+#ifndef OFDAVAIL
+    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+    ! will not block access to the same file by another thread.
+    !$omp critical (linearGrowthBaryonsDarkMatterLock)
+#endif
     !$ call hdf5Access%set()
     call dataFile%openFile      (char   (self%fileName                                                                                                                  ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=baryonsDarkMatterDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )
@@ -648,5 +653,10 @@ contains
     call dataFile%writeAttribute(        self%tableTimeMaximum                                                                                                           ,          'timeMaximum'                                  )
     call dataFile%close         (                                                                                                                                                                                                  )
     !$ call hdf5Access%unset()
+#ifndef OFDAVAIL
+    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+    ! will not block access to the same file by another thread.
+    !$omp end critical (linearGrowthBaryonsDarkMatterLock)
+#endif
     return
   end subroutine baryonsDarkMatterFileWrite

@@ -105,7 +105,7 @@ sub Process_ObjectBuilder {
 			$nodeParent = $nodeParent->{'parent'};
 		    }
 		}
-		$debugMessage = "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$node->{'directive'}->{'class'}." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$debugMessage = "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$node->{'directive'}->{'class'}." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 	    } else {
 		$debugMessage = "";
 	    }
@@ -310,6 +310,11 @@ sub Process_ObjectBuilder {
 			intrinsic => 0,
 			all       => 1
 		    };
+		    $usesNode->{'moduleUse'}->{'Function_Classes'  } =
+		    {
+			intrinsic => 0,
+			all       => 1
+		    };
 		}
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
@@ -372,7 +377,7 @@ sub Process_ObjectBuilder {
 			$nodeParent = $nodeParent->{'parent'};
 		    }
 		}
-		$debugMessage = "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[disown] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'name'} =~ m/([a-zA-Z0-9]+)_$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$debugMessage = "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[disown] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'name'} =~ m/([a-zA-Z0-9]+)_$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 	    } else {
 		$debugMessage = "";
 	    }
@@ -441,6 +446,7 @@ sub Process_ObjectBuilder {
 		$usesNode->{'moduleUse'}->{'Galacticus_Display'} = {intrinsic => 0, all => 1};
 		$usesNode->{'moduleUse'}->{'String_Handling'   } = {intrinsic => 0, all => 1};
 		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} = {intrinsic => 0, all => 1};
+		$usesNode->{'moduleUse'}->{'Function_Classes'  } = {intrinsic => 0, all => 1};
 	    }
 	    # Insert the modules node.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
@@ -483,7 +489,7 @@ sub Process_ObjectBuilder {
 			$nodeParent = $nodeParent->{'parent'};
 		    }
 		}
-		$incrementCode .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$incrementCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 		my $usesNode =
 		{
 		    type      => "moduleUse",
@@ -505,6 +511,11 @@ sub Process_ObjectBuilder {
 			    all       => 1
 			},
 			ISO_Varying_String =>
+		        {
+			    intrinsic => 0,
+			    all       => 1
+			},
+			Function_Classes =>
 		        {
 			    intrinsic => 0,
 			    all       => 1
@@ -560,7 +571,7 @@ sub Process_ObjectBuilder {
 		}		
 		$acquireCode = "call debugStackPush(".$ownerLoc.")\n".$acquireCode."call debugStackPop()\n"
 		    unless ( $ownerLoc eq "debugStackGet()" );
-		$acquireCode .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'target'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$acquireCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'target'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 	    }
 	    $acquireCode .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}."%referenceCountIncrement()\n";
 	    # Build a code node.
@@ -629,7 +640,7 @@ sub Process_ObjectBuilder {
 			}
 		    }
 		}
-		$constructCode .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$constructCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 		my $usesNode =
 		{
 		    type      => "moduleUse",
@@ -709,7 +720,7 @@ sub Process_ObjectBuilder {
 			$nodeParent = $nodeParent->{'parent'};
 		    }
 		}
-		$deepCopyCode .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$objectClass." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'destination'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+		$deepCopyCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$objectClass." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'destination'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
 		my $usesNode =
 		{
 		    type      => "moduleUse",

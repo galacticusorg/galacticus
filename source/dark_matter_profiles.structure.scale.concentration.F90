@@ -141,7 +141,7 @@ contains
     !# <referenceAcquire   isResult="yes" owner="self" target="darkMatterProfileDMODefinition"  source="self%darkMatterProfileConcentration_%darkMatterProfileDMODefinition()"/>
     !# <referenceConstruct isResult="yes" owner="self" object="darkMatterHaloScaleDefinition"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition)"/>
     self%massRatioPrevious=2.0d0
-  return
+    return
   end function concentrationConstructorInternal
 
   subroutine concentrationDestructor(self)

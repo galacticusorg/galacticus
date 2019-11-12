@@ -17,42 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a physical process class that shifts node indices at node promotion.
+!% Implements a node operator class that shifts node indices at node promotion.
 
-  !# <physicalProcess name="physicalProcessIndexShift">
-  !#  <description>A  physical process class that shifts node indices at node promotion.</description>
-  !# </physicalProcess>
-  type, extends(physicalProcessClass) :: physicalProcessIndexShift
-     !% A  physical process class that shifts node indices at node promotion.
+  !# <nodeOperator name="nodeOperatorIndexShift">
+  !#  <description>A node operator class that shifts node indices at node promotion.</description>
+  !# </nodeOperator>
+  type, extends(nodeOperatorClass) :: nodeOperatorIndexShift
+     !% A node operator class that shifts node indices at node promotion.
      private
    contains
      procedure :: nodePromote => indexShiftNodePromote
-  end type physicalProcessIndexShift
+  end type nodeOperatorIndexShift
 
-  interface physicalProcessIndexShift
-     !% Constructors for the {\normalfont \ttfamily indexShift} physical process class.
+  interface nodeOperatorIndexShift
+     !% Constructors for the {\normalfont \ttfamily indexShift} node operator class.
      module procedure indexShiftConstructorParameters
-  end interface physicalProcessIndexShift
+  end interface nodeOperatorIndexShift
 
 contains
 
   function indexShiftConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily indexShift} physical process class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily indexShift} node operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(physicalProcessIndexShift)                :: self
-    type(inputParameters          ), intent(inout) :: parameters
+    type(nodeOperatorIndexShift)                :: self
+    type(inputParameters       ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
     
-    self=physicalProcessIndexShift()
+    self=nodeOperatorIndexShift()
     return
   end function indexShiftConstructorParameters
 
   subroutine indexShiftNodePromote(self,node)
     !% Act on node promotion.
     implicit none
-    class(physicalProcessIndexShift), intent(inout) :: self
-    type (treeNode                 ), intent(inout) :: node
+    class(nodeOperatorIndexShift), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
     !GCC$ attributes unused :: self
 
     ! Shift the index from our node to the parent node.

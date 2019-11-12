@@ -21,13 +21,14 @@
 
 module IO_XML
   !% Implements various utility functions for extracting data from XML files.
-  use :: FoX_dom           , only : node          , nodeList
+  use :: FoX_dom           , only : node
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: XML_Extrapolation_Element_Decode , XML_Array_Read  , XML_Array_Read_Static, &
-       &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists      , &
-       &    XML_Extract_Text                 , XML_Parse
+  public :: XML_Extrapolation_Element_Decode , XML_Array_Read                , XML_Array_Read_Static       , &
+       &    XML_Get_First_Element_By_Tag_Name, XML_Count_Elements_By_Tag_Name, XML_Path_Exists             , &
+       &    XML_Extract_Text                 , XML_Parse                     , XML_Get_Elements_By_Tag_Name, &
+       &    xmlNodeList                      , XML_Get_Child_Elements
 
   ! Interface for array reading functions.
   interface XML_Array_Read
@@ -50,9 +51,14 @@ module IO_XML
 
   type :: xincludeNodeList
      !% Type used while resolving XInclude references during XML parsing.
-     type(nodeList), pointer :: nodes
+     type(xmlNodeList), allocatable, dimension(:) :: nodes
   end type xincludeNodeList
 
+  type :: xmlNodeList
+     !% Type used to provide lists of XML nodes.
+     type(node), pointer :: element
+  end type xmlNodeList
+  
 contains
 
   function XML_Extract_Text(xmlElement)
@@ -67,36 +73,22 @@ contains
     return
   end function XML_Extract_Text
 
-  integer function XML_Array_Length(xmlElement,arrayElementName)
-    !% Return the length of an array of XML elements.
-    use :: FoX_dom, only : getElementsByTagName, getLength, node, nodeList
-    implicit none
-    type     (node    ), intent(in   ), pointer :: xmlElement
-    character(len=*   ), intent(in   )          :: arrayElementName
-    type     (nodeList)               , pointer :: arrayElements
-
-    arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    XML_Array_Length=getLength(arrayElements)
-    return
-  end function XML_Array_Length
-
   subroutine XML_Array_Read_Static_One_Column(xmlElement,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
-    use :: FoX_dom, only : extractDataContent, getElementsByTagName, getLength, item, &
-          &                node              , nodeList
+    use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
     implicit none
-    type            (node    )              , intent(in   ), pointer :: xmlElement
-    character       (len=*   )              , intent(in   )          :: arrayElementName
-    double precision          , dimension(:), intent(inout)          :: column1
-    type            (node    )                             , pointer :: arrayElement
-    type            (nodeList)                             , pointer :: arrayElements
-    double precision          , dimension(1)                         :: dataValues
-    integer                                                          :: i
+    type            (node       )              , intent(in   ), pointer :: xmlElement
+    character       (len=*      )              , intent(in   )          :: arrayElementName
+    double precision             , dimension(:), intent(inout)          :: column1
+    type            (node       )                             , pointer :: arrayElement
+    type            (xmlNodeList), dimension(:), allocatable            :: arrayElements
+    double precision             , dimension(1)                         :: dataValues
+    integer                                                             :: i
 
-    arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    do i=1,getLength(arrayElements)
-       arrayElement => item(arrayElements,i-1)
-       call extractDataContent(arrayELement,dataValues)
+    call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
+    do i=1,size(arrayElements)
+       arrayElement => arrayElements(i-1)%element
+       call extractDataContent(arrayElement,dataValues)
        column1(i)=dataValues(1)
     end do
     return
@@ -104,22 +96,21 @@ contains
 
   subroutine XML_Array_Read_One_Column(xmlElement,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
-    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, getLength, item, &
-          &                          node              , nodeList
+    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
     use :: Memory_Management, only : allocateArray
     implicit none
-    type            (node    )                           , intent(in   ), pointer :: xmlElement
-    character       (len=*   )                           , intent(in   )          :: arrayElementName
-    double precision          , allocatable, dimension(:), intent(inout)          :: column1
-    type            (node    )                                          , pointer :: arrayElement
-    type            (nodeList)                                          , pointer :: arrayElements
-    double precision                       , dimension(1)                         :: dataValues
-    integer                                                                       :: i
+    type            (node       )                           , intent(in   ), pointer :: xmlElement
+    character       (len=*      )                           , intent(in   )          :: arrayElementName
+    double precision             , allocatable, dimension(:), intent(inout)          :: column1
+    type            (node       )                                          , pointer :: arrayElement
+    type            (xmlNodeList), allocatable, dimension(:)                         :: arrayElements
+    double precision                          , dimension(1)                         :: dataValues
+    integer                                                                          :: i
 
-    arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    call allocateArray(column1,[getLength(arrayElements)])
-    do i=1,getLength(arrayElements)
-       arrayElement => item(arrayElements,i-1)
+    call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
+    call allocateArray(column1,[size(arrayElements)])
+    do i=1,size(arrayElements)
+       arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
     end do
@@ -128,23 +119,22 @@ contains
 
   subroutine XML_Array_Read_Two_Column(xmlElement,arrayElementName,column1,column2)
     !% Read two columns of data from an array of XML elements.
-    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, getLength, item, &
-          &                          node              , nodeList
+    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
     use :: Memory_Management, only : allocateArray
     implicit none
-    type            (node    )                           , intent(in   ), pointer :: xmlElement
-    character       (len=*   )                           , intent(in   )          :: arrayElementName
-    double precision          , allocatable, dimension(:), intent(inout)          :: column1         , column2
-    type            (node    )                                          , pointer :: arrayElement
-    type            (nodeList)                                          , pointer :: arrayElements
-    double precision                       , dimension(2)                         :: dataValues
-    integer                                                                       :: i
+    type            (node       )                           , intent(in   ), pointer :: xmlElement
+    character       (len=*      )                           , intent(in   )          :: arrayElementName
+    double precision             , allocatable, dimension(:), intent(inout)          :: column1         , column2
+    type            (node       )                                          , pointer :: arrayElement
+    type            (xmlNodeList), allocatable, dimension(:)                         :: arrayElements
+    double precision                          , dimension(2)                         :: dataValues
+    integer                                                                          :: i
 
-    arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    call allocateArray(column1,[getLength(arrayElements)])
-    call allocateArray(column2,[getLength(arrayElements)])
-    do i=1,getLength(arrayElements)
-       arrayElement => item(arrayElements,i-1)
+    call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
+    call allocateArray(column1,[size(arrayElements)])
+    call allocateArray(column2,[size(arrayElements)])
+    do i=1,size(arrayElements)
+       arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
        column2(i)=dataValues(2)
@@ -154,21 +144,19 @@ contains
 
   subroutine XML_List_Array_Read_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of data from an array of XML elements.
-    use :: FoX_dom          , only : extractDataContent, getLength, item, node, &
-          &                          nodeList
+    use :: FoX_dom          , only : extractDataContent, node
     use :: Memory_Management, only : allocateArray
     implicit none
-    type            (nodeList)                           , intent(in   ), pointer :: xmlElements
-    character       (len=*   )                           , intent(in   )          :: arrayElementName
-    double precision          , allocatable, dimension(:), intent(inout)          :: column1
-    type            (node    )                                          , pointer :: arrayElement    , xmlElement
-    double precision                       , dimension(1)                         :: dataValues
-    integer                                                                       :: i
+    type            (xmlNodeList)             , dimension(0:), intent(in   ) :: xmlElements
+    character       (len=*      )                            , intent(in   ) :: arrayElementName
+    double precision             , allocatable, dimension(: ), intent(inout) :: column1
+    type            (node       ), pointer                                   :: arrayElement
+    double precision                          , dimension(1 )                :: dataValues
+    integer                                                                  :: i
 
-    call allocateArray(column1,[getLength(xmlElements)])
-    do i=1,getLength(xmlElements)
-       xmlElement   => item                             (xmlElements,i-1             )
-       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElement ,arrayElementName)
+    call allocateArray(column1,[size(xmlElements)])
+    do i=1,size(xmlElements)
+       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
     end do
@@ -177,19 +165,17 @@ contains
 
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
-    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
-          &                nodeList
+    use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type            (nodeList)              , intent(in   ), pointer :: xmlElements
-    character       (len=*   )              , intent(in   )          :: arrayElementName
-    double precision          , dimension(:), intent(inout)          :: column1
-    type            (node    )                             , pointer :: arrayElement    , xmlElement
-    double precision          , dimension(1)                         :: dataValues
-    integer                                                          :: i
+    type            (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
+    character       (len=*      )               , intent(in   )          :: arrayElementName
+    double precision             , dimension(: ), intent(inout)          :: column1
+    type            (node       )                              , pointer :: arrayElement
+    double precision             , dimension(1 )                         :: dataValues
+    integer                                                              :: i
 
-    do i=1,getLength(xmlElements)
-       xmlElement   => item                             (xmlElements,i-1             )
-       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElement ,arrayElementName)
+    do i=1,size(xmlElements)
+       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
     end do
@@ -198,19 +184,17 @@ contains
 
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
-    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
-          &                nodeList
+    use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type     (nodeList)              , intent(in   ), pointer :: xmlElements
-    character(len=*   )              , intent(in   )          :: arrayElementName
-    integer            , dimension(:), intent(inout)          :: column1
-    type     (node    )                             , pointer :: arrayElement    , xmlElement
-    integer            , dimension(1)                         :: dataValues
-    integer                                                   :: i
+    type     (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
+    character(len=*      )               , intent(in   )          :: arrayElementName
+    integer               , dimension(: ), intent(inout)          :: column1
+    type     (node       )                              , pointer :: arrayElement
+    integer               , dimension(1 )                         :: dataValues
+    integer                                                       :: i
 
-    do i=1,getLength(xmlElements)
-       xmlElement   => item                             (xmlElements,i-1             )
-       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElement ,arrayElementName)
+    do i=1,size(xmlElements)
+       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
     end do
@@ -219,40 +203,127 @@ contains
 
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of character data from an array of XML elements.
-    use :: FoX_dom, only : extractDataContent, getLength, item, node, &
-          &                nodeList
+    use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type     (nodeList        )              , intent(in   ), pointer :: xmlElements
-    character(len=*           )              , intent(in   )          :: arrayElementName
-    character(len=*           ), dimension(:), intent(inout)          :: column1
-    type     (node            )                             , pointer :: arrayElement    , xmlElement
-    character(len=len(column1)), dimension(1)                         :: dataValues
-    integer                                                           :: i
+    type     (xmlNodeList     ), dimension(0:), intent(in   )          :: xmlElements
+    character(len=*           )               , intent(in   )          :: arrayElementName
+    character(len=*           ), dimension(: ), intent(inout)          :: column1
+    type     (node            )                              , pointer :: arrayElement
+    character(len=len(column1)), dimension(1 )                         :: dataValues
+    integer                                                            :: i
 
-    do i=1,getLength(xmlElements)
-       xmlElement   => item                             (xmlElements,i-1             )
-       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElement ,arrayElementName)
+    do i=1,size(xmlElements)
+       arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)
        column1(i)=dataValues(1)
     end do
     return
   end subroutine XML_List_Character_Array_Read_Static_One_Column
+  
+  subroutine XML_Get_Child_Elements(xmlElement,elements)
+    !% Return a list of pointers to all child nodes.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: FoX_DOM      , only : getFirstChild, getNextSibling, hasChildNodes, node
+    implicit none
+    type   (xmlNodeList), intent(inout), allocatable, dimension(:) :: elements
+    type   (node       ), intent(in   ), pointer                   :: xmlElement
+    type   (node       )               , pointer                   :: childNode
+    integer(c_size_t   )                                           :: countElements
+    
+    countElements=0_c_size_t
+    if (hasChildNodes(xmlElement)) then
+       childNode => getFirstChild(xmlElement)
+       do while (associated(childNode))
+          countElements=countElements+1_c_size_t
+          childNode => getNextSibling(childNode)
+       end do
+    end if
+    if (allocated(elements)) deallocate(elements)
+    allocate(elements(0:countElements-1))
+    if (hasChildNodes(xmlElement)) then
+       countElements =  0_c_size_t
+       childNode     => getFirstChild(xmlElement)
+       do while (associated(childNode))
+          elements(countElements)%element => childNode
+          countElements=countElements+1_c_size_t
+          childNode => getNextSibling(childNode)
+       end do
+    end if
+    return
+  end subroutine XML_Get_Child_Elements
+  
+  recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
+    !% Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
+         &                                  hasChildNodes, node          , Element_Node
+    implicit none
+    type     (xmlNodeList), intent(inout), allocatable, dimension(:) :: elements
+    integer  (c_size_t   )                                           :: countElements, offset
+    type     (node       ), intent(in   ), pointer                   :: xmlElement
+    character(len=*      ), intent(in   )                            :: tagName
+    type     (node       )               , pointer                   :: childNode
+    type     (xmlNodeList)               , allocatable, dimension(:) :: childElements
+
+    countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName)    
+    offset       =0_c_size_t
+    if (allocated(elements)) deallocate(elements)
+    allocate(elements(0:countElements-1))
+    if (hasChildNodes(xmlElement)) then
+       childNode => getFirstChild(xmlElement)
+       do while (associated(childNode))
+          call XML_Get_Elements_By_Tag_Name(childNode,tagName,childElements)
+          elements(offset:offset+size(childElements)-1)=childElements
+          offset=offset+size(childElements)
+          deallocate(childElements)
+          if (getNodeType(childNode) == Element_Node .and. getNodeName(childNode) == tagName) then
+             elements(offset)%element => childNode
+             offset=offset+1_c_size_t
+          end if
+          childNode => getNextSibling(childNode)
+       end do
+    end if
+    return
+  end subroutine XML_Get_Elements_By_Tag_Name
+  
+  recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
+    !% Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
+         &                                  hasChildNodes, node          , Element_Node
+    implicit none
+    integer  (c_size_t)                         :: countElements
+    type     (node    ), intent(in   ), pointer :: xmlElement
+    character(len=*   ), intent(in   )          :: tagName
+    type     (node    )               , pointer :: childNode
+
+    countElements=0_c_size_t
+    if (hasChildNodes(xmlElement)) then
+       childNode => getFirstChild(xmlElement)
+       do while (associated(childNode))
+          countElements=countElements+XML_Count_Elements_By_Tag_Name(childNode,tagName)
+          if (getNodeType(childNode) == Element_Node .and. getNodeName(childNode) == tagName) &
+               & countElements=countElements+1_c_size_t
+          childNode => getNextSibling(childNode)
+       end do
+    end if
+    return
+  end function XML_Count_Elements_By_Tag_Name
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
-    use :: FoX_dom         , only : getElementsByTagName   , getLength, getParentNode, item, &
-          &                         node                   , nodeList
+    use :: FoX_dom         , only : getParentNode, node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
-    type     (node            ), intent(in   ), pointer  :: xmlElement
-    character(len=*           ), intent(in   )           :: tagName
-    logical                    , intent(in   ), optional :: directChildrenOnly
-    type     (nodeList        )               , pointer  :: elementList
-    type     (node            )               , pointer  :: parent
-    character(len=len(tagName))                          :: currentTagName                   , path
-    integer                                              :: pathPosition                     , i
-    logical                                              :: directChildrenOnlyActual
+    type     (node            )               , pointer      :: XML_Get_First_Element_By_Tag_Name
+    type     (node            ), intent(in   ), pointer      :: xmlElement
+    character(len=*           ), intent(in   )               :: tagName
+    logical                    , intent(in   ), optional     :: directChildrenOnly
+    type     (xmlNodeList     ), allocatable  , dimension(:) :: elementList
+    type     (node            )               , pointer      :: parent
+    character(len=len(tagName))                              :: currentTagName                   , path
+    integer                                                  :: pathPosition                     , i
+    logical                                                  :: directChildrenOnlyActual
 
     ! Set default options.
     directChildrenOnlyActual=.false.
@@ -269,20 +340,20 @@ contains
           currentTagName=path(             1:pathPosition-1)
           path          =path(pathPosition+1:len(path)     )
        endif
-       elementList => getElementsByTagName(XML_Get_First_Element_By_Tag_Name,currentTagName)
-       if (getLength(elementList) < 1) then
+       call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name,currentTagName,elementList)
+       if (size(elementList) < 1) then
           call Galacticus_Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
        else
           if (directChildrenOnlyActual) then
-             do i=0,getLength(elementList)-1
-                parent => getParentNode(item(elementList,i))
+             do i=0,size(elementList)-1
+                parent => getParentNode(elementList(i)%element)
                 if (associated(parent,XML_Get_First_Element_By_Tag_Name)) then
-                   XML_Get_First_Element_By_Tag_Name => item(elementList,i)
+                   XML_Get_First_Element_By_Tag_Name => elementList(i)%element
                    exit
                 end if
              end do
           else
-             XML_Get_First_Element_By_Tag_Name => item(elementList,0)
+             XML_Get_First_Element_By_Tag_Name => elementList(0)%element
           end if
        end if
     end do
@@ -292,15 +363,15 @@ contains
   logical function XML_Path_Exists(xmlElement,path)
     !% Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
-          &                getParentNode, item                , node     , nodeList
+         &                 getParentNode, node
     implicit none
-    type     (node         ), intent(in   ), pointer :: xmlElement
-    character(len=*        ), intent(in   )          :: path
-    type     (nodeList     )               , pointer :: elementList
-    type     (node         )               , pointer :: element       , child         , &
-         &                                              parent
-    character(len=len(path))                         :: currentPath   , currentTagName
-    integer                                          :: pathPosition  , i
+    type     (node         ), intent(in   ), pointer      :: xmlElement
+    character(len=*        ), intent(in   )               :: path
+    type     (node         )               , pointer      :: element     , child         , &
+         &                                                   parent
+    character(len=len(path))                              :: currentPath , currentTagName
+    integer                                               :: pathPosition, i
+    type     (xmlNodeList  ), allocatable  , dimension(:) :: elementList
 
     XML_Path_Exists =  .true.
     element         => xmlElement
@@ -314,15 +385,15 @@ contains
           currentTagName=currentPath(             1:pathPosition-1)
           currentPath   =currentPath(pathPosition+1:len(path)     )
        endif
-       elementList => getElementsByTagName(element,currentTagName)
-       if (getLength(elementList) < 1) then
+       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList)
+       if (size(elementList) < 1) then
           XML_Path_Exists=.false.
           return
        else
           XML_Path_Exists=.false.
-          do i=0,getLength(elementList)-1
-             child  => item         (elementList,i)
-             parent => getParentNode(child        )
+          do i=0,size(elementList)-1
+             child  => elementList  (i    )%element
+             parent => getParentNode(child)
              if (getNodeType(child) == ELEMENT_NODE .and. associated(parent,element)) then
                 element => child
                 XML_Path_Exists=.true.
@@ -338,50 +409,46 @@ contains
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
     !% specified---if the extracted method does not match one of these an error is issued.
-    use :: FoX_dom         , only : Node                              , NodeList, extractDataContent, getElementsByTagname, &
-          &                         getLength                         , item
+    use :: FoX_dom         , only : node                              , extractDataContent
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Table_Labels    , only : enumerationExtrapolationTypeEncode
     implicit none
-    type     (Node    )              , intent(in   ), pointer  :: extrapolationElement
-    character(len=*   )              , intent(  out)           :: limitType
-    integer                          , intent(  out)           :: extrapolationMethod
-    integer            , dimension(:), intent(in   ), optional :: allowedMethods
-    type     (Node    )                             , pointer  :: limitElement        , methodElement
-    type     (NodeList)                             , pointer  :: elementList
-    character(len=32  )                                        :: methodType
+    type     (node       )              , intent(in   ), pointer     :: extrapolationElement
+    character(len=*      )              , intent(  out)              :: limitType
+    integer                             , intent(  out)              :: extrapolationMethod
+    integer               , dimension(:), intent(in   ), optional    :: allowedMethods
+    type     (node       )                             , pointer     :: limitElement        , methodElement
+    type     (xmlNodeList), dimension(:)               , allocatable :: elementList
+    character(len=32     )                                           :: methodType
 
     ! Extract the limit type.
-    elementList => getElementsByTagname(extrapolationElement,"limit")
-    if (getLength(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
-    limitElement => item(elementList,0)
+    call XML_Get_Elements_By_Tag_Name(extrapolationElement,"limit",elementList)
+    if (size(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
+    limitElement => elementList(0)%element
     call extractDataContent(limitElement,limitType)
-
     ! Extract the method type.
-    elementList => getElementsByTagname(extrapolationElement,"method")
-    if (getLength(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
-    methodElement => item(elementList,0)
+    call XML_Get_Elements_By_Tag_Name(extrapolationElement,"method",elementList)
+    if (size(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
+    methodElement => elementList(0)%element
     call extractDataContent(methodElement,methodType)
     extrapolationMethod=enumerationExtrapolationTypeEncode(trim(methodType),includesPrefix=.false.)
     ! Validate the method type.
     if (present(allowedMethods)) then
        if (all(allowedMethods /= extrapolationMethod)) call Galacticus_Error_Report('unallowed extrapolation method'//{introspection:location})
     end if
-
     return
   end subroutine XML_Extrapolation_Element_Decode
-
+  
   function XML_Parse(fileName,iostat) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
     use :: File_Utilities    , only : File_Exists            , File_Name       , File_Path
-    use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute , getChildNodes , &
-          &                           getDocumentElement     , getFirstChild   , getLength    , getNextSibling, &
-          &                           getNodeName            , getNodeType     , getParentNode, hasAttribute  , &
-          &                           hasChildNodes          , importNode      , insertBefore , item          , &
-          &                           node                   , nodeList        , parseFile    , removeChild   , &
-          &                           replaceChild           , setLiveNodeLists
+    use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute    , getChildNodes , &
+         &                           getDocumentElement      , getFirstChild   , getNextSibling  , getNodeName   , &
+         &                           getNodeType             , getParentNode   , hasAttribute    , hasChildNodes , &
+         &                           importNode              , insertBefore    , node            , parseFile     , &
+         &                           removeChild             , replaceChild    , setLiveNodeLists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)    , len          , operator(==)  , &
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)    , len             , operator(==)  , &
          &                            extract                , char
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
@@ -390,7 +457,7 @@ contains
          &                                                      nodeInsert         , nodeNext
     character(len=*           ), intent(in   )               :: fileName
     integer                    , intent(inout), optional     :: iostat
-    type     (nodeList        ), pointer                     :: nodesCurrent
+    type     (xmlNodeList     ), allocatable  , dimension(:) :: nodesCurrent
     type     (xincludeNode    ), allocatable  , dimension(:) :: stack              , stackTmp
     type     (xincludeNodeList), allocatable  , dimension(:) :: stackList          , stackListTmp
     integer                    , parameter                   :: stackExpandCount=10
@@ -476,14 +543,14 @@ contains
        ! Search for any XIncludes - rescan the entire document as we can handle inserting only one xi:include element at a time.
        stackListCount=0
        if (hasChildNodes(document)) then
-          stackListCount                       =  1
-          stackList     (stackListCount)%nodes => getChildNodes(document)
+          stackListCount=1
+          call XML_Get_Child_Elements(document,stackList(stackListCount)%nodes)
        end if
        do while (stackListCount > 0)
-          nodesCurrent   => stackList(stackListCount)%nodes
-          stackListCount =  stackListCount-1
-          do i=0,getLength(nodesCurrent)-1
-             nodeCurrent => item(nodesCurrent,i)
+          nodesCurrent  =stackList(stackListCount)%nodes
+          stackListCount=          stackListCount       -1
+          do i=0,size(nodesCurrent)-1
+             nodeCurrent => nodesCurrent(i)%element
              if (getNodeName(nodeCurrent) == "xi:include") then
                 if (.not.hasAttribute(nodeCurrent,"href")) call Galacticus_Error_Report("missing 'href' in XInclude"//{introspection:location})
                 if (stackCount == size(stack)) then
@@ -519,13 +586,13 @@ contains
                    stackList(1:stackListCount)=stackListTmp
                    deallocate(stackListTmp)
                 end if
-                stackListCount                       =  stackListCount+1
-                stackList     (stackListCount)%nodes => getChildNodes(nodeCurrent)
+                stackListCount=stackListCount+1
+                call XML_Get_Child_Elements(nodeCurrent,stackList(stackListCount)%nodes)
              end if
           end do
        end do
     end do
-    call setLiveNodeLists(document,.true.)
+    call setLiveNodeLists(document,.true.)  
     return
   end function XML_Parse
 

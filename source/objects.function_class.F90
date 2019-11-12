@@ -71,11 +71,12 @@ module Function_Classes
   integer                , parameter                        :: debugStackSizeMaximum=100
   type   (varying_string), dimension(debugStackSizeMaximum) :: debugLocStack
   integer                                                   :: debugLocStackSize    =  0
+  logical                , public                           :: debugReporting       =.true.
   interface debugStackPush
      module procedure debugStackPushStr
      module procedure debugStackPushLoc
   end interface debugStackPush
-  !$omp threadprivate(debugLocStack,debugLocStackSize)
+  !$omp threadprivate(debugLocStack,debugLocStackSize,debugReporting)
 #endif
 
 contains

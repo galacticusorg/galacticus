@@ -270,11 +270,24 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
+#ifndef OFDAVAIL
+    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+    ! will not block access to the same file by another thread.
+    !$omp critical (igmFilteringMassGnedin2000Lock)
+#endif
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(gnedin2000FileLock)
+#ifndef OFDAVAIL
+    !$omp end critical (igmFilteringMassGnedin2000Lock)
+#endif
     end if
     if (self%remakeTable(time)) then
+#ifndef OFDAVAIL
+       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
+       ! will not block access to the same file by another thread.
+       !$omp critical (igmFilteringMassGnedin2000Lock)
+#endif
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.false.)
        ! Evaluate a suitable starting time for filtering mass calculations.
        timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
@@ -325,6 +338,9 @@ contains
        ! Store file.
        call self%fileWrite()
        call File_Unlock(gnedin2000FileLock)
+#ifndef OFDAVAIL
+       !$omp end critical (igmFilteringMassGnedin2000Lock)
+#endif
     end if
     return
 

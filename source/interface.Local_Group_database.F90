@@ -21,7 +21,8 @@
 
 module Interface_Local_Group_DB
   !% Interfaces with the Local Group database.
-  use :: FoX_DOM, only : node, nodeList
+  use :: FoX_DOM, only : node
+  use :: IO_XML , only : xmlNodeList
   private
   public  :: localGroupDB, vector3D
 
@@ -63,9 +64,9 @@ module Interface_Local_Group_DB
   type :: localGroupDB
      !% Local Group database class.
      private
-     type   (node    ), pointer                   :: database
-     type   (nodeList), pointer                   :: galaxies
-     logical          , allocatable, dimension(:) :: selected
+     type   (node       ), pointer                   :: database
+     type   (xmlNodeList), allocatable, dimension(:) :: galaxies
+     logical             , allocatable, dimension(:) :: selected
    contains
      !@ <objectMethods>
      !@   <object>localGroupDB</object>
@@ -112,16 +113,15 @@ contains
 
   function localGroupDBConstructorInternal() result(self)
     !% Constructor for the Local Group database class.
-    use :: FoX_DOM           , only : getElementsByTagName             , getLength
-    use :: Galacticus_Paths  , only : galacticusPath                   , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : char
     implicit none
     type(localGroupDB) :: self
 
     self%database => XML_Parse(char(galacticusPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
-    self%galaxies => getElementsByTagName(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy')
-    allocate(self%selected(0:getLength(self%galaxies)-1))
+    call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy',self%galaxies)
+    allocate(self%selected(0:size(self%galaxies)-1))
     self%selected=.false.
     return
   end function localGroupDBConstructorInternal
@@ -138,10 +138,10 @@ contains
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
     !% Get a named text property from the Local Group database.
-    use                      :: FoX_DOM           , only : extractDataContent     , getAttributeNode, getElementsByTagName, getLength, &
-          &                                                getTextContent         , hasAttribute    , item
+    use                      :: FoX_DOM           , only : extractDataContent          , getAttributeNode,  getTextContent, hasAttribute
     use                      :: Galacticus_Error  , only : Galacticus_Error_Report
-    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string         , assignment(=)¦}
+    use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string              , assignment(=)¦}
     implicit none
     class           (localGroupDB  ), intent(inout)                                      :: self
     character       (len=*         ), intent(in   )                                      :: name
@@ -149,23 +149,23 @@ contains
     logical                         , intent(inout), allocatable, dimension(:), optional :: isPresent
     type            (node          )               , pointer                             :: galaxy    , propertyElement, &
          &                                                                                  attribute
-    type            (nodeList      )               , pointer                             :: properties
+    type            (xmlNodeList   )               , allocatable, dimension(:)           :: properties
     integer                                                                              :: i         , countGalaxies
 
     ! Iterate over galaxies to count how many have this property.
     countGalaxies=0
-    do i=0,getLength(self%galaxies)-1
+    do i=0,size(self%galaxies)-1
        if (.not.self%selected(i)) cycle
-       galaxy => item(self%galaxies,i)
+       galaxy => self%galaxies(i)%element
        if (present(isPresent)) then
           countGalaxies=countGalaxies+1
        else if (hasAttribute(galaxy,name)) then
           countGalaxies=countGalaxies+1
        else
-          properties => getElementsByTagName(galaxy,name)
-          if      (getLength(properties) > 1) then
+          call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
+          if      (size(properties) > 1) then
              call Galacticus_Error_Report('galaxy has multiple entries for named property'//{introspection:location})
-          else if (getLength(properties) == 1) then
+          else if (size(properties) == 1) then
              countGalaxies=countGalaxies+1
           end if
        end if
@@ -177,17 +177,17 @@ contains
     end if
     ! Popuate the array.
     countGalaxies=0
-    do i=0,getLength(self%galaxies)-1
+    do i=0,size(self%galaxies)-1
        if (.not.self%selected(i)) cycle
-       galaxy => item(self%galaxies,i)
+       galaxy => self%galaxies(i)%element
        if (hasAttribute(galaxy,name)) then
           countGalaxies   =  countGalaxies+1
           attribute => getAttributeNode(galaxy,name)
        else
-          properties => getElementsByTagName(galaxy,name)
-          if (getLength(properties) == 1) then
+          call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
+          if (size(properties) == 1) then
              countGalaxies=countGalaxies+1
-             propertyElement => item(properties,0)
+             propertyElement => properties(0)%element
              attribute       => getAttributeNode(propertyElement,'value')
           else
              if (present(isPresent)) then
@@ -220,7 +220,7 @@ contains
 
   subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
     !% Impose a selection on the database.
-    use                      :: FoX_DOM           , only : getAttributeNode       , getLength  , getTextContent, item
+    use                      :: FoX_DOM           , only : getAttributeNode       , getTextContent
     use                      :: Galacticus_Error  , only : Galacticus_Error_Report
     use                      :: ISO_Varying_String, only : varying_string
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)            , operator(>), operator(==)¦}
@@ -235,14 +235,14 @@ contains
     integer                                                       :: i
     logical                                                       :: comparisonResult
 
-    allocate(selectedCurrent(0:getLength(self%galaxies)-1))
+    allocate(selectedCurrent(0:size(self%galaxies)-1))
     selectedCurrent=self%selected
     self%selected=.true.
     call self%getProperty(name,values,isPresent)
-    do i=0,getLength(self%galaxies)-1
+    do i=0,size(self%galaxies)-1
        if (.not.selectedCurrent(i) .and. (setOperator == setOperatorIntersection .or.  setOperator == setOperatorRelativeComplement)) cycle
        if (.not.isPresent(i+1)) then
-          galaxy => item(self%galaxies,i)
+          galaxy => self%galaxies(i)%element
           attribute       => getAttributeNode(galaxy,'name')
          call Galacticus_Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
        end if
@@ -274,28 +274,30 @@ contains
 
   subroutine localGroupDBUpdate(self)
     !% Update the database.
-    use :: FoX_DOM                         , only : appendChild         , createElementNS    , extractDataContent, getAttributeNode, &
-          &                                         getElementsByTagName, getLength          , getNamespaceURI   , getTextContent  , &
-          &                                         hasAttribute        , item               , serialize         , setAttribute
-    use :: Galacticus_Paths                , only : galacticusPath      , pathTypeDataStatic
+    use :: FoX_DOM                         , only : appendChild                 , createElementNS    , extractDataContent, getAttributeNode, &
+         &                                          getNamespaceURI             , getTextContent     , hasAttribute      , serialize       , &
+         &                                          setAttribute
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataStatic
+    use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
-          &                                         minutesToDegrees    , secondsToDegrees
+    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
+          &                                         minutesToDegrees            , secondsToDegrees
     implicit none
-    class           (localGroupDB  ), intent(inout) :: self
-    type            (node          ), pointer       :: galaxy                        , attribute                       , newNode
-    type            (nodeList      ), pointer       :: propertyList1                 , propertyList2                   , propertyList3                   , propertyList4
-    character       (len=32        ), dimension(4)  :: uncertainties
-    double precision                , dimension(3)  :: positionMilkyWay              , positionM31                     , position                        , uncertaintyPosition  , &
-         &                                             uncertaintyPositionMilkyWay   , uncertaintyPositionM31
-    integer                                         :: i                             , j                               , indexMilkyWay                   , indexM31
-    logical                                         :: hasSexagesimal                , hasDecimal                      , hasHeliocentric                 , hasModulus           , &
-         &                                             hasDistance                   , hasDeclination                  , hasRightAscension               , hasPosition
-    double precision                                :: declinationSexagesimalDegrees , declinationSexagesimalArcMinutes, declinationSexagesimalArcSeconds, declinationDecimal   , &
-         &                                             rightAscensionSexagesimalHours, rightAscensionSexagesimalMinutes, rightAscensionSexagesimalSeconds, rightAscensionDecimal, &
-         &                                             distanceHeliocentric          , distanceModulus                 , uncertainty1                    , uncertainty2         , &
-         &                                             positionHeliocentricX         , positionHeliocentricY           , positionHeliocentricZ           , distance
-    character       (len=64        )                :: textContent
+    class           (localGroupDB  ), intent(inout)             :: self
+    type            (node          ), pointer                   :: galaxy                        , attribute                       , newNode
+    type            (xmlNodeList   ), dimension(:), allocatable :: propertyList1                 , propertyList2                   , propertyList3                   , propertyList4
+    character       (len=32        ), dimension(4)              :: uncertainties
+    double precision                , dimension(3)              :: positionMilkyWay              , positionM31                     , position                        , uncertaintyPosition  , &
+         &                                                         uncertaintyPositionMilkyWay   , uncertaintyPositionM31
+    integer                                                     :: i                             , j                               , indexMilkyWay                   , indexM31
+    logical                                                     :: hasSexagesimal                , hasDecimal                      , hasHeliocentric                 , hasModulus           , &
+         &                                                         hasDistance                   , hasDeclination                  , hasRightAscension               , hasPosition
+    double precision                                            :: declinationSexagesimalDegrees , declinationSexagesimalArcMinutes, declinationSexagesimalArcSeconds, declinationDecimal   , &
+         &                                                         rightAscensionSexagesimalHours, rightAscensionSexagesimalMinutes, rightAscensionSexagesimalSeconds, rightAscensionDecimal, &
+         &                                                         distanceHeliocentric          , distanceModulus                 , uncertainty1                    , uncertainty2         , &
+         &                                                         positionHeliocentricX         , positionHeliocentricY           , positionHeliocentricZ           , distance
+    character       (len=64        )                            :: textContent
 
     ! Set names of uncertainties.
     uncertainties(1)='uncertainty'
@@ -303,27 +305,31 @@ contains
     uncertainties(3)='uncertaintyHigh'
     uncertainties(4)='uncertaintySystematic'
     ! Identify Milky Way and M31.
-    do i=0,getLength(self%galaxies)-1
-       galaxy    => item            (self%galaxies,i     )
-       attribute => getAttributeNode(     galaxy  ,'name')
+    indexMilkyWay=-huge(0)
+    indexM31     =-huge(0)
+    do i=0,size(self%galaxies)-1
+       galaxy    => self%galaxies(i)%element
+       attribute => getAttributeNode(galaxy,'name')
        if (getTextContent(attribute) == "The Galaxy") indexMilkyWay=i
        if (getTextContent(attribute) == "Andromeda" ) indexM31     =i
     end do
+    if (indexMilkyWay < 0) call Galacticus_Error_Report('unable to find Milky Way in the database'//{introspection:location})
+    if (indexM31      < 0) call Galacticus_Error_Report('unable to find M31 in the database'      //{introspection:location})
     ! Iterate over galaxies.
-    do i=0,getLength(self%galaxies)-1
-       galaxy => item(self%galaxies,i)
+    do i=0,size(self%galaxies)-1
+       galaxy => self%galaxies(i)%element
        ! Look for declinations.
-       propertyList1  => getElementsByTagName(galaxy,'declinationSexagesimal')
-       hasSexagesimal =  getLength(propertyList1) == 1
-       propertyList2  => getElementsByTagName(galaxy,'declinationDecimal'    )
-       hasDecimal     =  getLength(propertyList2) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'declinationSexagesimal',propertyList1)
+       hasSexagesimal=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'declinationDecimal'    ,propertyList2)
+       hasDecimal    =size(propertyList2) == 1
        if (hasSexagesimal .and. .not. hasDecimal) then
           ! Convert sexagesimal declination to decimal.
-          attribute => getAttributeNode(item(propertyList1,0),'degrees'  )
+          attribute => getAttributeNode(propertyList1(0)%element,'degrees'  )
           call extractDataContent(attribute,declinationSexagesimalDegrees   )
-          attribute => getAttributeNode(item(propertyList1,0),'arcminutes')
+          attribute => getAttributeNode(propertyList1(0)%element,'arcminutes')
           call extractDataContent(attribute,declinationSexagesimalArcMinutes)
-          attribute => getAttributeNode(item(propertyList1,0),'arcseconds')
+          attribute => getAttributeNode(propertyList1(0)%element,'arcseconds')
           call extractDataContent(attribute,declinationSexagesimalArcSeconds)
           declinationDecimal=+     declinationSexagesimalDegrees                                                       &
                &             +sign(declinationSexagesimalArcMinutes,declinationSexagesimalDegrees)*arcminutesToDegrees &
@@ -334,7 +340,7 @@ contains
           newNode => appendChild(galaxy,newNode)
        else if (.not.hasSexagesimal .and. hasDecimal) then
           ! Convert decimal declination to sexagesimal.
-          attribute => getAttributeNode(item(propertyList2,0),'value')
+          attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,declinationDecimal)
           declinationSexagesimalDegrees   =int( declinationDecimal                                                   )
           declinationSexagesimalArcminutes=int((declinationDecimal-declinationSexagesimalDegrees)/arcminutesToDegrees)
@@ -351,17 +357,17 @@ contains
           newNode => appendChild(galaxy,newNode)
        end if
        ! Look for right ascensions.
-       propertyList1 => getElementsByTagName(galaxy,'rightAscensionSexagesimal')
-       hasSexagesimal=getLength(propertyList1) == 1
-       propertyList2 => getElementsByTagName(galaxy,'rightAscensionDecimal'    )
-       hasDecimal=getLength(propertyList2) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'rightAscensionSexagesimal',propertyList1)
+       hasSexagesimal=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'rightAscensionDecimal'    ,propertyList2)
+       hasDecimal=size(propertyList2) == 1
        if (hasSexagesimal .and. .not. hasDecimal) then
           ! Convert sexagesimal right ascension to decimal.
-          attribute => getAttributeNode(item(propertyList1,0),'hours'  )
+          attribute => getAttributeNode(propertyList1(0)%element,'hours'  )
           call extractDataContent(attribute,rightAscensionSexagesimalHours  )
-          attribute => getAttributeNode(item(propertyList1,0),'minutes')
+          attribute => getAttributeNode(propertyList1(0)%element,'minutes')
           call extractDataContent(attribute,rightAscensionSexagesimalMinutes)
-          attribute => getAttributeNode(item(propertyList1,0),'seconds')
+          attribute => getAttributeNode(propertyList1(0)%element,'seconds')
           call extractDataContent(attribute,rightAscensionSexagesimalSeconds)
           rightAscensionDecimal=+rightAscensionSexagesimalHours  *hoursToDegrees   &
                &                +rightAscensionSexagesimalMinutes*minutesToDegrees &
@@ -372,7 +378,7 @@ contains
           newNode => appendChild(galaxy,newNode)
        else if (.not.hasSexagesimal .and. hasDecimal) then
           ! Convert decimal right ascension to sexagesimal.
-          attribute => getAttributeNode(item(propertyList2,0),'value')
+          attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,rightAscensionDecimal)
           rightAscensionSexagesimalHours  =int( rightAscensionDecimal/hoursToDegrees                                                 )
           rightAscensionSexagesimalMinutes=int((rightAscensionDecimal-rightAscensionSexagesimalHours*hoursToDegrees)/minutesToDegrees)
@@ -387,21 +393,21 @@ contains
           newNode => appendChild(galaxy,newNode)
        end if
        ! Look for distances
-       propertyList1 => getElementsByTagName(galaxy,'distanceHeliocentric')
-       hasHeliocentric=getLength(propertyList1) == 1
-       propertyList2 => getElementsByTagName(galaxy,'distanceModulus'     )
-       hasModulus=getLength(propertyList2) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'distanceHeliocentric',propertyList1)
+       hasHeliocentric=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'distanceModulus'     ,propertyList2)
+       hasModulus=size(propertyList2) == 1
        if (hasHeliocentric .and. .not. hasModulus) then
           ! Convert heliocentric distance to a distance modulus.
-          attribute => getAttributeNode(item(propertyList1,0),'value')
+          attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,distanceHeliocentric)
           distanceModulus=25.0d0+5.0d0*log10(distanceHeliocentric)
           newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceModulus')
           write (textContent,'(f16.12)') distanceModulus
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
-             if (hasAttribute(item(propertyList1,0),trim(uncertainties(j)))) then
-                attribute => getAttributeNode(item(propertyList1,0),trim(uncertainties(j)))
+             if (hasAttribute(propertyList1(0)%element,trim(uncertainties(j)))) then
+                attribute => getAttributeNode(propertyList1(0)%element,trim(uncertainties(j)))
                 call extractDataContent(attribute,uncertainty1)
                 uncertainty2=5.0d0/log(10.0d0)*uncertainty1/distanceHeliocentric
                 write (textContent,'(f16.12)') uncertainty2
@@ -411,15 +417,15 @@ contains
           newNode => appendChild(galaxy,newNode)
        else if (.not.hasHeliocentric .and. hasModulus) then
           ! Convert distance modules to a heliocentric distance.
-          attribute => getAttributeNode(item(propertyList2,0),'value')
+          attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,distanceModulus)
           distanceHeliocentric=10.0d0**((distanceModulus-25.0d0)/5.0d0)
           newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceHeliocentric')
           write (textContent,'(f16.12)') distanceHeliocentric
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
-             if (hasAttribute(item(propertyList2,0),trim(uncertainties(j)))) then
-                attribute => getAttributeNode(item(propertyList2,0),trim(uncertainties(j)))
+             if (hasAttribute(propertyList2(0)%element,trim(uncertainties(j)))) then
+                attribute => getAttributeNode(propertyList2(0)%element,trim(uncertainties(j)))
                 call extractDataContent(attribute,uncertainty1)
                 uncertainty2=distanceHeliocentric*log(10.0d0)/5.0d0
                 write (textContent,'(f16.12)') uncertainty2
@@ -429,20 +435,20 @@ contains
           newNode => appendChild(galaxy,newNode)
        end if
        ! Compute Cartesian heliocentric coordinates.
-       propertyList1 => getElementsByTagName(galaxy,'distanceHeliocentric'         )
-       hasDistance=getLength(propertyList1) == 1
-       propertyList2 => getElementsByTagName(galaxy,'rightAscensionDecimal'        )
-       hasRightAscension=getLength(propertyList2) == 1
-       propertyList3 => getElementsByTagName(galaxy,'declinationDecimal'           )
-       hasDeclination=getLength(propertyList3) == 1
-       propertyList4 => getElementsByTagName(galaxy,'positionHeliocentricCartesian')
-       hasPosition=getLength(propertyList4) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'distanceHeliocentric'         ,propertyList1)
+       hasDistance=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'rightAscensionDecimal'        ,propertyList2)
+       hasRightAscension=size(propertyList2) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'declinationDecimal'           ,propertyList3)
+       hasDeclination=size(propertyList3) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'positionHeliocentricCartesian',propertyList4)
+       hasPosition=size(propertyList4) == 1
        if (hasDistance .and. hasRightAscension .and. hasDeclination .and. .not. hasPosition) then
-          attribute => getAttributeNode(item(propertyList1,0),'value')
+          attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,distanceHeliocentric )
-          attribute => getAttributeNode(item(propertyList2,0),'value')
+          attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,rightAscensionDecimal)
-          attribute => getAttributeNode(item(propertyList3,0),'value')
+          attribute => getAttributeNode(propertyList3(0)%element,'value')
           call extractDataContent(attribute,declinationDecimal   )
           positionHeliocentricX=distanceHeliocentric*cos(declinationDecimal*degreesToRadians)*cos(rightAscensionDecimal*degreesToRadians)
           positionHeliocentricY=distanceHeliocentric*cos(declinationDecimal*degreesToRadians)*sin(rightAscensionDecimal*degreesToRadians)
@@ -451,8 +457,8 @@ contains
           write (textContent,'(e16.8,1x,e16.8,1x,e16.8)') positionHeliocentricX,positionHeliocentricY,positionHeliocentricZ
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
-             if (hasAttribute(item(propertyList1,0),trim(uncertainties(j)))) then
-                attribute => getAttributeNode(item(propertyList1,0),trim(uncertainties(j)))
+             if (hasAttribute(propertyList1(0)%element,trim(uncertainties(j)))) then
+                attribute => getAttributeNode(propertyList1(0)%element,trim(uncertainties(j)))
                 call extractDataContent(attribute,uncertainty1)
                 positionHeliocentricX=abs(uncertainty1*cos(declinationDecimal*degreesToRadians)*cos(rightAscensionDecimal*degreesToRadians))
                 positionHeliocentricY=abs(uncertainty1*cos(declinationDecimal*degreesToRadians)*sin(rightAscensionDecimal*degreesToRadians))
@@ -466,35 +472,35 @@ contains
        end if
     end do
     ! Get heliocentric Cartesian positions of Milky Way and M31.
-    galaxy        => item                (     self%galaxies   ,indexMilkyWay                  )
-    propertyList1 => getElementsByTagName(          galaxy     ,'positionHeliocentricCartesian')
-    attribute     => getAttributeNode    (item(propertyList1,0),'value'                        )
+    galaxy   => self%galaxies(indexMilkyWay)%element
+    call XML_Get_Elements_By_Tag_Name(galaxy,'positionHeliocentricCartesian',propertyList1)
+    attribute => getAttributeNode(propertyList1(0)%element,'value'      )
     call extractDataContent(attribute,positionMilkyWay           )
-    attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
+    attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
     call extractDataContent(attribute,uncertaintyPositionMilkyWay)
-    galaxy        => item                (     self%galaxies   ,indexM31                       )
-    propertyList1 => getElementsByTagName(          galaxy     ,'positionHeliocentricCartesian')
-    attribute     => getAttributeNode    (item(propertyList1,0),'value'                        )
+    galaxy  => self%galaxies(indexM31     )%element
+    call XML_Get_Elements_By_Tag_Name(galaxy,'positionHeliocentricCartesian',propertyList1)
+    attribute => getAttributeNode(propertyList1(0)%element,'value'      )
     call extractDataContent(attribute,positionM31)
-    attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
+    attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
     call extractDataContent(attribute,uncertaintyPositionM31)
     ! Compute galacto-centric distances.
-    do i=0,getLength(self%galaxies)-1
+    do i=0,size(self%galaxies)-1
        ! Milky Way.
-       galaxy        => item(self%galaxies,i)
-       propertyList1 => getElementsByTagName(galaxy,'positionHeliocentricCartesian')
-       hasPosition   =  getLength(propertyList1) == 1
-       propertyList2 => getElementsByTagName(galaxy,'distanceMilkyWay'             )
-       hasDistance   =  getLength(propertyList2) == 1
+       galaxy => self%galaxies(i)%element
+       call XML_Get_Elements_By_Tag_Name(galaxy,'positionHeliocentricCartesian',propertyList1)
+       hasPosition=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'distanceMilkyWay'             ,propertyList2)
+       hasDistance=size(propertyList2) == 1
        if (hasPosition .and. .not.hasDistance) then
-          attribute => getAttributeNode(item(propertyList1,0),'value')
+          attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,position)
           distance=sqrt(sum((position-positionMilkyWay)**2))
           newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceMilkyWay')
           write (textContent,'(e16.8)') distance
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
-          if (hasAttribute(item(propertyList1,0),'uncertainty')) then
-             attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
+          if (hasAttribute(propertyList1(0)%element,'uncertainty')) then
+             attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
              call extractDataContent(attribute,uncertaintyPosition)
              if (distance > 0.0d0) then
                 uncertainty2=sqrt(sum((position-positionMilkyWay)**2*(uncertaintyPosition**2+uncertaintyPositionMilkyWay**2)))/distance
@@ -507,20 +513,20 @@ contains
           newNode => appendChild(galaxy,newNode)
        end if
        ! M31.
-       galaxy        => item(self%galaxies,i)
-       propertyList1 => getElementsByTagName(galaxy,'positionHeliocentricCartesian')
-       hasPosition   =  getLength(propertyList1) == 1
-       propertyList2 => getElementsByTagName(galaxy,'distanceM31'                  )
-       hasDistance   =  getLength(propertyList2) == 1
+       galaxy => self%galaxies(i)%element
+       call XML_Get_Elements_By_Tag_Name(galaxy,'positionHeliocentricCartesian',propertyList1)
+       hasPosition=size(propertyList1) == 1
+       call XML_Get_Elements_By_Tag_Name(galaxy,'distanceM31'                  ,propertyList2)
+       hasDistance=size(propertyList2) == 1
        if (hasPosition .and. .not.hasDistance) then
-          attribute => getAttributeNode(item(propertyList1,0),'value')
+          attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,position)
           distance=sqrt(sum((position-positionM31)**2))
           newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceM31')
           write (textContent,'(e16.8)') distance
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
-          if (hasAttribute(item(propertyList1,0),'uncertainty')) then
-             attribute => getAttributeNode(item(propertyList1,0),'uncertainty')
+          if (hasAttribute(propertyList1(0)%element,'uncertainty')) then
+             attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
              call extractDataContent(attribute,uncertaintyPosition)
              if (distance > 0.0d0) then
                 uncertainty2=sqrt(sum((position-positionM31)**2*(uncertaintyPosition**2+uncertaintyPositionM31**2)))/distance

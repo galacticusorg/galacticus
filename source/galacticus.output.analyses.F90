@@ -21,7 +21,7 @@
 
 module Output_Analyses
   !% Provides a class that implements on-the-fly analyses.
-  use            :: Galacticus_Nodes, only : treeNode
+  use            :: Galacticus_Nodes, only : treeNode, mergerTree
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
   private
 
@@ -36,6 +36,16 @@ module Output_Analyses
   !#   <pass>yes</pass>
   !#   <argument>type   (treeNode), intent(inout) :: node</argument>
   !#   <argument>integer(c_size_t), intent(in   ) :: iOutput</argument>
+  !#  </method>
+  !#  <method name="newTree" >
+  !#   <description>Act on a new tree being analyzed.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (mergerTree), intent(inout) :: tree</argument>
+  !#   <argument>integer(c_size_t  ), intent(in   ) :: iOutput</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, tree, iOutput
+  !#   </code>
   !#  </method>
   !#  <method name="finalize" >
   !#   <description>Finalize the analysis.</description>

@@ -121,8 +121,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputSatelliteMergers value="true"/>
-    <outputSatelliteMergersMainBranchOnly value="true"/>
+    <nodeOperatorMethod value="galaxyMergersOutput">
+      <galacticFilterCentral value="mainBranch"/>
+    </nodeOperatorMethod>
   </parameters>
   
 </parameterGrid>

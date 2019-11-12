@@ -425,6 +425,7 @@ contains
     ! Initialize chain to some state vector.
     call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihoodInitial,logPosteriorInitial)
     ! Evaluate the posterior in the initial state if it wasn't set.
+    forceAcceptance     =.false.
     timeEvaluate        =-1.0
     timeEvaluatePrevious=real(timeEvaluateInitial)
     call CPU_Time(timePreEvaluate )
