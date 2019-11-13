@@ -264,19 +264,21 @@ contains
     character(len=*      ), intent(in   )                            :: tagName
     type     (node       )               , pointer                   :: childNode
     type     (xmlNodeList)               , allocatable, dimension(:) :: childElements
+    logical                                                          :: matchAll
 
     countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName)    
     offset       =0_c_size_t
     if (allocated(elements)) deallocate(elements)
     allocate(elements(0:countElements-1))
     if (hasChildNodes(xmlElement)) then
+       matchAll  =  tagName == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
           call XML_Get_Elements_By_Tag_Name(childNode,tagName,childElements)
           elements(offset:offset+size(childElements)-1)=childElements
           offset=offset+size(childElements)
           deallocate(childElements)
-          if (getNodeType(childNode) == Element_Node .and. getNodeName(childNode) == tagName) then
+          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == tagName)) then
              elements(offset)%element => childNode
              offset=offset+1_c_size_t
           end if
@@ -296,13 +298,15 @@ contains
     type     (node    ), intent(in   ), pointer :: xmlElement
     character(len=*   ), intent(in   )          :: tagName
     type     (node    )               , pointer :: childNode
+    logical                                     :: matchAll
 
     countElements=0_c_size_t
     if (hasChildNodes(xmlElement)) then
+       matchAll  =  tagName == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
           countElements=countElements+XML_Count_Elements_By_Tag_Name(childNode,tagName)
-          if (getNodeType(childNode) == Element_Node .and. getNodeName(childNode) == tagName) &
+          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == tagName)) &
                & countElements=countElements+1_c_size_t
           childNode => getNextSibling(childNode)
        end do

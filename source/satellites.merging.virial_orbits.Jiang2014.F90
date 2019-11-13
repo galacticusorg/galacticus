@@ -38,7 +38,7 @@
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      private
      class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_    => null()
-     class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_   => null()
+     class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_    => null()
      class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_     => null()
      type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_  => null()
      double precision                            , dimension(3,3) :: B                                , gamma                        , &
