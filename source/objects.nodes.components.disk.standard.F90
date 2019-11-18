@@ -24,6 +24,7 @@ module Node_Component_Disk_Standard
   use :: Dark_Matter_Halo_Scales                    , only : darkMatterHaloScaleClass
   use :: Galactic_Dynamics_Bar_Instabilities        , only : galacticDynamicsBarInstabilityClass
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks, only : ramPressureStrippingDisksClass
+  use :: Satellite_Merging_Mass_Movements           , only : mergerMassMovementsClass
   use :: Star_Formation_Feedback_Disks              , only : starFormationFeedbackDisksClass
   use :: Star_Formation_Feedback_Expulsion_Disks    , only : starFormationExpulsiveFeedbackDisksClass
   use :: Star_Formation_Histories                   , only : starFormationHistory                    , starFormationHistoryClass
@@ -35,12 +36,11 @@ module Node_Component_Disk_Standard
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve         , &
        &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver      , &
        &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute       , &
-       &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve        , &
-       &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset  , &
+       &    Node_Component_Disk_Standard_Final_State                  , Node_Component_Disk_Standard_Calculation_Reset  , &
        &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve     , &
        &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive           , &
        &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Thread_Uninitialize, &
-       &    Node_Component_Disk_Standard_Final_State
+       &    Node_Component_Disk_Standard_Initialize
 
   !# <component>
   !#  <class>disk</class>
@@ -170,7 +170,8 @@ module Node_Component_Disk_Standard
   class(ramPressureStrippingDisksClass          ), pointer :: ramPressureStrippingDisks_
   class(tidalStrippingDisksClass                ), pointer :: tidalStrippingDisks_
   class(starFormationHistoryClass               ), pointer :: starFormationHistory_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationTimescaleDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_)
+  class(mergerMassMovementsClass                ), pointer :: mergerMassMovements_
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationTimescaleDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -291,6 +292,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters_)
     !% Initializes the standard disk component module for each thread.
+    use :: Events_Hooks                     , only : satelliteMergerEvent       , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                                           dependencyDirectionAfter
     use :: Galacticus_Error                 , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
@@ -303,7 +306,8 @@ contains
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
-
+       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                                                                              )
        !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="parameters_"/>
@@ -313,6 +317,7 @@ contains
        !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="parameters_"/>
        !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="parameters_"/>
        !# <objectBuilder class="starFormationHistory"                name="starFormationHistory_"                source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"                 name="mergerMassMovements_"                 source="parameters_"/>
        !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
@@ -364,11 +369,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Disk_Standard_Thread_Uninitialize()
     !% Uninitializes the standard disk component module for each thread.
+    use :: Events_Hooks                     , only : satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
+       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
        !# <objectDestructor name="darkMatterHaloScale_"                />
        !# <objectDestructor name="stellarPopulationProperties_"        />
        !# <objectDestructor name="starFormationFeedbackDisks_"         />
@@ -378,6 +386,7 @@ contains
        !# <objectDestructor name="ramPressureStrippingDisks_"          />
        !# <objectDestructor name="tidalStrippingDisks_"                />
        !# <objectDestructor name="starFormationHistory_"               />
+       !# <objectDestructor name="mergerMassMovements_"                />
        !# <objectDestructor name="diskMassDistribution"                />
     end if
     return
@@ -422,18 +431,17 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
 
-  !# <postEvolveTask>
-  !# <unitName>Node_Component_Disk_Standard_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Disk_Standard_Post_Evolve(node)
+  subroutine postEvolve(self,node)
     !% Trim histories attached to the disk.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskStandard, treeNode
     use :: Histories       , only : history
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentDisk )               , pointer :: disk
-    class(nodeComponentBasic)               , pointer :: basic
-    type (history           )                         :: stellarPropertiesHistory
+    class(*                 ), intent(inout) :: self
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentDisk ), pointer       :: disk
+    class(nodeComponentBasic), pointer       :: basic
+    type (history           )                :: stellarPropertiesHistory
+    !GCC$ attributes unused :: self
 
     ! Get the disk component.
     disk => node%disk()
@@ -447,7 +455,7 @@ contains
        call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end select
     return
-  end subroutine Node_Component_Disk_Standard_Post_Evolve
+  end subroutine postEvolve
 
   !# <postStepTask>
   !# <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
@@ -1106,44 +1114,44 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Inactive
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Disk_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Disk_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
-    use :: Abundances_Structure                , only : zeroAbundances
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
-    use :: Histories                           , only : history
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk  , destinationMergerSpheroid
-    use :: Satellite_Merging_Remnant_Properties, only : destinationGasSatellite, destinationStarsSatellite
-    use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
+    use :: Abundances_Structure             , only : zeroAbundances
+    use :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                 , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
+    use :: Histories                        , only : history
+    use :: Satellite_Merging_Mass_Movements , only : destinationMergerDisk  , destinationMergerSpheroid
+    use :: Stellar_Luminosities_Structure   , only : zeroStellarLuminosities
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentDisk    )               , pointer :: diskHost               , disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroidHost           , spheroid
-    type            (treeNode             )               , pointer :: nodeHost
-    type            (history              )                         :: historyHost            , historyNode
-    double precision                                                :: specificAngularMomentum
+    class           (*                    ), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    class           (nodeComponentDisk    ), pointer       :: diskHost               , disk
+    class           (nodeComponentSpheroid), pointer       :: spheroidHost           , spheroid
+    type            (treeNode             ), pointer       :: nodeHost
+    type            (history              )                :: historyHost            , historyNode
+    double precision                                       :: specificAngularMomentum
+    integer                                                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                    destinationStarsHost   , destinationStarsSatellite
+    logical                                                :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
     ! Check that the disk is of the standard class.
     disk => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
+    class is (nodeComponentDiskStandard)
        spheroid => node%spheroid()
-
        ! Find the node to merge with.
        nodeHost     => node%mergesWith  (                 )
        diskHost     => nodeHost%disk    (autoCreate=.true.)
        spheroidHost => nodeHost%spheroid(autoCreate=.true.)
-
        ! Get specific angular momentum of the disk material.
        if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
           specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
        else
           specificAngularMomentum=0.0d0
        end if
+       ! Get mass movement descriptors.
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite)
        case (destinationMergerDisk)
@@ -1173,7 +1181,6 @@ contains
        end select
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
-
        ! Move the stellar component of the standard disk to the host.
        select case (destinationStarsSatellite)
        case (destinationMergerDisk)
@@ -1195,11 +1202,11 @@ contains
                &                                           )
           ! Also add stellar properties histories.
           historyNode=disk    %stellarPropertiesHistory()
-          historyHost=diskHost    %stellarPropertiesHistory()
-          call historyHost%interpolatedIncrement(historyNode)
-          call historyNode%reset    (           )
-          call diskHost%stellarPropertiesHistorySet(historyHost)
-          call disk%stellarPropertiesHistorySet(historyNode)
+          historyHost=diskHost%stellarPropertiesHistory()
+          call historyHost%interpolatedIncrement      (historyNode)
+          call historyNode%reset                      (           )
+          call diskHost   %stellarPropertiesHistorySet(historyHost)
+          call disk       %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
           historyNode=disk    %starFormationHistory    ()
           historyHost=diskHost%starFormationHistory    ()
@@ -1247,7 +1254,7 @@ contains
        call disk%    angularMomentumSet(                  0.0d0)
     end select
     return
-  end subroutine Node_Component_Disk_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>

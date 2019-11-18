@@ -190,6 +190,12 @@ module IO_HDF5
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>remove</method>
+     !@     <description>Return the named object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>objectType</method>
      !@     <description>Return the object type.</description>
      !@     <type>\intzero</type>
@@ -307,6 +313,7 @@ module IO_HDF5
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: close                                   =>IO_HDF5_Close
      procedure :: flush                                   =>IO_HDF5_Flush
+     procedure :: remove                                  =>IO_HDF5_Remove
      procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Write_Attribute_Integer_1D
      procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar
@@ -823,6 +830,35 @@ contains
     end if
     return
   end subroutine IO_HDF5_Flush
+
+  subroutine IO_HDF5_Remove(thisObject,objectName)
+    !% Remove the named object.
+    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : h5ldelete_f
+    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    implicit none
+    class    (hdf5Object    ), intent(inout) :: thisObject
+    character(len=*         ), intent(in   ) :: objectName
+    type     (varying_string)                :: message
+    integer                                  :: errorCode
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized()
+    ! Check that the object is open.
+    if (.not.thisObject%isOpenValue) then
+       message="Attempt to remove object from unopen HDF5 object '"//thisObject%objectName//"'"
+       call Galacticus_Display_Message(message)
+       return
+    end if
+    ! Remove the object.
+    call h5ldelete_f(thisObject%objectID,objectName,errorCode)
+    if (errorCode /= 0) then
+       message="unable to remove '"//objectname//"' from object '"//thisObject%objectName//"' to file"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    return
+  end subroutine IO_HDF5_Remove
 
   function IO_HDF5_Character_Types(stringLength)
     !% Return datatypes for character data of a given length. Types are for Fortran native and C native types.

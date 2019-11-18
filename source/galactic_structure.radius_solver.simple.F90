@@ -88,8 +88,8 @@ contains
     class(galacticStructureSolverSimple), intent(inout) :: self
 
     call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                        )
-    call      postEvolveEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel                                                                                                        )
-    call satelliteMergerEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel                                                                                                        )
+    call      postEvolveEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    call satelliteMergerEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     call   nodePromotionEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     return
   end subroutine simpleAutoHook

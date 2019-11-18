@@ -21,10 +21,11 @@
 
 module Node_Component_Merging_Statistics_Major
   !% Implements the major merging statistics component.
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Major_Satellite_Merging, Node_Component_Merging_Statistics_Major_Output             , &
-       &    Node_Component_Merging_Statistics_Major_Thread_Initialize, Node_Component_Merging_Statistics_Major_Thread_Uninitialize
+  public :: Node_Component_Merging_Statistics_Major_Thread_Uninitialize, Node_Component_Merging_Statistics_Major_Output, &
+       &    Node_Component_Merging_Statistics_Major_Thread_Initialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -40,6 +41,10 @@ module Node_Component_Merging_Statistics_Major
   !#  </properties>
   !# </component>
 
+  ! Classes used.
+  class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+  !$omp threadprivate(mergerMassMovements_)
+
 contains
 
   !# <nodeComponentThreadInitializationTask>
@@ -47,15 +52,19 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent               , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                          dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     !GCC$ attributes unused :: parameters_
 
-    if (defaultMergingStatisticsComponent%majorIsActive()) &
-         & call nodePromotionEvent%attach(defaultMergingStatisticsComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor')
+    if (defaultMergingStatisticsComponent%majorIsActive()) then
+       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       call nodePromotionEvent  %attach(defaultMergingStatisticsComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor'                                                                              )
+       call satelliteMergerEvent%attach(defaultMergingStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+    end if
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize
 
@@ -64,32 +73,35 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent               , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
-    if (defaultMergingStatisticsComponent%majorIsActive()) &
-         & call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
+    if (defaultMergingStatisticsComponent%majorIsActive()) then
+       !# <objectDestructor name="mergerMassMovements_"/>
+       call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
+       call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
+    end if
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Major_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Record any major merger of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes                    , only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
-    use :: Satellite_Merging_Remnant_Properties, only : mergerIsMajor
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type            (treeNode                      ), intent(inout), pointer      :: node
-    class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
-    class           (nodeComponentBasic            )               , pointer      :: basicHost          , basic
-    type            (treeNode                      )               , pointer      :: nodeHost
-    double precision                                , allocatable  , dimension(:) :: majorMergerTimesNew, majorMergerTimes
+    class           (*                             ), intent(inout)                :: self
+    type            (treeNode                      ), intent(inout)                :: node
+    class           (nodeComponentMergingStatistics), pointer                     :: mergingStatistics
+    class           (nodeComponentBasic            ), pointer                     :: basicHost              , basic
+    type            (treeNode                      ), pointer                     :: nodeHost
+    double precision                                , allocatable  , dimension(:) :: majorMergerTimesNew    , majorMergerTimes
+    integer                                                                       :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                           destinationStarsHost   , destinationStarsSatellite
+    logical                                                                       :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
+    ! Record the time of this merger if it is a major merger.
+    call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     ! Record the merger time if this is a major merger.
     if (mergerIsMajor) then
        ! Get required components
@@ -111,7 +123,7 @@ contains
        deallocate(majorMergerTimesNew)
     end if
     return
-  end subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging
+  end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.

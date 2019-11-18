@@ -21,12 +21,13 @@
 
 module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
-  use :: Output_Times, only : outputTimesClass
+  use :: Output_Times                    , only : outputTimesClass
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   implicit none
   private
-  public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset             , &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set         , &
-       &    Node_Component_Interoutput_Standard_Thread_Initialize , Node_Component_Interoutput_Standard_Thread_Uninitialize
+  public :: Node_Component_Inter_Output_Standard_Rate_Compute      , Node_Component_Inter_Output_Standard_Reset    , &
+       &    Node_Component_Interoutput_Standard_Thread_Uninitialize, Node_Component_Inter_Output_Standard_Scale_Set, &
+       &    Node_Component_Interoutput_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>interOutput</class>
@@ -53,8 +54,9 @@ module Node_Component_Inter_Output_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(outputTimesClass), pointer :: outputTimes_
-  !$omp threadprivate(outputTimes_)
+  class(outputTimesClass        ), pointer :: outputTimes_
+  class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+  !$omp threadprivate(outputTimes_,mergerMassMovements_)
 
 contains
 
@@ -63,13 +65,16 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard interoutput module.
+    use :: Events_Hooks    , only : satelliteMergerEvent       , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultInteroutputComponent
     use :: Input_Parameters, only : inputParameter             , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
+       call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
@@ -79,11 +84,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard interoutput module.
+    use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       !# <objectDestructor name="outputTimes_"/>
+       call satelliteMergerEvent%detach(defaultInteroutputComponent,satelliteMerger)
+       !# <objectDestructor name="outputTimes_"        />
+       !# <objectDestructor name="mergerMassMovements_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
@@ -195,20 +203,20 @@ contains
     return
   end subroutine Node_Component_Inter_Output_Standard_Reset
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
     use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid       , destinationMergerUnmoved
-    use :: Satellite_Merging_Remnant_Properties, only : destinationStarsHost    , destinationStarsSatellite
     implicit none
-    type   (treeNode                ), intent(inout), pointer :: node
-    type   (treeNode                )               , pointer :: nodeHost
-    class  (nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
+    class  (*                       ), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    type   (treeNode                ), pointer       :: nodeHost
+    class  (nodeComponentInterOutput), pointer       :: interOutputHost        , interOutput
+    integer                                          :: destinationGasSatellite, destinationGasHost       , &
+         &                                              destinationStarsHost   , destinationStarsSatellite
+    logical                                          :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
     ! Get the inter-output component.
     interOutput => node%interOutput()
@@ -218,6 +226,8 @@ contains
        ! Find the node to merge with.
        nodeHost        => node    %mergesWith ()
        interOutputHost => nodeHost%interOutput()
+       ! Get mass movement descriptors.
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the star formation rates from secondary to primary.
        select case (destinationStarsSatellite)
        case (destinationMergerDisk    )
@@ -265,6 +275,6 @@ contains
        end select
     end select
     return
-  end subroutine Node_Component_Inter_Output_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
 end module Node_Component_Inter_Output_Standard

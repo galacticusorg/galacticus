@@ -23,17 +23,17 @@ module Node_Component_Spheroid_Very_Simple
   !% Implements a very simple spheroid component.
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO           , only : darkMatterProfileDMOClass
+  use :: Satellite_Merging_Mass_Movements   , only : mergerMassMovementsClass
   use :: Star_Formation_Feedback_Spheroids  , only : starFormationFeedbackSpheroidsClass
   use :: Star_Formation_Timescales_Spheroids, only : starFormationTimescaleSpheroidsClass
   use :: Stellar_Population_Properties      , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Spheroid_Very_Simple_Post_Evolve               , Node_Component_Spheroid_Very_Simple_Rate_Compute         , &
-       &    Node_Component_Spheroid_Very_Simple_Scale_Set                 , Node_Component_Spheroid_Very_Simple_Satellite_Merging    , &
-       &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve           , &
-       &    Node_Component_Spheroid_Very_Simple_Rates                     , Node_Component_Spheroid_Very_Simple_Radius_Solver        , &
-       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Post_Step            , &
-       &    Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
+  public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Rate_Compute       , &
+       &    Node_Component_Spheroid_Very_Simple_Scale_Set                 , Node_Component_Spheroid_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve         , &
+       &    Node_Component_Spheroid_Very_Simple_Rates                     , Node_Component_Spheroid_Very_Simple_Radius_Solver      , &
+       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Post_Step
 
   !# <component>
   !#  <class>spheroid</class>
@@ -128,7 +128,8 @@ module Node_Component_Spheroid_Very_Simple
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
   class(darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_
   class(starFormationTimescaleSpheroidsClass), pointer :: starFormationTimescaleSpheroids_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfileDMO_)
+  class(mergerMassMovementsClass            ), pointer :: mergerMassMovements_
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfileDMO_,mergerMassMovements_)
 
   ! Parameters controlling the physical implementation.
   double precision :: spheroidOutflowTimescaleMinimum    , spheroidStarFormationTimescaleMinimum, &
@@ -210,17 +211,22 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple satellite module.
+    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                          dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
+       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                                                                              )
+       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
        !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="parameters_"/>
        !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="parameters_"/>
        !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"             name="mergerMassMovements_"             source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize
@@ -230,15 +236,19 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple satellite module.
+    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
+       call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
+       call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
        !# <objectDestructor name="darkMatterHaloScale_"            />
        !# <objectDestructor name="darkMatterProfileDMO_"           />
        !# <objectDestructor name="stellarPopulationProperties_"    />
        !# <objectDestructor name="starFormationFeedbackSpheroids_" />
        !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
+       !# <objectDestructor name="mergerMassMovements_"            />
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
@@ -264,19 +274,18 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve
 
-  !# <postEvolveTask>
-  !# <unitName>Node_Component_Spheroid_Very_Simple_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve(node)
+  subroutine postEvolve(self,node)
     !% Catch rounding errors in the very simple spheroid gas evolution.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     use :: Histories       , only : history
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentSpheroid )               , pointer :: spheroid
-    class           (nodeComponentBasic    )               , pointer :: basic
-    type            (history               )                         :: stellarPropertiesHistory
-
+    class(*                    ), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
+    class(nodeComponentBasic   ), pointer       :: basic
+    type (history              )                :: stellarPropertiesHistory
+    !GCC$ attributes unused :: self
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if a very simple spheroid component exists.
@@ -289,7 +298,7 @@ contains
        call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end select
     return
-  end subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve
+  end subroutine postEvolve
 
   !# <postStepTask>
   !# <unitName>Node_Component_Spheroid_Very_Simple_Post_Step</unitName>
@@ -571,244 +580,237 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Scale_Set
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use :: Abundances_Structure                , only : zeroAbundances
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : defaultSpheroidComponent, nodeComponentDisk        , nodeComponentSpheroid   , nodeComponentSpheroidVerySimple, &
-          &                                             treeNode
+    use :: Galacticus_Nodes                    , only : nodeComponentDisk       , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                           , only : history
     use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid, destinationMergerUnmoved
-    use :: Satellite_Merging_Remnant_Properties, only : destinationGasHost      , destinationGasSatellite  , destinationStarsHost    , destinationStarsSatellite
     use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
-    type   (treeNode             )               , pointer :: nodeHost
-    class  (nodeComponentSpheroid)               , pointer :: spheroidHost, spheroid
-    class  (nodeComponentDisk    )               , pointer :: diskHost
-    type   (history              )                         :: historyDisk , historySpheroid, &
-         &                                                    historyHost
+    class  (*                    ), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    type   (treeNode             ), pointer       :: nodeHost
+    class  (nodeComponentSpheroid), pointer       :: spheroidHost           , spheroid
+    class  (nodeComponentDisk    ), pointer       :: diskHost
+    type   (history              )                :: historyDisk            , historySpheroid          , &
+         &                                           historyHost
+    integer                                       :: destinationGasSatellite, destinationGasHost       , &
+         &                                           destinationStarsHost   , destinationStarsSatellite
+    logical                                       :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
-    ! Check that the very simple spheroid is active.
-    if (defaultSpheroidComponent%verySimpleIsActive()) then
-
-       ! Get the spheroid component, creating it if need be.
-       spheroid => node%spheroid(autoCreate=.true.)
-       select type (spheroid)
-       class is (nodeComponentSpheroidVerySimple)
-
-          ! Find the node to merge with and its spheroid component.
-          nodeHost     => node    %mergesWith(                 )
-          spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
-          diskHost     => nodeHost%disk      (autoCreate=.true.)
-          ! Move gas material within the host if necessary.
-          select case (destinationGasHost)
-          case (destinationMergerDisk)
-             call diskHost    %          massGasSet(                                       &
-                  &                                          +diskHost    %massGas      () &
-                  &                                          +spheroidHost%massGas      () &
-                  &                                         )
-             call diskHost    %    abundancesGasSet(                                       &
-                  &                                          +diskHost    %abundancesGas() &
-                  &                                          +spheroidHost%abundancesGas() &
-                  &                                         )
-             call spheroidHost%          massGasSet(                                       &
-                  &                                           0.0d0                        &
-                  &                                         )
-             call spheroidHost%    abundancesGasSet(                                       &
-                  &                                           zeroAbundances               &
-                  &                                         )
-          case (destinationMergerSpheroid)
-             call spheroidHost%          massGasSet(                                       &
-                  &                                          +spheroidHost%massGas      () &
-                  &                                          +diskHost    %massGas      () &
-                  &                                         )
-             call spheroidHost%    abundancesGasSet(                                       &
-                  &                                          +spheroidHost%abundancesGas() &
-                  &                                          +diskHost    %abundancesGas() &
-                  &                                         )
-             call diskHost    %          massGasSet(                                       &
-                  &                                           0.0d0                        &
-                  &                                         )
-             call diskHost    %    abundancesGasSet(                                       &
-                  &                                           zeroAbundances               &
-                  &                                         )
-          case (destinationMergerUnmoved)
-             ! Do nothing.
-          case default
-             call Galacticus_Error_Report(                                    &
-                  &                       'unrecognized movesTo descriptor'// &
-                  &                       {introspection:location}            &
-                  &                      )
-          end select
-
-          ! Move stellar material within the host if necessary.
-          select case (destinationStarsHost)
-          case (destinationMergerDisk)
-             call diskHost    %      massStellarSet  (                                    &
-                  &                                   +diskHost    %        massStellar() &
-                  &                                   +spheroidHost%        massStellar() &
-                  &                                  )
-             call diskHost    %abundancesStellarSet  (                                    &
-                  &                                    diskHost    %  abundancesStellar() &
-                  &                                   +spheroidHost%  abundancesStellar() &
-                  &                                  )
-             call diskHost    %luminositiesStellarSet(                                    &
-                  &                                    diskHost    %luminositiesStellar() &
-                  &                                   +spheroidHost%luminositiesStellar() &
-                  &                                  )
-             call spheroidHost%      massStellarSet  (                                    &
-                  &                                    0.0d0                              &
-                  &                                  )
-             call spheroidHost%abundancesStellarSet  (                                    &
-                  &                                    zeroAbundances                     &
-                  &                                  )
-             call spheroidHost%luminositiesStellarSet(                                    &
-                  &                                    zeroStellarLuminosities            &
-                  &                                   )
-             ! Also add stellar properties histories.
-             historyDisk    =    diskHost%stellarPropertiesHistory()
-             historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historyDisk    %interpolatedIncrement                  (historySpheroid)
-             call historySpheroid%reset                      (               )
-             call diskHost       %stellarPropertiesHistorySet(historyDisk    )
-             call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
-          case (destinationMergerSpheroid)
-             call spheroidHost%        massStellarSet(                                    &
-                  &                                    spheroidHost%        massStellar() &
-                  &                                   +diskHost    %        massStellar() &
-                  &                                  )
-             call spheroidHost%  abundancesStellarSet(                                    &
-                  &                                    spheroidHost%  abundancesStellar() &
-                  &                                   +diskHost    %  abundancesStellar() &
-                  &                                  )
-             call spheroidHost%luminositiesStellarSet(                                    &
-                  &                                    spheroidHost%luminositiesStellar() &
-                  &                                   +diskHost    %luminositiesStellar() &
-                  &                                  )
-             call diskHost    %        massStellarSet(                                    &
-                  &                                    0.0d0                              &
-                  &                                  )
-             call diskHost    %  abundancesStellarSet(                                    &
-                  &                                    zeroAbundances                     &
-                  &                                  )
-             call diskHost    %luminositiesStellarSet(                                    &
-                  &                                    zeroStellarLuminosities            &
-                  &                                  )
-             ! Also add stellar properties histories.
-             historyDisk    =    diskHost%stellarPropertiesHistory()
-             historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historySpheroid%interpolatedIncrement                  (historyDisk    )
-             call historyDisk    %reset                      (               )
-             call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
-             call diskHost       %stellarPropertiesHistorySet(historyDisk    )
-          case (destinationMergerUnmoved)
-             ! Do nothing.
-          case default
-             call Galacticus_Error_Report(                                    &
-                  &                       'unrecognized movesTo descriptor'// &
-                  &                       {introspection:location}            &
-                  &                      )
-          end select
-
-          ! Move the gas component of the very simple spheroid to the host.
-          select case (destinationGasSatellite)
-          case (destinationMergerDisk    )
-             call diskHost%massGasSet              (                                       &
-                  &                                          +diskHost    %      massGas() &
-                  &                                          +spheroid    %      massGas() &
-                  &                                         )
-             call diskHost%abundancesGasSet        (                                       &
-                  &                                          +diskHost    %abundancesGas() &
-                  &                                          +spheroid    %abundancesGas() &
-                  &                                         )
-          case (destinationMergerSpheroid)
-             call spheroidHost%massGasSet          (                                       &
-                  &                                          +spheroidHost%      massGas() &
-                  &                                          +spheroid    %      massGas() &
-                  &                                         )
-             call spheroidHost%abundancesGasSet    (                                       &
-                  &                                          +spheroidHost%abundancesGas() &
-                  &                                          +spheroid    %abundancesGas() &
-                  &                                         )
-          case default
-             call Galacticus_Error_Report(                                    &
-                  &                       'unrecognized movesTo descriptor'// &
-                  &                       {introspection:location}            &
-                  &                      )
-          end select
-          call    spheroid%massGasSet          (                                           &
-               &                                                                     0.0d0 &
-               &                                            )
-          call    spheroid%abundancesGasSet    (                                           &
-               &                                                            zeroAbundances &
-               &                                            )
-
-          ! Move the stellar component of the very simple spheroid to the host.
-          select case (destinationStarsSatellite)
-          case (destinationMergerDisk    )
-             call diskHost%        massStellarSet(                                &
-                  &                               +diskHost%        massStellar() &
-                  &                               +spheroid%        massStellar() &
-                  &                              )
-             call diskHost%  abundancesStellarSet(                                &
-                  &                               +diskHost%  abundancesStellar() &
-                  &                               +spheroid%  abundancesStellar() &
-                  &                              )
-             call diskHost%luminositiesStellarSet(                                &
-                  &                               +diskHost%luminositiesStellar() &
-                  &                               +spheroid%luminositiesStellar() &
-                  &                              )
-             ! Also add stellar properties histories.
-             historySpheroid=spheroid%stellarPropertiesHistory()
-             historyHost    =diskHost%stellarPropertiesHistory()
-             call historyHost    %interpolatedIncrement                  (historySpheroid)
-             call historySpheroid%reset                      (               )
-             call diskHost       %stellarPropertiesHistorySet(historyHost    )
-             call spheroid       %stellarPropertiesHistorySet(historySpheroid)
-          case (destinationMergerSpheroid)
-             call spheroidHost%        massStellarSet(                                    &
-                  &                                   +spheroidHost%        massStellar() &
-                  &                                   +spheroid    %        massStellar() &
-                  &                                  )
-             call spheroidHost%  abundancesStellarSet(                                    &
-                  &                                   +spheroidHost%  abundancesStellar() &
-                  &                                   +spheroid    %  abundancesStellar() &
-                  &                                  )
-            call spheroidHost%luminositiesStellarSet(                                     &
-                  &                                   +spheroidHost%luminositiesStellar() &
-                  &                                   +spheroid    %luminositiesStellar() &
-                  &                                  )
-             ! Also add stellar properties histories.
-             historySpheroid=spheroid%stellarPropertiesHistory()
-             historyHost=spheroidHost%stellarPropertiesHistory()
-             call historyHost    %interpolatedIncrement                  (historySpheroid)
-             call historySpheroid%reset                      (               )
-             call diskHost       %stellarPropertiesHistorySet(historyHost    )
-             call spheroid       %stellarPropertiesHistorySet(historySpheroid)
-          case default
-             call Galacticus_Error_Report(                                    &
-                  &                       'unrecognized movesTo descriptor'// &
-                  &                       {introspection:location}            &
-                  &                      )
-          end select
-          call    spheroid%         massStellarSet(                       &
-               &                                   0.0d0                  &
-               &                                  )
-          call    spheroid%  abundancesStellarSet(                        &
-               &                                  zeroAbundances          &
-               &                                 )
-          call    spheroid%luminositiesStellarSet(                        &
-               &                                  zeroStellarLuminosities &
-               &                                 )
+    ! Get the spheroid component, creating it if need be.
+    spheroid => node%spheroid(autoCreate=.true.)
+    select type (spheroid)
+    class is (nodeComponentSpheroidVerySimple)
+       ! Find the node to merge with and its spheroid component.
+       nodeHost     => node    %mergesWith(                 )
+       spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
+       diskHost     => nodeHost%disk      (autoCreate=.true.)
+       ! Get mass movement descriptors.
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       ! Move gas material within the host if necessary.
+       select case (destinationGasHost)
+       case (destinationMergerDisk)
+          call diskHost    %          massGasSet(                                       &
+               &                                          +diskHost    %massGas      () &
+               &                                          +spheroidHost%massGas      () &
+               &                                         )
+          call diskHost    %    abundancesGasSet(                                       &
+               &                                          +diskHost    %abundancesGas() &
+               &                                          +spheroidHost%abundancesGas() &
+               &                                         )
+          call spheroidHost%          massGasSet(                                       &
+               &                                           0.0d0                        &
+               &                                         )
+          call spheroidHost%    abundancesGasSet(                                       &
+               &                                           zeroAbundances               &
+               &                                         )
+       case (destinationMergerSpheroid)
+          call spheroidHost%          massGasSet(                                       &
+               &                                          +spheroidHost%massGas      () &
+               &                                          +diskHost    %massGas      () &
+               &                                         )
+          call spheroidHost%    abundancesGasSet(                                       &
+               &                                          +spheroidHost%abundancesGas() &
+               &                                          +diskHost    %abundancesGas() &
+               &                                         )
+          call diskHost    %          massGasSet(                                       &
+               &                                           0.0d0                        &
+               &                                         )
+          call diskHost    %    abundancesGasSet(                                       &
+               &                                           zeroAbundances               &
+               &                                         )
+       case (destinationMergerUnmoved)
+          ! Do nothing.
+       case default
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
+               &                      )
        end select
-    end if
+       ! Move stellar material within the host if necessary.
+       select case (destinationStarsHost)
+       case (destinationMergerDisk)
+          call diskHost    %      massStellarSet  (                                    &
+               &                                   +diskHost    %        massStellar() &
+               &                                   +spheroidHost%        massStellar() &
+               &                                  )
+          call diskHost    %abundancesStellarSet  (                                    &
+               &                                    diskHost    %  abundancesStellar() &
+               &                                   +spheroidHost%  abundancesStellar() &
+               &                                  )
+          call diskHost    %luminositiesStellarSet(                                    &
+               &                                    diskHost    %luminositiesStellar() &
+               &                                   +spheroidHost%luminositiesStellar() &
+               &                                  )
+          call spheroidHost%      massStellarSet  (                                    &
+               &                                    0.0d0                              &
+               &                                  )
+          call spheroidHost%abundancesStellarSet  (                                    &
+               &                                    zeroAbundances                     &
+               &                                  )
+          call spheroidHost%luminositiesStellarSet(                                    &
+               &                                    zeroStellarLuminosities            &
+               &                                   )
+          ! Also add stellar properties histories.
+          historyDisk    =    diskHost%stellarPropertiesHistory()
+          historySpheroid=spheroidHost%stellarPropertiesHistory()
+          call historyDisk    %interpolatedIncrement                  (historySpheroid)
+          call historySpheroid%reset                      (               )
+          call diskHost       %stellarPropertiesHistorySet(historyDisk    )
+          call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
+       case (destinationMergerSpheroid)
+          call spheroidHost%        massStellarSet(                                    &
+               &                                    spheroidHost%        massStellar() &
+               &                                   +diskHost    %        massStellar() &
+               &                                  )
+          call spheroidHost%  abundancesStellarSet(                                    &
+               &                                    spheroidHost%  abundancesStellar() &
+               &                                   +diskHost    %  abundancesStellar() &
+               &                                  )
+          call spheroidHost%luminositiesStellarSet(                                    &
+               &                                    spheroidHost%luminositiesStellar() &
+               &                                   +diskHost    %luminositiesStellar() &
+               &                                  )
+          call diskHost    %        massStellarSet(                                    &
+               &                                    0.0d0                              &
+               &                                  )
+          call diskHost    %  abundancesStellarSet(                                    &
+               &                                    zeroAbundances                     &
+               &                                  )
+          call diskHost    %luminositiesStellarSet(                                    &
+               &                                    zeroStellarLuminosities            &
+               &                                  )
+          ! Also add stellar properties histories.
+          historyDisk    =    diskHost%stellarPropertiesHistory()
+          historySpheroid=spheroidHost%stellarPropertiesHistory()
+          call historySpheroid%interpolatedIncrement                  (historyDisk    )
+          call historyDisk    %reset                      (               )
+          call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
+          call diskHost       %stellarPropertiesHistorySet(historyDisk    )
+       case (destinationMergerUnmoved)
+          ! Do nothing.
+       case default
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
+               &                      )
+       end select
+       ! Move the gas component of the very simple spheroid to the host.
+       select case (destinationGasSatellite)
+       case (destinationMergerDisk    )
+          call diskHost%massGasSet              (                                       &
+               &                                          +diskHost    %      massGas() &
+               &                                          +spheroid    %      massGas() &
+               &                                         )
+          call diskHost%abundancesGasSet        (                                       &
+               &                                          +diskHost    %abundancesGas() &
+               &                                          +spheroid    %abundancesGas() &
+               &                                         )
+       case (destinationMergerSpheroid)
+          call spheroidHost%massGasSet          (                                       &
+               &                                          +spheroidHost%      massGas() &
+               &                                          +spheroid    %      massGas() &
+               &                                         )
+          call spheroidHost%abundancesGasSet    (                                       &
+               &                                          +spheroidHost%abundancesGas() &
+               &                                          +spheroid    %abundancesGas() &
+               &                                         )
+       case default
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
+               &                      )
+       end select
+       call    spheroid%massGasSet          (                                           &
+            &                                                                     0.0d0 &
+            &                                            )
+       call    spheroid%abundancesGasSet    (                                           &
+            &                                                            zeroAbundances &
+            &                                            )
+       ! Move the stellar component of the very simple spheroid to the host.
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk    )
+          call diskHost%        massStellarSet(                                &
+               &                               +diskHost%        massStellar() &
+               &                               +spheroid%        massStellar() &
+               &                              )
+          call diskHost%  abundancesStellarSet(                                &
+               &                               +diskHost%  abundancesStellar() &
+               &                               +spheroid%  abundancesStellar() &
+               &                              )
+          call diskHost%luminositiesStellarSet(                                &
+               &                               +diskHost%luminositiesStellar() &
+               &                               +spheroid%luminositiesStellar() &
+               &                              )
+          ! Also add stellar properties histories.
+          historySpheroid=spheroid%stellarPropertiesHistory()
+          historyHost    =diskHost%stellarPropertiesHistory()
+          call historyHost    %interpolatedIncrement                  (historySpheroid)
+          call historySpheroid%reset                      (               )
+          call diskHost       %stellarPropertiesHistorySet(historyHost    )
+          call spheroid       %stellarPropertiesHistorySet(historySpheroid)
+       case (destinationMergerSpheroid)
+          call spheroidHost%        massStellarSet(                                    &
+               &                                   +spheroidHost%        massStellar() &
+               &                                   +spheroid    %        massStellar() &
+               &                                  )
+          call spheroidHost%  abundancesStellarSet(                                    &
+               &                                   +spheroidHost%  abundancesStellar() &
+               &                                   +spheroid    %  abundancesStellar() &
+               &                                  )
+          call spheroidHost%luminositiesStellarSet(                                     &
+               &                                   +spheroidHost%luminositiesStellar() &
+               &                                   +spheroid    %luminositiesStellar() &
+               &                                  )
+          ! Also add stellar properties histories.
+          historySpheroid=spheroid%stellarPropertiesHistory()
+          historyHost=spheroidHost%stellarPropertiesHistory()
+          call historyHost    %interpolatedIncrement                  (historySpheroid)
+          call historySpheroid%reset                      (               )
+          call diskHost       %stellarPropertiesHistorySet(historyHost    )
+          call spheroid       %stellarPropertiesHistorySet(historySpheroid)
+       case default
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
+               &                      )
+       end select
+       call    spheroid%         massStellarSet(                       &
+            &                                   0.0d0                  &
+            &                                  )
+       call    spheroid%  abundancesStellarSet(                        &
+            &                                  zeroAbundances          &
+            &                                 )
+       call    spheroid%luminositiesStellarSet(                        &
+            &                                  zeroStellarLuminosities &
+            &                                 )
+    end select
     return
-  end subroutine Node_Component_Spheroid_Very_Simple_Satellite_Merging
+  end subroutine satelliteMerger
 
   double precision function Node_Component_Spheroid_Very_Simple_SFR(self)
     !% Return the star formation rate of the very simple spheroid.

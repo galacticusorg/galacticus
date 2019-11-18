@@ -132,8 +132,8 @@ contains
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
 
     call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                             )
-    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel                                                                                                             )
-    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel                                                                                                             )
+    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     return
   end subroutine equilibriumAutoHook

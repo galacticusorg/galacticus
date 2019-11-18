@@ -27,10 +27,9 @@ module Node_Component_Black_Hole_Simple
   implicit none
   private
   public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
-       &    Node_Component_Black_Hole_Simple_Satellite_Merging  , Node_Component_Black_Hole_Simple_Output_Names     , &
+       &    Node_Component_Black_Hole_Simple_Thread_Uninitialize, Node_Component_Black_Hole_Simple_Output_Names     , &
        &    Node_Component_Black_Hole_Simple_Output_Count       , Node_Component_Black_Hole_Simple_Output           , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize, &
-       &    Node_Component_Black_Hole_Simple_Thread_Uninitialize
+       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -151,6 +150,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node random spin module.
+    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
@@ -160,7 +160,8 @@ contains
        !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
        !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="parameters_"/>
        !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="parameters_"/>
-    end if
+       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+   end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
 
@@ -169,6 +170,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
@@ -176,6 +178,7 @@ contains
        !# <objectDestructor name="darkMatterHaloScale_"  />
        !# <objectDestructor name="coolingRadius_"        />
        !# <objectDestructor name="blackHoleBinaryMerger_"/>
+       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize
@@ -299,39 +302,35 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Simple_Rate_Compute
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Black_Hole_Simple_Satellite_Merging</unitName>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Black_Hole_Simple_Satellite_Merging(thisNode)
-    !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
+  subroutine satelliteMerger(self,node)
+    !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
-    double precision                                                 :: blackHoleMassNew      , blackHoleSpinNew
-
-    ! Check that the simple black hole is active.
-    if (defaultBlackHoleComponent%simpleIsActive()) then
-       ! Find the node to merge with.
-       hostNode               => thisNode%mergesWith(                 )
-       ! Get the black holes.
-       thisBlackHoleComponent => thisNode%blackHole (autoCreate=.true.)
-       hostBlackHoleComponent => hostNode%blackHole (autoCreate=.true.)
-       ! Compute the effects of the merger.
-       call blackHoleBinaryMerger_%merge(thisBlackHoleComponent%mass(), &
-            &                            hostBlackHoleComponent%mass(), &
-            &                            0.0d0                        , &
-            &                            0.0d0                        , &
-            &                            blackHoleMassNew             , &
-            &                            blackHoleSpinNew               &
-            &                           )
-       ! Move the black hole to the host.
-       call hostBlackHoleComponent%massSet(blackHoleMassNew)
-       call thisBlackHoleComponent%massSet(           0.0d0)
-    end if
+    class           (*                     ), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: nodeHost
+    class           (nodeComponentBlackHole), pointer       :: blackHoleHost   , blackHole
+    double precision                                        :: massBlackHoleNew, spinBlackHoleNew
+    !GCC$ attributes unused :: self
+    
+    ! Find the node to merge with.
+    nodeHost      => node    %mergesWith(                 )
+    ! Get the black holes.
+    blackHole     => node    %blackHole (autoCreate=.true.)
+    blackHoleHost => nodeHost%blackHole (autoCreate=.true.)
+    ! Compute the effects of the merger.
+    call blackHoleBinaryMerger_%merge(blackHole    %mass(), &
+         &                            blackHoleHost%mass(), &
+         &                            0.0d0               , &
+         &                            0.0d0               , &
+         &                            massBlackHoleNew    , &
+         &                            spinBlackHoleNew      &
+         &                           )
+    ! Move the black hole to the host.
+    call blackHoleHost%massSet(massBlackHoleNew)
+    call blackHole%massSet(           0.0d0)
     return
-  end subroutine Node_Component_Black_Hole_Simple_Satellite_Merging
+  end subroutine satelliteMerger
 
   subroutine Node_Component_Black_Hole_Simple_Create(thisNode)
     !% Creates a simple black hole component for {\normalfont \ttfamily thisNode}.

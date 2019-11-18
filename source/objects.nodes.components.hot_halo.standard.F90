@@ -39,13 +39,12 @@ module Node_Component_Hot_Halo_Standard
   use :: Radiation_Fields                          , only : radiationFieldClass                , radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
-       &    Node_Component_Hot_Halo_Standard_Post_Evolve        , Node_Component_Hot_Halo_Standard_Reset            , &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger        , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
-       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute       , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
-       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize
+  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
+       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Formation          , &
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
+       &    Node_Component_Hot_Halo_Standard_Reset
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -431,7 +430,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo methods module.
-    use :: Events_Hooks    , only : nodePromotionEvent                   , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx                      , dependencyDirectionAfter
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
@@ -455,7 +455,9 @@ contains
        !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters_"/>
        !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters_"/>
        !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters_"/>
-       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard')
+       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                                                                              )
+       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                                                                              )
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
@@ -485,7 +487,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo methods module.
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -507,7 +509,9 @@ contains
        !# <objectDestructor name="radiationIntergalacticBackground"  />
        !# <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        !# <objectDestructor name="radiation"                         />
-       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
+       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -577,19 +581,18 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Post_Step
 
-  !# <postEvolveTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Hot_Halo_Standard_Post_Evolve(node)
+  subroutine postEvolve(self,node)
     !% Do processing of the node required after evolution.
     use :: Abundances_Structure                 , only : zeroAbundances
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentSpin, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites    , starveSatellitesOutflowed
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeParent
-    class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
-    class(nodeComponentSpin   )               , pointer :: spinParent
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
+    class(nodeComponentSpin   ), pointer       :: spinParent
+    !GCC$ attributes unused :: self
 
     ! Process hot gas for satellites.
     if (node%isSatellite()) then
@@ -604,30 +607,30 @@ contains
              end do
              hotHaloParent => nodeParent%hotHalo (autoCreate=.true.)
              spinParent    => nodeParent%spin    (                 )
-             call hotHaloParent%outflowedAngularMomentumSet(                                                   &
-                  &                                                   hotHaloParent%outflowedAngularMomentum() &
-                  &                                                  +  hotHalo%outflowedMass           () &
-                  &                                                  *   spinParent%spin                    () &
-                  &                                                  *darkMatterHaloScale_%virialRadius  (nodeParent)      &
-                  &                                                  *darkMatterHaloScale_%virialVelocity(nodeParent)      &
-                  &                                                 )
-             call   hotHalo%outflowedAngularMomentumSet(                                                   &
-                  &                                                   0.0d0                                             &
-                  &                                                 )
-             call hotHaloParent%outflowedMassSet           (                                                   &
-                  &                                                   hotHaloParent%outflowedMass           () &
-                  &                                                  +  hotHalo%outflowedMass           () &
-                  &                                                 )
-             call   hotHalo%outflowedMassSet           (                                                   &
-                  &                                                   0.0d0                                             &
-                  &                                                 )
-             call hotHaloParent%outflowedAbundancesSet     (                                                   &
-                  &                                                   hotHaloParent%outflowedAbundances     () &
-                  &                                                  +  hotHalo%outflowedAbundances     () &
-                  &                                                 )
-             call hotHalo%outflowedAbundancesSet       (                                                   &
-                  &                                                   zeroAbundances                                    &
-                  &                                                 )
+             call hotHaloParent%outflowedAngularMomentumSet(                                                           &
+                  &                                         +hotHaloParent       %outflowedAngularMomentum(          ) &
+                  &                                         +hotHalo             %outflowedMass           (          ) &
+                  &                                         *spinParent          %spin                    (          ) &
+                  &                                         *darkMatterHaloScale_%virialRadius            (nodeParent) &
+                  &                                         *darkMatterHaloScale_%virialVelocity          (nodeParent) &
+                  &                                        )
+             call hotHalo      %outflowedAngularMomentumSet(                                                           &
+                  &                                         +0.0d0                                                     &
+                  &                                        )
+             call hotHaloParent%outflowedMassSet           (                                                           &
+                  &                                         +hotHaloParent       %outflowedMass           (          ) &
+                  &                                         +hotHalo             %outflowedMass           (          ) &
+                  &                                        )
+             call hotHalo      %outflowedMassSet           (                                                           &
+                  &                                         +0.0d0                                                     &
+                  &                                        )
+             call hotHaloParent%outflowedAbundancesSet     (                                                           &
+                  &                                         +hotHaloParent       %outflowedAbundances     (          ) &
+                  &                                         +hotHalo             %outflowedAbundances     (          ) &
+                  &                                        )
+             call hotHalo      %outflowedAbundancesSet     (                                                           &
+                  &                                         +zeroAbundances                                            &
+                  &                                        )
           end select
        end if
        ! Check if stripped mass is being tracked.
@@ -643,32 +646,32 @@ contains
              call Node_Component_Hot_Halo_Standard_Create(nodeParent)
              hotHaloParent => nodeParent%hotHalo (autoCreate=.true.)
              spinParent    => nodeParent%spin    (                 )
-             call hotHaloParent%outflowedAngularMomentumSet(                                                   &
-                  &                                                   hotHaloParent%outflowedAngularMomentum() &
-                  &                                                  +  hotHalo%strippedMass            () &
-                  &                                                  *   spinParent%spin                    () &
-                  &                                                  *darkMatterHaloScale_%virialRadius  (nodeParent)      &
-                  &                                                  *darkMatterHaloScale_%virialVelocity(nodeParent)      &
-                  &                                                 )
-             call hotHaloParent%outflowedMassSet           (                                                   &
-                  &                                                   hotHaloParent%outflowedMass           () &
-                  &                                                  +  hotHalo%strippedMass            () &
-                  &                                                 )
-             call   hotHalo%strippedMassSet            (                                                   &
-                  &                                                   0.0d0                                             &
-                  &                                                 )
-             call hotHaloParent%outflowedAbundancesSet     (                                                   &
-                  &                                                   hotHaloParent%outflowedAbundances     () &
-                  &                                                  +  hotHalo%strippedAbundances      () &
-                  &                                                 )
-             call hotHalo%strippedAbundancesSet        (                                                   &
-                  &                                                   zeroAbundances                                    &
-                  &                                                 )
+             call hotHaloParent%outflowedAngularMomentumSet(                                                           &
+                  &                                         +hotHaloParent       %outflowedAngularMomentum(          ) &
+                  &                                         +hotHalo             %strippedMass            (          ) &
+                  &                                         *spinParent          %spin                    (          ) &
+                  &                                         *darkMatterHaloScale_%virialRadius            (nodeParent) &
+                  &                                         *darkMatterHaloScale_%virialVelocity          (nodeParent) &
+                  &                                        )
+             call hotHaloParent%outflowedMassSet           (                                                           &
+                  &                                         +hotHaloParent       %outflowedMass           (          ) &
+                  &                                         +hotHalo             %strippedMass            (          ) &
+                  &                                        )
+             call   hotHalo%strippedMassSet                (                                                           &
+                  &                                         +0.0d0                                                     &
+                  &                                        )
+             call hotHaloParent%outflowedAbundancesSet     (                                                           &
+                  &                                         +hotHaloParent       %outflowedAbundances     (          ) &
+                  &                                         +hotHalo             %strippedAbundances      (          ) &
+                  &                                        )
+             call hotHalo%strippedAbundancesSet            (                                                           &
+                  &                                         +zeroAbundances                                            &
+                  &                                        )
           end select
        end if
     end if
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Post_Evolve
+  end subroutine postEvolve
 
   subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,gasMassRate,interrupt,interruptProcedure)
     !% Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
@@ -1632,35 +1635,31 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Node_Merger
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merging</unitName>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use :: Abundances_Structure                 , only : abundances            , zeroAbundances
     use :: Chemical_Abundances_Structure        , only : zeroChemicalAbundances
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeHost
-    class(nodeComponentHotHalo)               , pointer :: hotHaloHost, hotHalo
-    class(nodeComponentSpin   )               , pointer :: spinHost
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeHost
+    class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
+    class(nodeComponentSpin   ), pointer       :: spinHost
+    !GCC$ attributes unused :: self
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
-
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of unspecified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
-
        ! Find the node to merge with.
        nodeHost             => node    %mergesWith(                 )
        hotHaloHost          => nodeHost%hotHalo   (autoCreate=.true.)
        spinHost             => nodeHost%spin      (                 )
-
        ! Move the hot halo to the host.
        call hotHaloHost%                    massSet(                                                         &
             &                                        hotHaloHost         %mass                    (        ) &
@@ -1723,7 +1722,7 @@ contains
             &                                      )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily

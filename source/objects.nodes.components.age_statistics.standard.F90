@@ -21,11 +21,12 @@
 
 module Node_Component_Age_Statistics_Standard
   !% Implements the standard galaxy age statistics component.
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   implicit none
   private
-  public :: Node_Component_Age_Statistics_Standard_Scale_Set        , Node_Component_Age_Statistics_Standard_Rate_Compute, &
-       &    Node_Component_Age_Statistics_Standard_Satellite_Merging, Node_Component_Age_Statistics_Standard_Inactive    , &
-       &    Node_Component_Age_Statistics_Standard_Initialize
+  public :: Node_Component_Age_Statistics_Standard_Scale_Set          , Node_Component_Age_Statistics_Standard_Rate_Compute     , &
+       &    Node_Component_Age_Statistics_Standard_Thread_Uninitialize, Node_Component_Age_Statistics_Standard_Inactive         , &
+       &    Node_Component_Age_Statistics_Standard_Initialize         , Node_Component_Age_Statistics_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>ageStatistics</class>
@@ -66,9 +67,13 @@ module Node_Component_Age_Statistics_Standard
   !#   </property>
   !#  </properties>
   !# </component>
-
+  
+  ! Objects used by this component.
+  class  (mergerMassMovementsClass), pointer :: mergerMassMovements_
+  !$omp threadprivate(mergerMassMovements_)
+  
   ! Record of whether variables in this component are inactive.
-  logical :: ageStatisticsStandardIsInactive
+  logical                                    :: ageStatisticsStandardIsInactive
 
 contains
 
@@ -94,6 +99,41 @@ contains
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Age_Statistics_Standard_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize(parameters_)
+    !% Initializes the standard age statistics component module for each thread.
+    use :: Events_Hooks    , only : satelliteMergerEvent         , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
+    use :: Input_Parameters, only : inputParameters
+    use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+
+    ! Check if this implementation is selected. If so, initialize the mass distribution.
+    if (defaultAgeStatisticsComponent%standardIsActive()) then
+       call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+    end if
+    return
+  end subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Age_Statistics_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize()
+    !% Uninitializes the standard disk component module for each thread.
+    use :: Events_Hooks    , only : satelliteMergerEvent
+    use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
+    implicit none
+
+    if (defaultAgeStatisticsComponent%standardIsActive()) then
+       call satelliteMergerEvent%detach(defaultAgeStatisticsComponent,satelliteMerger)
+       !# <objectDestructor name="mergerMassMovements_"/>
+    end if
+    return
+  end subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize
 
   !# <inactiveSetTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Inactive</unitName>
@@ -216,22 +256,22 @@ contains
     return
   end subroutine Node_Component_Age_Statistics_Standard_Rate_Compute
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk     , destinationMergerSpheroid         , destinationMergerUnmoved
-    use :: Satellite_Merging_Remnant_Properties, only : destinationStarsHost      , destinationStarsSatellite
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk     , destinationMergerSpheroid         , destinationMergerUnmoved
     implicit none
-    type   (treeNode                  ), intent(inout), pointer :: node
-    type   (treeNode                  )               , pointer :: nodeHost
-    class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
+    class  (*                         ), intent(inout) :: self
+    type   (treeNode                  ), intent(inout) :: node
+    type   (treeNode                  ), pointer       :: nodeHost
+    class  (nodeComponentAgeStatistics), pointer       :: ageStatistics          , ageStatisticsHost
+    integer                                            :: destinationGasSatellite, destinationGasHost       , &
+         &                                                destinationStarsHost   , destinationStarsSatellite
+    logical                                            :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
-    ! Get the inter-output component.
+    ! Get the age statistics component.
     ageStatistics => node%ageStatistics()
     ! Ensure that it is of the standard class.
     select type (ageStatistics)
@@ -239,6 +279,8 @@ contains
        ! Find the node to merge with.
        nodeHost          => node    %mergesWith   (                 )
        ageStatisticsHost => nodeHost%ageStatistics(autoCreate=.true.)
+       ! Get mass movement descriptors.
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the star formation rates from secondary to primary.
        select case (destinationStarsSatellite)
        case (destinationMergerDisk    )
@@ -314,6 +356,6 @@ contains
        end select
     end select
     return
-  end subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
 end module Node_Component_Age_Statistics_Standard

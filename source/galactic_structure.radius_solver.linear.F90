@@ -79,8 +79,8 @@ contains
     class(galacticStructureSolverLinear), intent(inout) :: self
 
     call   preDerivativeEvent%attach(self,linearSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                        )
-    call      postEvolveEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel                                                                                                        )
-    call satelliteMergerEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel                                                                                                        )
+    call      postEvolveEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    call satelliteMergerEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     call   nodePromotionEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
     return
   end subroutine linearAutoHook

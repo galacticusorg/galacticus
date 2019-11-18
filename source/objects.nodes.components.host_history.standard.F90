@@ -23,8 +23,8 @@ module Node_Component_Host_History_Standard
   !% Implements a component class that tracks the maximum host mass seen by each halo.
   implicit none
   private
-  public :: Node_Component_Host_History_Standard_Merger_Tree_Init , Node_Component_Host_History_Standard_Update_History     , &
-       &    Node_Component_Host_History_Standard_Thread_Initialize, Node_Component_Host_History_Standard_Thread_Uninitialize
+  public :: Node_Component_Host_History_Standard_Merger_Tree_Init   , Node_Component_Host_History_Standard_Thread_Initialize, &
+       &    Node_Component_Host_History_Standard_Thread_Uninitialize, Node_Component_Host_History_Standard_Update_History
 
   !# <component>
   !#  <class>hostHistory</class>
@@ -77,15 +77,17 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Host_History_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node scale dark matter profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent         , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent         , postEvolveEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     !GCC$ attributes unused :: parameters_
-
-    if (defaultHostHistoryComponent%standardIsActive()) &
-         call nodePromotionEvent%attach(defaultHostHistoryComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHostHistoryStandard')
+    
+    if (defaultHostHistoryComponent%standardIsActive()) then
+       call nodePromotionEvent%attach(defaultHostHistoryComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHostHistoryStandard')
+       call postEvolveEvent   %attach(defaultHostHistoryComponent,postEvolve   ,openMPThreadBindingAtLevel,label='nodeComponentHostHistoryStandard')
+    end if
     return
   end subroutine Node_Component_Host_History_Standard_Thread_Initialize
 
@@ -94,12 +96,14 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Host_History_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node scale dark matter profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent         , postEvolveEvent
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent
     implicit none
 
-    if (defaultHostHistoryComponent%standardIsActive()) &
-         & call nodePromotionEvent%detach(defaultHostHistoryComponent,nodePromotion)
+    if (defaultHostHistoryComponent%standardIsActive()) then
+       call nodePromotionEvent%detach(defaultHostHistoryComponent,nodePromotion)
+       call postEvolveEvent   %detach(defaultHostHistoryComponent,postEvolve   )
+    end if
     return
   end subroutine Node_Component_Host_History_Standard_Thread_Uninitialize
 
@@ -114,13 +118,22 @@ contains
     call Node_Component_Host_History_Standard_Update_History(node)
     return
   end subroutine nodePromotion
-
+  
+  subroutine postEvolve(self,node)
+    !% Wrapper function for the history update function.
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*       ), intent(inout) :: self
+    type (treeNode), intent(inout) :: node
+    !GCC$ attributes unused :: self
+    
+    call Node_Component_Host_History_Standard_Update_History(node)
+    return
+  end subroutine postEvolve
+  
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
   !# </nodeMergerTask>
-  !# <postEvolveTask>
-  !# <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
-  !# </postEvolveTask>
   subroutine Node_Component_Host_History_Standard_Update_History(thisNode)
     !% Record any major merger of {\normalfont \ttfamily thisNode}.
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, treeNode
