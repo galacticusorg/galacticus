@@ -1002,10 +1002,10 @@ contains
           if (mergerTreeEvolverDone) then
              ! The mergerTreeEvolver was performed successfully, so remove it and move to the next event.
              if (associated(event,node%event)) then
-                node%event => event%next
-                eventLast      => node %event
+                node     %event => event%next
+                eventLast       => node %event
              else
-                eventLast%next => event%next
+                eventLast%next  => event%next
              end if
              eventNext => event%next
              deallocate(event)
