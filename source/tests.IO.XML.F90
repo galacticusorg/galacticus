@@ -21,13 +21,14 @@
 
 program Tests_IO_XML
   !% Tests the XML I/O module.
-  use :: FoX_DOM           , only : destroy                       , extractDataContent    , node                 , serialize
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Galacticus_Error  , only : Galacticus_Error_Report
-  use :: IO_XML            , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-          &                         XML_Parse                     , XML_Path_Exists       , xmlNodeList          , XML_Get_lLements_By_Tag_Name
-  use :: System_Command    , only : System_Command_Do
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
+  use            :: FoX_DOM           , only : destroy                       , extractDataContent    , node                 , serialize
+  use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use            :: Galacticus_Error  , only : Galacticus_Error_Report
+  use            :: IO_XML            , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                                    XML_Parse                     , XML_Path_Exists       , xmlNodeList          , XML_Get_ELements_By_Tag_Name
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: System_Command    , only : System_Command_Do
+  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
   type            (node       )                           , pointer :: doc        , xmlElement
   type            (xmlNodeList), allocatable, dimension(:)          :: xmlElements
@@ -80,7 +81,7 @@ program Tests_IO_XML
 
   ! Test array length functions.
   xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"array1")
-  call Assert("Determine array length",XML_Count_Elements_By_Tag_Name(xmlElement,"datum"),10)
+  call Assert("Determine array length",XML_Count_Elements_By_Tag_Name(xmlElement,"datum"),10_c_size_t)
 
   ! Test path detection.
   call Assert("Extant path correctly detected"    ,XML_Path_Exists(doc,"test/level1/level2/level3"),.true. )
