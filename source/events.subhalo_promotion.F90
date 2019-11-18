@@ -66,6 +66,12 @@ contains
     nodePromotion%firstChild => node
     ! Trigger the event.
     !# <eventHook name="subhaloPromotion">
+    !#  <import>
+    !#   <module name="Galacticus_Nodes" symbols="treeNode"/>
+    !#  </import>
+    !#  <interface>
+    !#   type(treeNode), intent(inout), pointer :: node, nodePromotion
+    !#  </interface>
     !#  <callWith>node,nodePromotion</callWith>
     !# </eventHook>
     ! Since we changed the tree, record that the tree is not deadlocked.
