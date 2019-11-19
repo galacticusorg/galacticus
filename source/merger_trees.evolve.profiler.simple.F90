@@ -22,7 +22,19 @@
   use :: Hashes, only : integerScalarHash
   
   !# <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
-  !#  <description>A merger tree evolve profiler that collects simple data.</description>
+  !#  <description>
+  !#   A merger tree evolve profiler that collects simple data. Each step taken by the ODE evolver is then analyzed. First, a
+  !#   record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size
+  !#   (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to
+  !#   determine step size) is determined and a record of this is kept.
+  !#
+  !#   At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily
+  !#   metaData/evolverProfiler}. A histogram of time step sizes is written to {\normalfont \ttfamily timeStepCount} with bins
+  !#   specified in {\normalfont \ttfamily timeStep}---these bins can be adjusted using {\normalfont \ttfamily [timeStepMinimum]},
+  !#   {\normalfont \ttfamily [timeStepMaximum]} and {\normalfont \ttfamily [timeStepPointsPerDecade]}. A histogram of which
+  !#   properties limited step size is written to {\normalfont \ttfamily propertyHitCount} with the associated property names
+  !#   written to {\normalfont \ttfamily [propertyNames]}.
+  !#  </description>
   !# </mergerTreeEvolveProfiler>
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple
      !% A merger tree evolve profiler that collects simple data.

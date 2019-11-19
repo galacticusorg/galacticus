@@ -301,26 +301,13 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\normalfont \scshape Galacticus}@analysis!galacticus}
 
-\glc\ contains modules which allow it to analyze and profile its own performance.
+\glc\ contains functionality which allow it to analyze and profile its own performance:
 
-\subsection{Tree Construction/Evolution Timing}\label{sec:MetaTreeTimingProfiler}\index{run time!tree construction}\index{run time!tree evolution}
-
-The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\normalfont \ttfamily Galacticus\_Meta\_Tree\_Timing}} module records the time taken to construct and evolve each merger tree. Setting {\normalfont \ttfamily [metaCollectTimingData]}$=${\normalfont \ttfamily true} will cause tree timing data to be recorded and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
 \begin{description}
- \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
- \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
- \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
+  \item[Merger tree processing times:] (See \S\ref{sec:methodsMergerTreeOperator}.) Records the time taken to construct and evolve each merger tree.
+
+  \item[Differential evolution profiling:] (See \S\ref{sec:methodsMergerTreeEvolveProfiler}.) This meta-analysis profiles the steps taken by the ODE solver. Setting {\normalfont \ttfamily [profileOdeEvolver]}$=${\normalfont \ttfamily true} will activate profiling.
 \end{description}
-
-\subsection{ODE Evolver Profiler}
-
-The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\normalfont \ttfamily Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
-
-\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@carnegiescience.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\normalfont \ttfamily -DPROFILE} in the compilation options (e.g. add this to your {\normalfont \ttfamily GALACTICUS\_FCFLAGS} environment variable).
-
-When active, setting {\normalfont \ttfamily [profileOdeEvolver]}$=${\normalfont \ttfamily true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
-
-At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily metaData/evolverProfiler}. A histogram of time step sizes is written to {\normalfont \ttfamily metaProfileTimeStepCount} with bins specified in {\normalfont \ttfamily metaProfileTimeStep}---these bins can be adjusted using {\normalfont \ttfamily [metaProfileTimeStepMinimum]}, {\normalfont \ttfamily [metaProfileTimeStepMaximum]} and {\normalfont \ttfamily [metaProfileTimeStepPointsPerDecade]}. A histogram of which properties limited step size is written to {\normalfont \ttfamily metaProfilePropertyHitCount} with the associated property names written to {\normalfont \ttfamily [metaProfilePropertyNames]}. Property names can only be determined if the component to which they belong supports the {\normalfont \ttfamily decodePropertyIdentifiersTask} directive (see \S\ref{sec:DecodePropertyIndentifierTask}). Properties which could not be decoded in this way are listed as {\normalfont \ttfamily unknown}.
 
 \section{On-The-Fly Analysis}\label{sec:OnTheFlyAnalysis}\index{analysis!on-the-fly}
 
