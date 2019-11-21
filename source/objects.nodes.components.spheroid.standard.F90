@@ -293,8 +293,8 @@ contains
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                                                                              )
-       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                                                                                                                                             )
+       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:'),dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')])
        !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters_"/>
        !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters_"/>
@@ -1051,7 +1051,7 @@ contains
     ! Get the spheroid component, creating it if need be.
     spheroid => node%spheroid(autoCreate=.true.)
     select type (spheroid)
-       class is (nodeComponentSpheroidStandard)
+    class is (nodeComponentSpheroidStandard)
        disk => node%disk()
        ! Find the node to merge with.
        nodeHost     => node    %mergesWith(                 )
@@ -1231,9 +1231,9 @@ contains
        end select
        ! If the entire host disk/spheroid (gas plus stars) was moved to the spheroid/disk, ensure that the
        ! corresponding angular momentum is precisely zero.
-       if (diskHost    %massStellar()+diskHost    %massGas() == 0.0d0) &
+       if (diskHost    %massStellar()+diskHost    %massGas() == 0.0d0 .and. diskHost%angularMomentum() /= 0.0d0) &
             & call diskHost%angularMomentumSet    (0.0d0)
-       if (spheroidHost%massStellar()+spheroidHost%massGas() == 0.0d0) &
+       if (spheroidHost%massStellar()+spheroidHost%massGas() == 0.0d0                                          ) &
             & call spheroidHost%angularMomentumSet(0.0d0)
 
        ! Get specific angular momentum of the spheroid material.

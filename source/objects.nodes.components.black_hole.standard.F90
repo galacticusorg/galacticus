@@ -276,14 +276,14 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard black hole module.
-    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
+    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=[dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')])
        !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
        !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
        !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
@@ -537,7 +537,7 @@ contains
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
-          ! Compute the outcome of the merger,
+          ! Compute the outcome of the merger.
           call blackHoleBinaryMerger_%merge(                             &
                &                            blackHole           %mass(), &
                &                            blackHoleHostCentral%mass(), &
