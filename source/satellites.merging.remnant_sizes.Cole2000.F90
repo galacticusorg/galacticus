@@ -89,12 +89,12 @@ contains
 
   subroutine cole2000AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerRemnantSizeCole2000), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,cole2000CalculationReset,openMPThreadBindingAtLevel                                             )
-    call satelliteMergerEvent %attach(self,cole2000GetHook         ,openMPThreadBindingAtLevel,label='remnantStructure:remnantSizeCole2000')
+    call calculationResetEvent%attach(self,cole2000CalculationReset,openMPThreadBindingAllLevels                                             )
+    call satelliteMergerEvent %attach(self,cole2000GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:remnantSizeCole2000')
     return
   end subroutine cole2000AutoHook
 

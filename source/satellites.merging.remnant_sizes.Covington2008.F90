@@ -102,12 +102,12 @@ contains
 
   subroutine covington2008AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerRemnantSizeCovington2008), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,covington2008CalculationReset,openMPThreadBindingAtLevel                                             )
-    call satelliteMergerEvent %attach(self,covington2008GetHook         ,openMPThreadBindingAtLevel,label='remnantStructure:remnantSizeCovington2008')
+    call calculationResetEvent%attach(self,covington2008CalculationReset,openMPThreadBindingAllLevels                                                  )
+    call satelliteMergerEvent %attach(self,covington2008GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:remnantSizeCovington2008')
     return
   end subroutine covington2008AutoHook
 

@@ -80,12 +80,12 @@ contains
 
   subroutine verySimpleAutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsVerySimple), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAtLevel                                                 )
-    call satelliteMergerEvent %attach(self,verySimpleGetHook         ,openMPThreadBindingAtLevel,label='remnantStructure:massMovementsVerySimple')
+    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAllLevels                                                 )
+    call satelliteMergerEvent %attach(self,verySimpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
     return
   end subroutine verySimpleAutoHook
 

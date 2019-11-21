@@ -116,12 +116,12 @@ contains
 
   subroutine baugh2005AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsBaugh2005), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,baugh2005CalculationReset,openMPThreadBindingAtLevel                                                )
-    call satelliteMergerEvent %attach(self,baugh2005GetHook         ,openMPThreadBindingAtLevel,label='remnantStructure:massMovementsBaugh2005')
+    call calculationResetEvent%attach(self,baugh2005CalculationReset,openMPThreadBindingAllLevels                                                )
+    call satelliteMergerEvent %attach(self,baugh2005GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsBaugh2005')
     return
   end subroutine baugh2005AutoHook
 

@@ -97,12 +97,12 @@ contains
 
   subroutine simpleAutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsSimple), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAtLevel                                             )
-    call satelliteMergerEvent %attach(self,simpleGetHook         ,openMPThreadBindingAtLevel,label='remnantStructure:massMovementsSimple')
+    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels                                             )
+    call satelliteMergerEvent %attach(self,simpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsSimple')
     return
   end subroutine simpleAutoHook
 
