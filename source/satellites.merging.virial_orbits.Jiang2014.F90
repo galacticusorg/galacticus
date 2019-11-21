@@ -289,12 +289,12 @@ contains
                   &                          )
              limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
              limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
-             voightDistribution=distributionFunction1DVoight(                 &
-                  &                                          self%gamma(i,j), &
-                  &                                          self%mu   (i,j), &
-                  &                                          self%sigma(i,j), &
-                  &                                          limitLower     , &
-                  &                                          limitUpper       &
+             voightDistribution=distributionFunction1DVoight(                        &
+                  &                                          self%gamma(i,j)       , &
+                  &                                          self%mu   (i,j)       , &
+                  &                                          self%sigma(i,j)       , &
+                  &                                          limitLower            , &
+                  &                                          limitUpper              &
                   &                                         )
              ! Tabulate the cumulative distribution.
              call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
@@ -490,7 +490,7 @@ contains
        call jiang2014Orbit%massesSet(massSatellite,massHost      )
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
-       jiang2014XTotal               =node%hostTree%randomNumberGenerator%uniformSample()
+       jiang2014XTotal               =node%hostTree%randomNumberGenerator_%uniformSample()
        jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
@@ -508,7 +508,7 @@ contains
             &                                   +jiang2014RadialVelocityCDF(jiang2014VelocityTotalInternal) &
             &                                   -jiang2014RadialVelocityCDF(0.0d0                         ) &
             &                                  )
-       jiang2014XRadial                      =node%hostTree%randomNumberGenerator%uniformSample()
+       jiang2014XRadial                      =node%hostTree%randomNumberGenerator_%uniformSample()
        velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
        ! Compute tangential velocity.
        velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
