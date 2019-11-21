@@ -47,7 +47,8 @@ contains
     implicit none
     type            (distributionFunction1DLogUniform)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
-    double precision                                                  :: limitLower, limitUpper
+    class           (randomNumberGeneratorClass      ), pointer       :: randomNumberGenerator_
+    double precision                                                  :: limitLower            , limitUpper
 
     !# <inputParameter>
     !#   <name>limitLower</name>
@@ -63,18 +64,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DLogUniform(limitLower,limitUpper)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DLogUniform(limitLower,limitUpper,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function logUniformConstructorParameters
 
-  function logUniformConstructorInternal(limitLower,limitUpper) result(self)
+  function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !% Constructor for ``logUniform'' 1D distribution function class.
-    type            (distributionFunction1DLogUniform)                :: self
-    double precision                                  , intent(in   ) :: limitLower, limitUpper
-    !# <constructorAssign variables="limitLower, limitUpper"/>
+    type            (distributionFunction1DLogUniform)                                  :: self
+    double precision                                  , intent(in   )                   :: limitLower            , limitUpper
+    class           (randomNumberGeneratorClass      ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
 
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function logUniformConstructorInternal
 

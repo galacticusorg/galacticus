@@ -116,16 +116,16 @@ contains
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (haloEnvironmentNormal        )                        :: self
-    class           (cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
-    class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_
-    class           (criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
-    double precision                                       , intent(in   ) :: radiusEnvironment
-    double precision                                       , parameter     :: overdensityMean          =0.0d+0
-    double precision                                       , parameter     :: limitUpperBuffer         =1.0d-4
-    double precision                                                       :: overdensityVariance
+    type            (haloEnvironmentNormal        )                         :: self
+    class           (cosmologyParametersClass     ), target , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), target , intent(in   ) :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), target , intent(in   ) :: cosmologicalMassVariance_
+    class           (linearGrowthClass            ), target , intent(in   ) :: linearGrowth_
+    class           (criticalOverdensityClass     ), target , intent(in   ) :: criticalOverdensity_
+    double precision                                        , intent(in   ) :: radiusEnvironment
+    double precision                                        , parameter     :: overdensityMean          =0.0d+0
+    double precision                                        , parameter     :: limitUpperBuffer         =1.0d-4
+    double precision                                                        :: overdensityVariance
     !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
 
     ! Find the root-variance in the linear density field on the given scale.
@@ -141,9 +141,9 @@ contains
     ! Build the distribution function.
     overdensityVariance                 =+self%variance                                            &
          &                               *self%linearGrowth_      %value(expansionFactor=1.0d0)**2
-    ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact
-    ! that the region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White
-    ! (1996; MNRAS; 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors.
+    ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact that the
+    ! region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White (1996; MNRAS;
+    ! 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors. 
     self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)   &
          &                               *(                                                        &
          &                                 +1.0d0                                                  &
@@ -209,20 +209,20 @@ contains
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is
              ! drawn from the distribution expected for the background scale given that it hasn't collapsed to become a halo on
              ! any larger scale.
-             self%overdensityPrevious=+self%distributionOverdensity       %sample   (                                                              &
-                  &                                                                  randomNumberGenerator=node %hostTree%randomNumberGenerator    &
+             self%overdensityPrevious=+self%distributionOverdensity       %sample   (                                                                &
+                  &                                                                  randomNumberGenerator_=node %hostTree%randomNumberGenerator_    &
                   &                                                                 )
           else
              ! The variance on the mass scale of the tree is less than that of the background. Given that the base halo of the tree
              ! collapsed into a halo of mass Mₜ>Mₑ, the distribution of overdensities on the scale of Mₑ is just a Gaussian, with
              ! mean of δ_c, and variance equal to the difference in variance between the two scales.
-             self%overdensityPrevious=+self%distributionOverdensityMassive%sample   (                                                              &
-                  &                                                                  randomNumberGenerator=node %hostTree%randomNumberGenerator    &
-                  &                                                                 )                                                              &
-                  &                   *sqrt(                                                                                                       &
-                  &                         +self                          %variance                                                               &
-                  &                         -                               variance                                                               &
-                  &                        )                                                                                                       &
+             self%overdensityPrevious=+self%distributionOverdensityMassive%sample   (                                                                &
+                  &                                                                  randomNumberGenerator_=node %hostTree%randomNumberGenerator_    &
+                  &                                                                 )                                                                &
+                  &                   *sqrt(                                                                                                         &
+                  &                         +self                          %variance                                                                 &
+                  &                         -                               variance                                                                 &
+                  &                        )                                                                                                         &
                   &                   +      self%criticalOverdensity_      %value  (time                 =basic         %time                 ())
           end if
           call node%hostTree%properties%set('haloEnvironmentOverdensity',self%overdensityPrevious)

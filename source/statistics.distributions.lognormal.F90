@@ -48,8 +48,9 @@ contains
     implicit none
     type            (distributionFunction1DLogNormal)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
-    double precision                                                 :: mean      , variance  , &
-         &                                                              limitLower, limitUpper
+    class           (randomNumberGeneratorClass     ), pointer       :: randomNumberGenerator_
+    double precision                                                 :: mean                  , variance  , &
+         &                                                              limitLower            , limitUpper
 
     !# <inputParameter>
     !#   <name>mean</name>
@@ -79,17 +80,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DLogNormal(mean,variance,limitLower,limitUpper)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DLogNormal(mean,variance,limitLower,limitUpper,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function logNormalConstructorParameters
 
-  function logNormalConstructorInternal(mean,variance,limitLower,limitUpper) result(self)
+  function logNormalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !% Constructor for ``normal'' 1D distribution function class.
-    type            (distributionFunction1DLogNormal)                          :: self
-    double precision                                 , intent(in   )           :: mean      , variance
-    double precision                                 , intent(in   ), optional :: limitLower, limitUpper
-    double precision                                                           :: meanNormal, varianceNormal
+    type            (distributionFunction1DLogNormal)                                  :: self
+    double precision                                 , intent(in   )                   :: mean                  , variance
+    class           (randomNumberGeneratorClass     ), intent(in   ), optional, target :: randomNumberGenerator_
+    double precision                                 , intent(in   ), optional         :: limitLower            , limitUpper
+    double precision                                                                   :: meanNormal            , varianceNormal
 
     varianceNormal=+log(               &
          &              +(             &
@@ -105,18 +109,17 @@ contains
          &         /2.0d0
     if (present(limitLower)) then
        if (present(limitUpper)) then
-          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower),limitUpper=log(limitUpper))
+          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower),limitUpper=log(limitUpper),randomNumberGenerator_=randomNumberGenerator_)
        else
-          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower)                           )
+          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower)                           ,randomNumberGenerator_=randomNumberGenerator_)
        end if
     else
        if (present(limitUpper)) then
-          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal                           ,limitUpper=log(limitUpper))
+          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal                           ,limitUpper=log(limitUpper),randomNumberGenerator_=randomNumberGenerator_)
        else
-          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal                                                      )
+          self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal                                                      ,randomNumberGenerator_=randomNumberGenerator_)
        end if
     end if
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function logNormalConstructorInternal
 

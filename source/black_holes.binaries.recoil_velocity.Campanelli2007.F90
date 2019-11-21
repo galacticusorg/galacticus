@@ -77,8 +77,8 @@ contains
        return
     end if
     ! Select angular coordinates at random for the spin of the black hole.
-    phi  =     2.0d0*Pi*blackHole1%hostNode%hostTree%randomNumberGenerator%uniformSample()
-    theta=acos(2.0d0*   blackHole1%hostNode%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
+    phi  =     2.0d0*Pi*blackHole1%hostNode%hostTree%randomNumberGenerator_%uniformSample()
+    theta=acos(2.0d0*   blackHole1%hostNode%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
     ! Compute the mass ratio of the two black holes.
     q=blackHole1%mass()/blackHole2%mass()
     ! Compute alpha (and components), the angular momentum of the black hole per unit mass. This is equal to the spin scalar

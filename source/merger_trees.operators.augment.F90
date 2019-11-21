@@ -582,15 +582,16 @@ contains
        end do
     end if
     ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
-    pruneByTime         =  mergerTreeOperatorPruneByTime(              &
-         &                                               timeEarliest, &
-         &                                                    0.0d0  , &
-         &                                               huge(0.0d0)   &
-         &                                              )
-    baseNode            => treeNode                     (node%index(),newTree            )
-    baseBasic           => baseNode%basic               (             autoCreate  =.true.)
-    basic               => node    %basic               (                                )
-    newTree%baseNode    => baseNode
+    pruneByTime                    =  mergerTreeOperatorPruneByTime(                                &
+         &                                                          timeEarliest,                   &
+         &                                                               0.0d0  ,                   &
+         &                                                          huge(0.0d0)                     &
+         &                                                         )
+    baseNode                       => treeNode                     (node%index(),newTree          )
+    baseBasic                      => baseNode%basic               (             autoCreate=.true.)
+    basic                          => node    %basic               (                              )
+    newTree%baseNode               => baseNode
+    newTree%randomNumberGenerator_ => node%hostTree%randomNumberGenerator_
     !$omp atomic
     augmentNewTreeIndex =  augmentNewTreeIndex+1
     newTree%index       =  augmentNewTreeIndex

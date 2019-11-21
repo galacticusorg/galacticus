@@ -466,7 +466,7 @@ contains
                &               /self%massParticle
           ! Determine the actual number of particles to use to represent the node.
           if (self%sampleParticleNumber) then
-             particleCountActual=tree%randomNumberGenerator%poissonSample(particleCountMean)
+             particleCountActual=tree%randomNumberGenerator_%poissonSample(particleCountMean)
           else
              particleCountActual=nint(particleCountMean)
           end if
@@ -500,7 +500,7 @@ contains
              ! symmetric.
              !$omp critical (mergerTreeOperatorParticulateSample)
              do j=1,3
-                randomDeviates(j)=tree%randomNumberGenerator%uniformSample()
+                randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
              end do
              !$omp end critical (mergerTreeOperatorParticulateSample)
              call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
@@ -569,7 +569,7 @@ contains
              do while (.not.keepSample)
                 ! Draw a speed uniformly at random between zero and the escape velocity.
                 !$omp critical (mergerTreeOperatorParticulateSample)
-                speed               =+tree%randomNumberGenerator%uniformSample() &
+                speed               =+tree%randomNumberGenerator_%uniformSample() &
                      &               *speedEscape
                 !$omp end critical (mergerTreeOperatorParticulateSample)
                 energy              =+energyPotential    &
@@ -599,18 +599,18 @@ contains
                    call Galacticus_Error_Report(message//{introspection:location})
                 end if
                 !$omp critical (mergerTreeOperatorParticulateSample)
-                   keepSample=  +tree%randomNumberGenerator%uniformSample() &
-                     &         <                                            &
-                     &          +distributionFunction                       &
+                   keepSample=  +tree%randomNumberGenerator_%uniformSample() &
+                     &         <                                             &
+                     &          +distributionFunction                        &
                      &          /distributionFunctionMaximum
                 !$omp end critical (mergerTreeOperatorParticulateSample)
              end do
              ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
              !$omp critical (mergerTreeOperatorParticulateSample)
-             call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator%uniformSample()       )
-             call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator%uniformSample()-1.0d0))
+             call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator_%uniformSample()       )
+             call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator_%uniformSample()-1.0d0))
              !$omp end critical (mergerTreeOperatorParticulateSample)
-             call velocitySpherical%    rSet(speed                                                                           )
+             call velocitySpherical%    rSet(speed                                                           )
              ! Get the corresponding cartesian coordinates.
              velocityCartesian=velocitySpherical
              ! Accumulate the particle postion and velocity.

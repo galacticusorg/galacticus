@@ -207,7 +207,7 @@ contains
     return
   end subroutine generalizedPressSchechterExcursionSetTest
 
-  double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator,node)
+  double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
     !% \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
@@ -215,14 +215,13 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
-    use :: Pseudo_Random     , only : pseudoRandom
     use :: Root_Finder       , only : rootFinder
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
          &                                                                                      massResolution                 , probabilityFraction     , &
          &                                                                                      time
-    type            (pseudoRandom                                   ), intent(inout)         :: randomNumberGenerator
+    class           (randomNumberGeneratorClass                     ), intent(inout)         :: randomNumberGenerator_
     type            (treeNode                                       ), intent(inout), target :: node
     double precision                                                 , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-9
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
@@ -230,7 +229,7 @@ contains
     character       (len=26                                         )                        :: label
     type            (rootFinder                                     ), save                  :: finder
     !$omp threadprivate(finder)
-    !GCC$ attributes unused :: randomNumberGenerator
+    !GCC$ attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in sigma.
     call self%excursionSetTest(node)

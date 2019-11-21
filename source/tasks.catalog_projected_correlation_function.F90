@@ -17,9 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-  use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use :: Geometry_Surveys    , only : surveyGeometry     , surveyGeometryClass
+  use :: Cosmology_Functions     , only : cosmologyFunctions        , cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParameters       , cosmologyParametersClass
+  use :: Geometry_Surveys        , only : surveyGeometry            , surveyGeometryClass
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <task name="taskCatalogProjectedCorrelationFunction">
   !#  <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
@@ -27,15 +28,16 @@
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
      !% Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      private
-     class           (cosmologyParametersClass         ), pointer      :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass          ), pointer      :: cosmologyFunctions_ => null()
-     class           (surveyGeometryClass              ), pointer      :: surveyGeometry_ => null()
+     class           (cosmologyParametersClass         ), pointer      :: cosmologyParameters_    => null()
+     class           (cosmologyFunctionsClass          ), pointer      :: cosmologyFunctions_     => null()
+     class           (surveyGeometryClass              ), pointer      :: surveyGeometry_         => null()
+     class           (randomNumberGeneratorClass       ), pointer      :: randomNumberGenerator_  => null()
      type            (varying_string                   )               :: galaxyCatalogFileName
-     integer                                                           :: separationCount        , randomSampleCount, &
+     integer                                                           :: separationCount                  , randomSampleCount, &
           &                                                               randomSampleCountType
-     double precision                                                  :: massMinimum            , massMaximum      , &
-          &                                                               separationMinimum      , separationMaximum, &
-          &                                                               separationRadialMaximum, widthBuffer      , &
+     double precision                                                  :: massMinimum                      , massMaximum      , &
+          &                                                               separationMinimum                , separationMaximum, &
+          &                                                               separationRadialMaximum,           widthBuffer      , &
           &                                                               angleRotation
      double precision                                   , dimension(3) :: origin
      double precision                                   , dimension(2) :: vectorRotation
@@ -67,13 +69,13 @@ contains
     use :: Input_Parameters        , only : inputParameter              , inputParameters
     use :: Node_Components         , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     use :: Numerical_Constants_Math, only : Pi
-    use :: Pseudo_Random           , only : pseudoRandom
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (surveyGeometryClass                    ), pointer       :: surveyGeometry_
+    class           (randomNumberGeneratorClass             ), pointer       :: randomNumberGenerator_
     type            (inputParameters                        ), pointer       :: parametersRoot
     integer                                                                  :: separationCount        , randomSampleCount    , &
          &                                                                      randomSampleCountType
@@ -85,7 +87,6 @@ contains
     double precision                                         , dimension(2)  :: vectorRotation
     logical                                                                  :: halfIntegral
     type            (varying_string                         )                :: galaxyCatalogFileName  , randomSampleCountText
-    type            (pseudoRandom                           )                :: randomSequence
     character       (len=128                                )                :: label
 
     ! Ensure the nodes objects are initialized.
@@ -154,7 +155,7 @@ contains
     !#   <name>randomSampleCount</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('*10')</defaultValue>
-    !# <variable>randomSampleCountText</variable>
+    !#   <variable>randomSampleCountText</variable>
     !#   <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
@@ -192,9 +193,13 @@ contains
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="surveyGeometry"        name="surveyGeometry_"        source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !# <inputParameter>
     !#   <name>origin</name>
-    !#   <defaultValue>[randomSequence%uniformSample(),randomSequence%uniformSample(),randomSequence%uniformSample()]</defaultValue>
+    !#   <defaultValue>[randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample()]</defaultValue>
     !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
     !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
     !#   <type>float</type>
@@ -202,7 +207,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>vectorRotation</name>
-    !#   <defaultValue>[acos(2.0d0*randomSequence%uniformSample()-1.0d0),2.0d0*Pi*randomSequence%uniformSample()]</defaultValue>
+    !#   <defaultValue>[acos(2.0d0*randomNumberGenerator_%uniformSample()-1.0d0),2.0d0*Pi*randomNumberGenerator_%uniformSample()]</defaultValue>
     !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
     !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
     !#   <type>float</type>
@@ -210,24 +215,22 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>angleRotation</name>
-    !#   <defaultValue>2.0d0*Pi*randomSequence%uniformSample()</defaultValue>
+    !#   <defaultValue>2.0d0*Pi*randomNumberGenerator_%uniformSample()</defaultValue>
     !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
     !#   <description>The angle through which the mock catalog should be rotated.</description>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"      name="surveyGeometry_"      source="parameters"/>
-    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_)
+    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="surveyGeometry_"     />
+    !# <objectDestructor name="cosmologyParameters_"  />
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="surveyGeometry_"       />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function catalogProjectedCorrelationFunctionConstructorParameters
 
-  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_) result(self)
+  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                              :: self
@@ -244,7 +247,8 @@ contains
     class           (cosmologyParametersClass               ), intent(in   ), target       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     class           (surveyGeometryClass                    ), intent(in   ), target       :: surveyGeometry_
-    !# <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_"/>
+    class           (randomNumberGeneratorClass             ), intent(in   ), target       :: randomNumberGenerator_
+    !# <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
 
     return
   end function catalogProjectedCorrelationFunctionConstructorInternal
@@ -255,9 +259,10 @@ contains
     implicit none
     type(taskCatalogProjectedCorrelationFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%surveyGeometry_"     />
+    !# <objectDestructor name="self%cosmologyParameters_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     call Node_Components_Uninitialize       ()
     call Node_Components_Thread_Uninitialize()
     return
@@ -275,7 +280,6 @@ contains
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Points                          , only : Points_Prune                 , Points_Replicate          , Points_Rotate              , Points_Survey_Geometry, &
           &                                         Points_Translate
-    use :: Pseudo_Random                   , only : pseudoRandom
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
     use :: String_Handling                 , only : operator(//)
     implicit none
@@ -294,7 +298,6 @@ contains
     integer                                                                                  :: randomPointCount     , replications            , &
          &                                                                                      i                    , j                       , &
          &                                                                                      replicatedGalaxyCount
-    type            (pseudoRandom                           )                                :: randomSequence
 
     call Galacticus_Display_Indent('Begin task: catalog projected correlation function')
     ! Read the galaxy catalog.
@@ -335,7 +338,7 @@ contains
     call allocateArray(randomPosition,[3,randomPointCount])
     do i=1,3
        do j=1,randomPointCount
-          randomPosition(i,j)=randomSequence%uniformSample()*simulationBoxSize
+          randomPosition(i,j)=self%randomNumberGenerator_%uniformSample()*simulationBoxSize
        end do
     end do
     ! Shift origin to a random point in the box.
@@ -390,7 +393,7 @@ contains
     call allocateArray  (randomPosition,[3,randomPointCount])
     do i=1,3
        do j=1,randomPointCount
-          randomPosition(i,j)=(randomSequence%uniformSample()-0.5d0)*dble(2*replications+1)*simulationBoxSize
+          randomPosition(i,j)=(self%randomNumberGenerator_%uniformSample()-0.5d0)*dble(2*replications+1)*simulationBoxSize
        end do
     end do
     message="Generated "

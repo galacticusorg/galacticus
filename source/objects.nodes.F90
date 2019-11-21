@@ -35,7 +35,7 @@ module Galacticus_Nodes
   use            :: Memory_Management               , only : Memory_Usage_Record           , memoryTypeNodes
   use            :: Numerical_Constants_Astronomical, only : gigaYear                      , luminosityZeroPointAB, massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes    , only : kilo
-  use            :: Pseudo_Random                   , only : pseudoRandom
+  use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
   use            :: Tensors                         , only : tensorRank2Dimension3Symmetric
   private

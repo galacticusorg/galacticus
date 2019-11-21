@@ -21,8 +21,8 @@
 
 module Merger_Tree_Branching
   !% Implements a merger tree branching probability class.
-  use :: Galacticus_Nodes, only : treeNode
-  use :: Pseudo_Random   , only : pseudoRandom
+  use :: Galacticus_Nodes        , only : treeNode
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   implicit none
   private
 
@@ -60,9 +60,9 @@ module Merger_Tree_Branching
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision              , intent(in   )         :: haloMass             , deltaCritical, time, massResolution, probabilityFraction</argument>
-  !#   <argument>type            (pseudoRandom), intent(inout)         :: randomNumberGenerator</argument>
-  !#   <argument>type            (treeNode    ), intent(inout), target :: node</argument>
+  !#   <argument>double precision                            , intent(in   )         :: haloMass             , deltaCritical, time, massResolution, probabilityFraction</argument>
+  !#   <argument>class           (randomNumberGeneratorClass), intent(inout)         :: randomNumberGenerator_</argument>
+  !#   <argument>type            (treeNode                  ), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="stepMaximum" >
   !#   <description>Returns the maximum step in ``time'' allowed by this algorithm.</description>

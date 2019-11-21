@@ -52,22 +52,24 @@ contains
     type (surveyGeometryMartin2010ALFALFA)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    class(randomNumberGeneratorClass     ), pointer       :: randomNumberGenerator_
 
-    ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Build the object.
-    self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
+    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyParameters_"  />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function martin2010ALFALFAConstructorParameters
 
-  function martin2010ALFALFAConstructorInternal(cosmologyParameters_) result(self)
+  function martin2010ALFALFAConstructorInternal(cosmologyParameters_,randomNumberGenerator_) result(self)
     !% Internal constructor for the \cite{martin_arecibo_2010} conditional mass function class.
     implicit none
-    type (surveyGeometryMartin2010ALFALFA)                        :: self
-    class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="*cosmologyParameters_"/>
+    type (surveyGeometryMartin2010ALFALFA)                                  :: self
+    class(cosmologyParametersClass       ), intent(in   ), target           :: cosmologyParameters_
+    class(randomNumberGeneratorClass     ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="*cosmologyParameters_ ,*randomNumberGenerator_"/>
 
     self%geometryInitialized=.false.
     return
@@ -78,7 +80,8 @@ contains
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"  />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine martin2010ALFALFADestructor
 
@@ -143,18 +146,16 @@ contains
     use :: Memory_Management               , only : allocateArray
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Pseudo_Random                   , only : pseudoRandom
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self
     integer                                          , parameter                               :: randomsCount=1000000
-    type            (pseudoRandom                    )                                         :: randomSequence
-    integer                                          , parameter                               :: regionCount=3
+    integer                                          , parameter                               :: regionCount =      3
     ! Survey geometry from Haynes et al. (2011; http://adsabs.harvard.edu/abs/2011AJ....142..170H).
-    double precision                                 , parameter    , dimension(2,regionCount) :: regionRightAscensionRange=reshape([22.0d0,03.0d0,07.5d0,16.5d0,07.5d0,16.5d0],[2,regionCount]), &
+    double precision                                 , parameter    , dimension(2,regionCount) :: regionRightAscensionRange=reshape([22.0d0,03.0d0,07.5d0,16.5d0,07.5d0,16.5d0],[2,regionCount]),                  &
          &                                                                                        regionDeclinationRange   =reshape([24.0d0,32.0d0,04.0d0,16.0d0,24.0d0,28.0d0],[2,regionCount])
-    double precision                                                , dimension(2,regionCount) :: regionPhiRange,regionThetaRange
+    double precision                                                , dimension(2,regionCount) :: regionPhiRange                                                                                , regionThetaRange
     double precision                                                , dimension(  regionCount) :: regionSolidAngle
-    integer                                                                                    :: iRegion,iRandom
+    integer                                                                                    :: iRegion                                                                                       , iRandom
     double precision                                                                           :: uniformRandom
 
     ! Determine the solid angles of the different survey regions.
@@ -174,15 +175,15 @@ contains
     call allocateArray(self%randomPhi  ,[randomsCount])
     do iRandom=1,randomsCount
        ! Select a region at random.
-       uniformRandom=randomSequence%uniformSample()
+       uniformRandom=self%randomNumberGenerator_%uniformSample()
        iRegion=1
        do while (uniformRandom > regionSolidAngle(iRegion))
           iRegion=iRegion+1
        end do
        ! Select coordinates at random within this region.
-       uniformRandom            =randomSequence%uniformSample()
+       uniformRandom            =self%randomNumberGenerator_%uniformSample()
        self%randomPhi  (iRandom)=     uniformRandom*(    regionPhiRange  (2,iRegion) -    regionPhiRange  (1,iRegion)) +    regionPhiRange  (1,iRegion)
-       uniformRandom            =randomSequence%uniformSample()
+       uniformRandom            =self%randomNumberGenerator_%uniformSample()
        self%randomTheta(iRandom)=acos(uniformRandom*(cos(regionThetaRange(2,iRegion))-cos(regionThetaRange(1,iRegion)))+cos(regionThetaRange(1,iRegion)))
     end do
     return

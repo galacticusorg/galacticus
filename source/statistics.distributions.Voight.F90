@@ -50,8 +50,9 @@ contains
     implicit none
     type            (distributionFunction1DVoight)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
-    double precision                                              :: gamma     , mu       , &
-         &                                                           sigma     ,limitLower, &
+    class           (randomNumberGeneratorClass  ), pointer       :: randomNumberGenerator_
+    double precision                                              :: gamma                 , mu       , &
+         &                                                           sigma                 ,limitLower, &
          &                                                           limitUpper
 
     !# <inputParameter>
@@ -91,19 +92,22 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DVoight(gamma,mu,sigma,limitLower,limitUpper)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DVoight(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function voightConstructorParameters
 
-  function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper) result(self)
+  function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !% Constructor for ``voight'' 1D distribution function class.
-    type            (distributionFunction1DVoight)                :: self
-    double precision                    , intent(in   )           :: gamma     , mu        , &
-         &                                                           sigma
-    double precision                    , intent(in   ), optional :: limitLower, limitUpper
-    double precision                                              :: cdfLower  , cdfUpper
-    !# <constructorAssign variables="gamma, mu, sigma"/>
+    type            (distributionFunction1DVoight)                                  :: self
+    double precision                              , intent(in   )                   :: gamma                 , mu        , &
+         &                                                                             sigma
+    class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
+    double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
+    double precision                                                                :: cdfLower              , cdfUpper
+    !# <constructorAssign variables="gamma, mu, sigma, *randomNumberGenerator_"/>
 
     self    %limitLowerExists=.false.
     self    %limitUpperExists=.false.
@@ -123,7 +127,6 @@ contains
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=cdfUpper
     end if
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function voightConstructorInternal
 

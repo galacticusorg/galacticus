@@ -170,11 +170,11 @@ contains
             &                    *          massRatio                                    &
             &                    /log(1.0d0+massRatio)
        ! Add scatter if necessary.
-       if (self%scatter > 0.0d0)                                                                 &
-            & jiang2008TimeUntilMerging=+jiang2008TimeUntilMerging                               &
-            &                           *exp(                                                    &
-            &                                +self%scatter                                       &
-            &                                *node%hostTree%randomNumberGenerator%normalSample() &
+       if (self%scatter > 0.0d0)                                                                          &
+            & jiang2008TimeUntilMerging=+jiang2008TimeUntilMerging                                        &
+            &                           *exp(                                                             &
+            &                                +self%scatter                                                &
+            &                                *node%hostTree%randomNumberGenerator_%standardNormalSample() &
             &                               )
     end if
     return

@@ -51,6 +51,8 @@ subroutine Merger_Tree_Destroy(tree)
      end do
      ! Destroy the property hash.
      call tree%properties%destroy()
+     ! Destroy the random number generator.
+     !# <objectDestructor name="tree%randomNumberGenerator_"/>
   end select
   return
 end subroutine Merger_Tree_Destroy

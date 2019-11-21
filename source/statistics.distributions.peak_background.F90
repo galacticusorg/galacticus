@@ -55,7 +55,8 @@ contains
     implicit none
     type            (distributionFunction1DPeakBackground)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
-    double precision                                                      :: varianceBackground, thresholdCollapse
+    class           (randomNumberGeneratorClass          ), pointer       :: randomNumberGenerator_
+    double precision                                                      :: varianceBackground    , thresholdCollapse
 
     !# <inputParameter>
     !#   <name>varianceBackground</name>
@@ -71,21 +72,24 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DPeakBackground(varianceBackground,thresholdCollapse)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DPeakBackground(varianceBackground,thresholdCollapse,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function peakBackgroundConstructorParameters
 
-  function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse) result(self)
+  function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
     !% Constructor for ``peakBackground'' 1D distribution function class.
     use :: Error_Functions, only : Error_Function
     implicit none
-    type            (distributionFunction1DPeakBackground)                :: self
-    double precision                                      , intent(in   ) :: varianceBackground      , thresholdCollapse
-    double precision                                      , parameter     :: rangeTable        =7.0d0
-    integer                                               , parameter     :: cdfCount          =1000
-    integer                                                               :: i
-    !# <constructorAssign variables="varianceBackground, thresholdCollapse"/>
+    type            (distributionFunction1DPeakBackground)                        ::           self
+    double precision                                      , intent(in   )                   :: varianceBackground          , thresholdCollapse
+    class           (randomNumberGeneratorClass          ), intent(in   ), target, optional :: randomNumberGenerator_
+    double precision                                      , parameter                       :: rangeTable            =7.0d0
+    integer                                               , parameter                       :: cdfCount              =1000
+    integer                                                                                 :: i
+    !# <constructorAssign variables="varianceBackground, thresholdCollapse, *randomNumberGenerator_"/>
 
     ! Compute normalization of the distribution.
     self%normalization     =+1.0d0                                                                  &
@@ -104,7 +108,6 @@ contains
             &                )
     end do
     call self%cdf%reverse(self%cdfInverse)
-    self%randomNumberGenerator=pseudoRandom()
     return
 
   contains

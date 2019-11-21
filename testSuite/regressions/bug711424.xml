@@ -153,7 +153,9 @@
     <timestepHostAbsolute value="1"/>
   </mergerTreeEvolverMethod>
 
-  <randomSeed value="228"/>
+  <randomNumberGeneratorMethod value="GSL">
+    <seed value="228"/>
+  </randomNumberGeneratorMethod>
   <elementsToTrack value="Ca O Fe"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
     <exponent value="2"/>

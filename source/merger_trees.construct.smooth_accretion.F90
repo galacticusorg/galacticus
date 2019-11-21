@@ -21,6 +21,7 @@
 
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
+  use :: Numerical_Random_Numbers                 , only : randomNumberGeneratorClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
   !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
@@ -28,10 +29,11 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
      !% A class implementing merger tree construction by building trees assuming smooth accretion.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
-     double precision                                                   :: redshiftBase                       , massHalo          , &
-          &                                                                massHaloDeclineFactor              , massHaloResolution
+     class           (randomNumberGeneratorClass             ), pointer :: randomNumberGenerator_              => null()
+     double precision                                                   :: redshiftBase                                 , massHalo          , &
+          &                                                                massHaloDeclineFactor                        , massHaloResolution
    contains
      final     ::              smoothAccretionDestructor
      procedure :: construct => smoothAccretionConstruct
@@ -53,6 +55,7 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
+    class           (randomNumberGeneratorClass             ), pointer       :: randomNumberGenerator_
     double precision                                                         :: redshiftBase                       , massHalo          , &
          &                                                                      massHaloDeclineFactor              , massHaloResolution
 
@@ -90,22 +93,25 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
-    self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_)
+    !# <objectBuilder class="randomNumberGenerator"              name="randomNumberGenerator_"              source="parameters"/>
+    self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"                />
     !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    !# <objectDestructor name="randomNumberGenerator_"             />
     return
   end function smoothAccretionConstructorParameters
 
-  function smoothAccretionConstructorInternal(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_) result(self)
+  function smoothAccretionConstructorInternal(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     implicit none
-    type            (mergerTreeConstructorSmoothAccretion   )          :: self
-    class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
-    double precision                                                   :: redshiftBase                       , massHalo          , &
-         &                                                                massHaloDeclineFactor              , massHaloResolution
-    !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_"/>
+    type            (mergerTreeConstructorSmoothAccretion   )                        :: self
+    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
+    class           (randomNumberGeneratorClass             ), intent(in   ), target :: randomNumberGenerator_
+    double precision                                         , intent(in   )         :: redshiftBase                       , massHalo          , &
+         &                                                                              massHaloDeclineFactor              , massHaloResolution
+    !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *randomNumberGenerator_"/>
 
     return
   end function smoothAccretionConstructorInternal
@@ -117,6 +123,7 @@ contains
 
     !# <objectDestructor name="self%cosmologyFunctions_"                />
     !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
+    !# <objectDestructor name="self%randomNumberGenerator_"             />
     return
   end subroutine smoothAccretionDestructor
 
@@ -125,7 +132,6 @@ contains
     use            :: Galacticus_Nodes, only : mergerTree  , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
-    use            :: Pseudo_Random   , only : pseudoRandom
     implicit none
     class           (mergerTreeConstructorSmoothAccretion   ), intent(inout) :: self
     type            (mergerTree                             ), pointer       :: tree
@@ -134,8 +140,7 @@ contains
     class           (nodeComponentBasic                     ), pointer       :: basicBase          , basicNew
     integer         (kind=kind_int8                         )                :: indexNode
     double precision                                                         :: expansionFactorBase, timeBase, &
-         &                                                                      massNode           , timeNode, &
-         &                                                                      uniformRandom
+         &                                                                      massNode           , timeNode
 
     ! Build the merger tree.
     if (treeNumber == 1_c_size_t) then
@@ -154,8 +159,9 @@ contains
        tree%initializedUntil =  0.0d0
        call tree%properties%initialize()
        ! Restart the random number sequence.
-       tree%randomNumberGenerator=pseudoRandom()
-       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOFfset=.false.,incrementSeed=int(tree%index))
+       allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
+       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
        ! Assign a mass to the base node.
        call basicBase%massSet(self%massHalo)
        ! Find the cosmic time at which the tree is based.

@@ -118,7 +118,9 @@
     <wavenumberReference value="1.000"/>
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
-  <randomSeed value="228"/>
+  <randomNumberGeneratorMethod value="GSL">
+    <seed value="228"/>
+  </randomNumberGeneratorMethod>
   <randomSpinResetMassFactor value="2"/>
   <mergerMassMovementsMethod value="simple">
   <massRatioMajorMerger value="0.1"/>

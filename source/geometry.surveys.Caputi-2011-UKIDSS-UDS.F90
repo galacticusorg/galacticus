@@ -53,10 +53,11 @@ contains
     type   (surveyGeometryCaputi2011UKIDSSUDS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class  (randomNumberGeneratorClass       ), pointer       :: randomNumberGenerator_
     integer                                                   :: redshiftBin
 
-    ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !# <inputParameter>
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
@@ -64,21 +65,23 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_)
+    self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function caputi2011UKIDSSUDSConstructorParameters
 
-  function caputi2011UKIDSSUDSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+  function caputi2011UKIDSSUDSConstructorInternal(redshiftBin,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !% Internal constructor for the \cite{caputi_stellar_2011} conditional mass function class.
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
-    type            (surveyGeometryCaputi2011UKIDSSUDS)                        :: self
-    integer                                            , intent(in   )         :: redshiftBin
-    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    type            (surveyGeometryCaputi2011UKIDSSUDS)                                  :: self
+    integer                                            , intent(in   )                   :: redshiftBin
+    class           (cosmologyFunctionsClass          ), intent(in   ), target           :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
@@ -113,7 +116,8 @@ contains
     implicit none
     type(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine caputi2011UKIDSSUDSDestructor
 

@@ -70,7 +70,7 @@ contains
     return
   end function stochasticDifferentialEvolutionConstructorParameters
 
-  function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
+  function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
     !% Internal constructor for the ``stochasticDifferentialEvolution'' simulation class.
     implicit none
     type            (posteriorSampleSimulationStochasticDffrntlEvltn)                                      :: self
@@ -82,6 +82,7 @@ contains
     class           (posteriorSampleStateInitializeClass            ), intent(in   ), target               :: posteriorSampleStateInitialize_
     class           (posteriorSampleDffrntlEvltnProposalSizeClass   ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
     class           (posteriorSampleDffrntlEvltnRandomJumpClass     ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
+    class           (randomNumberGeneratorClass                     ), intent(in   ), target               :: randomNumberGenerator_
     integer                                                          , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                                    stateSwapCount                          , logFlushCount           , &
          &                                                                                                    reportCount                             , recomputeCount
@@ -90,7 +91,7 @@ contains
          &                                                                                                    loadBalance                             , ignoreChainNumberAdvice
     double precision                                                 , intent(in   )                       :: temperatureScale
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(temperatureScale)
     return
   end function stochasticDifferentialEvolutionConstructorInternal
@@ -104,56 +105,54 @@ contains
     self%temperatureScale=temperatureScale
     return
   end subroutine stochasticDifferentialEvolutionInitialize
+  
+  logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
+    !% Return whether or not to accept a proposal.
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
+    implicit none
+    class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
+    double precision                                                 , intent(in   ) :: logPosterior                , logPosteriorProposed         , &
+         &                                                                              logLikelihoodVariance       , logLikelihoodVarianceProposed
+    double precision                                                                 :: x                           , temperature                  , &
+         &                                                                              convergenceMeasure          , convergenceMeasureTarget     , &
+         &                                                                              temperatureConvergenceFactor
 
-logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
-  !% Return whether or not to accept a proposal.
-  use :: Galacticus_Error              , only : Galacticus_Error_Report
-  use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
-  use :: Pseudo_Random                 , only : pseudoRandom
-  implicit none
-  class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
-  double precision                                                 , intent(in   ) :: logPosterior                , logPosteriorProposed         , &
-       &                                                                              logLikelihoodVariance       , logLikelihoodVarianceProposed
-  type            (pseudoRandom                                   ), intent(inout) :: randomNumberGenerator
-  double precision                                                                 :: x                           , temperature                  , &
-       &                                                                              convergenceMeasure          , convergenceMeasureTarget     , &
-       &                                                                              temperatureConvergenceFactor
-
-  ! Find the convergence state of the simulation.
-  select type (posteriorSampleConvergence_ => self%posteriorSampleConvergence_)
-  class is (posteriorSampleConvergenceGelmanRubin)
-     convergenceMeasure      =posteriorSampleConvergence_%convergenceMeasure      ()
-     convergenceMeasureTarget=posteriorSampleConvergence_%convergenceMeasureTarget()
-     if (convergenceMeasure <= convergenceMeasureTarget) then
-        temperatureConvergenceFactor=0.0d0
-     else
-        temperatureConvergenceFactor=log(convergenceMeasure/convergenceMeasureTarget)
-     end if
-  class default
-     temperatureConvergenceFactor=0.0d0
-     call Galacticus_Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
-  end select
-  ! Set the chain temperature to the root-variance of the difference between the current and proposed likelihoods (which is
-  ! characteristic amount by which we expect them to differ due to random fluctuations). Multiply by a user-specified factor to
-  ! allow control over the temperature.
-  temperature=+1.0d0                               &
-       &      +temperatureConvergenceFactor        &
-       &      *self%temperatureScale               &
-       &      *sqrt(                               &
-       &            +logLikelihoodVariance         &
-       &            +logLikelihoodVarianceProposed &
-       &      )
-  ! Decide whether to take step.
-  x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
-  stochasticDifferentialEvolutionAcceptProposal=             &
-       &   logPosteriorProposed >      logPosterior          &
-       &  .or.                                               &
-       &   x                    < exp(                       &
-       &                              (                      &
-       &                               -logPosterior         &
-       &                               +logPosteriorProposed &
-       &                              )                      &
-       &                              /temperature           &
-       &                             )
-  return
-end function stochasticDifferentialEvolutionAcceptProposal
+    ! Find the convergence state of the simulation.
+    select type (posteriorSampleConvergence_ => self%posteriorSampleConvergence_)
+       class is (posteriorSampleConvergenceGelmanRubin)
+       convergenceMeasure      =posteriorSampleConvergence_%convergenceMeasure      ()
+       convergenceMeasureTarget=posteriorSampleConvergence_%convergenceMeasureTarget()
+       if (convergenceMeasure <= convergenceMeasureTarget) then
+          temperatureConvergenceFactor=0.0d0
+       else
+          temperatureConvergenceFactor=log(convergenceMeasure/convergenceMeasureTarget)
+       end if
+       class default
+       temperatureConvergenceFactor=0.0d0
+       call Galacticus_Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
+    end select
+    ! Set the chain temperature to the root-variance of the difference between the current and proposed likelihoods (which is
+    ! characteristic amount by which we expect them to differ due to random fluctuations). Multiply by a user-specified factor to
+    ! allow control over the temperature.
+    temperature=+1.0d0                               &
+         &      +temperatureConvergenceFactor        &
+         &      *self%temperatureScale               &
+         &      *sqrt(                               &
+         &            +logLikelihoodVariance         &
+         &            +logLikelihoodVarianceProposed &
+         &      )
+    ! Decide whether to take step.
+    x=self%randomNumberGenerator_%uniformSample()
+    stochasticDifferentialEvolutionAcceptProposal=             &
+         &   logPosteriorProposed >      logPosterior          &
+         &  .or.                                               &
+         &   x                    < exp(                       &
+         &                              (                      &
+         &                               -logPosterior         &
+         &                               +logPosteriorProposed &
+         &                              )                      &
+         &                              /temperature           &
+         &                             )
+    return
+  end function stochasticDifferentialEvolutionAcceptProposal

@@ -133,7 +133,9 @@
   
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
-  <randomSeed value="828"/>
+  <randomNumberGeneratorMethod value="GSL">
+    <seed value="828"/>
+  </randomNumberGeneratorMethod>
   <starFormationFeedbackDisksMethod value="haloScaling">
     <fraction value="1.0"/>
     <exponentVelocity value="-3.0"/>

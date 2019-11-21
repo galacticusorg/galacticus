@@ -20,7 +20,7 @@
 !% Contains a module that implements a class of distributions.
 
 module Statistics_Distributions
-  use :: Pseudo_Random, only : pseudoRandom
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   private
 
   !# <functionClass>
@@ -28,7 +28,13 @@ module Statistics_Distributions
   !#  <descriptiveName>One-dimensional Distribution Functions</descriptiveName>
   !#  <description>Class providing distribution functions of a single variable.</description>
   !#  <default>uniform</default>
-  !#  <data>type(pseudoRandom) :: randomNumberGenerator</data>
+  !#  <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
+  !#  <destructor>
+  !#   <code>
+  !#    call distributionFunction1DFinalize(self)
+  !#    return
+  !#   </code>
+  !#  </destructor>
   !#  <method name="density" >
   !#    <type>double precision</type>
   !#    <pass>yes</pass>
@@ -51,39 +57,21 @@ module Statistics_Distributions
   !#  <method name="sample" >
   !#    <type>double precision</type>
   !#    <pass>yes</pass>
-  !#    <argument>integer                         , intent(in   ), optional :: incrementSeed</argument>
-  !#    <argument>logical                         , intent(in   ), optional :: ompThreadOffset, mpiRankOffset</argument>
-  !#    <argument>type            (pseudoRandom  ), intent(inout), optional :: randomNumberGenerator</argument>
+  !#    <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
   !#    <description>Return a random deviate from the distribution.</description>
+  !#    <modules>Galacticus_Error</modules>
   !#    <code>
-  !#     logical          :: ompThreadOffset_, mpiRankOffset_
   !#     double precision :: uniformRandom
-  !#     ompThreadOffset_=.true.
-  !#     mpiRankOffset_  =.true.
-  !#     if (present(ompThreadOffset)) ompThreadOffset_=ompThreadOffset
-  !#     if (present(mpiRankOffset  )) mpiRankOffset_  =mpiRankOffset
   !#     ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
   !#     ! corresponding random variate.
-  !#     if (present(randomNumberGenerator)) then
-  !#        uniformRandom=     randomNumberGenerator%uniformSample(                                  &amp;
-  !#             &amp;                                            )
+  !#     if (present(randomNumberGenerator_)) then
+  !#        uniformRandom=     randomNumberGenerator_%uniformSample()
   !#     else
-  !#        uniformRandom=self%randomNumberGenerator%uniformSample(                                  &amp;
-  !#             &amp;                                             ompThreadOffset=ompThreadOffset_, &amp;
-  !#             &amp;                                             mpiRankOffset  =mpiRankOffset_  , &amp;
-  !#             &amp;                                             incrementSeed  =incrementSeed     &amp;
-  !#             &amp;                                            )
+  !#        if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
+  !#        uniformRandom=self%randomNumberGenerator_%uniformSample()
   !#     end if
   !#     distributionFunction1DSample=self%inverse(uniformRandom)
   !#     return
-  !#    </code>
-  !#  </method>
-  !#  <method name="samplerReset" >
-  !#    <type>void</type>
-  !#    <pass>yes</pass>
-  !#    <description>Reset the sampler for the distribution.</description>
-  !#    <code>
-  !#     self%randomNumberGenerator=pseudoRandom()
   !#    </code>
   !#  </method>
   !#  <method name="minimum" >
@@ -103,4 +91,14 @@ module Statistics_Distributions
      class(distributionFunction1DClass), pointer :: distributionFunction1D_
   end type distributionFunction1DList
 
+contains
+  
+  subroutine distributionFunction1DFinalize(self)
+    !% Finalizer for {\normalfont \ttfamily distributionFunction1D} objects.
+    type(distributionFunction1DClass), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine distributionFunction1DFinalize
+  
 end module Statistics_Distributions

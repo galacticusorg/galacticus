@@ -47,6 +47,7 @@ contains
     implicit none
     type            (distributionFunction1DStudentT)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass    ), pointer       :: randomNumberGenerator_
     double precision                                                :: degreesOfFreedom
 
     !# <inputParameter>
@@ -56,18 +57,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DStudentT(degreesOfFreedom)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DStudentT(degreesOfFreedom,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function studentTConstructorParameters
 
-  function studentTConstructorInternal(degreesOfFreedom) result(self)
+  function studentTConstructorInternal(degreesOfFreedom,randomNumberGenerator_) result(self)
     !% Constructor for ``studentT'' 1D distribution function class.
-    type            (distributionFunction1DStudentT)                :: self
-    double precision                                , intent(in   ) :: degreesOfFreedom
-    !# <constructorAssign variables="degreesOfFreedom"/>
+    type            (distributionFunction1DStudentT)                                  :: self
+    double precision                                , intent(in   )                   :: degreesOfFreedom
+    class           (randomNumberGeneratorClass    ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="degreesOfFreedom, *randomNumberGenerator_"/>
 
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function studentTConstructorInternal
 

@@ -232,12 +232,12 @@ contains
     ! Get the mean concentration.
     diemerKravtsov2014Concentration=self%concentrationMean(node)
     ! Add scatter if necessary.
-    if (self%scatter > 0.0d0)                                            &
-         &  diemerKravtsov2014Concentration                              &
-         & =diemerKravtsov2014Concentration                              &
-         & *10.0d0**(                                                    &
-         &           +self%scatter                                       &
-         &           *node%hostTree%randomNumberGenerator%normalSample() &
+    if (self%scatter > 0.0d0)                                                     &
+         &  diemerKravtsov2014Concentration                                       &
+         & =diemerKravtsov2014Concentration                                       &
+         & *10.0d0**(                                                             &
+         &           +self%scatter                                                &
+         &           *node%hostTree%randomNumberGenerator_%standardNormalSample() &
          &          )
     return
   end function diemerKravtsov2014Concentration

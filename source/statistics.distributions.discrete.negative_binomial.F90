@@ -50,7 +50,8 @@ contains
     implicit none
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
-    double precision                                                                :: probabilitySuccess, countFailures
+    class           (randomNumberGeneratorClass                    ), pointer       :: randomNumberGenerator_
+    double precision                                                                :: probabilitySuccess    , countFailures
 
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
@@ -66,22 +67,24 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunctionDiscrete1DNegativeBinomial(probabilitySuccess,countFailures)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunctionDiscrete1DNegativeBinomial(probabilitySuccess,countFailures,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function negativeBinomialConstructorParameters
 
-  function negativeBinomialConstructorInternal(probabilitySuccess,countFailures) result(self)
+  function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !% Constructor for ``negativeBinomial'' 1D distribution function class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (distributionFunctionDiscrete1DNegativeBinomial)                :: self
-    double precision                                                , intent(in   ) :: probabilitySuccess, countFailures
-    !# <constructorAssign variables="probabilitySuccess, countFailures"/>
+    type            (distributionFunctionDiscrete1DNegativeBinomial)                                  :: self
+    double precision                                                , intent(in   )                   :: probabilitySuccess    , countFailures
+    class           (randomNumberGeneratorClass                    ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="probabilitySuccess, countFailures, *randomNumberGenerator_"/>
 
     if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Galacticus_Error_Report('p ∈ [0,1]'//{introspection:location})
     if (countFailures      <= 0.0d0                                ) call Galacticus_Error_Report('r ∈ (0,∞]'//{introspection:location})
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function negativeBinomialConstructorInternal
 

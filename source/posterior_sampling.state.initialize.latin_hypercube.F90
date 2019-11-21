@@ -19,14 +19,18 @@
 
   !% Implementation of a posterior sampling convergence class which latinHypercube converges.
 
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
   !#  <description>A posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.</description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
      !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
      private
-     integer :: maximinTrialCount
+     integer                                      :: maximinTrialCount
+     class  (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
+     final     ::                latinHypercubeDestructor
      procedure :: initialize  => latinHypercubeInitialize
   end type posteriorSampleStateInitializeLatinHypercube
 
@@ -44,6 +48,7 @@ contains
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
+    class  (randomNumberGeneratorClass                  ), pointer       :: randomNumberGenerator_
     integer                                                              :: maximinTrialCount
 
     !# <inputParameter>
@@ -54,27 +59,38 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
-    self=posteriorSampleStateInitializeLatinHypercube(maximinTrialCount)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=posteriorSampleStateInitializeLatinHypercube(maximinTrialCount,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function latinHypercubeConstructorParameters
 
-  function latinHypercubeConstructorInternal(maximinTrialCount) result(self)
+  function latinHypercubeConstructorInternal(maximinTrialCount,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
     implicit none
-    type   (posteriorSampleStateInitializeLatinHypercube)                :: self
-    integer                                              , intent(in   ) :: maximinTrialCount
-    !# <constructorAssign variables="maximinTrialCount"/>
+    type   (posteriorSampleStateInitializeLatinHypercube)                        :: self
+    integer                                              , intent(in   )         :: maximinTrialCount
+    class  (randomNumberGeneratorClass                  ), intent(in   ), target :: randomNumberGenerator_
+    !# <constructorAssign variables="maximinTrialCount, *randomNumberGenerator_"/>
 
     return
   end function latinHypercubeConstructorInternal
+
+  subroutine latinHypercubeDestructor(self)
+    !% Destructor for the  {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    implicit none
+    type(posteriorSampleStateInitializeLatinHypercube), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine latinHypercubeDestructor
 
   subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
     use            :: Models_Likelihoods_Constants, only : logImpossible
-    use            :: Pseudo_Random               , only : pseudoRandom
     use            :: Sort                        , only : Sort_Index_Do
     implicit none
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
@@ -86,7 +102,6 @@ contains
     integer         (kind=c_size_t                               ), allocatable  , dimension(:  ) :: order
     double precision                                              , allocatable  , dimension(:  ) :: x                    , y
     double precision                                              , allocatable  , dimension(:,:) :: stateGrid            , stateGridBest
-    type            (pseudoRandom)                                                                :: randomNumberGenerator
     integer                                                                                       :: i                    , j                       , &
          &                                                                                           i1                   , i2                      , &
          &                                                                                           k
@@ -108,7 +123,7 @@ contains
     do k=0,self%maximinTrialCount
        do j=1,simulationState%dimension()
           x                =0.0d0
-          x(mpiSelf%rank())=randomNumberGenerator%uniformSample(ompThreadOffset=.true.,mpiRankOffset=.true.)
+          x(mpiSelf%rank())=self%randomNumberGenerator_%uniformSample()
           y                =mpiSelf%sum(x)
           call mpiBarrier()
           order            =Sort_Index_Do(y)-1

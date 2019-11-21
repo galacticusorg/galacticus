@@ -25,6 +25,7 @@
   use :: Posterior_Sampling_State            , only : posteriorSampleStateClass
   use :: Posterior_Sampling_State_Initialize , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria, only : posteriorSampleStoppingCriterionClass
+  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
   !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
@@ -38,6 +39,7 @@
      class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_ => null()
      class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_             => null()
      class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_   => null()
+     class           (randomNumberGeneratorClass           ), pointer               :: randomNumberGenerator_            => null()
      integer                                                                        :: parameterCount                             , stepsMaximum                          , &
           &                                                                            reportCount                                , logFlushCount
      double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
@@ -87,6 +89,7 @@ contains
     class           (posteriorSampleStoppingCriterionClass         ), pointer                     :: posteriorSampleStoppingCriterion_
     class           (posteriorSampleStateClass                     ), pointer                     :: posteriorSampleState_
     class           (posteriorSampleStateInitializeClass           ), pointer                     :: posteriorSampleStateInitialize_
+    class           (randomNumberGeneratorClass                    ), pointer                     :: randomNumberGenerator_
     type            (varying_string                                )                              :: logFileRoot                      , interactionRoot                , &
          &                                                                                           logFilePreviousRoot              , message
     integer                                                                                       :: stepsMaximum                     , reportCount                    , &
@@ -189,6 +192,7 @@ contains
     !# <objectBuilder class="posteriorSampleStoppingCriterion" name="posteriorSampleStoppingCriterion_" source="parameters"/>
     !# <objectBuilder class="posteriorSampleState"             name="posteriorSampleState_"             source="parameters"/>
     !# <objectBuilder class="posteriorSampleStateInitialize"   name="posteriorSampleStateInitialize_"   source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator"            name="randomNumberGenerator_"            source="parameters"/>
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
@@ -227,13 +231,14 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
+    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"       />
     !# <objectDestructor name="posteriorSampleConvergence_"      />
     !# <objectDestructor name="posteriorSampleStoppingCriterion_"/>
     !# <objectDestructor name="posteriorSampleState_"            />
     !# <objectDestructor name="posteriorSampleStateInitialize_"  />
+    !# <objectDestructor name="randomNumberGenerator_"           />
     do i=1,  activeParameterCount
        !# <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
     end do
@@ -245,7 +250,7 @@ contains
     return
   end function particleSwarmConstructorParameters
 
-  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot) result(self)
+  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot) result(self)
     !% Internal constructor for the ``particleSwarm'' simulation class.
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
@@ -255,6 +260,7 @@ contains
     class           (posteriorSampleStoppingCriterionClass ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
     class           (posteriorSampleStateClass             ), intent(in   ), target               :: posteriorSampleState_
     class           (posteriorSampleStateInitializeClass   ), intent(in   ), target               :: posteriorSampleStateInitialize_
+    class           (randomNumberGeneratorClass            ), intent(in   ), target               :: randomNumberGenerator_
     character       (len=*                                 ), intent(in   )                       :: logFileRoot                      , interactionRoot                , &
          &                                                                                           logFilePreviousRoot
     integer                                                 , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
@@ -263,7 +269,7 @@ contains
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
     logical                                                                                       :: resume
     integer                                                                                       :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -292,6 +298,7 @@ contains
     !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"/>
     !# <objectDestructor name="self%posteriorSampleState_"            />
     !# <objectDestructor name="self%posteriorSampleStateInitialize_"  />
+    !# <objectDestructor name="self%randomNumberGenerator_"           />
     do i=1,size(self%modelParametersActive_  )
        !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
     end do
@@ -308,7 +315,6 @@ contains
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: MPI_Utilities               , only : mpiBarrier               , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
-    use :: Pseudo_Random               , only : pseudoRandom
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)                               :: self
@@ -324,7 +330,6 @@ contains
          &                                                                                                   logPosteriorBestPersonal       , logPosteriorBestGlobal           , &
          &                                                                                                   logLikelihoodVariance          , logLikelihoodVarianceBestPersonal, &
          &                                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
-    type            (pseudoRandom                          )                                              :: randomNumberGenerator
     type            (varying_string                        )                                              :: logFileName                    , message                          , &
          &                                                                                                   interactionFileName
     integer                                                                                               :: logFileUnit                    , convergedAtStep                  , &
@@ -414,7 +419,7 @@ contains
     else
        ! Simulation is not being resumed, so set an initial velocity for the particle.
        do i=1,self%parameterCount
-          velocityParticle(i)=(2.0d0*randomNumberGenerator%uniformSample()-1.0d0)*velocityMaximum(i)
+          velocityParticle(i)=(2.0d0*self%randomNumberGenerator_%uniformSample()-1.0d0)*velocityMaximum(i)
        end do
     end if
     ! Begin the simulation.
@@ -479,19 +484,19 @@ contains
        ! Store the state vector.
        call self%posteriorSampleState_%update(stateVector,.true.,self%posteriorSampleConvergence_%isConverged())
        ! Update the velocity.
-       velocityParticle=+self%inertiaWeight                   &
-            &           *velocityParticle                     &
-            &           +self%accelerationCoefficientPersonal &
-            &           *randomNumberGenerator%uniformSample()       &
-            &           *(                                    &
-            &             +stateBestPersonal                  &
-            &             -stateVector                        &
-            &            )                                    &
-            &           +self%accelerationCoefficientGlobal   &
-            &           *randomNumberGenerator%uniformSample()       &
-            &           *(                                    &
-            &             +stateBestGlobal                    &
-            &             -stateVector                        &
+       velocityParticle=+self%inertiaWeight                                   &
+            &           *velocityParticle                                     &
+            &           +self%accelerationCoefficientPersonal                 &
+            &           *self%randomNumberGenerator_         %uniformSample() &
+            &           *(                                                    &
+            &             +stateBestPersonal                                  &
+            &             -stateVector                                        &
+            &            )                                                    &
+            &           +self%accelerationCoefficientGlobal                   &
+            &           *self%randomNumberGenerator_         %uniformSample() &
+            &           *(                                                    &
+            &             +stateBestGlobal                                    &
+            &             -stateVector                                        &
             &            )
        where (velocityParticle > velocityMaximum)
           velocityParticle=+velocityMaximum

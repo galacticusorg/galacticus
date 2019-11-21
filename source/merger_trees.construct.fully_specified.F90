@@ -19,8 +19,9 @@
 
   !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
 
-  use :: FoX_DOM, only : node
-  use :: IO_XML , only : xmlNodeList
+  use :: FoX_DOM                 , only : node
+  use :: IO_XML                  , only : xmlNodeList
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
   !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
@@ -31,10 +32,11 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
      !% A class implementing merger tree construction from a full specification of the tree in XML.
      private
-     type   (varying_string   )                            :: fileName
-     type   (documentContainer), pointer                   :: document  => null()
-     type   (xmlNodeList      ), allocatable, dimension(:) :: trees
-     integer(c_size_t         )                            :: treeCount
+     class  (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
+     type   (varying_string            )                            :: fileName
+     type   (documentContainer         ), pointer                   :: document               => null()
+     type   (xmlNodeList               ), allocatable, dimension(:) :: trees
+     integer(c_size_t                  )                            :: treeCount
    contains
      final     ::              fullySpecifiedDestructor
      procedure :: construct => fullySpecifiedConstruct
@@ -59,9 +61,10 @@ contains
     !% Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeConstructorFullySpecified)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-    type(varying_string                     )                :: fileName
+    type (mergerTreeConstructorFullySpecified)                :: self
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
+    type (varying_string                     )                :: fileName
 
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -70,21 +73,24 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
-    self=mergerTreeConstructorFullySpecified(fileName)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    return
+     !# <objectDestructor name="randomNumberGenerator_"/>
+   return
   end function fullySpecifiedConstructorParameters
 
-  function fullySpecifiedConstructorInternal(fileName) result(self)
+  function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
     use :: FoX_DOM         , only : parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
     implicit none
-    type(mergerTreeConstructorFullySpecified)                :: self
-    type(varying_string                     ), intent(in   ) :: fileName
-    integer                                                  :: ioErr
-    !# <constructorAssign variables="fileName"/>
+    type   (mergerTreeConstructorFullySpecified)                        :: self
+    type   (varying_string                     ), intent(in   )         :: fileName
+    class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
+    integer                                                             :: ioErr
+    !# <constructorAssign variables="fileName, *randomNumberGenerator_"/>
 
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
@@ -117,6 +123,7 @@ contains
        if (associated(self%document)) deallocate(self%document)
        !$omp end critical (FoX_DOM_Access)
     end if
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine fullySpecifiedDestructor
 
@@ -130,7 +137,6 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : Memory_Usage_Record
-    use            :: Pseudo_Random     , only : pseudoRandom
     implicit none
     type            (mergerTree                         ), pointer                     :: tree
     class           (mergerTreeConstructorFullySpecified), intent(inout)               :: self
@@ -140,7 +146,6 @@ contains
     type            (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
     integer                                                                            :: i             , nodeCount
     integer         (kind_int8                          )                              :: indexValue
-    double precision                                                                   :: uniformRandom
 
     ! Read one tree.
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
@@ -174,8 +179,9 @@ contains
        tree%event            => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
-       tree%randomNumberGenerator=pseudoRandom()
-       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOffset=.false.,incrementSeed=int(tree%index))
+       allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
+       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
        ! Begin writing report.
        call Galacticus_Display_Indent('Initial conditions of fully-specified tree',verbosityInfo)
        ! Iterate over nodes.

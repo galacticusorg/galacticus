@@ -74,11 +74,11 @@ contains
     time                   =   basic      %time  ()
     timeParent             =   basicParent%time  ()
     ! Set time until merging.
-    randomTimeUntilMerging =  +nodeParent%hostTree%randomNumberGenerator%uniformSample() &
-         &                    *(                                                         &
-         &                      +time                                                    &
-         &                      -timeParent                                              &
-         &                     )                                                         &
+    randomTimeUntilMerging =  +nodeParent%hostTree%randomNumberGenerator_%uniformSample() &
+         &                    *(                                                          &
+         &                      +time                                                     &
+         &                      -timeParent                                               &
+         &                     )                                                          &
          &                    +  timeParent
     return
   end function randomTimeUntilMerging

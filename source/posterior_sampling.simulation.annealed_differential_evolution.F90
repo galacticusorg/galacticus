@@ -89,7 +89,7 @@ contains
     return
   end function annealedDifferentialEvolutionConstructorParameters
 
-  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
+  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
     !% Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
@@ -101,6 +101,7 @@ contains
     class           (posteriorSampleStateInitializeClass          ), intent(in   ), target               :: posteriorSampleStateInitialize_
     class           (posteriorSampleDffrntlEvltnProposalSizeClass ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
     class           (posteriorSampleDffrntlEvltnRandomJumpClass   ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
+    class           (randomNumberGeneratorClass                   ), intent(in   ), target               :: randomNumberGenerator_
     integer                                                        , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                                  stateSwapCount                          , logFlushCount           , &
          &                                                                                                  reportCount                             , temperatureLevelCount   , &
@@ -110,7 +111,7 @@ contains
          &                                                                                                  loadBalance                             , ignoreChainNumberAdvice
     double precision                                               , intent(in   )                       :: temperatureMaximum
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     return
   end function annealedDifferentialEvolutionConstructorInternal
@@ -191,19 +192,17 @@ contains
     return
   end function annealedDifferentialEvolutionTemperature
 
-  logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
+  logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
     !% Return whether or not to accept a proposal.
-    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
-    type            (pseudoRandom                                 ), intent(inout) :: randomNumberGenerator
     double precision                                                               :: x
     !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
-    x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
+    x=self%randomNumberGenerator_%uniformSample()
     annealedDifferentialEvolutionAcceptProposal=               &
          &   logPosteriorProposed >      logPosterior          &
          &  .or.                                               &

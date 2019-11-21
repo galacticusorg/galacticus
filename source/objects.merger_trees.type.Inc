@@ -21,15 +21,15 @@
 
   type, public :: mergerTree
      !% The merger tree object type.
-     integer         (kind=kind_int8  )                  :: index
-     type            (hdf5Object      )                  :: hdf5Group
-     double precision                                    :: volumeWeight                  , initializedUntil
-     type            (treeNode        ), pointer         :: baseNode             => null()
-     type            (mergerTree      ), pointer         :: nextTree             => null(), firstTree        => null()
-     type            (universe        ), pointer         :: hostUniverse         => null()
-     type            (treeEvent       ), pointer, public :: event
-     type            (pseudoRandom    )                  :: randomNumberGenerator
-     type            (doubleScalarHash)                  :: properties
+     integer         (kind=kind_int8            )                  :: index
+     type            (hdf5Object                )                  :: hdf5Group
+     double precision                                              :: volumeWeight                    , initializedUntil
+     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
+     type            (universe                  ), pointer         :: hostUniverse           => null()
+     type            (treeEvent                 ), pointer, public :: event
+     class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
+     type            (doubleScalarHash)                            :: properties
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>

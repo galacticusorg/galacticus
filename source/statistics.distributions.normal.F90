@@ -52,8 +52,9 @@ contains
     implicit none
     type            (distributionFunction1DNormal)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
-    double precision                                              :: mean      , variance  , &
-         &                                                           limitLower, limitUpper
+    class           (randomNumberGeneratorClass  ), pointer       :: randomNumberGenerator_
+    double precision                                              :: mean                  , variance  , &
+         &                                                           limitLower            , limitUpper
 
     !# <inputParameter>
     !#   <name>mean</name>
@@ -87,8 +88,9 @@ contains
        !#   <type>real</type>
        !# </inputParameter>
     end if
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !# <conditionalCall>
-    !#   <call>self=distributionFunction1DNormal(mean,variance{conditions})</call>
+    !#   <call>self=distributionFunction1DNormal(mean,variance,randomNumberGenerator_=randomNumberGenerator_{conditions})</call>
     !#   <argument name="limitLower" value="limitLower" parameterPresent="parameters"/>
     !#   <argument name="limitUpper" value="limitUpper" parameterPresent="parameters"/>
     !# </conditionalCall>
@@ -96,14 +98,15 @@ contains
     return
   end function normalConstructorParameters
 
-  function normalConstructorInternal(mean,variance,limitLower,limitUpper) result(self)
+  function normalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !% Constructor for ``normal'' 1D distribution function class.
     use :: Error_Functions, only : Error_Function
     implicit none
-    type            (distributionFunction1DNormal)                          :: self
-    double precision                              , intent(in   )           :: mean      , variance
-    double precision                              , intent(in   ), optional :: limitLower, limitUpper
-    !# <constructorAssign variables="mean, variance, limitLower, limitUpper"/>
+    type            (distributionFunction1DNormal)                                  :: self
+    double precision                              , intent(in   )                   :: mean                  , variance
+    double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
+    class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
+    !# <constructorAssign variables="mean, variance, limitLower, limitUpper, *randomNumberGenerator_"/>
 
     self%limitLowerExists=present(limitLower)
     self%limitUpperExists=present(limitUpper)
@@ -121,7 +124,6 @@ contains
        self%limitUpper     =+huge(0.0d0)
        self%cdfAtUpperLimit=      1.0d0
     end if
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function normalConstructorInternal
 

@@ -19,17 +19,20 @@
 
 !% Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
-
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  
   !# <nbodyOperator name="nbodyOperatorMeanPosition">
   !#  <description>An N-body data operator which determines the mean position and velocity of particles.</description>
   !# </nbodyOperator>
   type, extends(nbodyOperatorClass) :: nbodyOperatorMeanPosition
      !% An N-body data operator which determines the mean position and velocity of particles.
      private
-     logical           :: selfBoundParticlesOnly
-     integer(c_size_t) :: bootstrapSampleCount
+     logical                                      :: selfBoundParticlesOnly
+     integer(c_size_t                  )          :: bootstrapSampleCount
+     class  (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
+     final     ::            meanPositionDestructor
      procedure :: operate => meanPositionOperate
   end type nbodyOperatorMeanPosition
 
@@ -45,10 +48,11 @@ contains
     !% Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (nbodyOperatorMeanPosition)                :: self
-    type   (inputParameters          ), intent(inout) :: parameters
-    logical                                           :: selfBoundParticlesOnly
-    integer(c_size_t                 )                :: bootstrapSampleCount
+    type   (nbodyOperatorMeanPosition )                :: self
+    type   (inputParameters           ), intent(inout) :: parameters
+    class  (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    logical                                            :: selfBoundParticlesOnly
+    integer(c_size_t                  )                :: bootstrapSampleCount
 
     !# <inputParameter>
     !#   <name>selfBoundParticlesOnly</name>
@@ -65,27 +69,38 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-   self=nbodyOperatorMeanPosition(selfBoundParticlesOnly,bootstrapSampleCount)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=nbodyOperatorMeanPosition(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function meanPositionConstructorParameters
 
-  function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount) result (self)
+  function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !% Internal constructor for the ``meanPosition'' N-body operator class.
     implicit none
-    type   (nbodyOperatorMeanPosition)                :: self
-    logical                           , intent(in   ) :: selfBoundParticlesOnly
-    integer(c_size_t                 ), intent(in   ) :: bootstrapSampleCount
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount"/>
+    type   (nbodyOperatorMeanPosition)                         :: self
+    logical                            , intent(in   )         :: selfBoundParticlesOnly
+    integer(c_size_t                  ), intent(in   )         :: bootstrapSampleCount
+    class  (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
+    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
 
     return
   end function meanPositionConstructorInternal
 
+  subroutine meanPositionDestructor(self)
+    !% Destructor for the ``meanPosition'' N-body operator class.
+    implicit none
+    type(nbodyOperatorMeanPosition), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine meanPositionDestructor
+  
   subroutine meanPositionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
-    use :: Pseudo_Random    , only : pseudoRandom
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout)                 :: simulation
@@ -94,7 +109,6 @@ contains
     double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
     double precision                                                          :: weight
     integer         (c_size_t                )                                :: i                          , j
-    type            (pseudoRandom            )                                :: randomSequence
 
     ! Determine the particle mask to use.
     if (self%selfBoundParticlesOnly) then
@@ -108,7 +122,7 @@ contains
        call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
        do i=1,self%bootstrapSampleCount
           do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=randomSequence%poissonSample(sampleRate)
+             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
           end do
        end do
     end if

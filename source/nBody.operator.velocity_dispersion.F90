@@ -19,7 +19,8 @@
 
 !% Contains a module which implements an N-body data operator which computes the velocity dispersion in a set of given spherical shells.
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <nbodyOperator name="nbodyOperatorVelocityDispersion">
   !#  <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
@@ -27,10 +28,12 @@
   type, extends(nbodyOperatorClass) :: nbodyOperatorVelocityDispersion
      !% An N-body data operator which computes the rotation curve at a set of given radii.
      private
-     logical                                               :: selfBoundParticlesOnly
-     integer         (c_size_t)                            :: bootstrapSampleCount
-     double precision          , allocatable, dimension(:) :: radiusInner            , radiusOuter
+     logical                                                                 :: selfBoundParticlesOnly
+     integer         (c_size_t                  )                            :: bootstrapSampleCount
+     double precision                            , allocatable, dimension(:) :: radiusInner                     , radiusOuter
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
+     final     ::            velocityDispersionDestructor
      procedure :: operate => velocityDispersionOperate
   end type nbodyOperatorVelocityDispersion
 
@@ -48,6 +51,7 @@ contains
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
     type            (inputParameters                ), intent(inout)               :: parameters
+    class           (randomNumberGeneratorClass     ), pointer                     :: randomNumberGenerator_
     double precision                                 , allocatable  , dimension(:) :: radiusInner           , radiusOuter
     logical                                                                        :: selfBoundParticlesOnly
     integer         (c_size_t                       )                              :: bootstrapSampleCount
@@ -83,12 +87,14 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyOperatorVelocityDispersion(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=nbodyOperatorVelocityDispersion(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function velocityDispersionConstructorParameters
 
-  function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter) result (self)
+  function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_) result (self)
     !% Internal constructor for the ``velocityDispersion'' N-body operator class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -96,17 +102,26 @@ contains
     logical                                          , intent(in   )               :: selfBoundParticlesOnly
     integer         (c_size_t                       ), intent(in   )               :: bootstrapSampleCount
     double precision                                 , intent(in   ), dimension(:) :: radiusInner            , radiusOuter
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radiusInner, radiusOuter"/>
+    class           (randomNumberGeneratorClass     ), intent(in   ), target       :: randomNumberGenerator_
+    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radiusInner, radiusOuter, *randomNumberGenerator_"/>
 
     if (size(self%radiusInner) /= size(self%radiusOuter)) call Galacticus_Error_Report('number of inner and outer radii should be equal'//{introspection:location})
     return
   end function velocityDispersionConstructorInternal
 
+  subroutine velocityDispersionDestructor(self)
+    !% Destructor for the ``meanPosition'' N-body operator class.
+    implicit none
+    type(nbodyOperatorVelocityDispersion), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine velocityDispersionDestructor
+
   subroutine velocityDispersionOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
-    use :: Pseudo_Random    , only : pseudoRandom
     implicit none
     class           (nbodyOperatorVelocityDispersion), intent(inout)                 :: self
     type            (nBodyData                      ), intent(inout)                 :: simulation
@@ -119,7 +134,6 @@ contains
     double precision                                                , dimension(3  ) :: velocityMean                , velocityMeanSquared
     integer                                                                          :: k
     integer         (c_size_t                       )                                :: i                           , j
-    type            (pseudoRandom                   )                                :: randomSequence
 
     ! Allocate workspace.
     call allocateArray(distanceRadialSquared,[  size(simulation%position   ,dim =2       )                          ])
@@ -138,7 +152,7 @@ contains
        call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
        do i=1,self%bootstrapSampleCount
           do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=randomSequence%poissonSample(sampleRate)
+             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
           end do
        end do
     end if

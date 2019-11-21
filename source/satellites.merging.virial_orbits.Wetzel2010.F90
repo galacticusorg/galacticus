@@ -233,10 +233,10 @@ contains
        call wetzel2010Orbit%massesSet(massSatellite,massHost      )
        call wetzel2010Orbit%radiusSet(              radiusHostSelf)
        ! Compute pericentric radius by inversion in table.
-       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator%uniformSample()
+       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
        pericentricRadius=R1*self%pericentricRadiusTableInverse%interpolate(wetzel2010UniformDeviate)
        ! Compute circularity by root finding in the cumulative probability distribution.
-       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator%uniformSample()
+       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
        circularity=self%finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
        eccentricityInternal=sqrt(1.0d0-circularity**2)
