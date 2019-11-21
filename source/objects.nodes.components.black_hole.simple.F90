@@ -328,7 +328,7 @@ contains
          &                           )
     ! Move the black hole to the host.
     call blackHoleHost%massSet(massBlackHoleNew)
-    call blackHole%massSet(           0.0d0)
+    call blackHole    %massSet(           0.0d0)
     return
   end subroutine satelliteMerger
 
