@@ -77,7 +77,7 @@ where $M$ is the root mass of the tree and the coefficients $C_i$ are read from 
 \end{verbatim}
 where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
 
-Note that, if \glc\ is run with {\normalfont \ttfamily [metaCollectTimingData]}$=${\normalfont \ttfamily true}, then it will output measures of tree processing time to the output file (see \S\ref{sec:MetaTreeTimingProfiler}). The analysis script {\normalfont \ttfamily scripts/analysis/treeTiming.pl} can be used to extract tree timing data from such an output file and output fitting coefficients in the above format. It is used as follows:
+Note that, if \glc\ is run with the {\normalfont \ttfamily mergerTreeOperatorTreeProcessingTimer} merger tree operator (see \S\ref{sec:methodsMergerTreeOperator}) active, then it will output measures of tree processing time to the output file. The analysis script {\normalfont \ttfamily scripts/analysis/treeTiming.pl} can be used to extract tree timing data from such an output file and output fitting coefficients in the above format. It is used as follows:
 \begin{verbatim}
  treeTiming.pl <modelFile> [options.....]
 \end{verbatim}
