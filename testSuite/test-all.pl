@@ -225,6 +225,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.Roman_numerals.exe",                                           # Tests of Roman numeral conversion functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.sort.exe",                                                     # Tests of sorting functions.
 	valgrind => 0,
 	mpi      => 0

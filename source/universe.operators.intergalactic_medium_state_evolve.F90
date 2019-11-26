@@ -647,7 +647,7 @@ contains
            else
               densityUpperIon=                            0.0d0
            end if
-           ! Get density of upper ionic state (i.e. current ion plus one electron).
+           ! Get density of lower ionic state (i.e. current ion plus one electron).
            if (ionizationState > 1) then
               densityLowerIon=max(properties(iProperty-1),0.0d0)
            else
