@@ -114,8 +114,7 @@
   integer                , parameter :: gnedin2000TablePointsPerDecade=100
 
   ! Lock used for file access.
-  type   (lockDescriptor)            :: gnedin2000FileLock
-  logical                            :: gnedin2000FileLockInitialized =.false.
+  type(lockDescriptor) :: gnedin2000FileLock
 
 contains
 
@@ -145,7 +144,7 @@ contains
 
   function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
     !% Constructor for the filtering mass class.
-    use :: File_Utilities  , only : Directory_Make, File_Lock_Initialize, File_Path
+    use :: File_Utilities  , only : Directory_Make, File_Path
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type (intergalacticMediumFilteringMassGnedin2000)                        :: self
@@ -163,15 +162,6 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
-    ! Initialize file lock.
-    if (.not.gnedin2000FileLockInitialized) then
-       !$omp critical(gnedin2000FileLockInitialize)
-       if (.not.gnedin2000FileLockInitialized) then
-          call File_Lock_Initialize(gnedin2000FileLock)
-          gnedin2000FileLockInitialized=.true.
-       end if
-       !$omp end critical(gnedin2000FileLockInitialize)
-    end if
     return
   end function gnedin2000ConstructorInternal
 
@@ -270,24 +260,11 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
-#ifndef OFDAVAIL
-    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-    ! will not block access to the same file by another thread.
-    !$omp critical (igmFilteringMassGnedin2000Lock)
-#endif
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(gnedin2000FileLock)
-#ifndef OFDAVAIL
-    !$omp end critical (igmFilteringMassGnedin2000Lock)
-#endif
     end if
     if (self%remakeTable(time)) then
-#ifndef OFDAVAIL
-       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-       ! will not block access to the same file by another thread.
-       !$omp critical (igmFilteringMassGnedin2000Lock)
-#endif
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.false.)
        ! Evaluate a suitable starting time for filtering mass calculations.
        timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
@@ -338,9 +315,6 @@ contains
        ! Store file.
        call self%fileWrite()
        call File_Unlock(gnedin2000FileLock)
-#ifndef OFDAVAIL
-       !$omp end critical (igmFilteringMassGnedin2000Lock)
-#endif
     end if
     return
 

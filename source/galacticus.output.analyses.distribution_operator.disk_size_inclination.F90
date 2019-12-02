@@ -60,8 +60,8 @@ contains
 
   function diskSizeInclinationConstructorInternal() result(self)
     !% Internal constructor for the ``diskSizeInclination'' output analysis distribution operator class.
-    use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Lock_Initialize         , File_Unlock, &
-          &                           lockDescriptor           , Directory_Make
+    use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
+          &                           Directory_Make
     use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
     use :: IO_HDF5           , only : hdf5Access               , hdf5Object
     use :: ISO_Varying_String, only : varying_string
@@ -86,7 +86,6 @@ contains
          &                                  inclinationAngleCount                                                    , &
          &                                  extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                 )
-    call File_Lock_Initialize(lockFileDescriptor)
     fileName=galacticusPath(pathTypeDataDynamic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()

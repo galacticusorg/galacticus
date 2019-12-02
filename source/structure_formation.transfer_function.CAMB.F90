@@ -31,7 +31,7 @@
      logical                                            :: initialized
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_      => null()
      double precision                                   :: wavenumberMaximum
-     logical                                            :: wavenumberMaximumReached          , lockFileGlobally
+     logical                                            :: wavenumberMaximumReached
      integer                                            :: cambCountPerDecade
    contains
      !@ <objectMethods>
@@ -55,12 +55,8 @@
      module procedure cambConstructorInternal
   end interface transferFunctionCAMB
 
-  ! Global lock descriptor to be used in non-(recent Linux) cases
-  type            (lockDescriptor)            :: cambFileLockGlobal
-  logical                                     :: cambFileLockInitialized   =.false.
-
   ! Smallest maximum wavenumber to tabulate.
-  double precision                , parameter :: cambWavenumberMaximumLimit=50000.0d0
+  double precision, parameter :: cambWavenumberMaximumLimit=50000.0d0
 
 contains
 
@@ -73,7 +69,6 @@ contains
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    logical                                                   :: lockFileGlobally
     double precision                                          :: redshift
     integer                                                   :: cambCountPerDecade
 
@@ -83,14 +78,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which the transfer function should be evaluated.</description>
     !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lockFileGlobally</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, attempt to lock the CAMB transfer function file before accessing. Otherwise, no locking is attempted.</description>
-    !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -104,14 +91,14 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally,cambCountPerDecade)
+    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
     return
   end function cambConstructorParameters
 
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,lockFileGlobally,cambCountPerDecade) result(self)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade) result(self)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -123,8 +110,6 @@ contains
     class           (cosmologyFunctionsClass ), intent(in   ), target   :: cosmologyFunctions_
     double precision                          , intent(in   )           :: redshift
     integer                                   , intent(in   )           :: cambCountPerDecade
-    logical                                   , intent(in   ), optional :: lockFileGlobally
-    !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
     !# <constructorAssign variables="cambCountPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Require that the dark matter be cold dark matter.
@@ -134,8 +119,6 @@ contains
     class default
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
-    ! Set lock file option.
-    self%lockFileGlobally=lockFileGlobally_
     ! Set initialization state.
     self%initialized=.false.
     ! Set the epoch time for this transfer function.
@@ -160,7 +143,7 @@ contains
   subroutine cambCheckRange(self,wavenumber)
     !% Check that the provided wavenumber is within the tabulated range and, if not, recompute
     !% the CAMB transfer function.
-    use :: File_Utilities , only : File_Lock                       , File_Lock_Initialize, File_Unlock
+    use :: File_Utilities , only : File_Lock                       , File_Unlock
     use :: Interfaces_CAMB, only : Interface_CAMB_Transfer_Function
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self
@@ -181,34 +164,13 @@ contains
     end if
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
-    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Initialize the file lock.
-    if (self%lockFileGlobally) then
-       if (.not.cambFileLockInitialized) then
-          !$omp critical (cambFileLockInitialize)
-          if (.not.cambFileLockInitialized) then
-             call File_Lock_Initialize(cambFileLockGlobal)
-             cambFileLockInitialized=.true.
-          end if
-          !$omp end critical (cambFileLockInitialize)
-       end if
-    else
-       call File_Lock_Initialize(fileLock)
-    end if
+    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
     ! Get a lock on the relevant lock file.
-    if (self%lockFileGlobally) then
-       call File_Lock(char(self%fileName),cambFileLockGlobal)
-    else
-       call File_Lock(char(self%fileName),fileLock          )
-    end if
+    call File_Lock(char(self%fileName),fileLock)
     ! Read the newly created file.
     call self%readFile(char(self%fileName))
     ! Unlock the lock file.
-    if (self%lockFileGlobally) then
-       call File_Unlock(cambFileLockGlobal)
-    else
-       call File_Unlock(fileLock          )
-    end if
+    call File_Unlock(fileLock)
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

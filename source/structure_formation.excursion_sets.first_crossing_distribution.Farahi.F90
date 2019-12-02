@@ -128,8 +128,7 @@
   double precision                , parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
 
   ! Lock used for file access.
-  type            (lockDescriptor)            :: farahiFileLock
-  logical                                     :: farahiFileLockInitialized=.false.
+  type(lockDescriptor) :: farahiFileLock
 
 contains
 
@@ -208,7 +207,6 @@ contains
 
   function farahiConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
-    use :: File_Utilities, only : File_Lock_Initialize
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -237,15 +235,6 @@ contains
     self%varianceRatePrevious              =-huge(0.0d0)
     self%useFile                           =(self%fileName /= 'none')
     self%fileNameInitialized               =.not.self%useFile
-    ! Initialize file lock.
-    if (.not.farahiFileLockInitialized) then
-       !$omp critical(farahiFileLockInitialize)
-       if (.not.farahiFileLockInitialized) then
-          call File_Lock_Initialize(farahiFileLock)
-          farahiFileLockInitialized=.true.
-       end if
-       !$omp end critical(farahiFileLockInitialize)
-    end if
     return
   end function farahiConstructorInternal
 

@@ -19,7 +19,6 @@
 
 //% Implements Fortran-callable wrappers around the Linux file locking functions.
 
-#include <flock_config.h>
 #ifdef OFDAVAIL
 #define _GNU_SOURCE
 #endif

@@ -26,19 +26,17 @@ module Interfaces_FSPS
   public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
 
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
-  type   (lockDescriptor) :: fspsLock
-  logical                 :: fspsLockInitialized=.false.
+  type(lockDescriptor) :: fspsLock
 
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
-    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Lock_Initialize, File_Remove, &
-          &                           File_Unlock
+    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Remove  , File_Unlock
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
-    use :: ISO_Varying_String, only : varying_string            , operator(//)       , assignment(=)       , char
+    use :: ISO_Varying_String, only : varying_string            , operator(//)       , assignment(=), char
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -51,15 +49,6 @@ contains
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
-     ! Get a lock.
-    if (.not.fspsLockInitialized) then
-       !$omp critical(fspsLockInitialize)
-       if (.not.fspsLockInitialized) then
-          call File_Lock_Initialize(fspsLock)
-          fspsLockInitialized=.true.
-       end if
-       !$omp end critical(fspsLockInitialize)
-    end if
     call File_Lock(char(fspsPath//"/fsps.lock"),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then

@@ -89,7 +89,6 @@ contains
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
-    use :: File_Utilities      , only : File_Lock_Initialize
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -103,7 +102,6 @@ contains
     ! Initialize state.
     self%timePrevious      =-1.0d0
     self%resetInterpolation=.true.
-    call File_Lock_Initialize(self%fileLock)
     ! Check that this is a flat cosmology.
     if     (                                                                                                 &
          &  Values_Differ(                                                                                   &

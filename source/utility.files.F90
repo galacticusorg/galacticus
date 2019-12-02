@@ -26,13 +26,12 @@ module File_Utilities
   !% Implements various file-related utilities.
   use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
   use               :: ISO_Varying_String, only : varying_string
-  !$ use            :: OMP_Lib           , only : omp_lock_kind
+  use               :: Locks             , only : ompLock
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists    , File_Lock_Initialize, File_Lock       , &
-       &    File_Unlock        , Executable_Find, File_Path           , File_Name       , &
-       &    File_Name_Temporary, File_Remove    , Directory_Make      , File_Name_Expand, &
-       &    File_Rename
+  public :: Count_Lines_in_File, File_Exists    , File_Rename   , File_Lock       , &
+       &    File_Unlock        , Executable_Find, File_Path     , File_Name       , &
+       &    File_Name_Temporary, File_Remove    , Directory_Make, File_Name_Expand
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -121,11 +120,17 @@ module File_Utilities
   type, public :: lockDescriptor
      !% Type used to store file lock descriptors.
      private
-     type      (c_ptr         ) :: lockDescriptorC
-     !$ integer(omp_lock_kind ) :: threadLock
-     type      (varying_string) :: fileName
+     type(c_ptr         ) :: lockDescriptorC
+     type(varying_string) :: fileName
   end type lockDescriptor
 
+#ifdef OFDUNAVAIL
+  type   (ompLock) :: posixOpenMPFileLock
+  logical          :: posixOpenMPFileLockInitialized=.false.
+  integer          :: posixOpenMPFileLockCount      =0
+  !$omp threadprivate(posixOpenMPFileLockCount)
+#endif
+  
 contains
 
   logical function File_Exists_VarStr(FileName)
@@ -190,20 +195,9 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock_Initialize(lock)
-    !% Initilialize the per thread lock in a file lock object.
-    !$ use :: OMP_Lib, only : OMP_Init_Lock
-    implicit none
-    type(lockDescriptor), intent(inout) :: lock
-
-    !$ call OMP_Init_Lock(lock%threadLock)
-    return
-  end subroutine File_Lock_Initialize
-
   subroutine File_Lock(fileName,lock,lockIsShared)
     !% Place a lock on a file.
-    use    :: ISO_Varying_String, only : trim, assignment(=)
-    !$ use :: OMP_Lib, only : OMP_Set_Lock
+    use :: ISO_Varying_String, only : trim, assignment(=)
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
@@ -212,8 +206,20 @@ contains
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
-    ! First obtain a per-thread lock, since POSIX SETLKW locks only per process.
-    !$ call OMP_Set_Lock(lock%threadLock)
+#ifdef OFDUNAVAIL
+    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware.
+    if (.not.posixOpenMPFileLockInitialized) then
+       !$omp critical(ofdOpenMPInitialize)
+       if (.not.posixOpenMPFileLockInitialized) then
+          posixOpenMPFileLock           =ompLock()
+          posixOpenMPFileLockInitialized=.true.
+       end if
+       !$omp end critical(ofdOpenMPInitialize)
+    end if
+    ! Obtain an OpenMP lock, if this thread has no other file locks active.
+    if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%set()
+    posixOpenMPFileLockCount=posixOpenMPFileLockCount+1
+#endif
     ! Now obtain the lock on the file.
     call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
     lock%fileName=trim(fileName)
@@ -222,9 +228,8 @@ contains
 
   subroutine File_Unlock(lock,sync)
     !% Remove a lock from a file.
-    use    :: Galacticus_Error  , only : Galacticus_Error_Report
-    use    :: ISO_Varying_String, only : char
-    !$ use :: OMP_Lib           , only : OMP_Unset_Lock
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: sync
@@ -240,8 +245,12 @@ contains
     end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-    ! Then release the per-thread lock.
-    !$ call OMP_Unset_Lock(lock%threadLock)
+#ifdef OFDUNAVAIL
+    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware. Release
+    ! that lock now, if this thread has no more file locks.
+    posixOpenMPFileLockCount=posixOpenMPFileLockCount-1
+    if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%unset()
+#endif
     return
   end subroutine File_Unlock
 

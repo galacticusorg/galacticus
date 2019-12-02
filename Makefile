@@ -170,12 +170,17 @@ $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
 # Configuration of file locking implementation.
-$(BUILDPATH)/flock_config.h : source/flock_config.c
+-include $(BUILDPATH)/Makefile_Config_OFD
+$(BUILDPATH)/Makefile_Config_OFD: source/flock_config.c
 	$(CCOMPILER) -c source/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
-	 echo "#define OFDAVAIL"   > $(BUILDPATH)/flock_config.h ; \
+	 echo "FCFLAGS  += -DOFDAVAIL"   >  $(BUILDPATH)/Makefile_Config_OFD ; \
+	 echo "CFLAGS   += -DOFDAVAIL"   >> $(BUILDPATH)/Makefile_Config_OFD ; \
+	 echo "CPPFLAGS += -DOFDAVAIL"   >> $(BUILDPATH)/Makefile_Config_OFD ; \
 	else \
-	 echo "#define OFDUNAVAIL" > $(BUILDPATH)/flock_config.h ; \
+	 echo "FCFLAGS  += -DOFDUNAVAIL" >  $(BUILDPATH)/Makefile_Config_OFD ; \
+	 echo "CFLAGS   += -DOFDUNAVAIL" >> $(BUILDPATH)/Makefile_Config_OFD ; \
+	 echo "CPPFLAGS += -DOFDUNAVAIL" >> $(BUILDPATH)/Makefile_Config_OFD ; \
 	fi
 
 # Configuration for availability of FFTW3.

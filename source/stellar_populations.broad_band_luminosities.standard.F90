@@ -299,8 +299,7 @@ contains
     !% Tabulate stellar population luminosity in the given filters.
     use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar
     use            :: FGSL                                  , only : FGSL_Integ_Gauss15                       , fgsl_function                        , fgsl_integration_workspace
-    use            :: File_Utilities                        , only : File_Exists                              , File_Lock                            , File_Lock_Initialize      , File_Unlock                , &
-         &                                                           lockDescriptor
+    use            :: File_Utilities                        , only : File_Exists                              , File_Lock                            , File_Unlock               , lockDescriptor
     use            :: Galacticus_Display                    , only : Galacticus_Display_Counter               , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
          &                                                          verbosityWorking
     use            :: Galacticus_Error                      , only : Galacticus_Error_Report                  , Galacticus_Warn                      , errorStatusFail           , errorStatusSuccess
@@ -377,7 +376,6 @@ contains
        call self%luminosityTableLock%setWrite(haveReadLock=.true.)
        luminosityIndexMaximum=maxval(luminosityIndex)
        if (.not.allocated(self%luminosityTables(populationID)%isTabulated) .or. self%luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
-          call File_Lock_Initialize(lockFileDescriptor)
           stellarPopulationSpectra_                      => stellarPopulation_%spectra()
           luminosityIndexMaximum                         =  maxval(luminosityIndex)
           stellarPopulationHashedDescriptorComputed      =  .false.
