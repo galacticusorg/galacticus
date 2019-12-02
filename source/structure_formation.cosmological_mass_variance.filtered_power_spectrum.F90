@@ -154,7 +154,6 @@
 
   ! Lock used for file access.
   type            (lockDescriptor)            :: filteredPowerFileLock
-  logical                                     :: filteredPowerFileLockInitialized =.false.
 
 contains
 
