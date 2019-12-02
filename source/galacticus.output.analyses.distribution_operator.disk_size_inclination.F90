@@ -61,7 +61,7 @@ contains
   function diskSizeInclinationConstructorInternal() result(self)
     !% Internal constructor for the ``diskSizeInclination'' output analysis distribution operator class.
     use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Lock_Initialize         , File_Unlock, &
-          &                           lockDescriptor
+          &                           lockDescriptor           , Directory_Make
     use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
     use :: IO_HDF5           , only : hdf5Access               , hdf5Object
     use :: ISO_Varying_String, only : varying_string
@@ -89,13 +89,13 @@ contains
     call File_Lock_Initialize(lockFileDescriptor)
     fileName=galacticusPath(pathTypeDataDynamic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        call file%openFile(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
        call file%close()
        call File_Unlock(lockFileDescriptor)
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        call self%inclinationTable%populate(halfMassRadii)
     else
        ! Tabulate dependence of projected half-light radius on disk inclination angle.
@@ -124,13 +124,14 @@ contains
        end do
        !$omp end parallel do
        halfMassRadii=reshape(self%inclinationTable%ys(),[inclinationAngleCount])
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
+       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"/galacticStructure")
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
-       call file%openFile(char(fileName))
+       call file%openFile(char(fileName),objectsOverwritable=.true.)
        call file%writeDataset(halfMassRadii,'halfMassRadii')
        call file%close()
        call File_Unlock(lockFileDescriptor)
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
     end if
     ! Reverse the table
     call self%inclinationTable%reverse(self%sizeTable)
