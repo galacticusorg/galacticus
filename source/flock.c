@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <omp.h>
 
 struct lockDescriptor {
   struct flock fl;
@@ -82,7 +83,7 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
       } else if (errno == EINTR) {
 	printf("flock_C(): [EINTR]\n");
       } else if (errno == EINVAL) {
-      printf("flock_C(): [EINVAL]\n");
+	printf("flock_C(): [EINVAL]\n");
       } else if (errno == ENOLCK) {
 	printf("flock_C(): [ENOLCK]\n");
       } else if (errno == EOVERFLOW) {
