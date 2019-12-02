@@ -113,13 +113,12 @@ contains
 
   end subroutine Interface_CAMB_Initialize
 
-  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
+  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: FGSL                            , only : FGSL_Interp_cSpline
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock  , &
-          &                                                       File_Lock_Initialize        , File_Path          , File_Remove , File_Unlock, &
-          &                                                       lockDescriptor
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock     , &
+          &                                                       File_Path                   , File_Remove        , File_Unlock , lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -141,7 +140,6 @@ contains
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
     double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
     integer                                   , intent(in   ), optional         :: countPerDecade
-    logical                                   , intent(in   )                   :: lockFileGlobally
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
@@ -202,23 +200,7 @@ contains
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
     ! If the file exists but has not yet been read, read it now.
-    if (lockFileGlobally) then
-       if (.not.cambFileLockInitialized) then
-          !$omp critical (cambFileLockInitialize)
-          if (.not.cambFileLockInitialized) then
-             call File_Lock_Initialize(cambFileLockGlobal)
-             cambFileLockInitialized=.true.
-          end if
-          !$omp end critical (cambFileLockInitialize)
-       end if
-    else
-       call File_Lock_Initialize(fileLock)
-    end if
-    if (lockFileGlobally) then
-       call File_Lock(char(fileName_),cambFileLockGlobal)
-    else
-       call File_Lock(char(fileName_),fileLock          )
-    end if
+    call File_Lock(char(fileName_),fileLock)
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
@@ -541,12 +523,8 @@ contains
        call cambOutput  %close()
        call hdf5Access  %unset()
     end if
-    ! Unlock the lock file.
-    if (lockFileGlobally) then
-       call File_Unlock(cambFileLockGlobal)
-    else
-       call File_Unlock(fileLock          )
-    end if
+    ! Unlock the file.
+    call File_Unlock(fileLock)
     return
   end subroutine Interface_CAMB_Transfer_Function
 

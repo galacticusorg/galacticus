@@ -63,8 +63,8 @@ contains
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock  , &
-          &                                         File_Lock_Initialize        , File_Name_Temporary, File_Remove, File_Unlock
+    use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock, &
+          &                                         File_Unlock                 , File_Name_Temporary, File_Remove
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
     use :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
@@ -110,7 +110,6 @@ contains
     ! Create directory for output.
     call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file
-    call File_Lock_Initialize(self%fileLock)
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
     ! Check existance of file.
     buildFile=.false.

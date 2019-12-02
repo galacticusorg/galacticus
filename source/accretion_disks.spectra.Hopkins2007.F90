@@ -63,13 +63,11 @@ contains
 
   function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use :: File_Utilities  , only : File_Lock     , File_Lock_Initialize, File_Unlock
+    use :: File_Utilities  , only : File_Lock     , File_Unlock
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
-    ! Initialize the file lock.
-    call File_Lock_Initialize(                    self%fileLock                    )
     ! Set the file name.
     self%fileName=galacticusPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
     ! Build the file.

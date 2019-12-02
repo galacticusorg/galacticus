@@ -332,8 +332,8 @@ contains
     !% useful as computation of the table is relatively slow.
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Lock_Initialize       , &
-          &                                                    File_Path                        , File_Unlock                        , lockDescriptor
+    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Unlock                , &
+          &                                                    File_Path                        , lockDescriptor
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
          &                                                     verbosityWorking
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -373,13 +373,7 @@ contains
        ! Check for previously computed data.
        makeFile=.false.
        fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
-#ifndef OFDAVAIL
-       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-       ! will not block access to the same file by another thread.
-       !$omp critical (stellarPopulationStandardLock)
-#endif
        call Directory_Make(File_Path(fileName))
-       call File_Lock_Initialize(lock)
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
@@ -500,9 +494,6 @@ contains
           call hdf5Access%unset()
        end if
        call File_Unlock(lock)
-#ifndef OFDAVAIL
-       !$omp end critical (stellarPopulationStandardLock)
-#endif
        ! Record that this IMF has now been tabulated.
        property%computed=.true.
     end if

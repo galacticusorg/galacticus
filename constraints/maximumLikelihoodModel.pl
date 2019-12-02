@@ -57,7 +57,7 @@ print "Maximum posterior: ".$maximumPosterior."\n";
 print " Model parameters:\n".join("\t",$maximumPosteriorParameters->list())."\n";
 
 # Get a list of likelihood models to evaluate.
-my @models     = &Galacticus::Constraints::Parameters::modelList($config);
+my @models     = &Galacticus::Constraints::Parameters::modelList($config,\%options);
 my @jobs           ;
 my $modelCount = -1;
 foreach my $model ( @models ) {
