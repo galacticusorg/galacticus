@@ -27,7 +27,8 @@
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSpinNBodyErrors
      !% An output distribution operator class to account for errors on N-body measurements of halo spin.
      private
-     class(haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
+     class  (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
+     logical                                     :: errorTolerant
    contains
      final     ::                        spinNBodyErrorsDestructor
      procedure :: operateScalar       => spinNBodyErrorsOperateScalar
@@ -46,26 +47,35 @@ contains
     !% Constructor for the ``spinNBodyErrors'' output analysis distribution operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (outputAnalysisDistributionOperatorSpinNBodyErrors)                :: self
-    type (inputParameters                                  ), intent(inout) :: parameters
-    class(haloSpinDistributionClass                        ), pointer       :: haloSpinDistribution_
+    type   (outputAnalysisDistributionOperatorSpinNBodyErrors)                :: self
+    type   (inputParameters                                  ), intent(inout) :: parameters
+    logical                                                                   :: errorTolerant
+    class  (haloSpinDistributionClass                        ), pointer       :: haloSpinDistribution_
 
-    ! Construct the object.
+    !# <inputParameter>
+    !#   <name>errorTolerant</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, integration tolerance failures are tolerated (a warning is issued but calculations will continue).</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
-    self=outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_)
+    self=outputAnalysisDistributionOperatorSpinNBodyErrors(errorTolerant,haloSpinDistribution_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="haloSpinDistribution_"/>
     return
   end function spinNBodyErrorsConstructorParameters
 
-  function spinNBodyErrorsConstructorInternal(haloSpinDistribution_) result(self)
+  function spinNBodyErrorsConstructorInternal(errorTolerant,haloSpinDistribution_) result(self)
     !% Internal constructor for the ``spinNBodyErrors'' output analysis distribution operator class.
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Halo_Spin_Distributions, only : haloSpinDistributionClass, haloSpinDistributionNbodyErrors
     implicit none
-    type (outputAnalysisDistributionOperatorSpinNBodyErrors)                        :: self
-    class(haloSpinDistributionClass                        ), intent(in   ), target :: haloSpinDistribution_
-    !# <constructorAssign variables="*haloSpinDistribution_"/>
+    type   (outputAnalysisDistributionOperatorSpinNBodyErrors)                        :: self
+    logical                                                   , intent(in   )         :: errorTolerant
+    class  (haloSpinDistributionClass                        ), intent(in   ), target :: haloSpinDistribution_
+    !# <constructorAssign variables="errorTolerant, *haloSpinDistribution_"/>
 
     ! Check that the spin distribution is of the N-body errors class.
     select type (haloSpinDistribution_)
@@ -90,7 +100,7 @@ contains
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
     use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Galacticus_Error       , only : Galacticus_Error_Report         , Galacticus_Warn                , errorStatusSuccess
     use :: Numerical_Integration  , only : Integrate                       , Integrate_Done
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
@@ -102,6 +112,7 @@ contains
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateScalar
     integer         (c_size_t                                         )                                                       :: i
+    integer                                                                                                                   :: status
     double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum     , &
          &                                                                                                                       spinMeasuredRangeMinimum    , spinMeasuredRangeMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
@@ -136,13 +147,21 @@ contains
             &                                    integrandFunction               , &
             &                                    integrationWorkspace            , &
             &                                    toleranceAbsolute        =0.0d+0, &
-            &                                    toleranceRelative        =1.0d-6  &
+            &                                    toleranceRelative        =1.0d-6, &
+            &                                    errorStatus              =status  &
             &                                   )                                  &
             &                          /(                                          &
             &                            +spinMeasuredMaximum                      &
             &                            -spinMeasuredMinimum                      &
             &                           )
        call Integrate_Done(integrandFunction,integrationWorkspace)
+       if (status /= errorStatusSuccess) then
+          if (self%errorTolerant) then
+             call Galacticus_Warn        ('integration of N-body spin distribution failed'                          )
+          else
+             call Galacticus_Error_Report('integration of N-body spin distribution failed'//{introspection:location})
+          end if
+       end if
     end do
     return
 
