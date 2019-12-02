@@ -55,7 +55,10 @@ contains
        textC(i)=extract(text,i,i)
     end do
     textC(textLen)=char(0)
+    ! The crypt() function that computes the MD5 hash is not thread safe, so use it within an OpenMP critical section.    
+    !$omp critical(md5Hash)
     call md5(textLen,textC,hash)
+    !$omp end critical(md5Hash)
     deallocate(textC)
     do i=13,34
        if (hash(i) == "/") hash(i)="@"
