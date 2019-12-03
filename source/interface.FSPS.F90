@@ -193,7 +193,7 @@ contains
     age=10.0d0**(age-9.0d0)
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     call spectraFile%openFile(char(spectraFileName))
     ! Add metadata.
     call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
@@ -227,7 +227,7 @@ contains
     call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
     call dataset    %close         (                                                         )
     call spectraFile%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate
 

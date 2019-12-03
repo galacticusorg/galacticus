@@ -88,13 +88,14 @@ contains
          &                                 )
     fileName=galacticusPath(pathTypeDataDynamic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
+       !$ call hdf5Access%set()
        call file%openFile(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
        call file%close()
-       call File_Unlock(lockFileDescriptor)
        !$ call hdf5Access%unset()
+       call File_Unlock(lockFileDescriptor)
        call self%inclinationTable%populate(halfMassRadii)
     else
        ! Tabulate dependence of projected half-light radius on disk inclination angle.
@@ -123,14 +124,15 @@ contains
        end do
        !$omp end parallel do
        halfMassRadii=reshape(self%inclinationTable%ys(),[inclinationAngleCount])
-       !$ call hdf5Access%set()
        call Directory_Make(galacticusPath(pathTypeDataDynamic)//"/galacticStructure")
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
+       !$ call hdf5Access%set()
        call file%openFile(char(fileName),objectsOverwritable=.true.)
        call file%writeDataset(halfMassRadii,'halfMassRadii')
        call file%close()
-       call File_Unlock(lockFileDescriptor)
        !$ call hdf5Access%unset()
+       call File_Unlock(lockFileDescriptor)
     end if
     ! Reverse the table
     call self%inclinationTable%reverse(self%sizeTable)

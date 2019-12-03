@@ -307,6 +307,7 @@ contains
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
        call self%fileNameInitialize()
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -328,6 +329,7 @@ contains
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
           if (self%useFile.and..not.locked) then
+             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
              call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if
@@ -664,6 +666,7 @@ contains
     locked=.false.
     if (self%useFile.and..not.self%tableInitializedRate) then
        call self%fileNameInitialize()
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -685,6 +688,7 @@ contains
 #endif
           ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (self%useFile.and..not.locked) then
+             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
              call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if
