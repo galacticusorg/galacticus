@@ -100,15 +100,15 @@ sub Process_FunctionClass {
 			$class->{$_    } = $classNode->{'directive'}->{$_}
 			    foreach ( keys(%{$classNode->{'directive'}}) );
 		    }
-		    if ( $classNode->{'type'} eq "type" ) {
+		    if ( $classNode->{'type'} eq "type" && defined($class->{'node'}) ) {
 			# Parse class openers to find dependencies.
 			if (
-			    $classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive->{'name'}([a-z0-9_]+)\s*$/i 
+			    $classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$class->{'node'}->{'directive'}->{'name'}\s*$/i 
 			    &&
 			    defined($2)
 			    ) {
 			    my $extends = $2;
-			    my $type    = $directive->{'name'}.$4;
+			    my $type    = $class->{'node'}->{'directive'}->{'name'};
 			    $class->{'type'   } = $type;
 			    $class->{'extends'} = $extends;
 			    push(@{$dependencies{$extends}},$type);
@@ -2501,7 +2501,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 	    
 	    # Insert class code.
-	    foreach my $class ( @classes ) {
+            foreach my $class ( @classes ) {		  
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$class->{'type'},"public");
 		my $classTree = $class->{'tree'};
 		my $classNode = $classTree->{'firstChild'};
@@ -2748,6 +2748,7 @@ CODE
 		$extension = ""
 		    if ( exists($method->{'code'}) );
 		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";
+		my $elemental = exists($method->{'elemental'}) && $method->{'elemental'} eq "yes" ? "elemental " : "";
 		if ( $method->{'type'} eq "void" ) {
 		    $category = "subroutine";
 		    $type     = "";
@@ -2765,7 +2766,7 @@ CODE
 		    $type     = $method->{'type'}." ";
 		    $self     = "";
 		}
-		$postContains->[0]->{'content'} .= "   ".$recursive.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
+		$postContains->[0]->{'content'} .= "   ".$recursive.$elemental.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
 		$postContains->[0]->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$postContains->[0]->{'content'} .= ")\n";
