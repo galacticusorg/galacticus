@@ -3,7 +3,7 @@
 
   <verbosityLevel value="2"/>
 
-  <galacticusOutputFileName value="galacticusMPI.hdf5"/>
+  <galacticusOutputFileName value="testSuite/outputs/radiativeTransfer-StromgrenSphere.hdf5"/>
 
   <randomNumberGeneratorMethod value="GSL">
     <seed          value="830" />
