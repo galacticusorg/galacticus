@@ -13,7 +13,7 @@ use Fcntl qw(SEEK_SET);
 # RegEx's useful for matching Fortran code.
 our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\.\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
@@ -43,16 +43,16 @@ our %unitClosers = (
 
 # Specify regexs for intrinsic variable declarations.
 our %intrinsicDeclarations = (
-    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    real          => { intrinsic => "real"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    double        => { intrinsic => "double precision", openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    complex       => { intrinsic => "complex"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    doubleComplex => { intrinsic => "double complex"  , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    logical       => { intrinsic => "logical"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    character     => { intrinsic => "character"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*${label}\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
+    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    real          => { intrinsic => "real"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    double        => { intrinsic => "double precision", openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    complex       => { intrinsic => "complex"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    doubleComplex => { intrinsic => "double complex"  , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    logical       => { intrinsic => "logical"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    character     => { intrinsic => "character"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*${label}\s*\))?([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,\.:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
     );
 
 # Hash of files which have been read and processed.
