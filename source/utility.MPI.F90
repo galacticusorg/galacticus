@@ -95,6 +95,12 @@ module MPI_Utilities
      !@     <description>Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>broadcastData</method>
+     !@     <type>void</type>
+     !@     <arguments>\intzero sendFrom\argin, \doublezero|\doubleone|\doubletwo|\doublethree\ array\arginout</arguments>
+     !@     <description>Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>messageWaiting</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\intzero\ [from]\argin, \intzero\ [tag]\argin</arguments>
@@ -173,6 +179,10 @@ module MPI_Utilities
           &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
      generic   :: requestData    => mpiRequestData1D    , mpiRequestData2D       , &
           &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
+     procedure ::                   mpiBroadcastData1D  , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
+     generic   :: broadcastData  => mpiBroadcastData1D  , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
      procedure :: messageWaiting => mpiMessageWaiting
      procedure ::                   mpiAverageScalar    , mpiAverageArray
      generic   :: average        => mpiAverageScalar    , mpiAverageArray
@@ -885,6 +895,98 @@ contains
     return
   end function mpiRequestDataLogical1D
 
+  subroutine mpiBroadcastDataScalar(self,sendFrom,scalar)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   ) :: self
+    integer                    , intent(in   ) :: sendFrom
+    double precision           , intent(inout) :: scalar
+#ifdef USEMPI
+    integer                                    :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, scalar
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastDataScalar
+  
+  subroutine mpiBroadcastData1D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )               :: self
+    integer                    , intent(in   )               :: sendFrom
+    double precision           , intent(inout), dimension(:) :: array
+#ifdef USEMPI
+    integer                                                  :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData1D
+  
+  subroutine mpiBroadcastData2D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                 :: self
+    integer                    , intent(in   )                 :: sendFrom
+    double precision           , intent(inout), dimension(:,:) :: array
+#ifdef USEMPI
+    integer                                                    :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData2D
+  
+  subroutine mpiBroadcastData3D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                   :: self
+    integer                    , intent(in   )                   :: sendFrom
+    double precision           , intent(inout), dimension(:,:,:) :: array
+#ifdef USEMPI
+    integer                                                      :: status
+    !GCC$ attributes unused :: self
+
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData3D
+  
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
     use :: Galacticus_Error, only : Galacticus_Error_Report
