@@ -101,6 +101,7 @@ contains
     ! Perform calculations if necessary.
     if (computeCoolingFunctions .or. computeChemicalStates) then
        ! Open and lock the cooling function and chemical state files.
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
        call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
        ! Generate metallicity and temperature arrays.
@@ -177,7 +178,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.
        if (computeCoolingFunctions) then
-          call hdf5Access%set()
+          !$ call hdf5Access%set()
           call outputFile%openFile      (char(fileNameCoolingFunction))
           ! Store data.
           call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
@@ -223,7 +224,7 @@ contains
           call outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
           call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
           call outputFile%close         (                                                                                                    )
-          call hdf5Access%unset()
+          !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLockChemicalState  )
        call File_Unlock(fileLockCoolingFunction)

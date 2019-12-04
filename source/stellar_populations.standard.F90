@@ -374,11 +374,12 @@ contains
        makeFile=.false.
        fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
        call Directory_Make(File_Path(fileName))
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
           call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
-          call hdf5Access%set()
+          !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
@@ -386,7 +387,7 @@ contains
              call file%close()
              call Galacticus_Display_Unindent('done',verbosityWorking)
           end if
-          call hdf5Access%unset()
+          !$ call hdf5Access%unset()
        else
           makeFile=.true.
        end if

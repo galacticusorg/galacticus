@@ -438,8 +438,9 @@ contains
                       write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
                       datasetName="redshift"//adjustl(trim(redshiftLabel))
                       ! Open the file and check for the required dataset.
-                      call hdf5Access%set()
+                      ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
+                      !$ call hdf5Access%set()
                       call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                       if (luminositiesFile%hasDataset(trim(datasetName))) then
                          ! Read the dataset.
@@ -448,8 +449,8 @@ contains
                          calculateLuminosity=.false.
                       end if
                       call luminositiesFile%close()
+                      !$ call hdf5Access%unset()
                       call File_Unlock(lockFileDescriptor)
-                      call hdf5Access%unset()
                    end if
                 end if
                 ! Compute the luminosity if necessary.
@@ -554,8 +555,9 @@ contains
                       descriptor=inputParameters()
                       call stellarPopulation_%descriptor(descriptor,includeMethod=.true.)
                       descriptorString=descriptor%serializeToString()
-                      call hdf5Access%set()
+                      ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
+                      !$ call hdf5Access%set()
                       call luminositiesFile%openFile      (char(luminositiesFileName)             )
                       if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
                       ! Write the dataset.
@@ -563,8 +565,8 @@ contains
                            & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
                       ! Close the file.
                       call luminositiesFile%close()
+                      !$ call hdf5Access%unset()
                       call File_Unlock(lockFileDescriptor)
-                      call hdf5Access%unset()
                    end if
                 end if
                 ! Flag that calculations have been performed for this filter.

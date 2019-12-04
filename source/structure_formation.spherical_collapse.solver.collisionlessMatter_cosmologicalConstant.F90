@@ -818,6 +818,7 @@ contains
     status=errorStatusFail
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        call file%openFile(char(fileName))
@@ -866,6 +867,7 @@ contains
 
     if (.not.tableStore) return
     call Directory_Make(char(File_Path(char(fileName))))
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)

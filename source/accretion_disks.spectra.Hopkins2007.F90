@@ -73,6 +73,7 @@ contains
     ! Build the file.
     call self%buildFile()
     ! Load the file.
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock           (char(self%fileName),self%fileLock,lockIsShared=.true.)
     call self%loadFile       (char(self%fileName)                                  )
     call File_Unlock         (                    self%fileLock                    )
@@ -116,6 +117,7 @@ contains
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
 
     ! Determine if we need to make the file.
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
     makeFile=.false.
     if (File_Exists(self%fileName)) then
@@ -136,6 +138,7 @@ contains
     ! Make the file if necessary.
     if (makeFile) then
        call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
        if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then

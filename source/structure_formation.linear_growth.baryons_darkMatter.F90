@@ -264,11 +264,13 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(baryonsDarkMatterFileLock,sync=.false.)
     end if
     if (self%remakeTable(time)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.false.)
        ! Find the present-day epoch.
        timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
