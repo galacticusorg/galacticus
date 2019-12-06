@@ -195,6 +195,8 @@ contains
     use :: Galacticus_HDF5         , only : galacticusOutputFile
     use :: IO_HDF5                 , only : hdf5Object
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
+    use :: MPI_Utilities           , only : mpiSelf                                  , mpiBarrier
+    use :: Timers                  , only : timer
     implicit none
     class           (taskRadiativeTransfer                    ), intent(inout), target       :: self
     integer                                                    , intent(  out), optional     :: status
@@ -211,14 +213,21 @@ contains
          &                                                                                      lengthTraversed
     type            (hdf5Object                               )                              :: outputGroup
     character       (len=128                                  )                              :: message
-    
-    call Galacticus_Display_Indent('Begin task: radiative transfer')
+    type            (timer                                    )                              :: timer_                   , timerTotal_               , &
+         &                                                                                      timerIteration_
+
+    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('Begin task: radiative transfer')
+    ! Establish timers.
+    timer_         =timer()
+    timerTotal_    =timer()
+    timerIteration_=timer()
     ! Open group for output of our model data.
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+    if (mpiSelf%isMaster()) outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+    call timerTotal_%start()
     ! Initialize the computational domain.
     call self%computationalDomain_       %initialize      (                                         )
     ! Compute and output properties of the sources.
-    call self%radiativeTransferOutputter_%sourceProperties(self%radiativeTransferSource_,outputGroup)
+    if (mpiSelf%isMaster()) call self%radiativeTransferOutputter_%sourceProperties(self%radiativeTransferSource_,outputGroup)
     ! Construct a negative exponential distribution from which to sample optical depths.
     opticalDepthDistribution=distributionFunction1DNegativeExponential(1.0d0)
     ! Iterate until convergence.
@@ -226,15 +235,25 @@ contains
     countIterations=0_c_size_t
     iterations : do while ((.not.converged .or. countIterations < self%countIterationsMinimum) .and. countIterations < self%countIterationsMaximum)
        countIterations=countIterations+1
-       write (message,'(a,i6)') 'begin iteration ',countIterations
-       call Galacticus_Display_Indent(trim(message),verbosityStandard)
+       if (mpiSelf%isMaster()) then
+          write (message,'(a,i6)') 'begin iteration ',countIterations
+          call Galacticus_Display_Indent(trim(message),verbosityStandard)
+       end if
+       call mpiBarrier()
+       call timerIteration_%start()
        ! Reset the computational domain and outputter.
        call self%computationalDomain_       %reset()
        call self%radiativeTransferOutputter_%reset()
-      ! Iterate over photon wavelengths.
+       ! Iterate over photon wavelengths.
+       call timer_%start()
+       if (mpiSelf%isMaster()) call Galacticus_Display_Indent('cast photon packets',verbosityStandard)
        wavelengths : do iWavelength=1,size(self%wavelengths)
           ! Iterate over photon packets.
           photonPackets : do iPhoton=1,self%countPhotonsPerWavelength
+#ifdef USEMPI
+             ! Skip photons which do not belong to this MPI process.
+             if (mod(iPhoton,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
              ! Initialize the photon packet.
              call self%radiativeTransferPhotonPacket_%wavelengthSet         (self%wavelengths                                     (iWavelength                   ))
              call self%radiativeTransferPhotonPacket_%wavelengthMinimumSet  (self%wavelengthsMinimum                              (iWavelength                   ))
@@ -289,26 +308,44 @@ contains
              end if
           end do photonPackets
        end do wavelengths
+       call mpiBarrier()
+       call timer_%stop()
+       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)       
        ! Solve for state of matter in the computational domain.
+       if (mpiSelf%isMaster()) call Galacticus_Display_Indent('solve for matter state',verbosityStandard)
+       call timer_%start()
        call self%computationalDomain_%stateSolve()
+       call mpiBarrier()
+       call timer_%stop()
+       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)       
        ! Test convergence on the computational domain.
+       if (mpiSelf%isMaster()) call Galacticus_Display_Indent('test for convergence',verbosityStandard)
+       call timer_%start()
        converged=self%computationalDomain_%converged()
-       if (converged) then
-          call Galacticus_Display_Message('converged'    ,verbosityStandard)
-       else
-          call Galacticus_Display_Message('not converged',verbosityStandard)
+       call mpiBarrier()
+       call timer_%stop()
+       if (mpiSelf%isMaster()) then
+          if (converged) then
+             call Galacticus_Display_Message('converged'    ,verbosityStandard)
+          else
+             call Galacticus_Display_Message('not converged',verbosityStandard)
+          end if
+          call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
        end if
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call mpiBarrier()
+       call timerIteration_%stop()
+      if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timerIteration_%reportText()//']',verbosityStandard)       
     end do iterations
     ! Output convergence status.
-    call outputGroup%writeAttribute(converged,'converged')
+    if (mpiSelf%isMaster()) call outputGroup%writeAttribute(converged,'converged')
     ! Output the computational domain.
-    call self%computationalDomain_       %output(outputGroup)
+    if (mpiSelf%isMaster()) call self%computationalDomain_       %output(outputGroup)
     ! Output outputter results.
-    call self%radiativeTransferOutputter_%output(outputGroup)
+    if (mpiSelf%isMaster()) call self%radiativeTransferOutputter_%output(outputGroup)
     ! Done.
-    call outputGroup%close()
+    if (mpiSelf%isMaster()) call outputGroup%close()
+    call timerTotal_%stop()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: radiative transfer' )
+    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('Done task: radiative transfer ['//timerTotal_%reportText()//']')
     return
   end subroutine radiativeTransferPerform

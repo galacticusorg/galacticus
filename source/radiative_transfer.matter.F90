@@ -47,9 +47,16 @@ module Radiative_Transfer_Matters
   !#   <description>Populate a domain cell with matter.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
   !#   <argument>class(radiativeTransferMatterProperties       ), intent(inout) :: properties</argument>
   !#   <argument>class(computationalDomainVolumeIntegratorClass), intent(inout) :: integrator</argument>
+  !#   <argument>logical                                        , intent(in   ) :: onProcess</argument>
+  !#  </method>
+  !#  <method name="broadcastDomain" >
+  !#   <description>Broadcast populated domain to all MPI processes.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer                                   , intent(in   ) :: sendFromProcess</argument>
+  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
   !#  </method>
   !#  <method name="reset" >
   !#   <description>Reset the matter prior to a new iteration.</description>
@@ -83,7 +90,8 @@ module Radiative_Transfer_Matters
   !#   <description>Solve for the state of the matter.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout)           :: properties</argument>
+  !#   <argument>integer                                   , intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="convergenceMeasure" >
   !#   <description>Return a convergence measure for the matter.</description>
@@ -108,6 +116,19 @@ module Radiative_Transfer_Matters
   !#   <type>type(varying_string)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer(c_size_t), intent(in   ) :: output</argument>
+  !#  </method>
+  !#  <method name="accumulationReduction" >
+  !#   <description>Perform reduction across MPI processes of accumulated properties.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#  </method>
+  !#  <method name="broadcastState" >
+  !#   <description>Broadcast domain state to all MPI processes.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer                                   , intent(in   ) :: sendFromProcess</argument>
+  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
   !#  </method>
   !# </functionClass>
   
