@@ -480,6 +480,11 @@ my @executablesToRun = (
 	mpi      => 4
     },
     {
+	name     => "tests.radiative_transfer.atomic_matter.state_solver.exe",            # Tests of radiative transfer atomic matter state solving.
+	valgrind => 0,
+	mpi      => 1
+    },
+    {
 	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
 	valgrind => 0,
 	mpi      => 0

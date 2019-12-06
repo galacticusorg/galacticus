@@ -10,9 +10,9 @@ use PDL::Constants qw(PI);
 # Andrew Benson (04-December-2019)
 
 # Run the calculation.
-system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml"  );
-die("FAILED: failed to run calculation")
-    unless ( $? == 0 );
+#system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+#die("FAILED: failed to run calculation")
+#    unless ( $? == 0 );
 # Read model output and parameters.
 my $outputFile                                                                    = new PDL::IO::HDF5('outputs/radiativeTransfer-StromgrenSphere:MPI0000.hdf5');
 my $parameters                                                                    = $outputFile         ->group  ('Parameters'                                                        )       ;
