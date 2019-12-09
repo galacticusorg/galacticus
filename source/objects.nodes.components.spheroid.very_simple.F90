@@ -217,10 +217,12 @@ contains
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                                                                              )
-       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
+       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="parameters_"/>
        !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="parameters_"/>

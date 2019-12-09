@@ -77,11 +77,13 @@ contains
           &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
     class(galacticStructureSolverLinear), intent(inout) :: self
+    type (dependencyRegEx              ), dimension(1)  :: dependencies
 
-    call   preDerivativeEvent%attach(self,linearSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                        )
-    call      postEvolveEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
-    call satelliteMergerEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
-    call   nodePromotionEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
+    call   preDerivativeEvent%attach(self,linearSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                        )
+    call      postEvolveEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=dependencies)
+    call satelliteMergerEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=dependencies)
+    call   nodePromotionEvent%attach(self,linearSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverLinear',dependencies=dependencies)
     return
   end subroutine linearAutoHook
 

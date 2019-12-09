@@ -122,20 +122,22 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent, satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
-         &                          dependencyRegEx   , dependencyDirectionAfter
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx        , dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters_"/>
        !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters_"/>
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                                                                              )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
-       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                                                                              )
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
+       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize

@@ -290,11 +290,14 @@ contains
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
     double precision                                 :: spheroidMassDistributionDensityMomentum2   , spheroidMassDistributionDensityMomentum3, &
          &                                              spheroidAngularMomentumAtScaleRadiusDefault
+    type            (dependencyRegEx), dimension(2)  :: dependencies
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                                                                                                                                             )
-       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:'),dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')])
+       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
+       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters_"/>
        !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters_"/>

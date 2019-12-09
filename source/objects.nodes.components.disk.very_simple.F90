@@ -249,10 +249,12 @@ contains
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultDiskComponent%verySimpleIsActive()) then
-       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
-       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                                                                              )
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
        !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
