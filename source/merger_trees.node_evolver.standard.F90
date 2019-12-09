@@ -230,8 +230,9 @@ contains
          &                                                                        mergerTreeEvolveProfiler_                                     &
          &                            )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeNodeMerger_"/>
-    !# <objectDestructor name="nodeOperator_"        />
+    !# <objectDestructor name="mergerTreeNodeMerger_"    />
+    !# <objectDestructor name="nodeOperator_"            />
+    !# <objectDestructor name="mergerTreeEvolveProfiler_"/>
     return
   end function standardConstructorParameters
 
