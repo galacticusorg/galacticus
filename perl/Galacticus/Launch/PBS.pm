@@ -328,8 +328,8 @@ sub SubmitJobs {
 		}
 		# Create the batch script.
 		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
-		my $nodes = 1;
-		my $ppn   = 1;
+		my $nodes    = 1;
+		my $ppn      = 1;
 		$ppn   = $arguments  {'ppn'  }
 		    if ( exists($arguments  {'ppn'  }) );
 		$nodes = $arguments  {'nodes'}
@@ -338,6 +338,11 @@ sub SubmitJobs {
 		    if ( exists($newJob   ->{'ppn'  }) );
 		$nodes = $newJob   ->{'nodes'}
 		    if ( exists($newJob   ->{'nodes'}) );
+		my $mpiProcs = $nodes*$ppn;
+		$mpiProcs = $arguments{'mpiProcs'}
+		    if ( exists($arguments{'mpiProcs'}) );
+		$mpiProcs = $newJob->{'mpiProcs'}
+		    if ( exists($newJob->{'mpiProcs'}) );
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#PBS -N ".$newJob->{'label'}."\n";
@@ -372,7 +377,7 @@ sub SubmitJobs {
 		print $scriptFile "ulimit -c unlimited\n";
 		my $mpi = exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes";
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
-		print $scriptFile ($mpi ? "mpirun -np ".($nodes*$ppn)." " : "").$newJob->{'command'}."\n";
+		print $scriptFile ($mpi ? "mpirun --bynode -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
@@ -380,7 +385,7 @@ sub SubmitJobs {
 		$batchScript = $newJob;
 		undef($newJob);
 		$newJob->{'launchFile'} = $batchScript;
-	    }
+	    }	    
 	    # Submit the PBS job.
 	    open(pHndl,"qsub ".$newJob->{'launchFile'}."|");
 	    my $jobID = "";
