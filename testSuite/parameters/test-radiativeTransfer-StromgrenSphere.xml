@@ -29,7 +29,7 @@
     <convergenceRatioThreshold value="1.10"           />
   </computationalDomainMethod>
 
-  <radiativeTransferConvergenceMethod value="atomicRecombinationRate">
+  <radiativeTransferConvergenceMethod value="hydrogenRecombinationRate">
     <toleranceRelative value="0.01"/>
   </radiativeTransferConvergenceMethod>
   

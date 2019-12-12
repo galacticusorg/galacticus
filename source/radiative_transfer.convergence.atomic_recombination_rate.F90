@@ -17,33 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferConvergence name="radiativeTransferConvergenceAtomicRecombinationRate">
+  !# <radiativeTransferConvergence name="radiativeTransferConvergenceHydrogenRecombinationRate">
   !#  <description>A task which performs radiative transfer.</description>
   !# </radiativeTransferConvergence>
-  type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceAtomicRecombinationRate
-     !% Implementation of a radiative transfer matter class for atomicRecombinationRate matter.
+  type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceHydrogenRecombinationRate
+     !% Implementation of a radiative transfer convergence class based on the recombination rate of hydrogren.
      private
      double precision :: toleranceRelative
      double precision :: recombinationRateTotal, recombinationRateTotalPrevious
    contains
-     procedure :: testConvergence => atomicRecombinationRateTestConvergence
-  end type radiativeTransferConvergenceAtomicRecombinationRate
+     procedure :: testConvergence => hydrogenRecombinationRateTestConvergence
+  end type radiativeTransferConvergenceHydrogenRecombinationRate
   
-  interface radiativeTransferConvergenceAtomicRecombinationRate
-     !% Constructors for the {\normalfont \ttfamily atomicRecombinationRate} radiative transfer matter class.
-     module procedure atomicRecombinationRateConstructorParameters
-     module procedure atomicRecombinationRateConstructorInternal
-  end interface radiativeTransferConvergenceAtomicRecombinationRate
+  interface radiativeTransferConvergenceHydrogenRecombinationRate
+     !% Constructors for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class.
+     module procedure hydrogenRecombinationRateConstructorParameters
+     module procedure hydrogenRecombinationRateConstructorInternal
+  end interface radiativeTransferConvergenceHydrogenRecombinationRate
   
 contains
 
-  function atomicRecombinationRateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily atomicRecombinationRate} radiative transfer matter class which takes a parameter set as input.
+  function hydrogenRecombinationRateConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
-    type            (radiativeTransferConvergenceAtomicRecombinationRate)                :: self
-    type            (inputParameters                                    ), intent(inout) :: parameters
-    double precision                                                                     :: toleranceRelative
+    type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self
+    type            (inputParameters                                      ), intent(inout) :: parameters
+    double precision                                                                       :: toleranceRelative
     
     !# <inputParameter>
     !#   <name>toleranceRelative</name>
@@ -53,34 +53,34 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=radiativeTransferConvergenceAtomicRecombinationRate(toleranceRelative)
+    self=radiativeTransferConvergenceHydrogenRecombinationRate(toleranceRelative)
     return
-  end function atomicRecombinationRateConstructorParameters
+  end function hydrogenRecombinationRateConstructorParameters
 
-  function atomicRecombinationRateConstructorInternal(toleranceRelative) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily atomicRecombinationRate} radiative transfer matter class.
+  function hydrogenRecombinationRateConstructorInternal(toleranceRelative) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class.
     implicit none
-    type            (radiativeTransferConvergenceAtomicRecombinationRate)                :: self
-    double precision                                                     , intent(in   ) :: toleranceRelative
+    type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self
+    double precision                                                       , intent(in   ) :: toleranceRelative
     !# <constructorAssign variables="toleranceRelative"/>
 
     self%recombinationRateTotal        =-huge(0.0d0)
     self%recombinationRateTotalPrevious=-huge(0.0d0)
     return
-  end function atomicRecombinationRateConstructorInternal
+  end function hydrogenRecombinationRateConstructorInternal
   
-  subroutine atomicRecombinationRateTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
+  subroutine hydrogenRecombinationRateTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
     !% Test convergence in the computational domain cell.
     use :: Galacticus_Display        , only : Galacticus_Display_Message   , verbosityStandard
     use :: MPI_Utilities             , only : mpiSelf
     use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferMatterPropertiesAtomic
     implicit none
-    class    (radiativeTransferConvergenceAtomicRecombinationRate), intent(inout) :: self
-    class    (radiativeTransferMatterClass                       ), intent(inout) :: radiativeTransferMatter_
-    class    (radiativeTransferMatterProperties                  ), intent(inout) :: properties
-    integer                                                       , intent(in   ) :: statusCell
-    logical                                                       , intent(  out) :: converged
-    character(len=128                                            )                :: message
+    class    (radiativeTransferConvergenceHydrogenRecombinationRate), intent(inout) :: self
+    class    (radiativeTransferMatterClass                         ), intent(inout) :: radiativeTransferMatter_
+    class    (radiativeTransferMatterProperties                    ), intent(inout) :: properties
+    integer                                                         , intent(in   ) :: statusCell
+    logical                                                         , intent(  out) :: converged
+    character(len=128                                              )                :: message
     
     ! Reset accumulated recombination rate for the first cell.
     if (statusCell == statusCellFirst) then
@@ -92,8 +92,8 @@ contains
     type is (radiativeTransferMatterAtomic)
        select type (properties)
        type is (radiativeTransferMatterPropertiesAtomic)
-          self%recombinationRateTotal=+self                    %recombinationRateTotal             &
-               &                      +radiativeTransferMatter_%recombinationRate     (properties)                   
+          self%recombinationRateTotal=+self                    %recombinationRateTotal                &
+               &                      +radiativeTransferMatter_%recombinationRateHydrogen(properties)                   
        end select
     end select
     ! Test convergence for the last cell.
@@ -114,4 +114,4 @@ contains
        converged=.true.
     end if
     return
-  end subroutine atomicRecombinationRateTestConvergence
+  end subroutine hydrogenRecombinationRateTestConvergence
