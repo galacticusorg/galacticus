@@ -42,7 +42,7 @@
           &                                                              massParentMinimum                     , massParentMaximum, &
           &                                                              timeProgenitor                        , timeParent       , &
           &                                                              weightParents
-     integer         (c_size_t                             )          :: countMassRatio
+     integer         (c_size_t                             )          :: countMassRatio                        , indexOutput
      logical                                                          :: alwaysIsolatedOnly
    contains
      final                            progenitorMassFunctionDestructor
@@ -249,23 +249,23 @@ contains
     use :: IO_HDF5                          , only : hdf5Object             , hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     implicit none
-    type            (outputAnalysisProgenitorMassFunction)                        :: self
-    character       (len=*                               ), intent(in   )         :: fileName
-    integer                                               , intent(in   )         :: instance
-    class           (cosmologyFunctionsClass             ), intent(inout), target                     :: cosmologyFunctions_
-    class           (outputTimesClass                    ), intent(inout), target                   :: outputTimes_
-    class           (nbodyHaloMassErrorClass             ), intent(in   ), target                   :: nbodyHaloMassError_
-    type            (varying_string                      )                :: label                                                  , comment
-    double precision                                                                  :: massParentMinimum                                      , massParentMaximum                       , &
-         &                                                                               timeProgenitor                                         , timeParent,&
-         & redshiftProgenitor, redshiftParent
-    integer                       :: alwaysIsolatedOnlyInteger
-    logical                                                                           :: alwaysIsolatedOnly
-    type            (varying_string                      )                :: targetLabel
-    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget, massRatio
-    double precision                                      , allocatable,  dimension(:,:) :: functionCovarianceTarget
-    type            (hdf5Object                          ) :: dataFile, instanceGroup
-    character       (len=32                              ) :: instanceGroupName
+    type            (outputAnalysisProgenitorMassFunction)                              :: self
+    character       (len=*                               ), intent(in   )               :: fileName
+    integer                                               , intent(in   )               :: instance
+    class           (cosmologyFunctionsClass             ), intent(inout), target       :: cosmologyFunctions_
+    class           (outputTimesClass                    ), intent(inout), target       :: outputTimes_
+    class           (nbodyHaloMassErrorClass             ), intent(in   ), target       :: nbodyHaloMassError_
+    type            (varying_string                      )                              :: label                    , comment
+    double precision                                                                    :: massParentMinimum        , massParentMaximum, &
+         &                                                                                 timeProgenitor           , timeParent       , &
+         &                                                                                 redshiftProgenitor       , redshiftParent
+    integer                                                                             :: alwaysIsolatedOnlyInteger
+    logical                                                                             :: alwaysIsolatedOnly
+    type            (varying_string                      )                              :: targetLabel
+    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget      , massRatio
+    double precision                                      , allocatable, dimension(:,:) :: functionCovarianceTarget
+    type            (hdf5Object                          )                              :: dataFile                 , instanceGroup
+    character       (len=32                              )                              :: instanceGroupName
 
     write (instanceGroupName,'(a,i4.4)') 'progenitorMassFunction',instance
     !$ call hdf5Access%set  ()
@@ -355,7 +355,10 @@ contains
     call allocateArray(outputWeight,[countMassRatio,outputTimes_%count()])
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
-       if (Values_Agree(outputTimes_%time(iOutput),timeProgenitor,absTol=timeTolerance)) outputWeight(:,iOutput)=1.0d0
+       if (Values_Agree(outputTimes_%time(iOutput),timeProgenitor,absTol=timeTolerance)) then
+          outputWeight(:,iOutput)=1.0d0
+          self%indexOutput=iOutput
+       end if
     end do
     ! Initialize accumulated weight of parent nodes.
     self%weightParents=0.0d0
@@ -526,6 +529,9 @@ contains
     double precision                                                      :: weight                , mass
     integer                                                               :: propertyType          , propertyQuantity
 
+    ! Only accumulate tree weight if the output corresponds to the one for which we are constructing the conditional mass
+    ! function.
+    if (iOutput /= self%indexOutput) return
     ! Walk the tree, applying a filter to find parent nodes, and accumulate their weights.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
@@ -566,10 +572,17 @@ contains
 
   subroutine progenitorMassFunctionFinalizeAnalysis(self)
     !% Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
-    implicit none
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+#endif
+     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
 
     call self%outputAnalysisVolumeFunction1D%finalizeAnalysis()
+#ifdef USEMPI
+    ! If running under MPI, perform a summation reduction of the parent weights across all processes.
+    self%weightParents=mpiSelf%sum(self%weightParents)
+#endif
     if (self%weightParents > 0.0d0) then
        self%functionValue     =+self%functionValue         &
             &                  /self%weightParents
