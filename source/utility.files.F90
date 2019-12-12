@@ -148,7 +148,12 @@ contains
     implicit none
     character(len=*), intent(in   ) :: FileName
 
+    !# <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
+    !#  <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown.</description>
+    !# </workaround>
+    !$omp critical(inquireLock)
     inquire(file=FileName,exist=File_Exists_Char)
+    !$omp end critical(inquireLock)
     return
   end function File_Exists_Char
 
