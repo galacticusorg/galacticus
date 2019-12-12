@@ -19,7 +19,8 @@
 
 !% Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <nbodyOperator name="nbodyOperatorSelfBound">
   !#  <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
@@ -27,10 +28,12 @@
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfBound
      !% An N-body data operator which determines the subset of particles that are self-bound.
      private
-     integer         (c_size_t) :: bootstrapSampleCount
-     double precision           :: tolerance           , bootstrapSampleRate
-     logical                    :: analyzeAllParticles , useVelocityMostBound
+     class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
+     integer         (c_size_t                  )          :: bootstrapSampleCount
+     double precision                                      :: tolerance                       , bootstrapSampleRate
+     logical                                               :: analyzeAllParticles             , useVelocityMostBound
    contains
+     final     ::            selfBoundDestructor
      procedure :: operate => selfBoundOperate
   end type nbodyOperatorSelfBound
 
@@ -46,11 +49,12 @@ contains
     !% Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nbodyOperatorSelfBound)                :: self
-    type            (inputParameters       ), intent(inout) :: parameters
-    integer         (c_size_t              )                :: bootstrapSampleCount
-    double precision                                        :: tolerance           , bootstrapSampleRate
-    logical                                                 :: analyzeAllParticles , useVelocityMostBound
+    type            (nbodyOperatorSelfBound    )                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    integer         (c_size_t                  )                :: bootstrapSampleCount
+    double precision                                            :: tolerance           , bootstrapSampleRate
+    logical                                                     :: analyzeAllParticles , useVelocityMostBound
 
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
@@ -92,22 +96,35 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function selfBoundConstructorParameters
 
-  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound) result (self)
+  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !% Internal constructor for the ``selfBound'' N-body operator class
     implicit none
-    type            (nbodyOperatorSelfBound)                :: self
-    double precision                        , intent(in   ) :: tolerance           , bootstrapSampleRate
-    integer         (c_size_t              ), intent(in   ) :: bootstrapSampleCount
-    logical                                 , intent(in   ) :: analyzeAllParticles , useVelocityMostBound
-    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound"/>
+    type            (nbodyOperatorSelfBound    )                        :: self
+    double precision                            , intent(in   )         :: tolerance             , bootstrapSampleRate
+    integer         (c_size_t                  ), intent(in   )         :: bootstrapSampleCount
+    logical                                     , intent(in   )         :: analyzeAllParticles   , useVelocityMostBound
+    class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
+    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
 
     return
   end function selfBoundConstructorInternal
 
+  subroutine selfBoundDestructor(self)
+    !% Destructor for the ``selfBound'' N-body operator class.
+    implicit none
+    type(nbodyOperatorSelfBound), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine selfBoundDestructor
+  
   subroutine selfBoundOperate(self,simulation)
     !% Determine the subset of N-body particles which are self-bound.
     use :: Galacticus_Display          , only : Galacticus_Display_Message
@@ -115,7 +132,6 @@ contains
     use :: ISO_Varying_String          , only : varying_string
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use :: Pseudo_Random               , only : pseudoRandom
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
@@ -140,7 +156,6 @@ contains
     logical                                 , allocatable  , dimension(:  )          :: isConverged
     logical                                                                          :: isPreviousSnapshotAvail
     integer                                                                          :: addSubtract             , countIteration
-    type            (pseudoRandom          )                                         :: randomSequence
     type            (varying_string        )                                         :: message
 
     ! Allocate workspaces.
@@ -192,7 +207,7 @@ contains
        do iSample=1,self%bootstrapSampleCount
           ! Determine weights for particles.
           do i=1,particleCount
-             sampleWeight(i,iSample)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
+             sampleWeight(i,iSample)=dble(self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate))
           end do
           isBound(:,iSample)=sampleWeight(:,iSample) > 0.0d0
        end do

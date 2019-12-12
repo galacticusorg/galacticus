@@ -10,7 +10,7 @@
   <treeNodeMethodHotHalo value="null"/>
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="null"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
   <treeNodeMethodSpin value="null"/>

@@ -110,7 +110,6 @@
 
   ! Lock used for file access.
   type            (lockDescriptor               )                          :: baryonsDarkMatterFileLock
-  logical                                                                  :: baryonsDarkMatterFileLockInitialized      =.false.
 
   ! Variables used in ODE solving to allow for parallelism.
   double precision                                                         :: baryonDarkMatterWavenumber
@@ -169,7 +168,7 @@ contains
 
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
-    use :: File_Utilities  , only : Directory_Make         , File_Lock_Initialize, File_Path
+    use :: File_Utilities  , only : Directory_Make         , File_Path
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
     implicit none
@@ -214,15 +213,6 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
-    ! Initialize file lock.
-    if (.not.baryonsDarkMatterFileLockInitialized) then
-       !$omp critical(baryonsDarkMatterFileLockInitialize)
-       if (.not.baryonsDarkMatterFileLockInitialized) then
-          call File_Lock_Initialize(baryonsDarkMatterFileLock)
-          baryonsDarkMatterFileLockInitialized=.true.
-       end if
-       !$omp end critical(baryonsDarkMatterFileLockInitialize)
-    end if
     return
   end function baryonsDarkMatterConstructorInternal
 
@@ -274,11 +264,13 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(baryonsDarkMatterFileLock,sync=.false.)
     end if
     if (self%remakeTable(time)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),baryonsDarkMatterFileLock,lockIsShared=.false.)
        ! Find the present-day epoch.
        timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
@@ -307,7 +299,7 @@ contains
        ! Get the initial conditions from CAMB.
        call transferFunctionDarkMatter%destroy()
        call transferFunctionBaryons   %destroy()
-       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,lockFileGlobally=.true.,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
+       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))
        ! Destroy current table.
@@ -638,11 +630,6 @@ contains
 
     ! Open the data file.
     call Galacticus_Display_Message('writing D(k,t) data to: '//self%fileName,verbosityWorking)
-#ifndef OFDAVAIL
-    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-    ! will not block access to the same file by another thread.
-    !$omp critical (linearGrowthBaryonsDarkMatterLock)
-#endif
     !$ call hdf5Access%set()
     call dataFile%openFile      (char   (self%fileName                                                                                                                  ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=baryonsDarkMatterDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )
@@ -653,10 +640,5 @@ contains
     call dataFile%writeAttribute(        self%tableTimeMaximum                                                                                                           ,          'timeMaximum'                                  )
     call dataFile%close         (                                                                                                                                                                                                  )
     !$ call hdf5Access%unset()
-#ifndef OFDAVAIL
-    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-    ! will not block access to the same file by another thread.
-    !$omp end critical (linearGrowthBaryonsDarkMatterLock)
-#endif
     return
   end subroutine baryonsDarkMatterFileWrite

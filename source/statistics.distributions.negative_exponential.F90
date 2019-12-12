@@ -47,6 +47,7 @@ contains
     implicit none
     type            (distributionFunction1DNegativeExponential)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass               ), pointer       :: randomNumberGenerator_
     double precision                                                           :: rate
 
     !# <inputParameter>
@@ -56,18 +57,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DNegativeExponential(rate)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DNegativeExponential(rate,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function negativeExponentialConstructorParameters
 
-  function negativeExponentialConstructorInternal(rate) result(self)
+  function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
     !% Constructor for ``negativeExponential'' 1D distribution function class.
-    type            (distributionFunction1DNegativeExponential)                :: self
-    double precision                                           , intent(in   ) :: rate
-    !# <constructorAssign variables="rate"/>
+    type            (distributionFunction1DNegativeExponential)                                  :: self
+    double precision                                           , intent(in   )                   :: rate
+    class           (randomNumberGeneratorClass               ), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="rate, *randomNumberGenerator_"/>
 
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function negativeExponentialConstructorInternal
 

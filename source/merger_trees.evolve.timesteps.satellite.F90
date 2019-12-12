@@ -173,9 +173,6 @@ contains
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
-    !# <include directive="satelliteMergerTask" type="moduleUse">
-    include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
-    !# </include>
     implicit none
     class  (*             ), intent(inout)          :: self
     type   (mergerTree    ), intent(in   )          :: tree
@@ -191,22 +188,13 @@ contains
        message=message//node%index()//'] is being merged'
        call Galacticus_Display_Message(message)
     end if
-    ! Allow arbitrary functions to process the merger. (Note that the eventHook is after the old-style include directive here as
-    ! we want galactic structure solvers and star formation history classes to be called after any node component functions. Once
-    ! node component functions move to hooking to the satelliteMergerTask event we will need to introduce a mechanism to specify
-    ! dependencies in the event hook call order.)
-    !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
-    include 'merger_trees.evolve.timesteps.satellite.inc'
-    !# </include>
-
+    ! Perform any node operations on the galaxy merger, and then trigger the satellite merger event.
     select type (self)
     class is (mergerTreeEvolveTimestepSatellite)
        call self%nodeOperator_%galaxiesMerge(node)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
-    
     !# <eventHook name="satelliteMerger">
     !#  <callWith>node</callWith>
     !# </eventHook>

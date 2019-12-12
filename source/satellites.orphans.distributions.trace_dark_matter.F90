@@ -68,6 +68,7 @@ contains
     class(darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
+    call self%initialize()
     return
   end function traceDarkMatterConstructorInternal
 

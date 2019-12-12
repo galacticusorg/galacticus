@@ -96,10 +96,10 @@ contains
     type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: node
 
-    logNormalSample=exp(                                                    &
-         &              +self%median                                        &
-         &              +self%sigma                                         &
-         &              *node%hostTree%randomNumberGenerator%normalSample() &
+    logNormalSample=exp(                                                             &
+         &              +self%median                                                 &
+         &              +self%sigma                                                  &
+         &              *node%hostTree%randomNumberGenerator_%standardNormalSample() &
          &             )
     return
   end function logNormalSample

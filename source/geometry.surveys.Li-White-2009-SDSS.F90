@@ -52,10 +52,11 @@ contains
     type            (surveyGeometryLiWhite2009SDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    double precision                                               :: redshiftMinimum    , redshiftMaximum
+    class           (randomNumberGeneratorClass   ), pointer       :: randomNumberGenerator_
+    double precision                                               :: redshiftMinimum       , redshiftMaximum
 
-    ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
     !#   <source>parameters</source>
@@ -73,21 +74,23 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Build the object.
-    self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
+    self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function liWhite2009SDSSConstructorParameters
 
-  function liWhite2009SDSSConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
+  function liWhite2009SDSSConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !% Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
-    type            (surveyGeometryLiWhite2009SDSS)                        :: self
-    double precision                               , intent(in   )         :: redshiftMinimum    , redshiftMaximum
-    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_, redshiftMinimum, redshiftMaximum"/>
+    type            (surveyGeometryLiWhite2009SDSS)                                  :: self
+    double precision                               , intent(in   )                   :: redshiftMinimum    , redshiftMaximum
+    class           (cosmologyFunctionsClass      ), intent(in   ), target           :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass   ), intent(in   ), target, optional :: randomNumberGenerator_ 
+    !# <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_, redshiftMinimum, redshiftMaximum"/>
 
     self   %geometryInitialized =.false.
     self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -110,7 +113,8 @@ contains
     implicit none
     type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine liWhite2009SDSSDestructor
 

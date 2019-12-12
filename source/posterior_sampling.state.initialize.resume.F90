@@ -106,7 +106,10 @@ contains
     character       (len=12                )                                            :: labelValue          , labelMinimum     , &
          &                                                                                 labelMaximum
 
-    ! Allocate the state vector.
+    ! Assume we have no information about the likelihood of the state by default.
+    logLikelihood=logImpossible
+    logPosterior =logImpossible
+     ! Allocate the state vector.
     allocate(stateVector      (simulationState%dimension()))
     allocate(stateVectorMapped(simulationState%dimension()))
     ! Read state from the log file.

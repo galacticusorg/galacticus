@@ -21,10 +21,11 @@
 
 program Test_Math_Distributions
   !% Tests of mathematical distributions.
+  use :: FGSL                               , only : FGSL_long
   use :: Galacticus_Display                 , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Input_Parameters                   , only : inputParameters
   use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution , Poisson_Binomial_Distribution_Mean_Pairs
-  use :: Pseudo_Random                      , only : pseudoRandom
+  use :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
   use :: Statistics_Distributions           , only : distributionFunction1DGamma
   use :: Unit_Tests                         , only : Assert                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -34,7 +35,7 @@ program Test_Math_Distributions
   integer                                      , parameter       :: trialCount=100000
   type            (distributionFunction1DGamma)                  :: distributionGamma_
   integer                                                        :: i                , j           , k
-  type            (pseudoRandom               )                  :: prng
+  type            (randomNumberGeneratorGSL   )                  :: prng
   type            (inputParameters            )                  :: parameters
 
   ! Set verbosity level.
@@ -52,6 +53,7 @@ program Test_Math_Distributions
   end do
   call Assert("Poisson binomial: normalization",sum(Pk),1.0d0,absTol=1.0d-6)
   ! Generate a Monte Carlo realization of the Poisson binomial distribution for comparison.
+  prng  =randomNumberGeneratorGSL(923_FGSL_long)
   trials=0
   do i=1,trialCount
      k=0
@@ -71,7 +73,7 @@ program Test_Math_Distributions
   call Assert("Poisson binomial: mean pairs",Poisson_Binomial_Distribution_Mean_Pairs(p),90.0d0,absTol=1.0d-4)
 
   ! Gamma distribution.
-  distributionGamma_=distributionFunction1DGamma(2.0d0,1.2d0,limitLower=0.3d0,limitUpper=6.0d0)
+  distributionGamma_=distributionFunction1DGamma(2.0d0,1.2d0,prng,limitLower=0.3d0,limitUpper=6.0d0)
   x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
   do i=1,10
      p(i)=distributionGamma_%cumulative(x(i))

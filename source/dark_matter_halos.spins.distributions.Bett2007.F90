@@ -155,7 +155,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
 
     if (self%isInvertible) then
-       bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%uniformSample())
+       bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator_%uniformSample())
     else
        bett2007Sample=0.0d0
        call Galacticus_Error_Report('can not sample - cumulative distribution table was not monotonic'//{introspection:location})

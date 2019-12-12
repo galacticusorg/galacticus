@@ -52,6 +52,7 @@ contains
     implicit none
     type            (distributionFunctionDiscrete1DBinomial)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass            ), pointer       :: randomNumberGenerator_
     double precision                                                        :: probabilitySuccess
     integer                                                                 :: countTrials
 
@@ -69,21 +70,24 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
-    self=distributionFunctionDiscrete1DBinomial(probabilitySuccess,countTrials)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunctionDiscrete1DBinomial(probabilitySuccess,countTrials,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function binomialConstructorParameters
 
-  function binomialConstructorInternal(probabilitySuccess,countTrials) result(self)
+  function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
     !% Constructor for ``binomial'' 1D distribution function class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (distributionFunctionDiscrete1DBinomial)                :: self
-    double precision                                        , intent(in   ) :: probabilitySuccess
-    integer                                                 , intent(in   ) :: countTrials
-    double precision                                        , parameter     :: tolerance         =1.0d-4
-    integer                                                                 :: i
-    !# <constructorAssign variables="probabilitySuccess, countTrials"/>
+    type            (distributionFunctionDiscrete1DBinomial)                                  :: self
+    double precision                                        , intent(in   )                   :: probabilitySuccess
+    integer                                                 , intent(in   )                   :: countTrials
+    class           (randomNumberGeneratorClass            ), intent(in   ), target, optional :: randomNumberGenerator_
+    double precision                                        , parameter                       :: tolerance             =1.0d-4
+    integer                                                                                   :: i
+    !# <constructorAssign variables="probabilitySuccess, countTrials, *randomNumberGenerator_"/>
 
     if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Galacticus_Error_Report('p ∈ [0,1]'//{introspection:location})
     if (countTrials        <= 0                                    ) call Galacticus_Error_Report('n ∈ [1,∞]'//{introspection:location})
@@ -96,7 +100,6 @@ contains
     end do
     if (self%probabilityCumulative(countTrials) < 1.0-tolerance) call Galacticus_Error_Report('CDF(n) < 1'//{introspection:location})
     self%probabilityCumulative(countTrials)=1.0d0
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function binomialConstructorInternal
 

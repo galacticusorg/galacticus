@@ -128,8 +128,7 @@
   double precision                , parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
 
   ! Lock used for file access.
-  type            (lockDescriptor)            :: farahiFileLock
-  logical                                     :: farahiFileLockInitialized=.false.
+  type(lockDescriptor) :: farahiFileLock
 
 contains
 
@@ -208,7 +207,6 @@ contains
 
   function farahiConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
-    use :: File_Utilities, only : File_Lock_Initialize
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -237,15 +235,6 @@ contains
     self%varianceRatePrevious              =-huge(0.0d0)
     self%useFile                           =(self%fileName /= 'none')
     self%fileNameInitialized               =.not.self%useFile
-    ! Initialize file lock.
-    if (.not.farahiFileLockInitialized) then
-       !$omp critical(farahiFileLockInitialize)
-       if (.not.farahiFileLockInitialized) then
-          call File_Lock_Initialize(farahiFileLock)
-          farahiFileLockInitialized=.true.
-       end if
-       !$omp end critical(farahiFileLockInitialize)
-    end if
     return
   end function farahiConstructorInternal
 
@@ -318,6 +307,7 @@ contains
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
        call self%fileNameInitialize()
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -339,6 +329,7 @@ contains
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
           if (self%useFile.and..not.locked) then
+             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
              call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if
@@ -675,6 +666,7 @@ contains
     locked=.false.
     if (self%useFile.and..not.self%tableInitializedRate) then
        call self%fileNameInitialize()
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
@@ -696,6 +688,7 @@ contains
 #endif
           ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (self%useFile.and..not.locked) then
+             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
              call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if

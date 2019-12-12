@@ -19,13 +19,14 @@
 
   !% Implements the standard class for evolving nodes in merger trees.
 
-  use :: FODEIV2                , only : fodeiv2_driver      , fodeiv2_step_type        , fodeiv2_system
-  use :: Kind_Numbers           , only : kind_int8
-  use :: Merger_Trees_Merge_Node, only : mergerTreeNodeMerger, mergerTreeNodeMergerClass
-  use :: Nodes_Operators        , only : nodeOperatorClass
+  use :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_step_type        , fodeiv2_system
+  use :: Kind_Numbers                , only : kind_int8
+  use :: Merger_Tree_Evolve_Profilers, only : mergerTreeEvolveProfilerClass
+  use :: Merger_Trees_Merge_Node     , only : mergerTreeNodeMerger         , mergerTreeNodeMergerClass
+  use :: Nodes_Operators             , only : nodeOperatorClass
   
   !# <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
-  !#  <description>The standard merger tree noe evolver.</description>
+  !#  <description>The standard merger tree node evolver.</description>
   !#  <deepCopy>
   !#   <ignore variables="galacticStructureSolver_"/>
   !#  </deepCopy>
@@ -37,37 +38,38 @@
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
      !% Implementation of the standard merger tree node evolver.
      private
-     class           (mergerTreeNodeMergerClass   ), pointer                   :: mergerTreeNodeMerger_
-     type            (fodeiv2_driver              )                            :: ode2Driver
-     type            (fodeiv2_system              )                            :: ode2System
-     type            (fodeiv2_step_type           )                            :: odeAlgorithm                       , odeAlgorithmNonJacobian
-     logical                                                                   :: odeReset
-     double precision                                                          :: odeToleranceAbsolute               , odeToleranceRelative         , &
-          &                                                                       odeJacobianStepSizeRelative
-     class           (galacticStructureSolverClass), pointer                   :: galacticStructureSolver_
-     class           (nodeOperatorClass           ), pointer                   :: nodeOperator_
-     integer                                                                   :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
-          &                                                                       odeLatentIntegratorIntervalsMaximum
-     integer                                                                   :: propertyCountAll                   , propertyCountMaximum         , &
-          &                                                                       propertyCountInactive              , propertyCountActive          , &
-          &                                                                       propertyCountPrevious
-     double precision                              , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive         , &
-          &                                                                       propertyErrors                     , propertyTolerances           , &
-          &                                                                       propertyValuesActiveSaved          , propertyScalesInactive       , &
-          &                                                                       propertyValuesInactiveSaved        , propertyValuesInactive       , &
-          &                                                                       odeTolerancesInactiveRelative      , odeTolerancesInactiveAbsolute
-     logical                                                                   :: profileOdeEvolver
-     integer         (kind=kind_int8              )                            :: activeTreeIndex
-     type            (treeNode                    ), pointer                   :: activeNode
-     integer                                                                   :: trialCount                         , propertyTypeODE              , &
-          &                                                                       propertyTypeIntegrator
-     logical                                                                   :: interruptFirstFound
-     double precision                                                          :: timeInterruptFirst
-     procedure       (interruptTask               ), pointer    , nopass       :: functionInterruptFirst
-     logical                                                                   :: useJacobian
-     double precision                                                          :: timePrevious
-     double precision                              , allocatable, dimension(:) :: propertyValuesPrevious             , propertyRatesPrevious
-     integer         (kind_int8                   )                            :: systemClockMaximum
+     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_
+     type            (fodeiv2_driver               )                            :: ode2Driver
+     type            (fodeiv2_system               )                            :: ode2System
+     type            (fodeiv2_step_type            )                            :: odeAlgorithm                       , odeAlgorithmNonJacobian
+     logical                                                                    :: odeReset
+     double precision                                                           :: odeToleranceAbsolute               , odeToleranceRelative         , &
+          &                                                                        odeJacobianStepSizeRelative
+     class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_
+     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_
+     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_
+     integer                                                                    :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
+          &                                                                        odeLatentIntegratorIntervalsMaximum
+     integer                                                                    :: propertyCountAll                   , propertyCountMaximum         , &
+          &                                                                        propertyCountInactive              , propertyCountActive          , &
+          &                                                                        propertyCountPrevious
+     double precision                               , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive         , &
+          &                                                                        propertyErrors                     , propertyTolerances           , &
+          &                                                                        propertyValuesActiveSaved          , propertyScalesInactive       , &
+          &                                                                        propertyValuesInactiveSaved        , propertyValuesInactive       , &
+          &                                                                        odeTolerancesInactiveRelative      , odeTolerancesInactiveAbsolute
+     logical                                                                    :: profileOdeEvolver
+     integer         (kind=kind_int8               )                            :: activeTreeIndex
+     type            (treeNode                     ), pointer                   :: activeNode
+     integer                                                                    :: trialCount                         , propertyTypeODE              , &
+          &                                                                        propertyTypeIntegrator
+     logical                                                                    :: interruptFirstFound
+     double precision                                                           :: timeInterruptFirst
+     procedure       (interruptTask                ), pointer    , nopass       :: functionInterruptFirst
+     logical                                                                    :: useJacobian
+     double precision                                                           :: timePrevious
+     double precision                               , allocatable, dimension(:) :: propertyValuesPrevious             , propertyRatesPrevious
+     integer         (kind_int8                    )                            :: systemClockMaximum
    contains
      final     ::               standardDestructor
      procedure :: evolve     => standardEvolve
@@ -124,6 +126,7 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (mergerTreeNodeMergerClass    ), pointer       :: mergerTreeNodeMerger_
     class           (nodeOperatorClass            ), pointer       :: nodeOperator_
+    class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     type            (varying_string               )                :: odeAlgorithm               , odeAlgorithmNonJacobian            , &
          &                                                            odeLatentIntegratorType
     integer                                                        :: odeLatentIntegratorOrder   , odeLatentIntegratorIntervalsMaximum
@@ -209,8 +212,9 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
-    !# <objectBuilder class="mergerTreeNodeMerger" name="mergerTreeNodeMerger_" source="parameters"/>
-    !# <objectBuilder class="nodeOperator"         name="nodeOperator_"         source="parameters"/>
+    !# <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
+    !# <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>
+    !# <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     self=mergerTreeNodeEvolverStandard(                                                                                                         &
          &                                                                        odeToleranceAbsolute                                        , &
          &                                                                        odeToleranceRelative                                        , &
@@ -222,15 +226,17 @@ contains
          &                                                                        odeLatentIntegratorIntervalsMaximum                         , &
          &                                                                        profileOdeEvolver                                           , &
          &                                                                        mergerTreeNodeMerger_                                       , &
-         &                                                                        nodeOperator_                                                 &
+         &                                                                        nodeOperator_                                               , &
+         &                                                                        mergerTreeEvolveProfiler_                                     &
          &                            )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeNodeMerger_"/>
-    !# <objectDestructor name="nodeOperator_"        />
+    !# <objectDestructor name="mergerTreeNodeMerger_"    />
+    !# <objectDestructor name="nodeOperator_"            />
+    !# <objectDestructor name="mergerTreeEvolveProfiler_"/>
     return
   end function standardConstructorParameters
 
-   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,nodeOperator_) result(self)
+   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
      use :: FODEIV2         , only : Fodeiv2_Step_RK2       , Fodeiv2_Step_RK4    , Fodeiv2_Step_RK8PD, Fodeiv2_Step_RKCK       , &
           &                          Fodeiv2_Step_RKF45     , Fodeiv2_Step_msAdams, Fodeiv2_step_BSimp, Fodeiv2_step_MSBDFActive
@@ -245,7 +251,8 @@ contains
      logical                                        , intent(in   )         :: profileOdeEvolver
      class           (mergerTreeNodeMergerClass    ), intent(in   ), target :: mergerTreeNodeMerger_
      class           (nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
-    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, *mergerTreeNodeMerger_, *nodeOperator_"/>
+     class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
+    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
 
      ! Construct ODE solver object.
      self%useJacobian=.false.
@@ -313,8 +320,9 @@ contains
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeNodeMerger_"/>
-    !# <objectDestructor name="self%nodeOperator_"        />
+    !# <objectDestructor name="self%mergerTreeNodeMerger_"    />
+    !# <objectDestructor name="self%nodeOperator_"            />
+    !# <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
     call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
     if (.not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
     return
@@ -336,9 +344,6 @@ contains
     use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
     !# <include directive="preEvolveTask"      type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
-    !# </include>
-    !# <include directive="postEvolveTask"     type="moduleUse">
-    include 'objects.tree_node.post_evolve.modules.inc'
     !# </include>
     !# <include directive="scaleSetTask"       type="moduleUse">
     include 'objects.tree_node.set_scale.modules.inc'
@@ -686,10 +691,7 @@ contains
     endif
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
-       !# <include directive="postEvolveTask" type="functionCall" functionType="void">
-       !#  <functionArgs>node</functionArgs>
-       include 'objects.tree_node.post_evolve.inc'
-       !# </include>
+       call self%nodeOperator_%differentialEvolutionPost(node)
        !# <eventHook name="postEvolve">
        !#  <callWith>node</callWith>
        !# </eventHook>
@@ -1063,9 +1065,8 @@ contains
 
   subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use            :: FGSL                            , only : FGSL_Success
-    use            :: Galacticus_Meta_Evolver_Profiler, only : Galacticus_Meta_Evolver_Profile
-    use, intrinsic :: ISO_C_Binding                   , only : c_double                       , c_int
+    use            :: FGSL         , only : FGSL_Success
+    use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
     implicit none
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyValue
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyError
@@ -1092,8 +1093,8 @@ contains
     if (scaledErrorMaximum > 0.0d0) then
        ! Decode the step limiting property.
        propertyName=standardSelf%activeNode%nameFromIndex(limitingProperty,standardSelf%propertyTypeODE)
-       ! Record this information.
-       call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+       ! Profile the step.
+       call standardSelf%mergerTreeEvolveProfiler_%profile(timeStep,propertyName)
     end if
     return
   end subroutine standardStepErrorAnalyzer

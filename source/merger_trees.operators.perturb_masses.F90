@@ -65,11 +65,10 @@ contains
     !% Constructor for the mass perturbing merger tree operator class which takes a
     !% parameter set as input.
     implicit none
-    type (mergerTreeOperatorPerturbMasses)                        :: self
-    class(nbodyHaloMassErrorClass        ), intent(in   ), target :: nbodyHaloMassError_
+    type (mergerTreeOperatorPerturbMasses)                         :: self
+    class(nbodyHaloMassErrorClass        ), intent(in   ), target  :: nbodyHaloMassError_
     !# <constructorAssign variables="*nbodyHaloMassError_"/>
-
-    ! Build a standard normal distribution.
+    
     self%standardNormal=distributionFunction1DNormal(0.0d0,1.0d0)
     return
   end function perturbMassesConstructorInternal
@@ -131,7 +130,7 @@ contains
              ! Determine the fractional error in the mass of this node.
              rootVarianceMassFractional1=+self%nbodyHaloMassError_%errorFractional(nodeChild1)
              ! Generate a random deviate.
-             deviates(iNode1)=self%standardNormal%sample(randomNumberGenerator=node%hostTree%randomNumberGenerator)
+             deviates(iNode1)=self%standardNormal%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
              ! Walk the remainder of the branch to build the covariance matrix.
              iNode2     =  iNode1-1_c_size_t
              nodeChild2 => nodeChild1

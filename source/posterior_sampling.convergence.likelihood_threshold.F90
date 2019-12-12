@@ -25,9 +25,10 @@
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceLikelihoodThreshold
      !% Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
      private
-     integer          :: convergedAtStepCount
-     logical          :: converged
-     double precision :: likelihoodThreshold
+     integer                                     :: convergedAtStepCount
+     logical                                     :: converged
+     double precision                            :: likelihoodThreshold
+     logical         , allocatable, dimension(:) :: isOutlier
    contains
      procedure :: isConverged     => likelihoodThresholdIsConverged
      procedure :: convergedAtStep => likelihoodThresholdConvergedAtStep
@@ -67,6 +68,8 @@ contains
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
     !% Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+    use :: Memory_Management, only : allocateArray
+    use :: MPI_Utilities    , only : mpiSelf
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
     double precision                                               , intent(in   ) :: likelihoodThreshold
@@ -74,6 +77,7 @@ contains
 
     self%converged           =.false.
     self%convergedAtStepCount=huge(0)
+    call allocateArray(self%isOutlier,[mpiSelf%count()])
     return
   end function likelihoodThresholdConstructorInternal
 
@@ -81,19 +85,24 @@ contains
     !% Returns true if the posterior sampling is converged (which it likelihoodThreshold is).
     use :: MPI_Utilities, only : mpiSelf
     implicit none
-    class           (posteriorSampleConvergenceLikelihoodThreshold), intent(inout)           :: self
-    class           (posteriorSampleStateClass                    ), intent(inout), optional :: simulationState
-    double precision                                               , intent(in   ), optional :: logLikelihood
-
+    class           (posteriorSampleConvergenceLikelihoodThreshold), intent(inout)               :: self
+    class           (posteriorSampleStateClass                    ), intent(inout), optional     :: simulationState
+    double precision                                               , intent(in   ), optional     :: logLikelihood
+    double precision                                               , allocatable  , dimension(:) :: logLikelihoods
+    
     ! If no arguments were provided, return current convergence status without updating.
     if (.not.(present(simulationState).and.present(logLikelihood))) then
        likelihoodThresholdIsConverged=self%converged
        return
     end if
     ! Convergence requires all chains to have a likelihood above the threshold.
-    if (.not.self%converged.and.mpiSelf%all(logLikelihood >= self%likelihoodThreshold)) then
-       self%converged=.true.
+    logLikelihoods=mpiSelf%gather(logLikelihood)
+    if (.not.self%converged.and.all(logLikelihoods >= self%likelihoodThreshold)) then
+       self%converged           =.true.
        self%convergedAtStepCount=simulationState%count()
+    else
+       ! Mark states that exceed the likelihood threshold as outliers so that they can be ignored in some calculations.
+       self%isOutlier=logLikelihoods >= self%likelihoodThreshold
     end if
     likelihoodThresholdIsConverged=self%converged
     return
@@ -133,12 +142,11 @@ contains
   end subroutine likelihoodThresholdLogReport
 
   logical function likelihoodThresholdStateIsOutlier(self,stateIndex)
-    !% Return true if the specified chain is deemed to be an outlier. In this case, chains are likelihoodThreshold outliers.
+    !% Return true if the specified chain is deemed to be an outlier.
     implicit none
     class  (posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
     integer                                               , intent(in   ) :: stateIndex
-    !GCC$ attributes unused :: self, stateIndex
 
-    likelihoodThresholdStateIsOutlier=.false.
+    likelihoodThresholdStateIsOutlier=self%isOutlier(stateIndex+1)
     return
   end function likelihoodThresholdStateIsOutlier

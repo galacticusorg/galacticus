@@ -98,7 +98,7 @@ my $massTotal =
     +$massSatellites;
 # Check that all masses are unity.
 if ( any(abs($massTotal-1.0) > 1.0e-6) ) {
-    print "FAILED: mass conservation failure -> ".($massTotal-1.0)."\n";
+    print "FAILED: mass conservation [simple] failure -> ".($massTotal-1.0)."\n";
 } else {
     print "SUCCESS: mass conservation\n";
 }

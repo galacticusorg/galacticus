@@ -226,13 +226,13 @@ contains
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes     , only : mergerTree                   , nodeComponentBasic              , treeNode
-    use :: ISO_Varying_String   , only : varying_string
-    use :: Kind_Numbers         , only : kind_int8
-    use :: Merger_Tree_Branching, only : mergerTreeBranchingBoundLower, mergerTreeBranchingBoundUpper
-    use :: Merger_Tree_Walkers  , only : mergerTreeWalkerIsolatedNodes, mergerTreeWalkerTreeConstruction
-    use :: Numerical_Comparison , only : Values_Agree
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
+    use :: ISO_Varying_String      , only : varying_string
+    use :: Kind_Numbers            , only : kind_int8
+    use :: Merger_Tree_Branching   , only : mergerTreeBranchingBoundLower, mergerTreeBranchingBoundUpper
+    use :: Merger_Tree_Walkers     , only : mergerTreeWalkerIsolatedNodes, mergerTreeWalkerTreeConstruction
+    use :: Numerical_Comparison    , only : Values_Agree
     implicit none
     class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
     type            (mergerTree                      ), intent(inout), target :: tree
@@ -429,7 +429,7 @@ contains
                    if (branchingProbabilityRate > 1.0d-100) then
                       branchingIntervalScaleFree=0.0d0
                       do while (branchingIntervalScaleFree <= 0.0d0)
-                         branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
+                         branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator_=tree%randomNumberGenerator_)
                       end do
                       branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
                       ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
@@ -447,7 +447,7 @@ contains
                             snapAccretionFraction=.false.
                             snapEarliestTime     =.false.
                             ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
-                            uniformRandom       =tree%randomNumberGenerator%uniformSample()
+                            uniformRandom       =tree%randomNumberGenerator_%uniformSample()       
                             branchingProbability=uniformRandom*branchingProbabilityRate
                          end if
                       else
@@ -459,7 +459,7 @@ contains
                 else
                    ! In this case we're using the original Cole et al. (2000) algorithm.
                    if (branchingProbability > 0.0d0) then
-                      uniformRandom=tree%randomNumberGenerator%uniformSample()
+                      uniformRandom=tree%randomNumberGenerator_%uniformSample()
                       doBranch=(uniformRandom <= branchingProbability)
                       if (doBranch) then
                          branchingProbability   =+self%mergerTreeBranchingProbability_%probabilityBound(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundLower,node) &
@@ -502,7 +502,7 @@ contains
                    nodeNew1      => treeNode(nodeIndex,tree)
                    basicNew1     => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
-                   nodeMass1     =  self%mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor,tree%randomNumberGenerator,node)
+                   nodeMass1     =  self%mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor,tree%randomNumberGenerator_,node)
                    nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)

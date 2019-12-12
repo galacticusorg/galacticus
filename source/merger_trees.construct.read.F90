@@ -29,6 +29,7 @@
   use    :: Kind_Numbers                      , only : kind_int8
   use    :: MPI_Utilities                     , only : mpiCounter
   use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass
+  use    :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
   !$ use :: OMP_Lib                           , only : omp_lock_kind
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
@@ -50,6 +51,7 @@
      class           (virialOrbitClass                   ), pointer                   :: virialOrbit_                          => null()
      class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
      class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_         => null()
+     class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
      integer                                                                          :: fileCurrent
      type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
@@ -405,6 +407,7 @@ contains
     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
     class           (outputTimesClass                   ), pointer                   :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
+    class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_
     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
@@ -663,6 +666,7 @@ contains
     !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />
     !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                                  />
     !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                                  />
+    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                                                  />
     !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolutionMethod" threadPrivate="yes" >
     !#  <default>
     !#   <satelliteMergingTimescalesSubresolutionMethod value="zero"/>
@@ -706,7 +710,8 @@ contains
          &                                                                               satelliteMergingTimescales_                                  , &
          &                                                                               virialOrbit_                                                 , &
          &                                                                               outputTimes_                                                 , &
-         &                                                                               darkMatterProfileScaleRadius_                                  &
+         &                                                                               darkMatterProfileScaleRadius_                                , &
+         &                                                                               randomNumberGenerator_                                         &
          &                        )
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"            />
@@ -719,10 +724,11 @@ contains
     !# <objectDestructor name="outputTimes_"                   />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"  />
     !# <objectDestructor name="satelliteMergingTimescales_"    />
+    !# <objectDestructor name="randomNumberGenerator_"         />
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
     use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
@@ -741,6 +747,7 @@ contains
     class           (virialOrbitClass                   ), intent(in   ), target       :: virialOrbit_
     class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), intent(in   ), target       :: darkMatterProfileScaleRadius_
+    class           (randomNumberGeneratorClass         ), intent(in   ), target       :: randomNumberGenerator_
     type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
@@ -759,7 +766,7 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.
@@ -953,6 +960,7 @@ contains
     !# <objectDestructor name="self%virialOrbit_"                   />
     !# <objectDestructor name="self%outputTimes_"                   />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
+    !# <objectDestructor name="self%randomNumberGenerator_"         />
     return
   end subroutine readDestructor
 
@@ -969,7 +977,6 @@ contains
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
-    use    :: Pseudo_Random             , only : pseudoRandom
     use    :: Sort                      , only : Sort_Do
     use    :: String_Handling           , only : operator(//)
     use    :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
@@ -993,7 +1000,6 @@ contains
          &                                                                              treeNumberOffset
     logical                                                                          :: returnSplitForest
     type            (varying_string           )                                      :: message
-    double precision                                                                 :: uniformRandom
 
     ! Snapshot the state of the next tree to read.
     treeStateStoreSequence=treeNumber
@@ -1027,8 +1033,9 @@ contains
        call tree%properties%initialize()
        ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
        ! the integer type.
-       tree%randomNumberGenerator=pseudoRandom()
-       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOFfset=.false.,incrementSeed=int(mod(tree%index,huge(0))))
+       allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
+       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
        ! Store internal state.
        message='Storing state for tree #'
        message=message//treeStateStoreSequence
@@ -1767,7 +1774,6 @@ contains
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : mergerTree             , nodeComponentBasic, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Pseudo_Random             , only : pseudoRandom
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout)          :: self
@@ -1782,7 +1788,6 @@ contains
     type            (varying_string           )                                                :: message
     character       (len=12                   )                                                :: label
     logical                                                                                    :: assignLastIsolatedTime
-    double precision                                                                           :: uniformRandom
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
@@ -1802,7 +1807,9 @@ contains
                    ! While it is, create the next tree (unless it already exists), then step to it.
                    if (.not.associated(treeCurrent%nextTree)) then
                       allocate(treeCurrent%nextTree)
-                      treeCurrent%nextTree%randomNumberGenerator=pseudoRandom()
+                      allocate(treeCurrent%nextTree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+                      call self                %randomNumberGenerator_%deepCopy(     treeCurrent%nextTree%randomNumberGenerator_              )
+                      call treeCurrent%nextTree%randomNumberGenerator_%seedSet (seed=treeCurrent%nextTree%index                 ,offset=.true.)
                    end if
                    treeCurrent => treeCurrent%nextTree
                 end do
@@ -1810,15 +1817,15 @@ contains
                 treeCurrent   %firstTree        => tree
                 treeCurrent   %baseNode         => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
-                   treeCurrent%index            =  nodes(iNode        )%nodeIndex
+                   treeCurrent%index            =  nodes   (iNode        )%nodeIndex
                 else
-                   treeCurrent%index            =  tree                %index
+                   treeCurrent%index            =  tree                   %index
                 end if
                 treeCurrent   %volumeWeight     =  self%treeWeightCurrent
                 treeCurrent   %initializedUntil =  0.0d0
                 treeCurrent   %event            => null()
                 ! Initialize a new random number sequence for this tree, using the sum of the tree index and base node index as the seed increment.
-                if (.not.associated(treeCurrent,tree)) uniformRandom=treeCurrent%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index+nodes(iNode)%nodeIndex,huge(0))))
+                if (.not.associated(treeCurrent,tree)) call treeCurrent%randomNumberGenerator_%seedSet(seed=tree%index+nodes(iNode)%nodeIndex,offset=.true.)
              end if
           else
              ! Node is not isolated, so must be an initial satellite.

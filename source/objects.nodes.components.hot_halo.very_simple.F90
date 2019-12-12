@@ -28,9 +28,8 @@ module Node_Component_Hot_Halo_Very_Simple
   private
   public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger        , &
        &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging
+       &    Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -123,17 +122,22 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent     , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx        , dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters_"/>
        !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters_"/>
-       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple')
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
+       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
@@ -143,7 +147,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -151,7 +155,9 @@ contains
        !# <objectDestructor name="darkMatterHaloScale_"/>
        !# <objectDestructor name="coolingRate_"        />
        !# <objectDestructor name="accretionHalo_"      />
-       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
+       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
@@ -371,17 +377,16 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Tree_Initialize
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Satellite_Merging</unitName>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use :: Abundances_Structure, only : abundances          , zeroAbundances
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeHost
-    class(nodeComponentHotHalo)               , pointer :: hotHaloHost, hotHalo
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeHost
+    class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
+    !GCC$ attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -410,7 +415,7 @@ contains
             &                                               )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging
+  end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
@@ -450,17 +455,16 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <postEvolveTask>
-  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve(node)
+  subroutine postEvolve(self,node)
     !% Do processing of the node required after evolution.
     use :: Abundances_Structure, only : abundances          , zeroAbundances
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeParent
-    class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
+    !GCC$ attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -481,7 +485,7 @@ contains
        end if
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve
+  end subroutine postEvolve
 
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Node_Merger</unitName>

@@ -19,17 +19,18 @@
 
   !% Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
 
-  use :: Pseudo_Random, only : pseudoRandom
-
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
   !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodMultivariateNormal) :: posteriorSampleLikelihoodMltiVrtNormalStochastic
      !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
      private
-     integer               :: realizationCount    , realizationCountMinimum
-     type   (pseudoRandom) :: pseudoRandomSequence
+     integer                                      :: realizationCount                , realizationCountMinimum
+     class  (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
+     final     ::                    multivariateNormalStochasticDestructor
      procedure :: evaluate        => multivariateNormalStochasticEvaluate
      procedure :: functionChanged => multivariateNormalStochasticFunctionChanged
   end type posteriorSampleLikelihoodMltiVrtNormalStochastic
@@ -49,6 +50,7 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
+    class           (randomNumberGeneratorClass                      ), pointer                     :: randomNumberGenerator_
     double precision                                                  , allocatable, dimension(:  ) :: means
     double precision                                                  , allocatable, dimension(:,:) :: covariance
     integer                                                                                         :: realizationCount, realizationCountMinimum
@@ -83,22 +85,34 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
-    self=posteriorSampleLikelihoodMltiVrtNormalStochastic(means,covariance,realizationCount,realizationCountMinimum)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=posteriorSampleLikelihoodMltiVrtNormalStochastic(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function multivariateNormalStochasticConstructorParameters
 
-  function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum) result(self)
+  function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
     !% Constructor for ``multivariateNormalStochastic'' convergence class.
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means
     double precision                                                  , intent(in   ), dimension(:,:) :: covariance
     integer                                                           , intent(in   )                 :: realizationCount, realizationCountMinimum
-    !# <constructorAssign variables="realizationCount, realizationCountMinimum"/>
+    class           (randomNumberGeneratorClass                      ), intent(in   ), target         :: randomNumberGenerator_
+    !# <constructorAssign variables="realizationCount, realizationCountMinimum, *randomNumberGenerator_"/>
 
     self%posteriorSampleLikelihoodMultivariateNormal=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
     return
   end function multivariateNormalStochasticConstructorInternal
+
+  subroutine multivariateNormalStochasticDestructor(self)
+    !% Destructor for the  {\normalfont \ttfamily multivariateNormalStochastic} model likelihood class.
+    implicit none
+    type(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine multivariateNormalStochasticDestructor
 
   double precision function multivariateNormalStochasticEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
@@ -149,7 +163,7 @@ contains
     temperatureEffective=        dble(self%realizationCount)/dble(realizationCount)
     do i=1,realizationCount
        do j=1,simulationState%dimension()
-          stateStochastic(j)=stateStochastic(j)+2.0d0*stateTrue(j)*self%pseudoRandomSequence%uniformSample()/dble(realizationCount)
+          stateStochastic(j)=stateStochastic(j)+2.0d0*stateTrue(j)*self%randomNumberGenerator_%uniformSample()/dble(realizationCount)
        end do
     end do
     stateStochasticVector=stateStochastic

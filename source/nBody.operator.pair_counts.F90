@@ -19,7 +19,8 @@
 
 !% Contains a module which implements an N-body data operator which computes pair counts in bins of separation.
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <nbodyOperator name="nbodyOperatorPairCounts">
   !#  <description>An N-body data operator which computes pair counts in bins of separation.</description>
@@ -27,10 +28,12 @@
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairCounts
      !% An N-body data operator which determines the environmental overoverdensity around particles.
      private
-     double precision           :: separationMinimum  , separationMaximum   , &
-          &                        bootstrapSampleRate
-     integer         (c_size_t) :: separationCount    , bootstrapSampleCount
+     double precision                                       :: separationMinimum              , separationMaximum   , &
+          &                                                   bootstrapSampleRate
+     integer         (c_size_t                  )          :: separationCount                 , bootstrapSampleCount
+     class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
+     final     ::            pairCountsDestructor
      procedure :: operate => pairCountsOperate
   end type nbodyOperatorPairCounts
 
@@ -46,11 +49,12 @@ contains
     !% Constructor for the ``pairCounts'' N-body operator class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nbodyOperatorPairCounts)                :: self
-    type            (inputParameters        ), intent(inout) :: parameters
-    double precision                                         :: separationMinimum  , separationMaximum   , &
-         &                                                      bootstrapSampleRate
-    integer         (c_size_t               )                :: separationCount    , bootstrapSampleCount
+    type            (nbodyOperatorPairCounts   )                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    double precision                                            :: separationMinimum     , separationMaximum   , &
+         &                                                         bootstrapSampleRate
+    integer         (c_size_t                  )                :: separationCount       , bootstrapSampleCount
 
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
@@ -89,29 +93,40 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyOperatorPairCounts(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=nbodyOperatorPairCounts(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function pairCountsConstructorParameters
 
-  function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate) result (self)
+  function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
     !% Internal constructor for the ``pairCounts'' N-body operator class.
     implicit none
-    type            (nbodyOperatorPairCounts)                :: self
-    double precision                         , intent(in   ) :: separationMinimum  , separationMaximum   , &
-         &                                                      bootstrapSampleRate
-    integer         (c_size_t               ), intent(in   ) :: separationCount    , bootstrapSampleCount
-    !# <constructorAssign variables="separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate"/>
+    type            (nbodyOperatorPairCounts)                           :: self
+    double precision                            , intent(in   )         :: separationMinimum     , separationMaximum   , &
+         &                                                                 bootstrapSampleRate
+    integer         (c_size_t                  ), intent(in   )         :: separationCount       , bootstrapSampleCount
+    class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
+    !# <constructorAssign variables="separationMinimum, separationMaximum, separationCount, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_"/>
 
     return
   end function pairCountsConstructorInternal
 
+  subroutine pairCountsDestructor(self)
+    !% Destructor for the ``meanPosition'' N-body operator class.
+    implicit none
+    type(nbodyOperatorPairCounts), intent(inout) :: self
+
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    return
+  end subroutine pairCountsDestructor
+  
   subroutine pairCountsOperate(self,simulation)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use :: Nearest_Neighbors , only : nearestNeighbors
     use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
-    use :: Pseudo_Random     , only : pseudoRandom
     implicit none
     class           (nbodyOperatorPairCounts), intent(inout)                 :: self
     type            (nBodyData              ), intent(inout)                 :: simulation
@@ -125,7 +140,6 @@ contains
          &                                                                      iSample
     type            (nearestNeighbors       )                                :: neighborFinder
     integer                                                                  :: neighborCount
-    type            (pseudoRandom           )                                :: randomSequence
 
     ! Construct bins of separation.
     allocate(separationCentralBin(self%separationCount                                     ))
@@ -137,13 +151,12 @@ contains
     separationMinimumBin=separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1))
     separationMaximumBin=separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1))
     pairCountBin=0_c_size_t
-    randomSequence=pseudoRandom()
     ! Iterate over bootstrap samplings.
     call Galacticus_Display_Counter(0,.true.)
     do iSample=1,self%bootstrapSampleCount
        ! Determine weights for particles.
        do i=1,size(simulation%position,dim=2,kind=c_size_t)
-          weight(i)=randomSequence%poissonSample(self%bootstrapSampleRate)
+          weight(i)=self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate)
        end do
        ! Iterate over particles.
        !$omp parallel private(neighborCount,neighborIndex,neighborDistance,neighborFinder)

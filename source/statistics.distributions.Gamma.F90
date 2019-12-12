@@ -50,8 +50,9 @@ contains
     implicit none
     type            (distributionFunction1DGamma)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
-    double precision                                             :: shape     , rate      , &
-         &                                                          limitLower, limitUpper
+    class           (randomNumberGeneratorClass ), pointer       :: randomNumberGenerator_
+    double precision                                             :: shape                 , rate      , &
+         &                                                          limitLower            , limitUpper
 
     !# <inputParameter>
     !#   <name>shape</name>
@@ -81,19 +82,22 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DGamma(shape,rate,limitLower,limitUpper)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DGamma(shape,rate,randomNumberGenerator_,limitLower,limitUpper)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function gammaConstructorParameters
 
-  function gammaConstructorInternal(shape,rate,limitLower,limitUpper) result(self)
+  function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
     !% Constructor for ``gamma'' 1D distribution function class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (distributionFunction1DGamma)                          :: self
-    double precision                             , intent(in   )           :: shape                        , rate
-    double precision                             , intent(in   ), optional :: limitLower                   , limitUpper
-    !# <constructorAssign variables="shape, rate"/>
+    type            (distributionFunction1DGamma)                                  :: self
+    double precision                             , intent(in   )                   :: shape                 , rate
+    double precision                             , intent(in   ), optional         :: limitLower            , limitUpper
+    class           (randomNumberGeneratorClass ), intent(in   ), optional, target :: randomNumberGenerator_
+    !# <constructorAssign variables="shape, rate, *randomNumberGenerator_"/>
 
     if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('rate>0 and shape>0 are required'//{introspection:location})
     self%limitLowerExists=.false.
@@ -116,7 +120,6 @@ contains
     end if
     self%limitLowerExists=present(limitLower)
     self%limitUpperExists=present(limitUpper)
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function gammaConstructorInternal
 

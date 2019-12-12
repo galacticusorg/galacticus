@@ -19,15 +19,21 @@
 
   !% Implements a merger mass movements class which uses a simple calculation.
 
+  use :: Kind_Numbers, only : kind_int8
+
   !# <mergerMassMovements name="mergerMassMovementsVerySimple">
   !#  <description>A merger mass movements class which uses a simple calculation.</description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
      !% A merger mass movements class which uses a simple calculation.
      private
-     double precision :: massRatioMajorMerger
+     double precision                 :: massRatioMajorMerger
+     integer         (kind=kind_int8) :: lastUniqueID
+     logical                          :: mergerIsMajor       , movementsCalculated
    contains
-     procedure :: get => verySimpleGet
+     final     ::             verySimpleDestructor
+     procedure :: autoHook => verySimpleAutoHook
+     procedure :: get      => verySimpleGet
   end type mergerMassMovementsVerySimple
 
   interface mergerMassMovementsVerySimple
@@ -66,8 +72,69 @@ contains
     double precision                               , intent(in   ) :: massRatioMajorMerger
     !# <constructorAssign variables="massRatioMajorMerger"/>
 
+    self%lastUniqueID       =-huge(0_kind_int8)
+    self%mergerIsMajor      =.false.
+    self%movementsCalculated=.false.
     return
   end function verySimpleConstructorInternal
+
+  subroutine verySimpleAutoHook(self)
+    !% Attach to the calculation reset event.
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(mergerMassMovementsVerySimple), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAllLevels                                                 )
+    call satelliteMergerEvent %attach(self,verySimpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
+    return
+  end subroutine verySimpleAutoHook
+
+  subroutine verySimpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily verySimple} dark matter halo profile class.
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
+    implicit none
+    type(mergerMassMovementsVerySimple), intent(inout) :: self
+
+    call calculationResetEvent%detach(self,verySimpleCalculationReset)
+    call satelliteMergerEvent %detach(self,verySimpleGetHook         )
+   return
+  end subroutine verySimpleDestructor
+
+  subroutine verySimpleCalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout) :: self
+    type (treeNode), intent(inout) :: node
+
+    select type (self)
+    class is (mergerMassMovementsVerySimple)
+       self%movementsCalculated=.false.
+       self%lastUniqueID       =node%uniqueID()
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine verySimpleCalculationReset
+
+  subroutine verySimpleGetHook(self,node)
+    !% Hookable wrapper around the get function.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (*       ), intent(inout)         :: self
+    type   (treeNode), intent(inout), target :: node
+    integer                                  :: destinationGasSatellite, destinationGasHost       , &
+         &                                      destinationStarsHost   , destinationStarsSatellite
+    logical                                  :: mergerIsMajor
+
+    select type (self)
+    type is (mergerMassMovementsVerySimple)
+       call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine verySimpleGetHook
 
   subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a very simple algorithm.
@@ -81,20 +148,28 @@ contains
     logical                                        , intent(  out) :: mergerIsMajor
     type            (treeNode                     ), pointer       :: nodeHost
     double precision                                               :: massHost               , massSatellite
-
-    if      (self%massRatioMajorMerger <= 0.0d0) then
-       mergerIsMajor=.true.
-    else if (self%massRatioMajorMerger >  1.0d0) then
-       mergerIsMajor=.false.
-    else
-       nodeHost      => node%mergesWith()
-       massSatellite =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
-       massHost      =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)
-       mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
+    
+    ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
+    ! the results are determined by the properties of the merge target prior to any modification that will occur as node
+    ! components are modified in response to the merger.
+    if (node%uniqueID() /= self%lastUniqueID) call verySimpleCalculationReset(self,node)
+    if (.not.self%movementsCalculated) then
+       self%movementsCalculated=.true.
+       if      (self%massRatioMajorMerger <= 0.0d0) then
+          self%mergerIsMajor=.true.
+       else if (self%massRatioMajorMerger >  1.0d0) then
+          self%mergerIsMajor=.false.
+       else
+          nodeHost           => node%mergesWith()
+          massSatellite      =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
+          massHost           =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)
+          self%mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
+       end if
     end if
-    destinationGasSatellite  =destinationMergerDisk
-    destinationStarsSatellite=destinationMergerDisk
-    destinationGasHost       =destinationMergerUnmoved
-    destinationStarsHost     =destinationMergerUnmoved
+    mergerIsMajor            =self%mergerIsMajor
+    destinationGasSatellite  =     destinationMergerDisk
+    destinationStarsSatellite=     destinationMergerDisk
+    destinationGasHost       =     destinationMergerUnmoved
+    destinationStarsHost     =     destinationMergerUnmoved
     return
   end subroutine verySimpleGet

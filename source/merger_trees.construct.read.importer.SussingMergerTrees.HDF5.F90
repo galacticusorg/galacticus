@@ -58,13 +58,14 @@ contains
     return
   end function sussingHDF5ConstructorParameters
 
-  function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
+  function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,randomNumberGenerator_) result(self)
     !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
     implicit none
     type            (mergerTreeImporterSussingHDF5)                              :: self
     class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass), intent(in   ), target       :: cosmologicalMassVariance_
+    class           (randomNumberGeneratorClass   ), intent(in   ), target       :: randomNumberGenerator_
     integer                                        , intent(in   ), dimension(3) :: subvolumeIndex
     logical                                        , intent(in   )               :: fatalMismatches          , fatalNonTreeNode
     integer                                        , intent(in   )               :: subvolumeCount           , badValueTest    , &
@@ -73,7 +74,7 @@ contains
          &                                                                          treeSampleRate
     !# <constructorAssign variables="*cosmologicalMassVariance_"/>
 
-    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_)
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_)
     return
   end function sussingHDF5ConstructorInternal
 

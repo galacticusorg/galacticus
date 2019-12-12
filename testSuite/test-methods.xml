@@ -256,7 +256,6 @@
     </transferFunctionMethod>
     <transferFunctionMethod value="BBKS"/>
     <transferFunctionMethod value="CAMB">
-      <lockFileGlobally value="true"/>
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
  	<tolerance value="3.0e-4"/>
  	<toleranceTopHat value="3.0e-4"/>

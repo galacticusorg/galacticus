@@ -27,6 +27,7 @@
   use :: Posterior_Sampling_State                   , only : posteriorSampleStateClass
   use :: Posterior_Sampling_State_Initialize        , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria       , only : posteriorSampleStoppingCriterionClass
+  use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
   !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
@@ -50,6 +51,7 @@
      class           (posteriorSampleStateInitializeClass         ), pointer                   :: posteriorSampleStateInitialize_          => null()
      class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer                   :: posteriorSampleDffrntlEvltnProposalSize_ => null()
      class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer                   :: posteriorSampleDffrntlEvltnRandomJump_   => null()
+     class           (randomNumberGeneratorClass                  ), pointer                   :: randomNumberGenerator_                   => null()
      type            (varying_string                              )                            :: logFileRoot                                       , interactionRoot
    contains
      !@ <objectMethods>
@@ -81,7 +83,7 @@
      !@   <objectMethod>
      !@     <method>acceptProposal</method>
      !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin, \textcolor{red}{\textless type(pseudoRandom)\textgreater} randomNumberGenerator\arginout</arguments>
+     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin</arguments>
      !@     <description>Return true if the proposed state should be accepted.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -93,7 +95,7 @@
      !@   <objectMethod>
      !@     <method>chainSelect</method>
      !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(pseudoRandom)\textgreater} randomNumberGenertor\arginout, \intone\ [blockedChains]\argin</arguments>
+     !@     <arguments>\intone\ [blockedChains]\argin</arguments>
      !@     <description>Select a chain.</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -137,6 +139,7 @@ contains
     class  (posteriorSampleStateInitializeClass           ), pointer                     :: posteriorSampleStateInitialize_
     class  (posteriorSampleDffrntlEvltnProposalSizeClass  ), pointer                     :: posteriorSampleDffrntlEvltnProposalSize_
     class  (posteriorSampleDffrntlEvltnRandomJumpClass    ), pointer                     :: posteriorSampleDffrntlEvltnRandomJump_
+    class  (randomNumberGeneratorClass                    ), pointer                     :: randomNumberGenerator_
     integer                                                                              :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                  stateSwapCount                          , logFlushCount           , &
          &                                                                                  reportCount                             , activeParameterCount    , &
@@ -250,6 +253,7 @@ contains
     !# <objectBuilder class="posteriorSampleStateInitialize"          name="posteriorSampleStateInitialize_"          source="parameters"/>
     !# <objectBuilder class="posteriorSampleDffrntlEvltnProposalSize" name="posteriorSampleDffrntlEvltnProposalSize_" source="parameters"/>
     !# <objectBuilder class="posteriorSampleDffrntlEvltnRandomJump"   name="posteriorSampleDffrntlEvltnRandomJump_"   source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator"                   name="randomNumberGenerator_"                   source="parameters"/>
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
@@ -288,7 +292,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"              />
     !# <objectDestructor name="posteriorSampleConvergence_"             />
@@ -297,6 +301,7 @@ contains
     !# <objectDestructor name="posteriorSampleStateInitialize_"         />
     !# <objectDestructor name="posteriorSampleDffrntlEvltnProposalSize_"/>
     !# <objectDestructor name="posteriorSampleDffrntlEvltnRandomJump_"  />
+    !# <objectDestructor name="randomNumberGenerator_"                  />
     do i=1,  activeParameterCount
        !# <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
     end do
@@ -308,7 +313,7 @@ contains
     return
   end function differentialEvolutionConstructorParameters
 
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
     type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -320,6 +325,7 @@ contains
     class    (posteriorSampleStateInitializeClass           ), intent(in   ), target       :: posteriorSampleStateInitialize_
     class    (posteriorSampleDffrntlEvltnProposalSizeClass  ), intent(in   ), target       :: posteriorSampleDffrntlEvltnProposalSize_
     class    (posteriorSampleDffrntlEvltnRandomJumpClass    ), intent(in   ), target       :: posteriorSampleDffrntlEvltnRandomJump_
+    class    (randomNumberGeneratorClass                    ), intent(in   ), target       :: randomNumberGenerator_
     integer                                                  , intent(in   )               :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                    stateSwapCount                          , logFlushCount           , &
          &                                                                                    reportCount                             , recomputeCount
@@ -327,7 +333,7 @@ contains
     logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs              , &
          &                                                                                    loadBalance                             , ignoreChainNumberAdvice
     integer                                                                                :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, *randomNumberGenerator_, stepsMaximum, acceptanceAverageCount, stateSwapCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -360,6 +366,7 @@ contains
     !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
     !# <objectDestructor name="self%posteriorSampleDffrntlEvltnProposalSize_"/>
     !# <objectDestructor name="self%posteriorSampleDffrntlEvltnRandomJump_"  />
+    !# <objectDestructor name="self%randomNumberGenerator_"                  />
     do i=1,size(self%modelParametersActive_  )
        !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
     end do
@@ -379,7 +386,6 @@ contains
     use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
-    use :: Pseudo_Random               , only : pseudoRandom
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
@@ -394,7 +400,6 @@ contains
          &                                                                                                logLikelihood         , logLikelihoodVariance        , &
          &                                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed, &
          &                                                                                                logPosteriorInitial   , logLikelihoodInitial
-    type            (pseudoRandom                                  )                                   :: randomNumberGenerator
     type            (varying_string                                )                                   :: logFileName           , message                      , &
          &                                                                                                interactionFileName
     integer                                                                                            :: logFileUnit           , convergedAtStep              , &
@@ -456,8 +461,8 @@ contains
        ! Initialize likelihood acceptance condition.
        forceAcceptance=.false.
        ! Pick two random processes to use for proposal.
-       chainPair(1)=self%chainSelect(randomNumberGenerator               )
-       chainPair(2)=self%chainSelect(randomNumberGenerator,[chainPair(1)])
+       chainPair(1)=self%chainSelect(              )
+       chainPair(2)=self%chainSelect([chainPair(1)])
        ! Receive states from selected chains.
        stateVector=self%posteriorSampleState_%get()
        statePair  =mpiSelf%requestData(chainPair,stateVector)
@@ -522,10 +527,10 @@ contains
        call CPU_Time(timePostEvaluate)
        if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        ! Decide whether to take step.
-       if     (                                                                                                                                       &
-            &   self%acceptProposal(self%logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator) &
-            &  .or.                                                                                                                                   &
-            &   forceAcceptance                                                                                                                       &
+       if     (                                                                                                                 &
+            &   self%acceptProposal(self%logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed) &
+            &  .or.                                                                                                             &
+            &   forceAcceptance                                                                                                 &
             & ) then
           self%logPosterior    =logPosteriorProposed
           logLikelihood        =logLikelihoodProposed
@@ -591,25 +596,23 @@ contains
     return
   end subroutine differentialEvolutionUpdate
 
-  integer function differentialEvolutionChainSelect(self,randomNumberGenerator,blockedChains)
+  integer function differentialEvolutionChainSelect(self,blockedChains)
     !% Select a chain at random, optionally excluding blocked chains.
     use :: MPI_Utilities, only : mpiSelf
-    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class  (posteriorSampleSimulationDifferentialEvolution), intent(inout)                         :: self
-    type   (pseudoRandom                                  ), intent(inout)                         :: randomNumberGenerator
     integer                                                , intent(in   ), dimension(:), optional :: blockedChains
     logical                                                                                        :: accept
 
     accept=.false.
     do while (.not.accept)
-       differentialEvolutionChainSelect=min(                                                                &
-            &                               int(                                                            &
-            &                                   +dble(mpiSelf%count())                                      &
-            &                                   *randomNumberGenerator%uniformSample(mpiRankOffset=.true.)  &
-            &                                  )                                                          , &
-            &                               +mpiSelf%count()                                                &
-            &                               -1                                                              &
+       differentialEvolutionChainSelect=min(                                                  &
+            &                               int(                                              &
+            &                                   +dble(mpiSelf%count())                        &
+            &                                   *self%randomNumberGenerator_%uniformSample()  &
+            &                                  )                                            , &
+            &                               +mpiSelf%count()                                  &
+            &                               -1                                                &
             &                              )
        accept=.true.
        if (.not.self%sampleOutliers.and.self%isConverged)                                           &
@@ -833,19 +836,17 @@ contains
     return
   end function differentialEvolutionStepSize
 
-  logical function differentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
+  logical function differentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
     !% Return whether or not to accept a proposal.
-    use :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
     double precision                                                , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                             logLikelihoodVariance, logLikelihoodVarianceProposed
-    type            (pseudoRandom                                  ), intent(inout) :: randomNumberGenerator
     double precision                                                                :: x
     !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
-    x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
+    x=self%randomNumberGenerator_%uniformSample()
     differentialEvolutionAcceptProposal= logPosteriorProposed >      logPosterior                       &
          &                              .or.                                                            &
          &                               x                    < exp(-logPosterior+logPosteriorProposed)

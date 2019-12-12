@@ -26,15 +26,13 @@ module Interfaces_Cloudy_CIE
   public :: Interface_Cloudy_CIE_Tabulate
 
   ! Global file locks.
-  type   (lockDescriptor) :: fileLockCoolingFunction        , fileLockChemicalState
-  logical                 :: fileLockInitialized    =.false.
+  type(lockDescriptor) :: fileLockCoolingFunction, fileLockChemicalState
 
 contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat)
     !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-    use :: File_Utilities    , only : File_Exists                , File_Lock                       , File_Lock_Initialize     , File_Remove               , &
-          &                           File_Unlock
+    use :: File_Utilities    , only : File_Exists                , File_Lock                       , File_Remove              , File_Unlock
     use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                           Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -103,11 +101,7 @@ contains
     ! Perform calculations if necessary.
     if (computeCoolingFunctions .or. computeChemicalStates) then
        ! Open and lock the cooling function and chemical state files.
-       if (.not.fileLockInitialized) then
-          call File_Lock_Initialize(fileLockCoolingFunction)
-          call File_Lock_Initialize(fileLockChemicalState  )
-          fileLockInitialized=.true.
-       end if
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
        call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
        ! Generate metallicity and temperature arrays.
@@ -184,7 +178,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.
        if (computeCoolingFunctions) then
-          call hdf5Access%set()
+          !$ call hdf5Access%set()
           call outputFile%openFile      (char(fileNameCoolingFunction))
           ! Store data.
           call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
@@ -230,7 +224,7 @@ contains
           call outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
           call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
           call outputFile%close         (                                                                                                    )
-          call hdf5Access%unset()
+          !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLockChemicalState  )
        call File_Unlock(fileLockCoolingFunction)

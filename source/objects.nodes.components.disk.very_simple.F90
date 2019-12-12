@@ -21,22 +21,22 @@
 
 module Node_Component_Disk_Very_Simple
   !% Implements a very simple disk component.
-  use :: Cosmology_Functions            , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
-  use :: Galacticus_Nodes               , only : treeNode
-  use :: Math_Exponentiation            , only : fastExponentiator
-  use :: Star_Formation_Feedback_Disks  , only : starFormationFeedbackDisksClass
-  use :: Star_Formation_Timescales_Disks, only : starFormationTimescaleDisksClass
-  use :: Stellar_Population_Properties  , only : stellarPopulationPropertiesClass
+  use :: Cosmology_Functions             , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
+  use :: Galacticus_Nodes                , only : treeNode
+  use :: Math_Exponentiation             , only : fastExponentiator
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Feedback_Disks   , only : starFormationFeedbackDisksClass
+  use :: Star_Formation_Timescales_Disks , only : starFormationTimescaleDisksClass
+  use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Post_Evolve        , Node_Component_Disk_Very_Simple_Rate_Compute     , &
-       &    Node_Component_Disk_Very_Simple_Scale_Set          , Node_Component_Disk_Very_Simple_Satellite_Merging, &
-       &    Node_Component_Disk_Very_Simple_Initialize         , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
-       &    Node_Component_Disk_Very_Simple_Rates              , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
-       &    Node_Component_Disk_Very_Simple_Post_Step          , Node_Component_Disk_Very_Simple_Thread_Initialize, &
-       &    Node_Component_Disk_Very_Simple_Thread_Uninitialize
+  public :: Node_Component_Disk_Very_Simple_Scale_Set  , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Disk_Very_Simple_Initialize , Node_Component_Disk_Very_Simple_Pre_Evolve         , &
+       &    Node_Component_Disk_Very_Simple_Rates      , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
+       &    Node_Component_Disk_Very_Simple_Post_Step  , Node_Component_Disk_Very_Simple_Thread_Initialize  , &
+       &    Node_Component_Disk_Very_Simple_Rate_Compute
 
   !# <component>
   !#  <class>disk</class>
@@ -112,7 +112,8 @@ module Node_Component_Disk_Very_Simple
   class(starFormationFeedbackDisksClass ), pointer :: starFormationFeedbackDisks_
   class(starFormationTimescaleDisksClass), pointer :: starFormationTimescaleDisks_
   class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
-  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfileDMO_)
+  class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
+  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfileDMO_,mergerMassMovements_)
 
   ! Record of whether to use the simple disk analytic solver.
   logical                             :: diskVerySimpleUseAnalyticSolver
@@ -242,18 +243,25 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                          dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultDiskComponent
-    use :: Input_Parameters, only : inputParameter      , inputParameters
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultDiskComponent%verySimpleIsActive()) then
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
        !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
        !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="parameters_"/>
        !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
        ! If using the analytic solver, find the time at the present day.
        !$omp critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
        if (diskVerySimpleUseAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
@@ -267,6 +275,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
+    use :: Events_Hooks    , only : satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultDiskComponent
     implicit none
 
@@ -277,6 +286,9 @@ contains
        !# <objectDestructor name="darkMatterProfileDMO_"       />
        !# <objectDestructor name="starFormationFeedbackDisks_" />
        !# <objectDestructor name="starFormationTimescaleDisks_"/>
+       !# <objectDestructor name="mergerMassMovements_"        />
+       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
@@ -302,18 +314,17 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Pre_Evolve
 
-  !# <postEvolveTask>
-  !# <unitName>Node_Component_Disk_Very_Simple_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Disk_Very_Simple_Post_Evolve(node)
+  subroutine postEvolve(self,node)
     !% Catch rounding errors in the very simple disk gas evolution.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
     use :: Histories       , only : history
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentDisk )               , pointer :: disk
-    class(nodeComponentBasic)               , pointer :: basic
-    type (history           )                         :: stellarPropertiesHistory
+    class(*                 ), intent(inout) :: self
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentDisk ), pointer       :: disk
+    class(nodeComponentBasic), pointer       :: basic
+    type (history           )                :: stellarPropertiesHistory
+    !GCC$ attributes unused :: self
 
     ! Get the disk component.
     disk => node%disk()
@@ -327,7 +338,7 @@ contains
        call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end select
     return
-  end subroutine Node_Component_Disk_Very_Simple_Post_Evolve
+  end subroutine postEvolve
 
   !# <postStepTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
@@ -825,23 +836,23 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Scale_Set
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Disk_Very_Simple_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
     use :: Abundances_Structure                , only : zeroAbundances
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
     use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk  , destinationMergerSpheroid
-    use :: Satellite_Merging_Remnant_Properties, only : destinationGasSatellite, destinationStarsSatellite
     use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
-    type (treeNode             )               , pointer :: nodeHost
-    class(nodeComponentDisk    )               , pointer :: diskHost    , disk
-    class(nodeComponentSpheroid)               , pointer :: spheroidHost
+    class  (*                    ), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    type   (treeNode             ), pointer       :: nodeHost
+    class  (nodeComponentDisk    ), pointer       :: diskHost               , disk
+    class  (nodeComponentSpheroid), pointer       :: spheroidHost
+    integer                                       :: destinationGasSatellite, destinationGasHost       , &
+         &                                           destinationStarsHost   , destinationStarsSatellite
+    logical                                       :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
     ! Check that the disk is of the verySimple class.
     disk => node%disk()
@@ -850,6 +861,8 @@ contains
        ! Find the node to merge with and its disk component (and spheroid if necessary).
        nodeHost => node    %mergesWith(                 )
        diskHost => nodeHost%disk      (autoCreate=.true.)
+       ! Get mass movement descriptors.
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        if     (                                                        &
             &   destinationGasSatellite   == destinationMergerSpheroid &
             &  .or.                                                    &
@@ -933,7 +946,7 @@ contains
             &                             )
     end select
     return
-  end subroutine Node_Component_Disk_Very_Simple_Satellite_Merging
+  end subroutine satelliteMerger
 
   double precision function Node_Component_Disk_Very_Simple_SFR(self)
     !% Return the star formation rate of the very simple disk.

@@ -32,9 +32,8 @@ module Node_Component_Hot_Halo_Cold_Mode
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Formation
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -132,13 +131,15 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo cold mode methods module.
-    use :: Events_Hooks                                     , only : nodePromotionEvent       , openMPThreadBindingAtLevel
+    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                                                           dependencyDirectionAfter
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Hot_Halo_Cold_Mode_Density_Core_Radii            , only : hotHaloColdModeCoreRadii
     use :: Input_Parameters                                 , only : inputParameter           , inputParameters
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters_"/>
@@ -147,7 +148,9 @@ contains
        !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters_"/>
        !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters_"/>
        !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters_"/>
-       call nodePromotionEvent%attach(defaultHotHaloComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode')
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
+       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=dependencies)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
@@ -157,7 +160,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo cold mode methods module.
-    use :: Events_Hooks                                     , only : nodePromotionEvent
+    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
     implicit none
@@ -169,7 +172,8 @@ contains
        !# <objectDestructor name="accretionHalo_"           />
        !# <objectDestructor name="coldModeInfallRate_"      />
        !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>
-       call nodePromotionEvent%detach(defaultHotHaloComponent,nodePromotion)
+       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
    end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
@@ -627,19 +631,18 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging</unitName>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Remove any cold mode gas associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use :: Abundances_Structure                 , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: nodeHost
-    class(nodeComponentHotHalo)               , pointer :: hotHaloHost, hotHalo
-    class(nodeComponentSpin   )               , pointer :: spinHost
+    class(*                   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: nodeHost
+    class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
+    class(nodeComponentSpin   ), pointer       :: spinHost
+    !GCC$ attributes unused :: self
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -679,7 +682,7 @@ contains
             &                                 )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging
+  end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply

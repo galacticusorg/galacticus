@@ -19,13 +19,16 @@
 
 !% Implements survey geometries defined by random points.
 
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+
   !# <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes">
   !#  <description>Implements survey geometries defined by random points.</description>
   !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryRandomPoints
      private
-     logical                                     :: geometryInitialized
-     double precision, allocatable, dimension(:) :: randomTheta        , randomPhi
+     logical                                                                 :: geometryInitialized
+     double precision                            , allocatable, dimension(:) :: randomTheta                     , randomPhi
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
      !@ <objectMethods>
      !@   <object>surveyGeometryRandomPoints</object>
@@ -80,7 +83,6 @@ contains
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_ptr
     use            :: Meshes          , only : Meshes_Apply_Point     , cloudTypeTriangular
-    use            :: Pseudo_Random   , only : pseudoRandom
     implicit none
     class           (surveyGeometryRandomPoints), intent(inout)                                           :: self
     double precision                            , intent(in   )                                           :: mass1                   , mass2
@@ -98,11 +100,11 @@ contains
 #endif
     complex         (c_double_complex          ),                dimension(gridCount,gridCount,gridCount) :: selectionFunction1      , selectionFunction2
     complex         (c_double_complex          )                                                          :: normalization
-    type            (pseudoRandom              ), save                                                    :: randomSequence
 
 #ifdef FFTW3UNAVAIL
     call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
 #endif
+    if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
     ! Initialize geometry if necessary.
     if (.not.self%geometryInitialized) then
        call self%randomsInitialize()
@@ -123,29 +125,29 @@ contains
     ! Loop over randoms.
     do i=1,size(self%randomPhi)
        ! Choose random distances.
-       distance1=+(                                &
-            &      +randomSequence%uniformSample() &
-            &      *(                              &
-            &        +comovingDistanceMaximum1**3  &
-            &        -comovingDistanceMinimum1**3  &
-            &       )                              &
-            &        +comovingDistanceMinimum1**3  &
-            &     )**(1.0d0/3.0d0)                 &
-            &    -min(                             &
-            &         comovingDistanceMinimum1   , &
-            &         comovingDistanceMinimum2     &
+       distance1=+(                                             &
+            &      +self%randomNumberGenerator_%uniformSample() &
+            &      *(                                           &
+            &        +comovingDistanceMaximum1**3               &
+            &        -comovingDistanceMinimum1**3               &
+            &       )                                           &
+            &        +comovingDistanceMinimum1**3               &
+            &     )**(1.0d0/3.0d0)                              &
+            &    -min(                                          &
+            &         comovingDistanceMinimum1                , &
+            &         comovingDistanceMinimum2                  &
             &        )
-       distance2=+(                                &
-            &      +randomSequence%uniformSample() &
-            &      *(                              &
-            &        +comovingDistanceMaximum2**3  &
-            &        -comovingDistanceMinimum2**3  &
-            &       )                              &
-            &        +comovingDistanceMinimum2**3  &
-            &     )**(1.0d0/3.0d0)                 &
-            &    -min(                             &
-            &         comovingDistanceMinimum1   , &
-            &         comovingDistanceMinimum2     &
+       distance2=+(                                             &
+            &      +self%randomNumberGenerator_%uniformSample() &
+            &      *(                                           &
+            &        +comovingDistanceMaximum2**3               &
+            &        -comovingDistanceMinimum2**3               &
+            &       )                                           &
+            &        +comovingDistanceMinimum2**3               &
+            &     )**(1.0d0/3.0d0)                              &
+            &    -min(                                          &
+            &         comovingDistanceMinimum1                , &
+            &         comovingDistanceMinimum2                  &
             &        )
        ! Convert to Cartesian coordinates.
        position1=distance1*[sin(self%randomTheta(i))*cos(self%randomPhi(i)),sin(self%randomTheta(i))*sin(self%randomPhi(i)),cos(self%randomTheta(i))]+origin

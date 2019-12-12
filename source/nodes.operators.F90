@@ -47,6 +47,15 @@ module Nodes_Operators
   !#    !GCC$ attributes unused :: self, node
   !#   </code>
   !#  </method>
+  !#  <method name="differentialEvolutionPost" >
+  !#   <description>Operate on a node after differential evolution.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, node
+  !#   </code>
+  !#  </method>
   !# </functionClass>
-
+  
 end module Nodes_Operators

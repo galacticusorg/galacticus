@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw(&isIntrinsic %intrinsicNulls);
 use Galacticus::Build::Components::DataTypes;
+use Data::Dumper;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -203,6 +204,12 @@ sub Implementation_Finalization {
 	) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
+CODE
+    }
+    # Destroy the parent type.
+    if ( exists($code::member->{'extends'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call self%nodeComponent{ucfirst($member->{'class'}).ucfirst($member->{'extends'}->{'name'})}%destroy()
 CODE
     }
     # Iterate over properties.

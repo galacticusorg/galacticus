@@ -33,11 +33,10 @@ module Node_Component_Black_Hole_Standard
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set        , &
-       &    Node_Component_Black_Hole_Standard_Satellite_Merging  , Node_Component_Black_Hole_Standard_Output_Properties, &
+       &    Node_Component_Black_Hole_Standard_Thread_Uninitialize, Node_Component_Black_Hole_Standard_Output_Properties, &
        &    Node_Component_Black_Hole_Standard_Output_Names       , Node_Component_Black_Hole_Standard_Output_Count     , &
        &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
-       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize, &
-       &    Node_Component_Black_Hole_Standard_Thread_Uninitialize
+       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -277,12 +276,16 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard black hole module.
+    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultBlackHoleComponent%standardIsActive()) then
+       dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
        !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
        !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
        !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
@@ -301,10 +304,12 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard black hole module.
+    use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
+       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
        !# <objectDestructor name="cosmologyParameters_"                />
        !# <objectDestructor name="accretionDisks_"                     />
        !# <objectDestructor name="blackHoleBinaryRecoil_"              />
@@ -506,89 +511,85 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Scale_Set
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Satellite_Merging</unitName>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentBlackHole)               , pointer :: blackHoleHostCentral, blackHole         , &
-         &                                                              blackHolePrimary    , blackHoleSecondary
-    integer                                                          :: instance
-    double precision                                                 :: blackHoleMassNew    , blackHoleSpinNew  , &
-         &                                                              massBlackHole1      , massBlackHole2    , &
-         &                                                              radiusInitial       , recoilVelocity    , &
-         &                                                              spinBlackHole1      , spinBlackHole2
-
-    ! Check that the standard black hole implementation is active.
-    if (defaultBlackHoleComponent%standardIsActive()) then
-       ! Find the node to merge with.
-       hostNode => node%mergesWith()
-       ! Find the initial radius of the satellite black hole in the remnant.
-       radiusInitial=blackHoleBinaryInitialSeparation_%separationInitial(node,hostNode)
-       ! If the separation is non-positive, assume that the black holes merge instantaneously.
-       if (radiusInitial <= 0.0d0) then
-          ! Get the central black hole of the host galaxy.
-          blackHoleHostCentral => hostNode%blackHole(instance=1,autoCreate=.true.)
-          ! Loop over all black holes in the satellite galaxy.
-          do instance=1,node%blackHoleCount()
-             ! Get the black hole.
-             blackHole => node%blackHole(instance=instance)
-             ! Compute the outcome of the merger,
-             call blackHoleBinaryMerger_%merge(                             &
-                  &                            blackHole           %mass(), &
-                  &                            blackHoleHostCentral%mass(), &
-                  &                            blackHole           %spin(), &
-                  &                            blackHoleHostCentral%spin(), &
-                  &                            blackHoleMassNew           , &
-                  &                            blackHoleSpinNew             &
-                  &                           )
-             ! Merge the black holes instantaneously.
-             ! Check which black hole is more massive in order to compute an appropriate recoil velocity
-             if (blackHoleHostCentral%mass() >= blackHole%mass()) then
-                blackHolePrimary   => blackHoleHostCentral
-                blackHoleSecondary => blackHole
-             else
-                blackHolePrimary   => blackHole
-                blackHoleSecondary => blackHoleHostCentral
-             end if
-             massBlackHole1=blackHolePrimary  %mass()
-             massBlackHole2=blackHoleSecondary%mass()
-             spinBlackHole1=blackHolePrimary  %spin()
-             spinBlackHole2=blackHoleSecondary%spin()
-             ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
-             recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-             if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-                blackHoleMassNew=0.0d0
-                blackHoleSpinNew=0.0d0
-             end if
-             ! Move the black hole to the host.
-             call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-             call blackHoleHostCentral%massSet(blackHoleMassNew           )
-             call blackHoleHostCentral%spinSet(blackHoleSpinNew           )
-             ! Reset the satellite black hole to zero mass.
-             call blackHole           %massSet(blackHole       %massSeed())
-             call blackHole           %spinSet(blackHole       %spinSeed())
-          end do
-       else
-          ! Adjust the radii of the black holes in the satellite galaxy.
-          do instance=node%blackHoleCount(),1,-1
-             blackHole => node%blackHole(instance=instance)
-             call blackHole%radialPositionSet(radiusInitial)
-             ! Declares them as not having interacted in a triple black hole interaction.
-             call blackHole%tripleInteractionTimeSet(0.0d0)
-             ! Remove this black hole if it has no mass.
-             if (blackHole%mass() <= 0.0d0) call node%blackHoleRemove(instance)
-          end do
-          ! Move black holes from the satellite to the host.
-          call node%blackHoleMove(hostNode)
-       end if
+    class           (*                     ), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: hostNode
+    class           (nodeComponentBlackHole), pointer       :: blackHoleHostCentral, blackHole         , &
+         &                                                     blackHolePrimary    , blackHoleSecondary
+    integer                                                 :: instance
+    double precision                                        :: blackHoleMassNew    , blackHoleSpinNew  , &
+         &                                                     massBlackHole1      , massBlackHole2    , &
+         &                                                     radiusInitial       , recoilVelocity    , &
+         &                                                     spinBlackHole1      , spinBlackHole2
+    !GCC$ attributes unused :: self
+    
+    ! Find the node to merge with.
+    hostNode => node%mergesWith()
+    ! Find the initial radius of the satellite black hole in the remnant.
+    radiusInitial=blackHoleBinaryInitialSeparation_%separationInitial(node,hostNode)
+    ! If the separation is non-positive, assume that the black holes merge instantaneously.
+    if (radiusInitial <= 0.0d0) then
+       ! Get the central black hole of the host galaxy.
+       blackHoleHostCentral => hostNode%blackHole(instance=1,autoCreate=.true.)
+       ! Loop over all black holes in the satellite galaxy.
+       do instance=1,node%blackHoleCount()
+          ! Get the black hole.
+          blackHole => node%blackHole(instance=instance)
+          ! Compute the outcome of the merger.
+          call blackHoleBinaryMerger_%merge(                             &
+               &                            blackHole           %mass(), &
+               &                            blackHoleHostCentral%mass(), &
+               &                            blackHole           %spin(), &
+               &                            blackHoleHostCentral%spin(), &
+               &                            blackHoleMassNew           , &
+               &                            blackHoleSpinNew             &
+               &                           )
+          ! Merge the black holes instantaneously.
+          ! Check which black hole is more massive in order to compute an appropriate recoil velocity
+          if (blackHoleHostCentral%mass() >= blackHole%mass()) then
+             blackHolePrimary   => blackHoleHostCentral
+             blackHoleSecondary => blackHole
+          else
+             blackHolePrimary   => blackHole
+             blackHoleSecondary => blackHoleHostCentral
+          end if
+          massBlackHole1=blackHolePrimary  %mass()
+          massBlackHole2=blackHoleSecondary%mass()
+          spinBlackHole1=blackHolePrimary  %spin()
+          spinBlackHole2=blackHoleSecondary%spin()
+          ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
+          recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
+          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+             blackHoleMassNew=0.0d0
+             blackHoleSpinNew=0.0d0
+          end if
+          ! Move the black hole to the host.
+          call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
+          call blackHoleHostCentral%massSet(blackHoleMassNew           )
+          call blackHoleHostCentral%spinSet(blackHoleSpinNew           )
+          ! Reset the satellite black hole to zero mass.
+          call blackHole           %massSet(blackHole       %massSeed())
+          call blackHole           %spinSet(blackHole       %spinSeed())
+       end do
+    else
+       ! Adjust the radii of the black holes in the satellite galaxy.
+       do instance=node%blackHoleCount(),1,-1
+          blackHole => node%blackHole(instance=instance)
+          call blackHole%radialPositionSet(radiusInitial)
+          ! Declares them as not having interacted in a triple black hole interaction.
+          call blackHole%tripleInteractionTimeSet(0.0d0)
+          ! Remove this black hole if it has no mass.
+          if (blackHole%mass() <= 0.0d0) call node%blackHoleRemove(instance)
+       end do
+       ! Move black holes from the satellite to the host.
+       call node%blackHoleMove(hostNode)
     end if
     return
-  end subroutine Node_Component_Black_Hole_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
     !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
@@ -596,11 +597,11 @@ contains
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Nodes             , only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: recoilVelocity        , radius
-    logical                   , intent(in   )          :: ignoreCentralBlackHole
-    double precision                                   :: potentialCentral      , potentialCentralSelf, &
-         &                                                potentialHalo         , potentialHaloSelf
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: recoilVelocity        , radius
+    logical                   , intent(in   ) :: ignoreCentralBlackHole
+    double precision                          :: potentialCentral      , potentialCentralSelf, &
+         &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
     potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
@@ -925,10 +926,10 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
     use :: IO_HDF5         , only : hdf5Access          , hdf5Object
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: node
-    double precision                    , intent(in   )          :: massBlackHole1    , massBlackHole2
-    class           (nodeComponentBasic)               , pointer :: basic
-    type            (hdf5Object        )                         :: mergersGroup
+    type            (treeNode          ), intent(inout) :: node
+    double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
+    class           (nodeComponentBasic), pointer       :: basic
+    type            (hdf5Object        )                :: mergersGroup
 
     ! Exit if merger data is not to be output.
     if (.not.blackHoleOutputMergers) return
@@ -940,7 +941,7 @@ contains
     basic => node%basic()
 
     ! Open the group to which black hole mergers should be written.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
@@ -949,7 +950,7 @@ contains
     call mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 

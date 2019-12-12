@@ -89,12 +89,15 @@ contains
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     use :: Input_Parameters, only : inputParameter               , inputParameters
     implicit none
-    type(inputParameters   ), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
     !GCC$ attributes unused :: parameters_
     
     ! Check if this implementation is selected.
-    if (defaultFormationTimeComponent%cole2000IsActive()) &
-         & call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeCole2000',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponentHotHalo')])
+    if (defaultFormationTimeComponent%cole2000IsActive()) then
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentHotHalo')
+       call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeCole2000',dependencies=dependencies)
+    end if
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Thread_Initialize
 

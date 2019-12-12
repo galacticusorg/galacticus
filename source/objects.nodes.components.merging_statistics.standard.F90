@@ -23,12 +23,12 @@ module Node_Component_Merging_Statistics_Standard
   !% Implements the standard merging statistics component.
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
   use :: Galacticus_Nodes                         , only : nodeComponentMergingStatisticsStandard
+  use :: Satellite_Merging_Mass_Movements         , only : mergerMassMovementsClass
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init , Node_Component_Merging_Statistics_Standard_Node_Merger        , &
-       &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy  , Node_Component_Merging_Statistics_Standard_Initialize         , &
-       &    Node_Component_Merging_Statistics_Standard_Thread_Initialize, Node_Component_Merging_Statistics_Standard_Thread_Uninitialize, &
-       &    Node_Component_Merging_Statistics_Standard_Satellite_Merging
+  public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init   , Node_Component_Merging_Statistics_Standard_Node_Merger, &
+       &    Node_Component_Merging_Statistics_Standard_Thread_Uninitialize, Node_Component_Merging_Statistics_Standard_Initialize , &
+       &    Node_Component_Merging_Statistics_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -94,7 +94,8 @@ module Node_Component_Merging_Statistics_Standard
 
   ! Classes used.
   class          (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
-  !$omp threadprivate(darkMatterHaloMassAccretionHistory_)
+  class          (mergerMassMovementsClass               ), pointer :: mergerMassMovements_
+  !$omp threadprivate(darkMatterHaloMassAccretionHistory_,mergerMassMovements_)
 
   ! Parameters controlling the statistics gathered.
   double precision                                                  :: nodeFormationMassFraction          , nodeMajorMergerFraction, &
@@ -150,16 +151,24 @@ contains
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters_)
     !% Initializes the tree node standard merging statistics module.
     use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
-         &                          dependencyDirectionBefore
+         &                          dependencyDirectionBefore        , satelliteMergerEvent , postEvolveEvent           , dependencyRegEx, &
+         &                          dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyExact), dimension(1)  :: dependenciesSubhaloPromotion
+    type(dependencyRegEx), dimension(1)  :: dependenciesSatelliteMerger
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
-       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                                                                  )
-       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=[dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')])
+       !# <objectBuilder class="mergerMassMovements"                name="mergerMassMovements_"                source="parameters_"/>
+       dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+       dependenciesSatelliteMerger (1)=dependencyRegEx(dependencyDirectionAfter ,'^remnantStructure:'   )
+       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                          )
+       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=dependenciesSubhaloPromotion)
+       call satelliteMergerEvent %attach(defaultMergingStatisticsComponent,satelliteMerger     ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=dependenciesSatelliteMerger )
+       call postEvolveEvent      %attach(defaultMergingStatisticsComponent,postEvolve          ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                          )
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
@@ -169,14 +178,17 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
-    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+       !# <objectDestructor name="mergerMassMovements_"               />
        call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
        call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
+       call satelliteMergerEvent %detach(defaultMergingStatisticsComponent,satelliteMerger     )
+       call postEvolveEvent      %detach(defaultMergingStatisticsComponent,postEvolve          )
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
@@ -378,46 +390,51 @@ contains
     call mergingStatistics%massWhenFirstIsolatedSet(basicParent%mass())
     return
   end subroutine nodeSubhaloPromotion
-     
-  !# <postEvolveTask>
-  !# <unitName>Node_Component_Merging_Statistics_Standard_Reset_Hierarchy</unitName>
-  !# </postEvolveTask>
+
+  subroutine postEvolve(self,node)
+    !% Handle post differential evoloution.
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*       ), intent(inout) :: self
+    type (treeNode), intent(inout) :: node
+    !GCC$ attributes unused :: self
+
+    call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
+    return
+  end subroutine postEvolve
+
   subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     !% Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
-    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), target  :: node
-    class(nodeComponentBasic            )               , pointer :: basic
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentBasic            ), pointer       :: basic
+    class(nodeComponentMergingStatistics), pointer       :: mergingStatistics
 
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
     ! Test if previous mass at promotion has been exceeded by a sufficient factor.
-    basic    => node%basic            ()
+    basic             => node%basic            ()
     mergingStatistics => node%mergingStatistics()
     if (basic%mass() > hierarchyLevelResetFactor*mergingStatistics%massWhenFirstIsolated()) &
          & call mergingStatistics%nodeHierarchyLevelMaximumSet(mergingStatistics%nodeHierarchyLevel())
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy
 
-  !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Compute</after>
-  !# </satelliteMergerTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(node)
+  subroutine satelliteMerger(self,node)
     !% Record properties of a merging event for {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes                    , only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
-    use :: Satellite_Merging_Remnant_Properties, only : mergerIsMajor
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    type (treeNode                      )               , pointer :: nodeHost
-    class(nodeComponentBasic            )               , pointer :: basicHost
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsHost
-
-    ! Return immediately if this class is not active.
-    if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
+    class  (*                             ), intent(inout) :: self
+    type   (treeNode                      ), intent(inout) :: node
+    type   (treeNode                      ), pointer       :: nodeHost
+    class  (nodeComponentBasic            ), pointer       :: basicHost
+    class  (nodeComponentMergingStatistics), pointer       :: mergingStatisticsHost
+    integer                                                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                    destinationStarsHost   , destinationStarsSatellite
+    logical                                                :: mergerIsMajor
+    !GCC$ attributes unused :: self
 
     ! Record the time of this merger if it is a major merger.
+    call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     if (mergerIsMajor) then
        ! Find the node to merge with.
        nodeHost              => node    %mergesWith       ()
@@ -427,6 +444,6 @@ contains
        call mergingStatisticsHost%galaxyMajorMergerTimeSet(basicHost%time())
     end if
     return
-  end subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging
+  end subroutine satelliteMerger
 
 end module Node_Component_Merging_Statistics_Standard

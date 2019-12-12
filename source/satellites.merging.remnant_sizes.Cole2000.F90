@@ -19,6 +19,7 @@
 
   !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
 
+  use :: Kind_Numbers                           , only : kind_int8
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCole2000">
@@ -29,9 +30,14 @@
      private
      class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital
+     integer         (kind=kind_int8                 )          :: lastUniqueID
+     logical                                                    :: propertiesCalculated
+     double precision                                           :: radius                               ,velocityCircular, &
+          &                                                        angularMomentumSpecific
    contains
-     final     ::        cole2000Destructor
-     procedure :: get => cole2000Get
+     final     ::             cole2000Destructor
+     procedure :: autoHook => cole2000AutoHook
+     procedure :: get      => cole2000Get
   end type mergerRemnantSizeCole2000
 
   interface mergerRemnantSizeCole2000
@@ -74,17 +80,70 @@ contains
     class           (mergerProgenitorPropertiesClass), intent(in   ), target :: mergerProgenitorProperties_
     !# <constructorAssign variables="energyOrbital, *mergerProgenitorProperties_"/>
 
-    return
+    self%propertiesCalculated   =.false.
+    self%lastUniqueID           =-huge(0_kind_int8)
+    self%radius                 =-huge(0.0d0      )
+    self%velocityCircular       =-huge(0.0d0      )
+    self%angularMomentumSpecific=-huge(0.0d0      )
   end function cole2000ConstructorInternal
+
+  subroutine cole2000AutoHook(self)
+    !% Attach to the calculation reset event.
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(mergerRemnantSizeCole2000), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,cole2000CalculationReset,openMPThreadBindingAllLevels                                             )
+    call satelliteMergerEvent %attach(self,cole2000GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:remnantSizeCole2000')
+    return
+  end subroutine cole2000AutoHook
 
   subroutine cole2000Destructor(self)
     !% Destructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerRemnantSizeCole2000), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerProgenitorProperties_"/>
+    call calculationResetEvent%detach(self,cole2000CalculationReset)
+    call satelliteMergerEvent %detach(self,cole2000GetHook         )
     return
   end subroutine cole2000Destructor
+
+  subroutine cole2000CalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout) :: self
+    type (treeNode), intent(inout) :: node
+
+    select type (self)
+    class is (mergerRemnantSizeCole2000)
+       self%propertiesCalculated=.false.
+       self%lastUniqueID       =node%uniqueID()
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine cole2000CalculationReset
+
+  subroutine cole2000GetHook(self,node)
+    !% Hookable wrapper around the get function.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (*       ), intent(inout)         :: self
+    type            (treeNode), intent(inout), target :: node
+    double precision                                  :: radius                 , velocityCircular, &
+         &                                               angularMomentumSpecific
+
+    select type (self)
+    type is (mergerRemnantSizeCole2000)
+       call self%get(node,radius,velocityCircular,angularMomentumSpecific)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine cole2000GetHook
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
@@ -117,120 +176,130 @@ contains
     type            (varying_string           )                :: message
     logical                                                    :: errorCondition
 
-    nodeHost => node%mergesWith()
-    call self%mergerProgenitorProperties_%get(                           &
-         &                                    node                     , &
-         &                                    nodeHost                 , &
-         &                                    massSatellite            , &
-         &                                    massHost                 , &
-         &                                    massSpheroidSatellite    , &
-         &                                    massSpheroidHost         , &
-         &                                    massSpheroidHostPreMerger, &
-         &                                    radiusSatellite          , &
-         &                                    radiusHost               , &
-         &                                    factorAngularMomentum    , &
-         &                                    massSpheroidRemnant      , &
-         &                                    massGasSpheroidRemnant     &
-         &                                   )
-    if (massSpheroidSatellite <= 0.0d0 .and. Values_Agree(massSpheroidHost,massSpheroidHostPreMerger,relTol=toleranceMassRelative)) then
-       radius                 =remnantNoChange
-       velocityCircular       =remnantNoChange
-       angularMomentumSpecific=remnantNoChange
-    else
-       ! Check that the properties of the galaxies are physically reasonable.
-       errorCondition=.false.
-       if     (                                                  &
-            &   (                                                &
-            &     radiusSatellite       <= +0.0d0                &
-            &    .and.                                           &
-            &     massSpheroidSatellite >  +0.0d0                &
-            &   )                                                &
-            &  .or.                                              &
-            &     massSatellite         < -toleranceMassAbsolute &
-            &  .or.                                              &
-            &     massSpheroidSatellite < -toleranceMassAbsolute &
-            & ) then
-          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusSatellite,massSatellite,massSpheroidSatellite
-          message=var_str('Satellite galaxy [')//node%index()//'] has '
-          joinString=""
-          if (radiusSatellite       <= +0.0d0        ) then
-             message=message//trim(joinString)//'non-positive radius'
-             joinString=", "
-          end if
-          if (massSatellite         <  -toleranceMassAbsolute) then
-             message=message//trim(joinString)//'negative mass'
-             joinString=", "
-          end if
-          if (massSpheroidSatellite <  -toleranceMassAbsolute) then
-             message=message//trim(joinString)//'negative spheroid mass'
-             joinString=", "
-          end if
-          message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-          call Galacticus_Display_Message(message)
-          errorCondition=.true.
-       end if
-       if     (                                             &
-            &   (                                           &
-            &     radiusHost       <= +0.0d0                &
-            &    .and.                                      &
-            &     massSpheroidHost >  +0.0d0                &
-            &   )                                           &
-            &  .or.                                         &
-            &     massHost         < -toleranceMassAbsolute &
-            &  .or.                                         &
-            &     massSpheroidHost < -toleranceMassAbsolute &
-            & ) then
-          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusHost,massHost,massSpheroidHost
-          message=var_str('Host galaxy [')//nodeHost%index()//'] has '
-          joinString=""
-          if (radiusHost       <= +0.0d0        ) then
-             message=message//trim(joinString)//'non-positive radius'
-             joinString=", "
-          end if
-          if (massHost         <  -toleranceMassAbsolute) then
-             message=message//trim(joinString)//'negative mass'
-             joinString=", "
-          end if
-          if (massSpheroidHost <  -toleranceMassAbsolute) then
-             message=message//trim(joinString)//'negative spheroid mass'
-             joinString=", "
-          end if
-          message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-          call Galacticus_Display_Message(message)
-          errorCondition=.true.
-       end if
-       if (errorCondition) then
-          call node    %serializeASCII()
-          call nodeHost%serializeASCII()
-          call Galacticus_Error_Report('error condition detected'//{introspection:location})
-       end if
-       ! Check if host has finite mass.
-       if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
-          ! Compute masses of dark matter within the host and satellite radii.
-          massDarkMatterHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radiusHost     ,massType=massTypeDark)
-          massDarkMatterSatellite=Galactic_Structure_Enclosed_Mass(node    ,radiusSatellite,massType=massTypeDark)
-          ! Combine baryonic and dark matter masses.
-          massSpheroidHostTotal     =+massSpheroidHost     +2.0d0*massDarkMatterHost
-          massSpheroidTotalSatellite=+massSpheroidSatellite+2.0d0*massDarkMatterSatellite
-          ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-          energyProgenitors=0.0d0
-          if (+radiusHost                 > 0.0d0)                                                                                      &
-               & energyProgenitors=+energyProgenitors+                           massSpheroidHostTotal**2/                  radiusHost
-          if (           +radiusSatellite > 0.0d0)                                                                                      &
-               & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite                      **2/  radiusSatellite
-          if (+radiusHost+radiusSatellite > 0.0d0)                                                                                      &
-               & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite*massSpheroidHostTotal   /(+radiusSatellite+radiusHost) &
-               &                                     *self%energyOrbital/formFactorEnergyBinding
-          radius=(massSpheroidTotalSatellite+massSpheroidHostTotal)**2/energyProgenitors
-          ! Also compute the specific angular momentum at the half-mass radius.
-          velocityCircular       =sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/radius)
-          angularMomentumSpecific=radius*velocityCircular*factorAngularMomentum
+    ! The calculation of remnant size is computed when first needed and then stored. This ensures that the results are determined
+    ! by the properties of the merge target prior to any modification that will occur as node components are modified in response
+    ! to the merger.
+    if (node%uniqueID() /= self%lastUniqueID) call cole2000CalculationReset(self,node)
+    if (.not.self%propertiesCalculated) then
+       self%propertiesCalculated=.true.
+       nodeHost => node%mergesWith()
+       call self%mergerProgenitorProperties_%get(                           &
+            &                                    node                     , &
+            &                                    nodeHost                 , &
+            &                                    massSatellite            , &
+            &                                    massHost                 , &
+            &                                    massSpheroidSatellite    , &
+            &                                    massSpheroidHost         , &
+            &                                    massSpheroidHostPreMerger, &
+            &                                    radiusSatellite          , &
+            &                                    radiusHost               , &
+            &                                    factorAngularMomentum    , &
+            &                                    massSpheroidRemnant      , &
+            &                                    massGasSpheroidRemnant     &
+            &                                   )
+       if (massSpheroidSatellite <= 0.0d0 .and. Values_Agree(massSpheroidHost,massSpheroidHostPreMerger,relTol=toleranceMassRelative)) then
+          self%radius                 =remnantNoChange
+          self%velocityCircular       =remnantNoChange
+          self%angularMomentumSpecific=remnantNoChange
        else
-          ! Remnant has zero mass - don't do anything.
-          radius                 =remnantNoChange
-          velocityCircular       =remnantNoChange
-          angularMomentumSpecific=remnantNoChange
+          ! Check that the properties of the galaxies are physically reasonable.
+          errorCondition=.false.
+          if     (                                                  &
+               &   (                                                &
+               &     radiusSatellite       <= +0.0d0                &
+               &    .and.                                           &
+               &     massSpheroidSatellite >  +0.0d0                &
+               &   )                                                &
+               &  .or.                                              &
+               &     massSatellite         < -toleranceMassAbsolute &
+               &  .or.                                              &
+               &     massSpheroidSatellite < -toleranceMassAbsolute &
+               & ) then
+             write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusSatellite,massSatellite,massSpheroidSatellite
+             message=var_str('Satellite galaxy [')//node%index()//'] has '
+             joinString=""
+             if (radiusSatellite       <= +0.0d0        ) then
+                message=message//trim(joinString)//'non-positive radius'
+                joinString=", "
+             end if
+             if (massSatellite         <  -toleranceMassAbsolute) then
+                message=message//trim(joinString)//'negative mass'
+                joinString=", "
+             end if
+             if (massSpheroidSatellite <  -toleranceMassAbsolute) then
+                message=message//trim(joinString)//'negative spheroid mass'
+                joinString=", "
+             end if
+             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             call Galacticus_Display_Message(message)
+             errorCondition=.true.
+          end if
+          if     (                                             &
+               &   (                                           &
+               &     radiusHost       <= +0.0d0                &
+               &    .and.                                      &
+               &     massSpheroidHost >  +0.0d0                &
+               &   )                                           &
+               &  .or.                                         &
+               &     massHost         < -toleranceMassAbsolute &
+               &  .or.                                         &
+               &     massSpheroidHost < -toleranceMassAbsolute &
+               & ) then
+             write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusHost,massHost,massSpheroidHost
+             message=var_str('Host galaxy [')//nodeHost%index()//'] has '
+             joinString=""
+             if (radiusHost       <= +0.0d0        ) then
+                message=message//trim(joinString)//'non-positive radius'
+                joinString=", "
+             end if
+             if (massHost         <  -toleranceMassAbsolute) then
+                message=message//trim(joinString)//'negative mass'
+                joinString=", "
+             end if
+             if (massSpheroidHost <  -toleranceMassAbsolute) then
+                message=message//trim(joinString)//'negative spheroid mass'
+                joinString=", "
+             end if
+             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             call Galacticus_Display_Message(message)
+             errorCondition=.true.
+          end if
+          if (errorCondition) then
+             call node    %serializeASCII()
+             call nodeHost%serializeASCII()
+             call Galacticus_Error_Report('error condition detected'//{introspection:location})
+          end if
+          ! Check if host has finite mass.
+          if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
+             ! Compute masses of dark matter within the host and satellite radii.
+             massDarkMatterHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radiusHost     ,massType=massTypeDark)
+             massDarkMatterSatellite=Galactic_Structure_Enclosed_Mass(node    ,radiusSatellite,massType=massTypeDark)
+             ! Combine baryonic and dark matter masses.
+             massSpheroidHostTotal     =+massSpheroidHost     +2.0d0*massDarkMatterHost
+             massSpheroidTotalSatellite=+massSpheroidSatellite+2.0d0*massDarkMatterSatellite
+             ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
+             energyProgenitors=0.0d0
+             if (+radiusHost                 > 0.0d0)                                                                                      &
+                  & energyProgenitors=+energyProgenitors+                           massSpheroidHostTotal**2/                  radiusHost
+             if (           +radiusSatellite > 0.0d0)                                                                                      &
+                  & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite                      **2/  radiusSatellite
+             if (+radiusHost+radiusSatellite > 0.0d0)                                                                                      &
+                  & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite*massSpheroidHostTotal   /(+radiusSatellite+radiusHost) &
+                  &                                     *self%energyOrbital/formFactorEnergyBinding
+             self%radius=(massSpheroidTotalSatellite+massSpheroidHostTotal)**2/energyProgenitors
+             ! Also compute the specific angular momentum at the half-mass radius.
+             self%velocityCircular       =sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
+             self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
+          else
+             ! Remnant has zero mass - don't do anything.
+             self%radius                 =remnantNoChange
+             self%velocityCircular       =remnantNoChange
+             self%angularMomentumSpecific=remnantNoChange
+          end if
        end if
     end if
+    radius                 =self%radius
+    velocityCircular       =self%velocityCircular
+    angularMomentumSpecific=self%angularMomentumSpecific
     return
   end subroutine cole2000Get

@@ -21,55 +21,56 @@
 
 program Benchmark_Stellar_Populations_Luminosities
   !% Benchmarking of stellar population luminosity calculations.
-  use :: Abundances_Structure                      , only : abundances                                   , metallicityTypeLinearByMassSolar
+  use :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set               , verbosityWorking
-  use :: Galacticus_Paths                          , only : galacticusPath                               , pathTypeDataDynamic                      , pathTypeDataStatic
-  use :: ISO_Varying_String                        , only : var_str                                      , char
+  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set                , verbosityWorking
+  use :: Galacticus_Paths                          , only : galacticusPath                                , pathTypeDataDynamic                      , pathTypeDataStatic
+  use :: ISO_Varying_String                        , only : var_str                                       , char                                     , operator(//)
   use :: Input_Parameters                          , only : inputParameters
   use :: Instruments_Filters                       , only : Filter_Get_Index
   use :: Kind_Numbers                              , only : kind_int8
-  use :: Stellar_Astrophysics                      , only : stellarAstrophysics                          , stellarAstrophysicsFile
+  use :: Stellar_Astrophysics                      , only : stellarAstrophysics                           , stellarAstrophysicsFile
   use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
   use :: Stellar_Astrophysics_Winds                , only : stellarWindsLeitherer1992
   use :: Stellar_Feedback                          , only : stellarFeedbackStandard
-  use :: Stellar_Population_Luminosities           , only : Stellar_Population_Luminosity
+  use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesStandard
   use :: Stellar_Population_Spectra                , only : stellarPopulationSpectraFile
-  use :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorIdentity, stellarPopulationSpectraPostprocessorList
+  use :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorIdentity , stellarPopulationSpectraPostprocessorList
   use :: Stellar_Populations                       , only : stellarPopulationStandard
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
   use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
   implicit none
   type            (inputParameters                              ), target                                 :: parameters
-  integer                                                        , parameter                              :: filterCount                               =  137  , populationCount      =20, &
-       &                                                                                                     trialCount                                =10000
-  double precision                                               , parameter                              :: redshiftStep                              =0.1d0
-  type            (stellarPopulationSpectraPostprocessorList    ), dimension(filterCount*populationCount) :: stellarPopulationSpectraPostprocessorList_
-  type            (stellarPopulationSpectraPostprocessorIdentity), target                                 :: stellarPopulationSpectraPostprocessor_
-  double precision                                               , dimension(filterCount*populationCount) :: redshift                                          , age                     , &
-       &                                                                                                     luminosity
-  integer                                                        , dimension(filterCount*populationCount) :: luminosityIndex                                   , filterIndex
-  type            (abundances                                   )                                         :: abundances_
-  type            (initialMassFunctionChabrier2001              )                                         :: initialMassFunction_
-  type            (stellarAstrophysicsFile                      )                                         :: stellarAstrophysics_
-  type            (stellarPopulationStandard                    )                                         :: stellarPopulation_
-  type            (stellarFeedbackStandard                      )                                         :: stellarFeedback_
-  type            (stellarTracksFile                            )                                         :: stellarTracks_
-  type            (stellarWindsLeitherer1992                    )                                         :: stellarWinds_
-  type            (supernovaeTypeIaNagashima2005                )                                         :: supernovaeTypeIa_
-  type            (supernovaePopulationIIIHegerWoosley2002      )                                         :: supernovaePopulationIII_
-  type            (stellarPopulationSpectraFile                 )                                         :: stellarPopulationSpectra_
-  type            (cosmologyParametersSimple                    )                                         :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda               )                                         :: cosmologyFunctions_
-  integer                                                                                                 :: trial                                             , i
-  integer         (kind=kind_int8                               )                                         :: countStart                                        , countEnd                , &
-       &                                                                                                     countRate
-  integer         (kind=kind_int8                               ), dimension(trialCount                 ) :: trialTime
-  character       (len =   3                                    )                                         :: units
-  double precision                                                                                        :: timeMean                                          , timeStandardDeviation   , &
-       &                                                                                                     timeMeanError
+  integer                                                         , parameter                              :: filterCount                               =  137  , populationCount      =20, &
+       &                                                                                                      trialCount                                =10000
+  double precision                                                , parameter                              :: redshiftStep                              =0.1d0
+  type            (stellarPopulationSpectraPostprocessorList     ), dimension(filterCount*populationCount) :: stellarPopulationSpectraPostprocessorList_
+  type            (stellarPopulationSpectraPostprocessorIdentity ), target                                 :: stellarPopulationSpectraPostprocessor_
+  double precision                                                , dimension(filterCount*populationCount) :: redshift                                          , age                     , &
+       &                                                                                                      luminosity
+  integer                                                         , dimension(filterCount*populationCount) :: luminosityIndex                                   , filterIndex
+  type            (abundances                                    )                                         :: abundances_
+  type            (initialMassFunctionChabrier2001               )                                         :: initialMassFunction_
+  type            (stellarAstrophysicsFile                       )                                         :: stellarAstrophysics_
+  type            (stellarPopulationStandard                     )                                         :: stellarPopulation_
+  type            (stellarFeedbackStandard                       )                                         :: stellarFeedback_
+  type            (stellarTracksFile                             )                                         :: stellarTracks_
+  type            (stellarWindsLeitherer1992                     )                                         :: stellarWinds_
+  type            (supernovaeTypeIaNagashima2005                 )                                         :: supernovaeTypeIa_
+  type            (supernovaePopulationIIIHegerWoosley2002       )                                         :: supernovaePopulationIII_
+  type            (stellarPopulationSpectraFile                  )                                         :: stellarPopulationSpectra_
+  type            (cosmologyParametersSimple                     )                                         :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                )                                         :: cosmologyFunctions_
+  type            (stellarPopulationBroadBandLuminositiesStandard)                                         :: stellarPopulationBroadBandLuminosities_
+  integer                                                                                                  :: trial                                             , i
+  integer         (kind=kind_int8                                )                                         :: countStart                                        , countEnd                , &
+       &                                                                                                      countRate
+  integer         (kind=kind_int8                                ), dimension(trialCount                 ) :: trialTime
+  character       (len =   3                                     )                                         :: units
+  double precision                                                                                         :: timeMean                                          , timeStandardDeviation   , &
+       &                                                                                                      timeMeanError
 
   parameters=inputParameters()
   call parameters%markGlobal()
@@ -130,7 +131,14 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 supernovaeTypeIa_                  =supernovaeTypeIa_                                                                                               , &
        &                                                                                 stellarPopulationSpectra_          =stellarPopulationSpectra_                                                                                         &
        &                                                                                )
-  stellarPopulationSpectraPostprocessor_=  stellarPopulationSpectraPostprocessorIdentity(                                                                                                                                                      &
+  stellarPopulationSpectraPostprocessor_=stellarPopulationSpectraPostprocessorIdentity  (                                                                                                                                                      &
+       &                                                                                )
+  stellarPopulationBroadBandLuminosities_=stellarPopulationBroadBandLuminositiesStandard(                                                                                                                                                      &
+       &                                                                                 integrationToleranceRelative       =4.0d-3                                                                                                          , &
+       &                                                                                 integrationToleranceDegrade        =.false.                                                                                                         , &
+       &                                                                                 maximumAgeExceededIsFatal          =.true.                                                                                                          , &
+       &                                                                                 storeToFile                        =.true.                                                                                                          , &
+       &                                                                                 storeDirectory                     =galacticusPath(pathTypeDataDynamic)//'stellarPopulations'                                                         &
        &                                                                                )
   ! Initialize filters and metallicities.
   call abundances_%metallicitySet(1.0d0,metallicityTypeLinearByMassSolar)
@@ -202,7 +210,7 @@ program Benchmark_Stellar_Populations_Luminosities
   ! Begin trials.
   do trial=1,trialCount
      call System_Clock(countStart)
-     luminosity=Stellar_Population_Luminosity(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessorList_,stellarPopulation_,abundances_,age,redshift)
+     luminosity=stellarPopulationBroadBandLuminosities_%luminosities(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessorList_,stellarPopulation_,abundances_,age,redshift)
      call System_Clock(countEnd  )
      trialTime(trial)=+countEnd   &
           &           -countStart

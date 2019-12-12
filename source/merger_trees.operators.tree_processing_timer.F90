@@ -23,7 +23,15 @@
   use            :: Kind_Numbers , only : kind_int8
 
   !# <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer">
-  !#  <description>A merger tree operator class which records and outputs tree processing time information.</description>
+  !#  <description>
+  !#   A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
+  !#   and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
+  !#   \begin{description}
+  !#    \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
+  !#    \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
+  !#    \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
+  !#   \end{description}
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorTreeProcessingTimer
      !% A merger tree operator class which records and outputs tree processing time information.

@@ -54,7 +54,8 @@ contains
     implicit none
     type            (distributionFunction1DBeta)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
-    double precision                                            :: alpha     , beta
+    class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    double precision                                            :: alpha                 , beta
 
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -70,18 +71,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DBeta(alpha,beta)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DBeta(alpha,beta,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function betaConstructorParameters
 
-  function betaConstructorInternal(alpha,beta) result(self)
+  function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
     !% Constructor for ``beta'' 1D distribution function class.
-    type            (distributionFunction1DBeta)                :: self
-    double precision                            , intent(in   ) :: alpha, beta
-    !# <constructorAssign variables="alpha, beta"/>
+    type            (distributionFunction1DBeta)                                  :: self
+    double precision                            , intent(in   )                   :: alpha                 , beta
+    class           (randomNumberGeneratorClass), intent(in   ), target, optional :: randomNumberGenerator_
+    !# <constructorAssign variables="alpha, beta, *randomNumberGenerator_"/>
 
-    self%randomNumberGenerator=pseudoRandom()
     return
   end function betaConstructorInternal
 

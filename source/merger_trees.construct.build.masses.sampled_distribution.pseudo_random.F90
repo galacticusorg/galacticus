@@ -19,12 +19,15 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution using pseudo-random sampling.
 
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom">
   !#  <description>A merger tree masses class which samples masses from a distribution using pseudo-random sampling.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionPseudoRandom
      !% Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
      private
+     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_
    contains
      final     ::              sampledDistributionPseudoRandomDestructor
      procedure :: sampleCMF => sampledDistributionPseudoRandomSampleCMF
@@ -46,17 +49,19 @@ contains
     type(inputParameters                                     ), intent(inout) :: parameters
 
     self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
+    !# <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
     return
   end function sampledDistributionPseudoRandomConstructorParameters
 
-  function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
+  function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionPseudoRandom)                        :: self
     class           (mergerTreeBuildMassDistributionClass                ), intent(in   ), target :: mergerTreeBuildMassDistribution_
+    class           (randomNumberGeneratorClass                          ), intent(in   ), target :: randomNumberGenerator_
     double precision                                                      , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
          &                                                                                           treesPerDecade
-    !# <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !# <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_, *randomNumberGenerator_"/>
 
     return
   end function sampledDistributionPseudoRandomConstructorInternal
@@ -67,23 +72,20 @@ contains
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !# <objectDestructor name="self%randomNumberGenerator_"          />
     return
   end subroutine sampledDistributionPseudoRandomDestructor
 
   subroutine sampledDistributionPseudoRandomSampleCMF(self,x)
-    !% Generate a pseudoRandom sample of points from the merger tree mass distribution.
+    !% Generate a pseudo-random sample of points from the merger tree mass distribution.
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Pseudo_Random, only : pseudoRandom
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout)               :: self
     double precision                                                      , intent(  out), dimension(:) :: x
-    type            (pseudoRandom                                        )                              :: randomSequence
     integer         (c_size_t                                            )                              :: iTree
-    !GCC$ attributes unused :: self
 
-    randomSequence=pseudoRandom()
     do iTree=1,size(x)
-       x(iTree)=randomSequence%uniformSample(ompThreadOffset=.false.,mpiRankOffset=.false.)
+       x(iTree)=self%randomNumberGenerator_%uniformSample()
     end do
     return
   end subroutine sampledDistributionPseudoRandomSampleCMF

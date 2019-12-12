@@ -25,10 +25,6 @@ module Interfaces_CAMB
   private
   public :: Interface_CAMB_Initialize, Interface_CAMB_Transfer_Function
 
-  ! Global lock descriptor to be used in non-(recent Linux) cases
-  type            (lockDescriptor)            :: cambFileLockGlobal
-  logical                                     :: cambFileLockInitialized        =.false.
-
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
   ! function class.
   integer                         , parameter :: cambFormatVersionCurrent       =     2
@@ -113,13 +109,12 @@ contains
 
   end subroutine Interface_CAMB_Initialize
 
-  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,lockFileGlobally,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
+  subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: FGSL                            , only : FGSL_Interp_cSpline
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock  , &
-          &                                                       File_Lock_Initialize        , File_Path          , File_Remove , File_Unlock, &
-          &                                                       lockDescriptor
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock     , &
+          &                                                       File_Path                   , File_Remove        , File_Unlock , lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -141,7 +136,6 @@ contains
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
     double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
     integer                                   , intent(in   ), optional         :: countPerDecade
-    logical                                   , intent(in   )                   :: lockFileGlobally
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
@@ -202,29 +196,14 @@ contains
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
     ! If the file exists but has not yet been read, read it now.
-    if (lockFileGlobally) then
-       if (.not.cambFileLockInitialized) then
-          !$omp critical (cambFileLockInitialize)
-          if (.not.cambFileLockInitialized) then
-             call File_Lock_Initialize(cambFileLockGlobal)
-             cambFileLockInitialized=.true.
-          end if
-          !$omp end critical (cambFileLockInitialize)
-       end if
-    else
-       call File_Lock_Initialize(fileLock)
-    end if
-    if (lockFileGlobally) then
-       call File_Lock(char(fileName_),cambFileLockGlobal)
-    else
-       call File_Lock(char(fileName_),fileLock          )
-    end if
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock(char(fileName_),fileLock)
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
-       call hdf5Access%set()
-       call cambOutput%openFile(char(fileName_))
-       call cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
+       !$ call hdf5Access%set()
+       call    cambOutput%openFile(char(fileName_))
+       call    cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
        allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
        speciesGroup=cambOutput%openGroup('darkMatter')
        do i=1,size(redshifts)
@@ -245,21 +224,21 @@ contains
              allEpochsFound=.false.
           end if
        end do
-       call speciesGroup%close()
-       call cambOutput  %close()
-       call hdf5Access  %unset()
+       call   speciesGroup%close()
+       call   cambOutput  %close()
+       !$ call hdf5Access  %unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
-          call hdf5Access%set()
-          call cambOutput%openFile(char(fileName_))
+          !$ call hdf5Access%set       (               )
+          call    cambOutput%openFile  (char(fileName_))
           speciesGroup=cambOutput%openGroup('darkMatter')
-          call speciesGroup%datasets(datasetNames)
-          call speciesGroup%close   (            )
-          call cambOutput  %close   (            )
-          call hdf5Access  %unset   (            )
+          call    speciesGroup%datasets(datasetNames   )
+          call    speciesGroup%close   (               )
+          call    cambOutput  %close   (               )
+          !$ call hdf5Access  %unset   (               )
        else
           allocate(datasetNames(0))
        end if
@@ -453,11 +432,11 @@ contains
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
        ! Construct the output HDF5 file.
-       call hdf5Access  %set     (                                          )
-       call cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
-       call cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
-       call cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
-       call cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
+       !$ call hdf5Access  %set     (                                          )
+       call    cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
+       call    cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
+       call    cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
+       call    cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
        speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
@@ -479,16 +458,16 @@ contains
        call parametersGroup%close()
        extrapolationGroup          =cambOutput        %openGroup('extrapolation')
        extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call extrapolationWavenumberGroup%close()
-       call extrapolationGroup          %close()
-       call cambOutput                  %close()
-       call hdf5Access                  %unset()
+       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+       call    extrapolationWavenumberGroup%close()
+       call    extrapolationGroup          %close()
+       call    cambOutput                  %close()
+       !$ call hdf5Access                  %unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
@@ -510,14 +489,14 @@ contains
           call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call speciesGroup%close()
-       call cambOutput  %close()
-       call hdf5Access  %unset()
+       call    speciesGroup%close()
+       call    cambOutput  %close()
+       !$ call hdf5Access  %unset()
     end if
     if (present(transferFunctionBaryons)) then
-       call hdf5Access%set()
-       call cambOutput%openFile(char(fileName_))
-       call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+       !$ call hdf5Access%set()
+       call    cambOutput%openFile(char(fileName_))
+       call    cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
        call transferFunctionBaryons   %create(                                                 &
             &                                                   wavenumbersLogarithmic       , &
@@ -537,16 +516,12 @@ contains
           call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call speciesGroup%close()
-       call cambOutput  %close()
-       call hdf5Access  %unset()
+       call    speciesGroup%close()
+       call    cambOutput  %close()
+       !$ call hdf5Access  %unset()
     end if
-    ! Unlock the lock file.
-    if (lockFileGlobally) then
-       call File_Unlock(cambFileLockGlobal)
-    else
-       call File_Unlock(fileLock          )
-    end if
+    ! Unlock the file.
+    call File_Unlock(fileLock)
     return
   end subroutine Interface_CAMB_Transfer_Function
 

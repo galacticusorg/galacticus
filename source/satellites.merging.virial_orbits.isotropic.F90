@@ -94,9 +94,9 @@ contains
     ! Get the underlying orbit.
     isotropicOrbit=self%virialOrbit_%orbit(node,host,acceptUnboundOrbits)
     ! Sample from an isotropic distribution.
-    call isotropicOrbit%phiSet    (     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
-    call isotropicOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0))
-    call isotropicOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
+    call isotropicOrbit%phiSet    (     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
+    call isotropicOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0))
+    call isotropicOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
     return
   end function isotropicOrbit
 

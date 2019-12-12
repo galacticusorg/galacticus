@@ -24,6 +24,7 @@
   use :: Halo_Mass_Functions      , only : haloMassFunctionClass
   use :: Merger_Trees_Build_Masses, only : mergerTreeBuildMassesClass
   use :: Merger_Trees_Builders    , only : mergerTreeBuilderClass
+  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
   use :: Output_Times             , only : outputTimesClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
@@ -38,6 +39,7 @@
      class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_     => null()
      class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_      => null()
      class           (outputTimesClass          ), pointer                   :: outputTimes_           => null()
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      ! Variables giving the mass range and sampling frequency for mass function sampling.
      double precision                                                        :: timeBase                        , timeSnapTolerance
      integer                                                                 :: treeBeginAt
@@ -84,6 +86,7 @@ contains
     class           (mergerTreeBuilderClass    ), pointer       :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), pointer       :: mergerTreeBuildMasses_
+    class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     class           (outputTimesClass          ), pointer       :: outputTimes_
     double precision                                            :: redshiftBase          , timeSnapTolerance
     integer                                                     :: treeBeginAt
@@ -127,6 +130,7 @@ contains
     !# <objectBuilder class="haloMassFunction"      name="haloMassFunction_"      source="parameters"/>
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=mergerTreeConstructorBuild(                                                                                                        &
          &                          cosmologyFunctions_    %cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftBase     )), &
          &                                                                                                             timeSnapTolerance  , &
@@ -137,7 +141,8 @@ contains
          &                          mergerTreeBuildMasses_                                                                                , &
          &                          mergerTreeBuilder_                                                                                    , &
          &                          haloMassFunction_                                                                                     , &
-         &                          outputTimes_                                                                                            &
+         &                          outputTimes_                                                                                          , &
+         &                          randomNumberGenerator_                                                                                  &
          &                         )
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"  />
@@ -146,10 +151,11 @@ contains
     !# <objectDestructor name="haloMassFunction_"     />
     !# <objectDestructor name="mergerTreeBuildMasses_"/>
     !# <objectDestructor name="outputTimes_"          />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function buildConstructorParameters
 
-  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_) result(self)
+  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_,randomNumberGenerator_) result(self)
     !% Initializes the merger tree building module.
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
@@ -164,8 +170,9 @@ contains
     class           (haloMassFunctionClass     ), intent(in   ), target :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), intent(in   ), target :: mergerTreeBuildMasses_
     class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
+    class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
     integer         (c_size_t                  )                        :: i
-    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_"/>
+    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
 
     ! Set offset for tree numbers.
     if (self%treeBeginAt == 0) then
@@ -193,6 +200,7 @@ contains
     !# <objectDestructor name="self%haloMassFunction_"     />
     !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
     !# <objectDestructor name="self%outputTimes_"          />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine buildDestructor
 
@@ -202,7 +210,6 @@ contains
     use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
     use :: Kind_Numbers           , only : kind_int8
     use :: Merger_Tree_State_Store, only : treeStateStoreSequence
-    use :: Pseudo_Random          , only : pseudoRandom
     use :: String_Handling        , only : operator(//)
     implicit none
     type            (mergerTree                ), pointer       :: tree
@@ -212,7 +219,6 @@ contains
     integer         (kind_int8                 ), parameter     :: baseNodeIndex=1
     integer         (kind_int8                 )                :: treeIndex
     type            (varying_string            )                :: message
-    double precision                                            :: uniformRandom
 
     ! Ensure masses are constructed.
     call self%constructMasses()
@@ -245,8 +251,9 @@ contains
        ! Give the tree an index.
        tree%index=treeIndex
        ! Restart the random number sequence.
-       tree%randomNumberGenerator=pseudoRandom()
-       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOffset=.false.,incrementSeed=int(tree%index))
+       allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
+       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber

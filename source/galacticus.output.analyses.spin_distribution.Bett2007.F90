@@ -53,7 +53,16 @@ contains
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (*                                     ), pointer       :: percolationObjects_
     double precision                                                        :: timeRecent                   , logNormalRange
+    logical                                                                 :: errorTolerant
 
+    !# <inputParameter>
+    !#   <name>errorTolerant</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Error tolerance for the N-body spin distribution operator.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeRecent</name>
     !#   <source>parameters</source>
@@ -78,7 +87,7 @@ contains
     !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisSpinDistributionBett2007(timeRecent,logNormalRange,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisSpinDistributionBett2007(timeRecent,logNormalRange,errorTolerant,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="outputTimes_"                 />
@@ -90,7 +99,7 @@ contains
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(timeRecent,logNormalRange,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
+  function spinDistributionBett2007ConstructorInternal(timeRecent,logNormalRange,errorTolerant,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
     !% Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
@@ -117,6 +126,7 @@ contains
     implicit none
     type            (outputAnalysisSpinDistributionBett2007           )                              :: self
     double precision                                                                , intent(in   )  :: timeRecent                                       , logNormalRange
+    logical                                                                         , intent(in   )  :: errorTolerant
     class           (cosmologyFunctionsClass                          ), target     , intent(inout)  :: cosmologyFunctions_
     class           (outputTimesClass                                 ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_
@@ -218,7 +228,7 @@ contains
     !# <referenceConstruct object="outputAnalysisWeightOperator_"            constructor="outputAnalysisWeightOperatorIdentity             (                                                                                      )"/>
     ! Create an N-body spin error distribution operator.
     allocate(outputAnalysisDistributionOperator_     )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_                                                                 )"/>
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorSpinNBodyErrors(errorTolerant                              , haloSpinDistribution_                    )"/>
     ! Create anit-log10 operator.
     allocate(outputAnalysisPropertyOperatorAntiLog10_)
     !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_" constructor="outputAnalysisPropertyOperatorAntiLog10          (                                                                                      )"/>

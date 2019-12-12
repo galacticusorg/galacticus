@@ -19,11 +19,10 @@
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
 
-  use :: Cosmology_Functions , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
-  use :: ISO_Varying_String  , only : varying_string
-  use :: Pseudo_Random       , only : pseudoRandom
-
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: ISO_Varying_String      , only : varying_string
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
   !#  <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
@@ -31,28 +30,28 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
      !% A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      private
-     class           (cosmologyParametersClass), pointer                    :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer                    :: cosmologyFunctions_ => null()
-     logical                                                                :: fatalMismatches         , treeIndicesRead    , &
-          &                                                                    scaleRadiiAvailableValue, spinsAvailableValue, &
-          &                                                                    fatalNonTreeNode
-     integer                                                                :: treesCount              , massOption
-     double precision                                                       :: boxLength
-     type            (importerUnits            )                            :: boxLengthUnits
-     type            (varying_string           )                            :: mergerTreeFile
-     type            (varying_string           ), allocatable, dimension(:) :: snapshotFileName
-     integer         (kind_int8                ), allocatable, dimension(:) :: treeIndices
-     integer         (c_size_t                 ), allocatable, dimension(:) :: treeIndexRanks
-     integer         (c_size_t                 ), allocatable, dimension(:) :: treeSizes               , treeBegins
-     type            (nodeData                 ), allocatable, dimension(:) :: nodes
-     double precision                           , allocatable, dimension(:) :: snapshotTimes
-     integer                                                                :: subvolumeCount
-     integer                                                 , dimension(3) :: subvolumeIndex
-     double precision                                                       :: subvolumeBuffer
-     double precision                                                       :: badValue
-     integer                                                                :: badValueTest
-     double precision                                                       :: treeSampleRate
-     type            (pseudoRandom             )                            :: randomSequence
+     class           (cosmologyParametersClass  ), pointer                    :: cosmologyParameters_     => null()
+     class           (cosmologyFunctionsClass   ), pointer                    :: cosmologyFunctions_      => null()
+     class           (randomNumberGeneratorClass), pointer                    :: randomNumberGenerator_   => null()
+     logical                                                                  :: fatalMismatches                   , treeIndicesRead    , &
+          &                                                                      scaleRadiiAvailableValue          , spinsAvailableValue, &
+          &                                                                      fatalNonTreeNode
+     integer                                                                  :: treesCount                        , massOption
+     double precision                                                         :: boxLength
+     type            (importerUnits              )                            :: boxLengthUnits
+     type            (varying_string             )                            :: mergerTreeFile
+     type            (varying_string             ), allocatable, dimension(:) :: snapshotFileName
+     integer         (kind_int8                  ), allocatable, dimension(:) :: treeIndices
+     integer         (c_size_t                   ), allocatable, dimension(:) :: treeIndexRanks
+     integer         (c_size_t                   ), allocatable, dimension(:) :: treeSizes                         , treeBegins
+     type            (nodeData                   ), allocatable, dimension(:) :: nodes
+     double precision                             , allocatable, dimension(:) :: snapshotTimes
+     integer                                                                  :: subvolumeCount
+     integer                                                   , dimension(3) :: subvolumeIndex
+     double precision                                                         :: subvolumeBuffer
+     double precision                                                         :: badValue
+     integer                                                                  :: badValueTest
+     double precision                                                         :: treeSampleRate
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeImporterSussing</object>
@@ -145,16 +144,17 @@ contains
     !% Constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (mergerTreeImporterSussing)                :: self
-    type            (inputParameters          ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass ), pointer       :: cosmologyParameters_
-    integer                                    , dimension(3)  :: subvolumeIndex
-    logical                                                    :: fatalMismatches     , fatalNonTreeNode
-    integer                                                    :: subvolumeCount
-    double precision                                           :: subvolumeBuffer     , badValue        , &
-         &                                                        treeSampleRate
-    type            (varying_string           )                :: badValueTestText    , massOptionText
+    type            (mergerTreeImporterSussing )                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+    class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    integer                                     , dimension(3)  :: subvolumeIndex
+    logical                                                     :: fatalMismatches       , fatalNonTreeNode
+    integer                                                     :: subvolumeCount
+    double precision                                            :: subvolumeBuffer       , badValue        , &
+         &                                                         treeSampleRate
+    type            (varying_string            )                :: badValueTestText      , massOptionText
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -230,8 +230,9 @@ contains
     !#   <type>string</type>
     !#   <variable>massOptionText</variable>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator"  name="randomNumberGenerator_"  source="parameters"/>
     self=mergerTreeImporterSussing(                                                                                     &
          &                         fatalMismatches                                                                    , &
          &                         fatalNonTreeNode                                                                   , &
@@ -243,31 +244,33 @@ contains
          &                         treeSampleRate                                                                     , &
          &                         enumerationSussingMassOptionEncode  (char(massOptionText  ),includesPrefix=.false.), &
          &                         cosmologyParameters_                                                               , &
-         &                         cosmologyFunctions_                                                                  &
+         &                         cosmologyFunctions_                                                                , &
+         &                         randomNumberGenerator_                                                               &
          &                        )
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"  />
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function sussingConstructorParameters
 
-  function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !% Internal constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer class.
     implicit none
-    type            (mergerTreeImporterSussing)                              :: self
-    integer                                    , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                    , intent(in   )               :: fatalMismatches     , fatalNonTreeNode
-    integer                                    , intent(in   )               :: subvolumeCount      , badValueTest    , &
-         &                                                                      massOption
-    double precision                           , intent(in   )               :: subvolumeBuffer     , badValue        , &
-         &                                                                      treeSampleRate
-    class           (cosmologyParametersClass ), intent(in   ), target       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass  ), intent(in   ), target       :: cosmologyFunctions_
-    !# <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,*cosmologyParameters_,*cosmologyFunctions_"/>
+    type            (mergerTreeImporterSussing )                              :: self
+    integer                                     , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                     , intent(in   )               :: fatalMismatches     , fatalNonTreeNode
+    integer                                     , intent(in   )               :: subvolumeCount      , badValueTest    , &
+         &                                                                       massOption
+    double precision                            , intent(in   )               :: subvolumeBuffer     , badValue        , &
+         &                                                                       treeSampleRate
+    class           (cosmologyParametersClass  ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), intent(in   ), target       :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass), intent(in   ), target       :: randomNumberGenerator_
+    !# <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,*cosmologyParameters_,*cosmologyFunctions_, *randomNumberGenerator_"/>
 
     self%treeIndicesRead         =.false.
     self%scaleRadiiAvailableValue=.true.
-    self%randomSequence          =pseudoRandom()
     return
   end function sussingConstructorInternal
 
@@ -275,8 +278,9 @@ contains
     implicit none
     type(mergerTreeImporterSussing), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%randomNumberGenerator_"/>
     return
   end subroutine sussingDestructor
 
@@ -961,10 +965,10 @@ contains
     !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireSpin, requireSpin3D, requireNamedReals, requireNamedIntegers
 
     ! Decide if this tree should be included.
-    if (self%randomSequence%uniformSample() <= self%treeSampleRate) then
-    ! Validate arguments.
-    if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('import of structure only is not supported'//{introspection:location})
-    if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})
+    if (self%randomNumberGenerator_%uniformSample() <= self%treeSampleRate) then
+       ! Validate arguments.
+       if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('import of structure only is not supported'//{introspection:location})
+       if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
        call Memory_Usage_Record(sizeof(nodes))

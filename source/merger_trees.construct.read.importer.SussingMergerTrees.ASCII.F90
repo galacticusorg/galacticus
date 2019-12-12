@@ -119,25 +119,27 @@ contains
     return
   end function sussingASCIIConstructorParameters
 
-  function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !% Internal constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
     implicit none
     type            (mergerTreeImporterSussingASCII)                              :: self
     class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
     class           (cosmologyFunctionsClass       ), intent(in   ), target       :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass    ), intent(in   ), target       :: randomNumberGenerator_
     integer                                         , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                         , intent(in   )               :: fatalMismatches     , fatalNonTreeNode, &
-         &convertToBinary, binaryFormatOld, forestReverseSnapshotOrder
-    integer                                         , intent(in   )               :: subvolumeCount      , badValueTest    , &
-         &                                                                           massOption          , forestFirst     , &
+    logical                                         , intent(in   )               :: fatalMismatches           , fatalNonTreeNode, &
+         &                                                                           convertToBinary           , binaryFormatOld , &
+         &                                                                           forestReverseSnapshotOrder
+    integer                                         , intent(in   )               :: subvolumeCount            , badValueTest    , &
+         &                                                                           massOption                , forestFirst     , &
          &                                                                           forestLast
-    double precision                                , intent(in   )               :: subvolumeBuffer     , badValue        , &
+    double precision                                , intent(in   )               :: subvolumeBuffer           , badValue        , &
          &                                                                           treeSampleRate
     type            (varying_string                )                              :: forestFile
-    !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_"/>
+    !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*randomNumberGenerator_"/>
 
     self%useForestFile            =self%forestFile /= "none"
-    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_)
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_)
     return
   end function sussingASCIIConstructorInternal
 

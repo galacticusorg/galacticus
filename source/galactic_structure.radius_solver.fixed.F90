@@ -131,11 +131,13 @@ contains
           &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
+    type (dependencyRegEx             ), dimension(1)  :: dependencies
 
-    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                       )
-    call      postEvolveEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel                                                                                                       )
-    call satelliteMergerEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel                                                                                                       )
-    call   nodePromotionEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
+    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                       )
+    call      postEvolveEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
+    call satelliteMergerEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
+    call   nodePromotionEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
     return
   end subroutine fixedAutoHook
 

@@ -52,6 +52,31 @@ sub Process_EventHooks {
 			}
 		    }
 		    close($declarations);
+		    # Look for symbols to import.
+		    $code::imports = "";
+		    if ( exists($hook->{'import'}) ) {
+			my $usesNode =
+			{
+			    type      => "moduleUse"
+			};
+			my @imports;
+			foreach my $module ( &List::ExtraUtils::as_array($hook->{'import'}->{'module'}) ) {
+			    my @symbolNames = split(/\s*,\s*/,$module->{'symbols'});
+			    push(@imports,@symbolNames);
+			    my %symbols;
+			    foreach my $symbol ( @symbolNames ) {
+				$symbols{$symbol} = 1;
+			    }
+			    $usesNode->{'moduleUse'}->{$module->{'name'}} =
+			    {
+				intrinsic => 0,
+				only      => \%symbols
+			    };
+			}
+			$code::imports = "  import ".join(", ",@imports)." \n";
+			# Insert the modules.
+			&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+		    }
 		    # Build the required types and functions.
 		    $hookObject = fill_in_string(<<'CODE', PACKAGE => 'code');
 
@@ -90,6 +115,7 @@ end type eventHook{$interfaceType}
 
 abstract interface
  subroutine interface{$interfaceType}(self{scalar(@arguments) > 0 ? ",".join(",",@arguments) : ""})
+{$imports}
   class(*), intent(inout) :: self
 {$declarations}
  end subroutine interface{$interfaceType}
@@ -147,12 +173,8 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
      !$    end do
      !$ end if
   end select
+  ! Increment the count of hooks into this event and resolve dependencies.
   self%count_=self%count_+1
-  ! Add any dependencies to the hook.
-  if (present(dependencies)) then
-     allocate(hook_%dependencies(size(dependencies)),mold=dependencies)
-     hook_%dependencies=dependencies
-  end if
   call self%resolveDependencies(hook_,dependencies)
   call self%unlock             (                  )
   return

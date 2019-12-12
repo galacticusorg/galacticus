@@ -77,9 +77,9 @@ contains
     ! Find the host node.
     hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
-    randomDeviate     =+orbitalFactorDistributionSigma                     &
-         &             *node%hostTree%randomNumberGenerator%normalSample()
-    log10OrbitalFactor=+orbitalFactorDistributionMean                      &
+    randomDeviate     =+orbitalFactorDistributionSigma                              &
+         &             *node%hostTree%randomNumberGenerator_%standardNormalSample()
+    log10OrbitalFactor=+orbitalFactorDistributionMean                               &
          &             +randomDeviate
     orbitalFactor     =+10.0d0**log10OrbitalFactor
     ! Compute the timescale.

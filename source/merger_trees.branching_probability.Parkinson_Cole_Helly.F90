@@ -199,14 +199,14 @@ contains
     return
   end subroutine parkinsonColeHellyDestructor
 
-  double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator,node)
+  double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !% A merger tree branch split mass function.
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical                 , haloMass              , &
          &                                                                                       massResolution                , probabilityFraction   , &
          &                                                                                       time
-    type            (pseudoRandom                                    ), intent(inout)         :: randomNumberGenerator
+    class           (randomNumberGeneratorClass                      ), intent(inout)         :: randomNumberGenerator_
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                                          :: B                             , mu                    , &
          &                                                                                       beta                          , halfMassAlpha         , &
@@ -215,7 +215,7 @@ contains
          &                                                                                       halfPowerEta                  , x                     , &
          &                                                                                       massFraction                  , resolutionSigma       , &
          &                                                                                       massFractionResolutionPowerEta
-   !GCC$ attributes unused :: node
+    !GCC$ attributes unused :: node
 
     ! Simply branch to the relevant function.
     if (self%cdmAssumptions) then
@@ -278,12 +278,12 @@ contains
       reject=.true.
       do while (reject)
          ! Draw a random q from S(q).
-         x           =randomNumberGenerator%uniformSample()
+         x           =randomNumberGenerator_%uniformSample()
          massFraction=(                                                 &
               &        +              massFractionResolutionPowerEta    &
               &        +(halfPowerEta-massFractionResolutionPowerEta)*x &
               &       )**(1.0d0/eta)
-         x           =randomNumberGenerator%uniformSample()
+         x           =randomNumberGenerator_%uniformSample()
          reject=x > R(massFraction)
       end do
       massBranchCDMAssumptions=massFraction*haloMass

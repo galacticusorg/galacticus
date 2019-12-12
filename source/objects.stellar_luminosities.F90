@@ -1093,15 +1093,16 @@ contains
     !% Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
     !% time}.
-    use :: Abundances_Structure           , only : abundances
-    use :: Stellar_Population_Luminosities, only : Stellar_Population_Luminosity
-    use :: Stellar_Populations            , only : stellarPopulationClass
+    use :: Abundances_Structure                      , only : abundances
+    use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass, stellarPopulationBroadBandLuminosities
+    use :: Stellar_Populations                       , only : stellarPopulationClass
     implicit none
-    class           (stellarLuminosities   )                             :: self
-    class           (stellarPopulationClass), intent(inout)              :: stellarPopulation_
-    double precision                        , intent(in   )              :: mass              , time
-    type            (abundances            ), intent(in   )              :: abundancesStellar
-    double precision                        , dimension(:) , allocatable :: ages              , massToLightRatio
+    class           (stellarLuminosities                        )                             :: self
+    class           (stellarPopulationClass                     ), intent(inout)              :: stellarPopulation_
+    double precision                                             , intent(in   )              :: mass                                   , time
+    type            (abundances                                 ), intent(in   )              :: abundancesStellar
+    double precision                                             , dimension(:) , allocatable :: ages                                   , massToLightRatio
+    class           (stellarPopulationBroadBandLuminositiesClass)               , pointer     :: stellarPopulationBroadBandLuminosities_
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -1117,15 +1118,16 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    massToLightRatio=Stellar_Population_Luminosity(                         &
-         &                                         luminosityIndex        , &
-         &                                         luminosityFilterIndex  , &
-         &                                         luminosityPostprocessor, &
-         &                                         stellarPopulation_     , &
-         &                                         abundancesStellar      , &
-         &                                         ages                   , &
-         &                                         luminosityBandRedshift   &
-         &                                        )
+    stellarPopulationBroadBandLuminosities_ => stellarPopulationBroadBandLuminosities()
+    massToLightRatio                        =  stellarPopulationBroadBandLuminosities_%luminosities(                         &
+         &                                                                                          luminosityIndex        , &
+         &                                                                                          luminosityFilterIndex  , &
+         &                                                                                          luminosityPostprocessor, &
+         &                                                                                          stellarPopulation_     , &
+         &                                                                                          abundancesStellar      , &
+         &                                                                                          ages                   , &
+         &                                                                                          luminosityBandRedshift   &
+         &                                                                                         )
     call Stellar_Luminosities_Create(self)
     self%luminosityValue=mass*massToLightRatio(1:size(self%luminosityValue))
     return

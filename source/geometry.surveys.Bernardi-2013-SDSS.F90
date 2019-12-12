@@ -131,8 +131,7 @@ contains
 
   subroutine bernardi2013SDSSMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
-    use :: File_Utilities  , only : File_Exists            , File_Lock, File_Lock_Initialize, File_Unlock, &
-          &                         lockDescriptor
+    use :: File_Utilities  , only : File_Exists            , File_Lock, File_Unlock, lockDescriptor
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: System_Command  , only : System_Command_Do
     implicit none
@@ -147,14 +146,13 @@ contains
          &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
          &      ]
     if (.not.File_Exists(mangleFiles(1))) then
-       call File_Lock_Initialize(                     lock                     )
-       call File_Lock           (char(mangleFiles(1)),lock,lockIsShared=.false.)
+       call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
        if (.not.File_Exists(mangleFiles(1))) then
           call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
           if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
                & call Galacticus_Error_Report('failed to download mangle polygon file'//{introspection:location})
        end if
-       call File_Unlock         (                     lock                     )
+       call File_Unlock(                     lock                     )
     end if
     return
   end subroutine bernardi2013SDSSMangleFiles

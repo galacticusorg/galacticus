@@ -161,9 +161,9 @@ contains
           overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else
            ! Choose an overdensity.
-          overdensityPrevious=+self%distributionDensityContrast%sample(                                                          &
-               &                                                       randomNumberGenerator=node%hostTree%randomNumberGenerator &
-               &                                                      )                                                          &
+          overdensityPrevious=+self%distributionDensityContrast%sample(                                                            &
+               &                                                       randomNumberGenerator_=node%hostTree%randomNumberGenerator_ &
+               &                                                      )                                                            &
                &              -1.0d0
           call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensityPrevious)
        end if

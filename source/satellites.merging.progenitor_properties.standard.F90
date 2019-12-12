@@ -169,7 +169,7 @@ contains
        factorDarkMatterSpheroidHost     =+0.0d0
     end if
     massComponent                  =+    diskHost     %massStellar   () &
-        &                          +    diskHost     %massGas       ()
+        &                           +    diskHost     %massGas       ()
     radiusHalfMassDiskHost         =+    diskHost     %halfMassRadius()
     if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
        factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                        &
@@ -178,7 +178,7 @@ contains
     else
        factorDarkMatterDiskHost         =+0.0d0
     end if
-    massComponent                  =+spheroidSatellite%massStellar   ()&
+    massComponent                  =+spheroidSatellite%massStellar   () &
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite=+spheroidSatellite%halfMassRadius()
     if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > 0.0d0) then

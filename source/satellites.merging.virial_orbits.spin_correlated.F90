@@ -124,9 +124,9 @@ contains
        trial=trial+1
        if (trial > trialMaximum) call Galacticus_Error_Report('unable to find acceptable orbit'//{introspection:location})
        ! Sample from an isotropic distribution.
-       call spinCorrelatedOrbit%phiSet    (     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
-       call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0))
-       call spinCorrelatedOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
+       call spinCorrelatedOrbit%phiSet    (     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
+       call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0))
+       call spinCorrelatedOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
        ! Compute the cosine of the angle between the angular momentum of this orbit and the spin of the host halo.
        spinHost                 => host               %spin      ()
        spinVector               =  spinHost           %spinVector()
@@ -147,7 +147,7 @@ contains
        ! Decide whether to keep this orbit using rejection sampling.
        probabilityRetain=+(1.0d0+self%alpha*spinMagnitude*cosineTheta) &
             &            /(1.0d0+self%alpha*spinMagnitude            )
-       retain           =node%hostTree%randomNumberGenerator%uniformSample() <= probabilityRetain
+       retain           =node%hostTree%randomNumberGenerator_%uniformSample() <= probabilityRetain
     end do
     return
   end function spinCorrelatedOrbit

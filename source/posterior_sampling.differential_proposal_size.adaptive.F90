@@ -25,11 +25,12 @@
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeAdaptive
      !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
      private
-     double precision :: gammaCurrent         , gammaAdjustFactor    , &
+     double precision :: gammaCurrent            , gammaAdjustFactor    , &
           &              gammaInitial
-     double precision :: gammaMinimum         , gammaMaximum
-     double precision :: acceptanceRateMinimum, acceptanceRateMaximum
-     integer          :: updateCount          , lastUpdateCount
+     double precision :: gammaMinimum            , gammaMaximum
+     double precision :: acceptanceRateMinimum   , acceptanceRateMaximum
+     integer          :: updateCount             , lastUpdateCount
+     logical          :: outliersInAcceptanceRate
    contains
      procedure :: gamma => adaptiveGamma
   end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
@@ -49,10 +50,11 @@ contains
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                 :: self
     type            (inputParameters                                ), intent(inout)  :: parameters
-    double precision                                                                  :: gammaInitial         , gammaMinimum         , &
-         &                                                                               gammaMaximum         , gammaAdjustFactor    , &
-         &                                                                               acceptanceRateMinimum, acceptanceRateMaximum
+    double precision                                                                  :: gammaInitial            , gammaMinimum         , &
+         &                                                                               gammaMaximum            , gammaAdjustFactor    , &
+         &                                                                               acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                                           :: updateCount
+    logical                                                                           :: outliersInAcceptanceRate
 
     !# <inputParameter>
     !#   <name>gammaInitial</name>
@@ -103,20 +105,28 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount)
+    !# <inputParameter>
+    !#   <name>outliersInAcceptanceRate</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The number of steps between potential updates of the proposal size.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
     !# <inputParametersValidate source="parameters"/>
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount) result(self)
+  function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
     !% Constructor for the ``adaptive'' differential evolution proposal size class.
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
-    double precision                                                 , intent(in   ) :: gammaInitial         , gammaAdjustFactor    , &
-         &                                                                              gammaMinimum         , gammaMaximum         , &
-         &                                                                              acceptanceRateMinimum, acceptanceRateMaximum
+    double precision                                                 , intent(in   ) :: gammaInitial            , gammaAdjustFactor    , &
+         &                                                                              gammaMinimum            , gammaMaximum         , &
+         &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
-    !# <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount"/>
+    logical                                                          , intent(in   ) :: outliersInAcceptanceRate
+    !# <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
 
     self%gammaCurrent   =gammaInitial
     self%lastUpdateCount=0
@@ -130,13 +140,14 @@ contains
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none
-    class           (posteriorSampleDffrntlEvltnProposalSizeAdaptive), intent(inout) :: self
-    class           (posteriorSampleStateClass                      ), intent(inout) :: simulationState
-    class           (posteriorSampleConvergenceClass                ), intent(inout) :: simulationConvergence
-    double precision                                                 , dimension(1)  :: acceptanceRate
-    character       (len=8                                          )                :: label
-    type            (varying_string                                 )                :: message
-
+    class           (posteriorSampleDffrntlEvltnProposalSizeAdaptive), intent(inout)              :: self
+    class           (posteriorSampleStateClass                      ), intent(inout)              :: simulationState
+    class           (posteriorSampleConvergenceClass                ), intent(inout)              :: simulationConvergence
+    double precision                                                                              :: acceptanceRate
+    character       (len=8                                          )                             :: label
+    type            (varying_string                                 )                             :: message
+    logical                                                          , dimension(:) , allocatable :: areOutliers
+    
     ! Should we consider updating gamma?
     if     (                                                                                   &
          &        simulationState      %count      () >= self%lastUpdateCount+self%updateCount &
@@ -146,25 +157,41 @@ contains
        ! Reset the number of steps remaining.
        self%lastUpdateCount=simulationState%count()
        ! Find the mean acceptance rate across all chains.
-       acceptanceRate=mpiSelf%average([simulationState%acceptanceRate()])
+
+       if (self%outliersInAcceptanceRate) then
+          acceptanceRate=mpiSelf%average(simulationState%acceptanceRate())
+       else
+          areOutliers=mpiSelf%gather(simulationConvergence%stateIsOutlier(mpiSelf%rank()))
+          if (all(areOutliers)) then
+             acceptanceRate=-huge(0.0d0)
+          else
+             acceptanceRate=mpiSelf%average(simulationState%acceptanceRate(),mask=.not.areOutliers)
+          end if
+       end if
        if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
-          write (label,'(f5.3)') acceptanceRate(1)
+          if (acceptanceRate < 0.0d0) then
+             label="unknown"
+          else
+             write (label,'(f5.3)') acceptanceRate
+          end if
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
           call Galacticus_Display_Message(message)
        end if
        ! If the acceptance rate is out of range, adjust gamma.
-       if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
-          self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
-             write (label,'(f8.5)') self%gammaCurrent
-             call Galacticus_Display_Message('Adjusting gamma up to '//label)
-          end if
-       else if (acceptanceRate(1) < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
-          self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
-             write (label,'(f8.5)') self%gammaCurrent
-             call Galacticus_Display_Message('Adjusting gamma down to '//label)
+       if (acceptanceRate >= 0.0d0) then
+          if      (acceptanceRate > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
+             self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
+             if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
+                write (label,'(f8.5)') self%gammaCurrent
+                call Galacticus_Display_Message('Adjusting gamma up to '//label)
+             end if
+          else if (acceptanceRate < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
+             self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
+             if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
+                write (label,'(f8.5)') self%gammaCurrent
+                call Galacticus_Display_Message('Adjusting gamma down to '//label)
+             end if
           end if
        end if
     end if

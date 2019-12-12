@@ -45,12 +45,12 @@ module Events_Hooks
 
   interface dependencyExact
      !% Constructor for exactly matching event hook dependencies.
-     module procedure depdendencyExactConstructor
+     module procedure dependencyExactConstructor
   end interface dependencyExact
 
   interface dependencyRegEx
      !% Constructor for matching event hook dependencies via a regular expression.
-     module procedure depdendencyRegExConstructor
+     module procedure dependencyRegExConstructor
   end interface dependencyRegEx
 
   !# <enumeration>
@@ -63,12 +63,12 @@ module Events_Hooks
   
   type :: hook
      !% Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
-     class  (*             ), pointer                   :: object_             => null()
-     class  (hook          ), pointer                   :: next                => null()
-     integer                                            :: openMPThreadBinding          , openMPLevel
-     integer                , dimension(:), allocatable :: openMPThread
-     character(len=128     )                            :: label
-     class  (dependency    ), dimension(:), allocatable :: dependencies
+     class    (*             ), pointer                   :: object_             => null()
+     class    (hook          ), pointer                   :: next                => null()
+     integer                                              :: openMPThreadBinding          , openMPLevel
+     integer                  , dimension(:), allocatable :: openMPThread
+     character(len=128       )                            :: label
+     class    (dependency    ), dimension(:), allocatable :: dependencies
   end type hook
 
   type, extends(hook) :: hookUnspecified
@@ -497,7 +497,7 @@ contains
     return
   end function eventHookFirst
 
-  function depdendencyExactConstructor(direction,label) result(self)
+  function dependencyExactConstructor(direction,label) result(self)
     !% Constructor for an exact dependency.
     implicit none
     type     (dependencyExact) :: self
@@ -506,9 +506,9 @@ contains
     !# <constructorAssign variables="direction, label"/>
 
     return
-  end function depdendencyExactConstructor
+  end function dependencyExactConstructor
   
-  function depdendencyRegExConstructor(direction,label) result(self)
+  function dependencyRegExConstructor(direction,label) result(self)
     !% Constructor for a regular expression dependency.
     implicit none
     type     (dependencyRegEx) :: self
@@ -518,6 +518,6 @@ contains
 
     self%regEx_=regEx(label)
     return
-  end function depdendencyRegExConstructor
+  end function dependencyRegExConstructor
 
 end module Events_Hooks

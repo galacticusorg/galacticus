@@ -22,6 +22,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParameters         , cosmologyParametersClass
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
+  use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
 
   !# <task name="taskHaloModelGenerate">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
@@ -34,6 +35,7 @@
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_      => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     class           (randomNumberGeneratorClass       ), pointer :: randomNumberGenerator_        => null()
      double precision                                             :: massMinimum                            , massMaximum
      type            (varying_string                   )          :: galaxyCatalogFileName                  , haloCatalogFileName
    contains
@@ -63,6 +65,7 @@ contains
     class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (conditionalMassFunctionClass     ), pointer       :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+    class           (randomNumberGeneratorClass       ), pointer       :: randomNumberGenerator_
     type            (inputParameters                  ), pointer       :: parametersRoot
     double precision                                                   :: massMinimum                  , massMaximum
     type            (varying_string                   )                :: galaxyCatalogFileName        , haloCatalogFileName
@@ -116,17 +119,19 @@ contains
     !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_)
+    !# <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"        source="parameters"/>
+    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"         />
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="conditionalMassFunction_"     />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !# <objectDestructor name="randomNumberGenerator_"       />
     return
   end function haloModelGenerateConstructorParameters
 
-  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_) result(self)
+  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
     implicit none
     type            (taskHaloModelGenerate            )                        :: self
@@ -137,7 +142,8 @@ contains
     class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (conditionalMassFunctionClass     ), intent(in   ), target :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
-    !# <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_"/>
+    class           (randomNumberGeneratorClass       ), intent(in   ), target :: randomNumberGenerator_
+    !# <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
 
     return
   end function haloModelGenerateConstructorInternal
@@ -153,6 +159,7 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%conditionalMassFunction_"     />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !# <objectDestructor name="self%randomNumberGenerator_"       />
     call Node_Components_Uninitialize       ()
     call Node_Components_Thread_Uninitialize()
     return
@@ -170,7 +177,6 @@ contains
     use :: IO_IRATE                          , only : irate
     use :: ISO_Varying_String                , only : varying_string
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Pseudo_Random                     , only : pseudoRandom
     use :: Root_Finder                       , only : rangeExpandMultiplicative               , rootFinder
     use :: String_Handling                   , only : operator(//)
     implicit none
@@ -194,7 +200,6 @@ contains
          &                                                                             satelliteRadius      , satelliteTheta           , &
          &                                                                             satellitePhi         , satelliteVelocityCircular, &
          &                                                                             simulationBoxSize    , populatedHaloMassMinimum
-    type            (pseudoRandom                  )                                :: randomSequence
     type            (rootFinder                    )                                :: finderCentral        , finderSatellite
     character       (len=6                         )                                :: label
 
@@ -251,16 +256,16 @@ contains
        probabilityCentral=+self%conditionalMassFunction_%massFunction(haloMass(iHalo),self%massMinimum,haloModelGalaxyTypeCentral) &
             &             -self%conditionalMassFunction_%massFunction(haloMass(iHalo),self%massMaximum,haloModelGalaxyTypeCentral)
        ! Test for inclusion.
-       if (randomSequence%uniformSample() <= probabilityCentral) then
+       if (self%randomNumberGenerator_%uniformSample() <= probabilityCentral) then
           ! Sample central galaxy mass.
-          xCentral  =randomSequence%uniformSample()*probabilityCentral
+          xCentral  =self%randomNumberGenerator_%uniformSample()*probabilityCentral
           massGalaxy=finderCentral%find(rootGuess=self%massMinimum)
           call galaxyAdd(massGalaxy,haloPosition(:,iHalo),haloVelocity(:,iHalo))
        end if
        ! Get mean number of satellite galaxies.
        satelliteNumberMean  =+self%conditionalMassFunction_%massFunction(haloMass(iHalo),self%massMinimum,haloModelGalaxyTypeSatellite) &
             &                -self%conditionalMassFunction_%massFunction(haloMass(iHalo),self%massMaximum,haloModelGalaxyTypeSatellite)
-       satelliteNumberActual=+randomSequence%poissonSample(satelliteNumberMean)
+       satelliteNumberActual=+self%randomNumberGenerator_%poissonSample(satelliteNumberMean)
        if (satelliteNumberActual > 0) then
           ! Construct the dark matter halo profile.
           call basic  %massSet              (haloMass                                 (iHalo))
@@ -269,18 +274,18 @@ contains
           call Galacticus_Calculations_Reset(                                          node  )
           do iSatellite=1,satelliteNumberActual
              ! Sample satellite galaxy mass.
-             xSatellite               =     randomSequence%uniformSample()*satelliteNumberMean
+             xSatellite               =self%randomNumberGenerator_%uniformSample()*satelliteNumberMean
              massGalaxy               =finderSatellite%find(rootGuess=self%massMinimum)
              ! Sample galaxy radial position.
-             xSatellite               =     randomSequence%uniformSample()
+             xSatellite               =     self%randomNumberGenerator_%uniformSample()
              satelliteRadius          =Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=xSatellite,massType=massTypeDark)
              ! Get circular velocity at this radius.
              satelliteVelocityCircular=self%darkMatterProfileDMO_%circularVelocity(node,satelliteRadius)
              ! Convert radial position to comoving coordinates.
              satelliteRadius          =satelliteRadius*(1.0d0+redshift)
              ! Sample galaxy angular position.
-             satellitePhi             =     randomSequence%uniformSample()*2.0d0*Pi
-             satelliteTheta           =acos(randomSequence%uniformSample()*2.0d0-1.0d0)
+             satellitePhi             =     self%randomNumberGenerator_%uniformSample()*2.0d0*Pi
+             satelliteTheta           =acos(self%randomNumberGenerator_%uniformSample()*2.0d0-1.0d0)
              ! Set satellite position.
              satellitePosition        =+satelliteRadius                                                         &
                   &                    *[                                                                       &
@@ -299,13 +304,13 @@ contains
                 end do
              end do
              ! Set satellite velocity.
-             satelliteVelocity        =+satelliteVelocityCircular       &
-                  &                    /sqrt(3.0d0)                     &
-                  &                    *[                               &
-                  &                      randomSequence%normalSample(), &
-                  &                      randomSequence%normalSample(), &
-                  &                      randomSequence%normalSample()  &
-                  &                    ]                                &
+             satelliteVelocity        =+satelliteVelocityCircular                            &
+                  &                    /sqrt(3.0d0)                                          &
+                  &                    *[                                                    &
+                  &                      self%randomNumberGenerator_%standardNormalSample(), &
+                  &                      self%randomNumberGenerator_%standardNormalSample(), &
+                  &                      self%randomNumberGenerator_%standardNormalSample()  &
+                  &                    ]                                                     &
                   &                    +haloVelocity(:,iHalo)
              ! Store the satellite.
              call galaxyAdd(massGalaxy,satellitePosition,satelliteVelocity)

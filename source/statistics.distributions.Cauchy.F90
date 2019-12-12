@@ -48,7 +48,8 @@ contains
     implicit none
     type            (distributionFunction1DCauchy)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
-    double precision                                              :: median    , scale
+    class           (randomNumberGeneratorClass  ), pointer       :: randomNumberGenerator_
+    double precision                                              :: median                , scale
 
     !# <inputParameter>
     !#   <name>median</name>
@@ -64,31 +65,34 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=distributionFunction1DCauchy(median,scale)
+    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    self=distributionFunction1DCauchy(median,scale,randomNumberGenerator_)
+    !# <objectDestructor name="randomNumberGenerator_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function cauchyConstructorParameters
 
-  function cauchyConstructorProbability(median,limit,probability) result(self)
+  function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
+    !% Constructor for ``cauchy'' 1D distribution function class.
+    type            (distributionFunction1DCauchy)                                  :: self
+    double precision                              , intent(in   )                   :: median                , scale
+    class           (randomNumberGeneratorClass  ), intent(in   ), target, optional :: randomNumberGenerator_
+   !# <constructorAssign variables="median, scale, *randomNumberGenerator_"/>
+
+    return
+  end function cauchyConstructorInternal
+
+  function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
     !% Constructor for ``cauchy'' 1D distribution function class.
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self
-    double precision                              , intent(in   ) :: median     , limit, &
+    double precision                              , intent(in   ) :: median                , limit, &
          &                                                           probability
+    class           (randomNumberGeneratorClass  ), intent(in   ) :: randomNumberGenerator_
 
-    self=distributionFunction1DCauchy(median,limit/tan(0.5d0*Pi*(1.0d0-probability)))
+    self=distributionFunction1DCauchy(median,limit/tan(0.5d0*Pi*(1.0d0-probability)),randomNumberGenerator_)
     return
   end function cauchyConstructorProbability
-
-  function cauchyConstructorInternal(median,scale) result(self)
-    !% Constructor for ``cauchy'' 1D distribution function class.
-    type            (distributionFunction1DCauchy)                :: self
-    double precision                              , intent(in   ) :: median, scale
-    !# <constructorAssign variables="median, scale"/>
-
-    self%randomNumberGenerator=pseudoRandom()
-    return
-  end function cauchyConstructorInternal
 
   double precision function cauchyDensity(self,x)
     !% Return the density of a Cauchy distribution.

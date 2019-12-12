@@ -114,6 +114,8 @@ foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
 	 readdir($sourceDirectory));
     closedir($sourceDirectory);
 }
+# Initialize list of modules needed for event hooks.
+my @eventHookModules;
 # Iterate over files to process.
 foreach my $sourceFile ( @sourceFilesToProcess ) {
     # Push the main file onto the scan stack.
@@ -126,150 +128,182 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	$rescan = 0
 	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($usesPerFile->{$fileIdentifier}->{'files'}) );
     }
-    if ( $rescan ) {
-	delete($usesPerFile->{$fileIdentifier})
-    	    if ( $havePerFile && exists($usesPerFile->{$fileIdentifier}) );
-	push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$sourceFile->{'fullPathFileName'});
-	# Initialize records of modules used, provided, explicit dependencies, and any library dependencies.
-	@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'         }} = ();
-	@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}} = ();
-	%{$usesPerFile->{$fileIdentifier}->{'modulesProvided'     }} = ();
-	%{$usesPerFile->{$fileIdentifier}->{'libraryDependencies' }} = ();
-	# Extract lists of directives from this file which require special handling.
-	my $directives;
-	@{$directives->{$_}} = &Galacticus::Build::Directives::Extract_Directives($sourceFile->{'fullPathFileName'},$_)
-	    foreach ( "functionClass", "inputParameter", "enumeration" );
-	# Special handling for functionClass directives - add implementation files to the list of files to scan.
-	if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
-	    foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
-		&List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$functionClass->{'name'}}->{'file'});
-	    }
-	}
-	# Add dependence on functionClass module if necessary.
-	push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."function_classes.mod")
-	    if ( scalar(@{$directives->{'functionClass'}}) > 0 );
-	# Add dependence on input parameters module if necessary.
-	push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."input_parameters.mod")
-	    if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
-	# Add dependence on error reporting module if necessary.
-	push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
-	    if ( grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @{$directives->{'enumeration'}} );
-	# Find modules used in functionClass directives.
+    next
+	unless ( $rescan );
+    delete($usesPerFile->{$fileIdentifier})
+	if ( $havePerFile && exists($usesPerFile->{$fileIdentifier}) );
+    push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$sourceFile->{'fullPathFileName'});
+    # Initialize records of modules used, provided, explicit dependencies, and any library dependencies.
+    @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'         }} = ();
+    @{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}} = ();
+    %{$usesPerFile->{$fileIdentifier}->{'modulesProvided'     }} = ();
+    %{$usesPerFile->{$fileIdentifier}->{'libraryDependencies' }} = ();
+    # Extract lists of directives from this file which require special handling.
+    my $directives;
+    @{$directives->{$_}} = &Galacticus::Build::Directives::Extract_Directives($sourceFile->{'fullPathFileName'},$_)
+	foreach ( "functionClass", "inputParameter", "enumeration", "eventHook", "eventHookManager" );
+    # Special handling for functionClass directives - add implementation files to the list of files to scan.
+    if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
 	foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
-	    next 
-		unless ( exists($functionClass->{'method'}) );
-	    foreach my $method ( exists($functionClass->{'method'}->{'name'}) ? $functionClass->{'method'} : map {$functionClass->{'method'}->{$_}} keys(%{$functionClass->{'method'}}) ) {
-		next
-		    unless ( exists($method->{'modules'}) );
-		push
-		    (
-		     @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},
-		     map {$_ eq "hdf5" ? () : $workDirectoryName.$_.".mod"} split(" ",lc($method->{'modules'}))
-		    );
-	    }
-	}
-	# Scan files on the stack until stack is empty.
-	while ( scalar(@fileNamesToProcess) > 0 ) {
-	    my $fullPathFileName = pop(@fileNamesToProcess);
-	    # Make the file if necessary.
-	    unless ( -e $fullPathFileName ) {
-		my $leaf = $fullPathFileName =~ m/\/([\w\.]+?)$/ ? $1 : $fullPathFileName;
-		system("make ".$leaf);
-	    }
-	    # Add a dependency on libstdc++ for any C++ source file.
-	    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{"stdc++"} = 1
-		if ( $fullPathFileName =~ m/\.cpp$/i );
-	    # Initialize preprocessor conditional compilation state and state stack.
-	    my @preprocessorConditionalsStack;
-	    my $conditionallyCompile = 1;
-	    open(my $file,$fullPathFileName) or die "Can't open input file: $fullPathFileName";
-	    while (my $line = <$file>) {
-		if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
-		    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$1} = 1;	
-		}
-		if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
-		    my $includeFile = $1;
-		    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$includeLibararies{lc($includeFile)}} = 1
-			if ( exists($includeLibararies{lc($includeFile)}) );
-		}
-		# Detect preprocessor lines.
-		if ( $line =~ m/^\#/ ) {
-		    # Build a stack of preprocessor conditional directives. The stack stores the directive name (where possible) and
-		    # the sign of the logic (1 for "compile-if-true", 0 for "compile-if-false"). Preprocessor "else" directives simply
-		    # invert the state of the last entry on the stack.
-		    push(@preprocessorConditionalsStack,{name => $1           , state => 1})
-			if ( $line =~ m/^\#ifdef\s+([0-9A-Za-z_]+)\s*$/ );
-		    push(@preprocessorConditionalsStack,{name => "conditional", state => 1})
-			if ( $line =~ m/^\#if\s/                        );
-		    push(@preprocessorConditionalsStack,{name => $1           , state => 0})
-			if ( $line =~ m/^\#ifndef\s+([0-9A-Z_]+)\s*$/   );
-		    pop (@preprocessorConditionalsStack                                    )
-			if ( $line =~ m/^\#endif\s*$/                   );
-		    $preprocessorConditionalsStack[-1]->{'state'} = 1-$preprocessorConditionalsStack[-1]->{'state'}
-		    if ( $line =~ m/^\#else\s*$/                    );
-		    # Determine whether or not the current code will be conditionally compiled.
-		    $conditionallyCompile = 1;
-		    foreach my $preprocessorConditional ( @preprocessorConditionalsStack ) {
-			my $conditionalActive = 
-			    (grep {$_ eq $preprocessorConditional->{'name'}} @preprocessorDirectives)
-			    ?
-			    $preprocessorConditional->{'state'} 
-		        : 
-			    1-$preprocessorConditional->{'state'};
-			$conditionallyCompile = 0	
-			    if ( $conditionalActive == 0 );
-		    }
-		}
-		# Process line only if conditional compilation state is active.
-		if ( $conditionallyCompile == 1 ) {
-		    # Locate any lines which use the "use" statement and extract the name of the file they use. Any externally
-		    # provided modules are excluded.
-		    if ( $line =~ m/^\s*(!\$\s)??\s*use\s*(::|\s)\s*([a-zA-Z0-9_]+)/i ) {
-			my $usedModule = $3;
-			# Add any library dependency for this module.
-			$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$moduleLibararies{lc($usedModule)}} = 1
-			    if ( exists($moduleLibararies{lc($usedModule)}) );
-			push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($usedModule).".mod")
-			    unless ( grep {$_ eq lc($usedModule)} @externalModules );
-		    }
-		    # Find any OpenMP critical directives - these require a dependence on the OpenMP utilities data module.
-		    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."openmp_utilities_data.mod")
-			if ( $line =~ m/^\s*\!\$omp\s+critical\s*\([a-z0-9_]+\)/i );
-		    # Locate explicit dependencies.
-		    push(@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}},split(" ",$2))
-			if ( $line =~ m/^\s*(\!|\/\/):\s*(.*)$/ );
-		    # Locate programs - this require a dependency on the "ISO_Varying_String" module for auto-generated allowed parameter names.
-		    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."iso_varying_string.mod")
-			if ( $line =~ m/^\s*program\s/i );
-		    # Locate explicit dependencies.
-		    # Locate any modules provided by this file (we do not need to include an explicit dependence on any modules which
-		    # are self-provided).
-		    $usesPerFile->{$fileIdentifier}->{'modulesProvided'}->{$1.".mod"} = 1
-			if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+) / );
-		    # Locate included files and push them to the stack of files to process.
-		    if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
-			my $preprocessedIncludedFile = $2;
-			(my $rawIncludedFile = $preprocessedIncludedFile) =~ s/\.inc$/.Inc/;
-			if ( -e $rootSourceDirectoryName."/source/".$rawIncludedFile ) {
-			    # A raw (unpreprocessed) matching file exists in the source directory. Use this as the dependency.
-			    push(@fileNamesToProcess,$rootSourceDirectoryName."/source/".$rawIncludedFile);
-			    push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$rootSourceDirectoryName."/source/".$rawIncludedFile);
-			} elsif ( -e $workDirectoryName.$preprocessedIncludedFile ) {
-			    # A preprocessed matching file exists in the work directory. Use it as the dependency.
-			    push(@fileNamesToProcess,$workDirectoryName.$preprocessedIncludedFile);
-			    push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$workDirectoryName.$preprocessedIncludedFile);
-			} elsif ( $preprocessedIncludedFile =~ m/(.*)\.type\.inc/ ) {
-			    # For old-style method include files, add a dependency on all files which contain the associated
-			    # directive.
-			    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$1}->{'file'});
-			    &List::ExtraUtils::smart_push($usesPerFile->{$fileIdentifier}->{'files'},$locations->{$1}->{'file'});
-			}
-		    }
-		}
-	    }
-	    close($file);
+	    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$functionClass->{'name'}}->{'file'});
 	}
     }
+    # Add dependence on functionClass module if necessary.
+    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."function_classes.mod")
+	if ( scalar(@{$directives->{'functionClass'}}) > 0 );
+    # Accumulate dependencies for event hook modules.
+    if ( scalar(@{$directives->{'eventHook'}}) > 0  ) {
+	push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."events_hooks.mod");
+	foreach my $eventHook ( @{$directives->{'eventHook'}} ) {
+	    next
+		unless ( exists($eventHook->{'import'}) );
+	    foreach my $module ( &List::ExtraUtils::as_array($eventHook->{'import'}->{'module'}) ) {
+		push(@eventHookModules,$workDirectoryName.lc($module->{'name'}).".mod");
+	    }
+	}
+    }
+    if ( scalar(@{$directives->{'eventHookManager'}}) > 0  ) {
+	my $workSubDirectoryName = $workDirectoryName.$sourceFile->{'subDirectoryName'}.($sourceFile->{'subDirectoryName'} eq "" ? "" : "/");
+	($usesPerFile->{'eventHooksManager'}->{'objectFileName'} = $workSubDirectoryName.$sourceFile    ->{'fileName'}) =~ s/\.(f|f90|c|cpp)$/.o/i;
+	$usesPerFile ->{'eventHooksManager'}->{'fileIdentifier'} =                       $fileIdentifier                                          ;
+    }
+    # Add dependence on input parameters module if necessary.
+    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."input_parameters.mod")
+	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
+    # Add dependence on error reporting module if necessary.
+    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
+	if ( grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @{$directives->{'enumeration'}} );
+    # Find modules used in functionClass directives.
+    foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
+	next 
+	    unless ( exists($functionClass->{'method'}) );
+	foreach my $method ( exists($functionClass->{'method'}->{'name'}) ? $functionClass->{'method'} : map {$functionClass->{'method'}->{$_}} keys(%{$functionClass->{'method'}}) ) {
+	    next
+		unless ( exists($method->{'modules'}) );
+	    push
+		(
+		 @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},
+		 map {$_ eq "hdf5" ? () : $workDirectoryName.$_.".mod"} split(" ",lc($method->{'modules'}))
+		);
+	}
+    }
+    # Scan files on the stack until stack is empty.
+    while ( scalar(@fileNamesToProcess) > 0 ) {
+	my $fullPathFileName = pop(@fileNamesToProcess);
+	# Make the file if necessary.
+	unless ( -e $fullPathFileName ) {
+	    my $leaf = $fullPathFileName =~ m/\/([\w\.]+?)$/ ? $1 : $fullPathFileName;
+	    system("make ".$leaf);
+	}
+	# Add a dependency on libstdc++ for any C++ source file.
+	$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{"stdc++"} = 1
+	    if ( $fullPathFileName =~ m/\.cpp$/i );
+	# Initialize preprocessor conditional compilation state and state stack.
+	my @preprocessorConditionalsStack;
+	my $conditionallyCompile = 1;
+	open(my $file,$fullPathFileName) or die "Can't open input file: $fullPathFileName";
+	while (my $line = <$file>) {
+	    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
+		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$1} = 1;	
+	    }
+	    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
+		my $includeFile = $1;
+		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$includeLibararies{lc($includeFile)}} = 1
+		    if ( exists($includeLibararies{lc($includeFile)}) );
+	    }
+	    # Detect preprocessor lines.
+	    if ( $line =~ m/^\#/ ) {
+		# Build a stack of preprocessor conditional directives. The stack stores the directive name (where possible) and
+		# the sign of the logic (1 for "compile-if-true", 0 for "compile-if-false"). Preprocessor "else" directives simply
+		# invert the state of the last entry on the stack.
+		push(@preprocessorConditionalsStack,{name => $1           , state => 1})
+		    if ( $line =~ m/^\#ifdef\s+([0-9A-Za-z_]+)\s*$/ );
+		push(@preprocessorConditionalsStack,{name => "conditional", state => 1})
+		    if ( $line =~ m/^\#if\s/                        );
+		push(@preprocessorConditionalsStack,{name => $1           , state => 0})
+		    if ( $line =~ m/^\#ifndef\s+([0-9A-Z_]+)\s*$/   );
+		pop (@preprocessorConditionalsStack                                    )
+		    if ( $line =~ m/^\#endif\s*$/                   );
+		$preprocessorConditionalsStack[-1]->{'state'} = 1-$preprocessorConditionalsStack[-1]->{'state'}
+		if ( $line =~ m/^\#else\s*$/                    );
+		# Determine whether or not the current code will be conditionally compiled.
+		$conditionallyCompile = 1;
+		foreach my $preprocessorConditional ( @preprocessorConditionalsStack ) {
+		    my $conditionalActive = 
+			(grep {$_ eq $preprocessorConditional->{'name'}} @preprocessorDirectives)
+			?
+			$preprocessorConditional->{'state'} 
+		    : 
+			1-$preprocessorConditional->{'state'};
+		    $conditionallyCompile = 0	
+			if ( $conditionalActive == 0 );
+		}
+	    }
+	    # Process line only if conditional compilation state is active.
+	    if ( $conditionallyCompile == 1 ) {
+		# Locate any lines which use the "use" statement and extract the name of the file they use. Any externally
+		# provided modules are excluded.
+		if ( $line =~ m/^\s*(!\$\s)??\s*use\s*(::|\s)\s*([a-zA-Z0-9_]+)/i ) {
+		    my $usedModule = $3;
+		    # Add any library dependency for this module.
+		    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$moduleLibararies{lc($usedModule)}} = 1
+			if ( exists($moduleLibararies{lc($usedModule)}) );
+		    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($usedModule).".mod")
+			unless ( grep {$_ eq lc($usedModule)} @externalModules );
+		}
+		# Find any OpenMP critical directives - these require a dependence on the OpenMP utilities data module.
+		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."openmp_utilities_data.mod")
+		    if ( $line =~ m/^\s*\!\$omp\s+critical\s*\([a-z0-9_]+\)/i );
+		# Locate explicit dependencies.
+		push(@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}},split(" ",$2))
+		    if ( $line =~ m/^\s*(\!|\/\/):\s*(.*)$/ );
+		# Locate programs - this require a dependency on the "ISO_Varying_String" module for auto-generated allowed parameter names.
+		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."iso_varying_string.mod")
+		    if ( $line =~ m/^\s*program\s/i );
+		# Locate explicit dependencies.
+		# Locate any modules provided by this file (we do not need to include an explicit dependence on any modules which
+		# are self-provided).
+		$usesPerFile->{$fileIdentifier}->{'modulesProvided'}->{$1.".mod"} = 1
+		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+) / );
+		# Locate included files and push them to the stack of files to process.
+		if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
+		    my $preprocessedIncludedFile = $2;
+		    (my $rawIncludedFile = $preprocessedIncludedFile) =~ s/\.inc$/.Inc/;
+		    if ( -e $rootSourceDirectoryName."/source/".$rawIncludedFile ) {
+			# A raw (unpreprocessed) matching file exists in the source directory. Use this as the dependency.
+			push(@fileNamesToProcess,$rootSourceDirectoryName."/source/".$rawIncludedFile);
+			push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$rootSourceDirectoryName."/source/".$rawIncludedFile);
+		    } elsif ( -e $workDirectoryName.$preprocessedIncludedFile ) {
+			# A preprocessed matching file exists in the work directory. Use it as the dependency.
+			push(@fileNamesToProcess,$workDirectoryName.$preprocessedIncludedFile);
+			push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$workDirectoryName.$preprocessedIncludedFile);
+		    } elsif ( $preprocessedIncludedFile =~ m/(.*)\.type\.inc/ ) {
+			# For old-style method include files, add a dependency on all files which contain the associated
+			# directive.
+			&List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$1}->{'file'});
+			&List::ExtraUtils::smart_push($usesPerFile->{$fileIdentifier}->{'files'},$locations->{$1}->{'file'});
+		    }
+		}
+	    }
+	}
+	close($file);
+    }
+}
+# Add any extra dependencies for the eventHooksManager.
+push(@{$usesPerFile->{'eventHooksManager'}->{'modules'}},@eventHookModules);
+@{$usesPerFile->{'eventHooksManager'}->{'modules'}} = uniq(sort(@{$usesPerFile->{'eventHooksManager'}->{'modules'}}));
+my $eventHooksFileIdentifier = $usesPerFile->{'eventHooksManager'}->{'fileIdentifier'};
+$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'} = []
+    unless ( exists($usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}) );
+push(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}},@{$usesPerFile->{'eventHooksManager'}->{'modules'}});
+@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}} = uniq(sort(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}}));
+# Iterate over files to generate make rules.
+foreach my $sourceFile ( @sourceFilesToProcess ) {
+    # Push the main file onto the scan stack.
+    my @fileNamesToProcess = ( $sourceFile->{'fullPathFileName'} );
+    (my $fileIdentifier = $sourceFile->{'fullPathFileName'}) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+
     # Construct name of associated object and dependency file.
     (my $objectFileName      = $sourceFile->{'fileName'}) =~ s/\.(f|f90|c|cpp)$/.o/i;
     (my $dependencyFileName  = $sourceFile->{'fileName'}) =~ s/\.(f|f90|c|cpp|inc)$/.d/i;
@@ -321,7 +355,6 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	print $dependenciesFile "\t\@sort -u ".$workSubDirectoryName.$graphVizFileName." -o ".$workSubDirectoryName.$graphVizFileName."\n\n";
     }
 }
-close($dependenciesFile);
 # Output the per file module use data.
 store($usesPerFile,$workDirectoryName."Makefile_Use_Dependencies.blob");
 

@@ -154,7 +154,6 @@
 
   ! Lock used for file access.
   type            (lockDescriptor)            :: filteredPowerFileLock
-  logical                                     :: filteredPowerFileLockInitialized =.false.
 
 contains
 
@@ -234,7 +233,7 @@ contains
 
   function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
-    use :: File_Utilities  , only : Directory_Make, File_Lock_Initialize, File_Path
+    use :: File_Utilities  , only : Directory_Make, File_Path
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: self
@@ -260,15 +259,6 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
-    ! Initialize file lock.
-    if (.not.filteredPowerFileLockInitialized) then
-       !$omp critical(filteredPowerFileLockInitialize)
-       if (.not.filteredPowerFileLockInitialized) then
-          call File_Lock_Initialize(filteredPowerFileLock)
-          filteredPowerFileLockInitialized=.true.
-       end if
-       !$omp end critical(filteredPowerFileLockInitialize)
-    end if
     return
   end function filteredPowerConstructorInternal
 
@@ -529,24 +519,13 @@ contains
          &                                                                                  labelHigh                 , labelTarget
 
     if (self%remakeTable(mass,time)) then
-#ifndef OFDAVAIL
-       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-       ! will not block access to the same file by another thread.
-       !$omp critical (cosmologicalMassVarianceFilteredPowerLock)
-#endif
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(filteredPowerFileLock,sync=.false.)
-#ifndef OFDAVAIL
-       !$omp end critical (cosmologicalMassVarianceFilteredPowerLock)
-#endif
     end if
     if (self%remakeTable(mass,time)) then
-#ifndef OFDAVAIL
-       ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-       ! will not block access to the same file by another thread.
-       !$omp critical (cosmologicalMassVarianceFilteredPowerLock)
-#endif
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.false.)
        ! Try again to read the file - another process/thread may have already created the file in which case we may not need to do so again.
        call self%fileRead()
@@ -730,9 +709,6 @@ contains
           call self%fileWrite()
        end if
        call File_Unlock(filteredPowerFileLock)
-#ifndef OFDAVAIL
-       !$omp end critical (cosmologicalMassVarianceFilteredPowerLock)
-#endif
     end if
     return
 
