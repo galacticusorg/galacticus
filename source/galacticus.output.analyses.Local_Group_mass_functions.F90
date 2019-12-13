@@ -564,6 +564,7 @@ contains
     !% distribution as was found for dark matter subhalos \citep[][see also
     !% \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     !% tree realizations, although it in principal could be model-dependent.
+    use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
     class           (outputAnalysisLocalGroupMassFunction          ), intent(inout) :: self
@@ -574,14 +575,21 @@ contains
     call self%finalizeAnalysis()
     localGroupMassFunctionLogLikelihood=0.0d0
     do i=1,size(self%masses)
-       negativeBinomialProbabilitySuccess =+  1.0d0                                                          &
-            &                              /(                                                                &
-            &                                +1.0d0                                                          &
-            &                                +self%negativeBinomialScatterFractional**2*self%massFunction(i) &
-            &                               )
-       distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
-       localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
-            &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+       if (self%massFunction(i) <= 0.0d0) then
+          if (nint(self%massFunctionTarget(i)) > 0) then
+             localGroupMassFunctionLogLikelihood=logImpossible
+             return
+          end if
+       else
+          negativeBinomialProbabilitySuccess =+  1.0d0                                                          &
+               &                              /(                                                                &
+               &                                +1.0d0                                                          &
+               &                                +self%negativeBinomialScatterFractional**2*self%massFunction(i) &
+               &                               )
+          distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
+          localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
+               &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+       end if
     end do
     return
   end function localGroupMassFunctionLogLikelihood

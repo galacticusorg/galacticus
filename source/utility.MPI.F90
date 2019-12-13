@@ -198,10 +198,10 @@ module MPI_Utilities
           &                         mpiMinValIntScalar  , mpiMinvalIntArray
      procedure ::                   mpiGather1D         , mpiGather2D            , &
           &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar
+          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
      generic   :: gather         => mpiGather1D         , mpiGather2D            , &
           &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar
+          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -1542,6 +1542,30 @@ contains
 #endif
     return
   end function mpiGather2D
+
+  function mpiGatherLogicalScalar(self,scalar)
+    !% Gather a logical scalar from all processes, returning it as a 1-D array.
+#ifndef USEMPI
+    use Galacticus_Error, only : Galacticus_Error_Report
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                :: self
+    logical                    , intent(in   )                :: scalar
+    logical                    , dimension(  self%countValue) :: mpiGatherLogicalScalar
+#ifdef USEMPI
+    logical                    , dimension(1,self%countValue) :: array
+#endif
+
+#ifdef USEMPI
+    array=self%requestData(self%allRanks,[scalar])
+    mpiGatherLogicalScalar=array(1,:)
+#else
+    !GCC$ attributes unused :: self, scalar
+    mpiGatherLogicalScalar=0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiGatherLogicalScalar
 
   function mpiGatherIntScalar(self,scalar)
     !% Gather an integre scalar from all processes, returning it as a 1-D array.

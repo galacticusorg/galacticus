@@ -157,14 +157,18 @@ contains
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyExact), dimension(1)  :: dependenciesSubhaloPromotion
+    type(dependencyRegEx), dimension(1)  :: dependenciesSatelliteMerger
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
        !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
        !# <objectBuilder class="mergerMassMovements"                name="mergerMassMovements_"                source="parameters_"/>
-       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                                                                  )
-       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=[dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')])
-       call satelliteMergerEvent %attach(defaultMergingStatisticsComponent,satelliteMerger     ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter ,'^remnantStructure:'   )])
-       call postEvolveEvent      %attach(defaultMergingStatisticsComponent,postEvolve          ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                                                                  )
+       dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+       dependenciesSatelliteMerger (1)=dependencyRegEx(dependencyDirectionAfter ,'^remnantStructure:'   )
+       call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                          )
+       call subhaloPromotionEvent%attach(defaultMergingStatisticsComponent,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=dependenciesSubhaloPromotion)
+       call satelliteMergerEvent %attach(defaultMergingStatisticsComponent,satelliteMerger     ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard',dependencies=dependenciesSatelliteMerger )
+       call postEvolveEvent      %attach(defaultMergingStatisticsComponent,postEvolve          ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                          )
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize

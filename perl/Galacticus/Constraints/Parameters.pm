@@ -427,9 +427,11 @@ sub parametersOutput {
 
 sub modelList {
     # Construct a list of all "galaxyPopulation" models.
-    my $config = shift();
+    my $config  =   shift() ;
+    my %options = %{shift()};
     # Begin building a stack of likelihood models to evaluate.
     my @galaxyPopulationModels;
+    my $instance               = 0;
     my @allParameterNames      = map {$_->{'name'}->{'value'}} &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
     my @modelStack             = ( 
 	{
@@ -441,8 +443,11 @@ sub modelList {
     while ( scalar(@modelStack) > 0 ) {
 	# Pop a model off of the stack.
 	my $model = shift(@modelStack);
-	push(@galaxyPopulationModels,$model)
-	    if ( $model->{'posteriorSampleLikelihoodMethod'}->{'value'} eq "galaxyPopulation" );
+	if ( $model->{'posteriorSampleLikelihoodMethod'}->{'value'} eq "galaxyPopulation" ) {
+	    ++$instance;
+	    push(@galaxyPopulationModels,$model)
+		if ( ! exists($options{'modelInstance'}) || $options{'modelInstance'} eq "all" || $options{'modelInstance'} == $instance );
+	}
 	# Add any sub-models to the stack.
 	if ( exists($model->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) ) {
 	    my @likelihoods           = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'});

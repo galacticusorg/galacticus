@@ -301,13 +301,15 @@ contains
     use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     type            (inputParameters), intent(inout) :: parameters_
+    type            (dependencyRegEx), dimension(1)  :: dependencies
     double precision                                 :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
     logical                                          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
-       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
-       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                                                                              )
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
+       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="parameters_"/>

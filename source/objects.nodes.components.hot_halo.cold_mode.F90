@@ -139,6 +139,7 @@ contains
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters_"/>
@@ -147,8 +148,9 @@ contains
        !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters_"/>
        !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters_"/>
        !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters_"/>
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                                                                              )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
+       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=dependencies)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize

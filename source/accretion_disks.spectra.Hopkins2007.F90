@@ -63,18 +63,17 @@ contains
 
   function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use :: File_Utilities  , only : File_Lock     , File_Lock_Initialize, File_Unlock
+    use :: File_Utilities  , only : File_Lock     , File_Unlock
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
-    ! Initialize the file lock.
-    call File_Lock_Initialize(                    self%fileLock                    )
     ! Set the file name.
     self%fileName=galacticusPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
     ! Build the file.
     call self%buildFile()
     ! Load the file.
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock           (char(self%fileName),self%fileLock,lockIsShared=.true.)
     call self%loadFile       (char(self%fileName)                                  )
     call File_Unlock         (                    self%fileLock                    )
@@ -118,6 +117,7 @@ contains
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
 
     ! Determine if we need to make the file.
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
     makeFile=.false.
     if (File_Exists(self%fileName)) then
@@ -138,6 +138,7 @@ contains
     ! Make the file if necessary.
     if (makeFile) then
        call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
        if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then

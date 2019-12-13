@@ -658,6 +658,7 @@ contains
                                ! its hostTree pointer set to point to the new branch so that merger tree walkers can correctly
                                ! navigate the branch without straying into a neighboring branch.
                                branchNew%branch            =  node%hostTree
+                               !# <referenceCountIncrement owner="branchNew%branch" object="randomNumberGenerator_"/>
                                branchNew%branch%baseNode   => node
                                branchNew       %nodeParent => node%parent
                                node            %hostTree   => branchNew%branch

@@ -281,9 +281,11 @@ contains
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=[dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
        !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
        !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
        !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>

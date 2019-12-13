@@ -155,12 +155,14 @@ contains
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
        !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="parameters_"/>
        !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="parameters_"/>
-       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
    end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize

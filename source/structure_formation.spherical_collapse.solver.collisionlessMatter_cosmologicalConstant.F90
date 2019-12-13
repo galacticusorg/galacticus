@@ -28,8 +28,10 @@
   type, extends(sphericalCollapseSolverClass) :: sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
      !% A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class(linearGrowthClass      ), pointer :: linearGrowth_       => null()
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
+     class(linearGrowthClass      ), pointer :: linearGrowth_               => null()
+     type (varying_string         )          :: fileNameCriticalOverdensity          , fileNameVirialDensityContrast, &
+          &                                     fileNameRadiusTurnaround
    contains
      !@ <objectMethods>
      !@   <object>sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt</object>
@@ -110,12 +112,32 @@ contains
 
   function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                                  :: self
     class(cosmologyFunctionsClass                         ), intent(in   ), target           :: cosmologyFunctions_
     class(linearGrowthClass                               ), intent(in   ), target, optional :: linearGrowth_
     !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_"/>
-
+    
+    self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'CriticalOverdensity_'                           // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameVirialDensityContrast=galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'VirialDensityContrast_'                         // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameRadiusTurnaround     =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'TurnaroundRadius_'                              // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
     return
   end function cllsnlssMttCsmlgclCnstntConstructorInternal
 
@@ -131,84 +153,57 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
     !% Compute the critical overdensity for collapse for the spherical collapse model.
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : operator(//)      , varying_string
-    use :: Tables            , only : table1D
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Tables          , only : table1D
     implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)              , intent(inout) :: self
-    double precision                                                                , intent(in   ) :: time
-    logical                                                                         , intent(in   ) :: tableStore
-    class           (table1D                                          ), allocatable, intent(inout) :: criticalOverdensity_
-    type            (varying_string                                   )                             :: fileName
-    integer                                                                                         :: status
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
+    double precision                                                               , intent(in   ) :: time
+    logical                                                                        , intent(in   ) :: tableStore
+    class           (table1D                                         ), allocatable, intent(inout) :: criticalOverdensity_
+    integer                                                                                        :: status
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
-         &   'largeScaleStructure/'                           // &
-         &   self%objectType      (                          )// &
-         &   'CriticalOverdensity_'                           // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &   '.hdf5'
-    call    self%restoreTable(time,criticalOverdensity_,fileName                                         ,tableStore,status)
+    call    self%restoreTable(time,criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,criticalOverdensity_,cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity                  )
-       call self%storeTable  (     criticalOverdensity_,fileName                                         ,tableStore       )
+       call self%storeTable  (     criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore       )
     end if
     return
   end subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity
 
   subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
     !% Tabulate the virial density contrast for the spherical collapse model.
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : operator(//)      , varying_string
-    use :: Tables            , only : table1D
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Tables          , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                        , intent(in   ) :: tableStore
     class           (table1D                                         ), allocatable, intent(inout) :: virialDensityContrast_
-    type            (varying_string                                  )                             :: fileName
     integer                                                                                        :: status
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
-         &   'largeScaleStructure/'                           // &
-         &   self%objectType      (                          )// &
-         &   'VirialDensityContrast_'                         // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &   '.hdf5'
-    call    self%restoreTable(time,virialDensityContrast_,fileName                                           ,tableStore,status)
+    call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,virialDensityContrast_,cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast                  )
-       call self%storeTable  (     virialDensityContrast_,fileName                                           ,tableStore       )
+       call self%storeTable  (     virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore       )
     end if
     return
   end subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast
 
   subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Galacticus_Paths  , only : galacticusPath    , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : operator(//)      , varying_string
-    use :: Tables            , only : table1D
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Tables          , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                        , intent(in   ) :: tableStore
     class           (table1D                                         ), allocatable, intent(inout) :: radiusTurnaround_
-    type            (varying_string                                  )                             :: fileName
     integer                                                                                        :: status
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
-         &   'largeScaleStructure/'                           // &
-         &   self%objectType      (                          )// &
-         &   'TurnaroundRadius_'                              // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &   '.hdf5'
-    call    self%restoreTable(time,radiusTurnaround_,fileName                                      ,tableStore,status)
+    call    self%restoreTable(time,radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,radiusTurnaround_,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround                  )
-       call self%storeTable  (     radiusTurnaround_,fileName                                      ,tableStore       )
+       call self%storeTable  (     radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore       )
     end if
     return
   end subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround
@@ -803,8 +798,7 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
     !% Attempt to restore a table from file.
-    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Lock_Initialize, File_Unlock, &
-          &                           lockDescriptor
+    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
     use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
     use :: IO_HDF5           , only : hdf5Access     , hdf5Object
     use :: ISO_Varying_String, only : char           , varying_string
@@ -823,14 +817,9 @@ contains
 
     status=errorStatusFail
     if (.not.tableStore) return
-#ifndef OFDAVAIL
-    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-    ! will not block access to the same file by another thread.
-    !$omp critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
-#endif
     if (File_Exists(fileName)) then
-       call File_Lock_Initialize(               fileLock                    )
-       call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        call file%openFile(char(fileName))
        call file%readDataset('time',timeTable)
@@ -857,16 +846,13 @@ contains
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
-#ifndef OFDAVAIL
-    !$omp end critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
-#endif
     return
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
     !% Attempt to restore a table from file.
-    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Lock_Initialize, File_Path, &
-          &                           File_Unlock   , lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
+         &                            lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string
     use :: Tables            , only : table1D
@@ -880,14 +866,9 @@ contains
     !GCC$ attributes unused :: self
 
     if (.not.tableStore) return
-#ifndef OFDAVAIL
-    ! If OFD locks are not available we must do the file access within an OpenMP critical section, as the file locking alone
-    ! will not block access to the same file by another thread.
-    !$omp critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
-#endif
-    call Directory_Make      (char(File_Path(char(fileName))))
-    call File_Lock_Initialize(               fileLock                     )
-    call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
+    call Directory_Make(char(File_Path(char(fileName))))
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock     (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
@@ -895,8 +876,5 @@ contains
     call file%close       (                                                                                      )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
-#ifndef OFDAVAIL
-    !$omp end critical (sphericalCollapsSolverCllsnlssMttCsmlgclCnstntLock)
-#endif
     return
   end subroutine cllsnlssMttCsmlgclCnstntStoreTable

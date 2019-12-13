@@ -130,11 +130,13 @@ contains
           &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
+    type (dependencyRegEx                   ), dimension(1)  :: dependencies
 
-    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                                                                             )
-    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
-    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
-    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')])
+    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
+    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                             )
+    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
+    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
+    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
     return
   end subroutine equilibriumAutoHook
 
