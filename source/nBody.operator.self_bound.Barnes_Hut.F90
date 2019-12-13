@@ -353,48 +353,48 @@ contains
        potential=0.0d0 ! No self-energy.
     else if (separation <= 0.5d0) then
        potential=-14.0d0              &
-            &                      /5.0d0               &
-            &                      +separationSquared   &
-            &                      *(                   &
-            &                        +16.0d0            &
-            &                        /3.0d0             &
-            &                        +separationSquared &
-            &                        *(                 &
-            &                          -48.0d0          &
-            &                          / 5.0d0          &
-            &                          +32.0d0          &
-            &                          *separation      &
-            &                          /5.0d0           &
-            &                         )                 &
-            &                       )
+            &    /5.0d0               &
+            &    +separationSquared   &
+            &    *(                   &
+            &      +16.0d0            &
+            &      /3.0d0             &
+            &      +separationSquared &
+            &      *(                 &
+            &        -48.0d0          &
+            &        / 5.0d0          &
+            &        +32.0d0          &
+            &        *separation      &
+            &        /5.0d0           &
+            &       )                 &
+            &      )
     else if (separation <= 1.0d0) then
        potential=-1.0d0                 &
-            &                      +(                     &
-            &                        +1.0d0               &
-            &                        +separation          &
-            &                        *(                   &
-            &                          -33.0d0            &
-            &                          +separationSquared &
-            &                          *(                 &
-            &                            +160.0d0         &
-            &                            +separation      &
-            &                            *(               &
-            &                              -240.0d0       &
-            &                              +separation    &
-            &                              *(             &
-            &                                +144.0d0     &
-            &                                -32.0d0      &
-            &                                *separation  &
-            &                               )             &
-            &                             )               &
-            &                           )                 &
-            &                         )                   &
-            &                       )                     &
-            &                      /15.0d0                &
-            &                      /separation
+            &    +(                     &
+            &      +1.0d0               &
+            &      +separation          &
+            &      *(                   &
+            &        -33.0d0            &
+            &        +separationSquared &
+            &        *(                 &
+            &          +160.0d0         &
+            &          +separation      &
+            &          *(               &
+            &            -240.0d0       &
+            &            +separation    &
+            &            *(             &
+            &              +144.0d0     &
+            &              -32.0d0      &
+            &              *separation  &
+            &             )             &
+            &           )               &
+            &         )                 &
+            &       )                   &
+            &     )                     &
+            &    /15.0d0                &
+            &    /separation
     else
        potential=-1.0d0                &
-            &                      /separation
+            &     /separation
     end if
     value=value+nodeWeight*potential
     return
