@@ -110,10 +110,12 @@ contains
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultAgeStatisticsComponent%standardIsActive()) then
-       call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=dependencies)
        !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
     end if
     return

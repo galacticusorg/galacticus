@@ -58,12 +58,14 @@ contains
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
     !GCC$ attributes unused :: parameters_
 
     if (defaultMergingStatisticsComponent%majorIsActive()) then
        !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
-       call nodePromotionEvent  %attach(defaultMergingStatisticsComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor'                                                                              )
-       call satelliteMergerEvent%attach(defaultMergingStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call nodePromotionEvent  %attach(defaultMergingStatisticsComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor'                          )
+       call satelliteMergerEvent%attach(defaultMergingStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor',dependencies=dependencies)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize

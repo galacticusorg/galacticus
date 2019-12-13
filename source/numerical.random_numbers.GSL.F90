@@ -188,7 +188,9 @@ contains
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)
     type is (randomNumberGeneratorGSL)
-       destination                         =               self
+       destination%seed                    =               self%seed
+       destination%ompThreadOffset         =               self%ompThreadOffset
+       destination%mpiRankOffset           =               self%mpiRankOffset
        destination%gslRandomNumberGenerator=FGSL_Rng_Clone(self%gslRandomNumberGenerator)
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})

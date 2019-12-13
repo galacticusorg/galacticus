@@ -70,9 +70,11 @@ contains
     use :: Input_Parameters, only : inputParameter             , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=[dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')])
+       dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=dependencies)
        !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
        !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
     end if

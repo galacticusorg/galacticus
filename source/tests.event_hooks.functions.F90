@@ -38,12 +38,14 @@ contains
     !% Initialize all hooks into the test event.
     use :: Events_Hooks, only : testEventEvent, openMPThreadBindingAtLevel, dependencyExact, dependencyRegEx, dependencyDirectionAfter, dependencyDirectionBefore
     implicit none
-    integer :: dummySelf
-    
-    call testEventEvent%attach(dummySelf,hookedFunction1,openMPThreadBindingAtLevel,label="function1",dependencies=[dependencyRegEx(dependencyDirectionAfter,'^function[24]$')                                                      ])
-    call testEventEvent%attach(dummySelf,hookedFunction2,openMPThreadBindingAtLevel,label="function2",dependencies=[dependencyExact(dependencyDirectionAfter ,'function3'    ),dependencyExact(dependencyDirectionAfter,'function4')])
-    call testEventEvent%attach(dummySelf,hookedFunction3,openMPThreadBindingAtLevel,label="function3",dependencies=[dependencyExact(dependencyDirectionBefore,'function1'    )                                                      ])    
-    call testEventEvent%attach(dummySelf,hookedFunction4,openMPThreadBindingAtLevel,label="function4"                                                                                                                                )
+    integer                                :: dummySelf
+    type   (dependencyRegEx), dimension(1) :: dependencies
+
+    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^function[24]$')
+    call testEventEvent%attach(dummySelf,hookedFunction1,openMPThreadBindingAtLevel,label="function1",dependencies= dependencies                                                                                                 )
+    call testEventEvent%attach(dummySelf,hookedFunction2,openMPThreadBindingAtLevel,label="function2",dependencies=[dependencyExact(dependencyDirectionAfter ,'function3'),dependencyExact(dependencyDirectionAfter,'function4')])
+    call testEventEvent%attach(dummySelf,hookedFunction3,openMPThreadBindingAtLevel,label="function3",dependencies=[dependencyExact(dependencyDirectionBefore,'function1')                                                      ])    
+    call testEventEvent%attach(dummySelf,hookedFunction4,openMPThreadBindingAtLevel,label="function4"                                                                                                                            )
     return
   end subroutine testEventHooksInitialize
 
