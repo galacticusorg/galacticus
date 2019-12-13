@@ -132,6 +132,7 @@ contains
     use :: ISO_Varying_String          , only : varying_string
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Sort                        , only : Sort_Index_Do
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
@@ -148,7 +149,8 @@ contains
          &                                                                              velocityPotentialChange , sampleWeight
     double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
     double precision                                       , dimension(3  )          :: velocityRepresentative
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound          , indexVelocityMostBound
+    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound          , indexVelocityMostBound , &
+         &                                                                              indexSorted             , indexSortedPrevious
     integer         (c_size_t              )                                         :: particleCount           , i                      , &
          &                                                                              k                       , iSample
     integer         (c_size_t              ), allocatable  , dimension(:  )          :: countBound              , countBoundPrevious
@@ -175,6 +177,8 @@ contains
     call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
     call allocateArray(indexVelocityMostBound ,[                         self%bootstrapSampleCount])
+    call allocateArray(indexSorted            ,[           particleCount                          ])
+    call allocateArray(indexSortedPrevious    ,[           particleCount                          ])
     call allocateArray(countBound             ,[                         self%bootstrapSampleCount])
     call allocateArray(countBoundPrevious     ,[                         self%bootstrapSampleCount])
     call allocateArray(weightBound            ,[                         self%bootstrapSampleCount])
@@ -192,14 +196,12 @@ contains
        if (self%bootstrapSampleCount /= size(simulation%boundStatusPrevious,dim=2)) then
           call Galacticus_Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
        end if
-       !$omp parallel do private(i,k)
+       indexSortedPrevious=Sort_Index_Do(simulation%ParticleIDsPrevious)
+       indexSorted        =Sort_Index_Do(simulation%ParticleIDs        )
+       !$omp parallel do private(i)
        do i=1,particleCount
-          do k=1,particleCount
-             if (simulation%ParticleIDs(i)==simulation%ParticleIDsPrevious(k)) then
-                sampleWeight(i,:) = dble(simulation%sampleWeightPrevious(k,:))
-                isBound     (i,:) =      simulation% boundStatusPrevious(k,:) > 0
-             end if
-          end do
+          sampleWeight(indexSorted(i),:)=dble(simulation%sampleWeightPrevious(indexSortedPrevious(i),:))
+          isBound     (indexSorted(i),:)=     simulation% boundStatusPrevious(indexSortedPrevious(i),:) > 0
        end do
        !$omp end parallel do
     else
@@ -505,6 +507,8 @@ contains
     call deallocateArray(velocityCenterOfMass   )
     call deallocateArray(indexMostBound         )
     call deallocateArray(indexVelocityMostBound )
+    call deallocateArray(indexSorted            )
+    call deallocateArray(indexSortedPrevious    )
     call deallocateArray(positionOffset         )
     call deallocateArray(countBound             )
     call deallocateArray(countBoundPrevious     )
