@@ -240,7 +240,7 @@ contains
          &                                *massSolar                                               &
          &                                /megaParsec                                          **3 &
          &                                *centi                                               **3
-    allocate(abundancesRelative(self%countElements))
+    allocate(abundancesRelative(abundances_%serializeCount()))
     call abundances_%serialize(abundancesRelative)
     do i=1,self%countElements
        self%elementAtomicNumbers(i)=Atomic_Number(shortLabel=trim(self%elements(i)))
@@ -389,7 +389,7 @@ contains
           properties%elements(i)%photoHeatingRate           =0.0d0
        end do
        properties               %iterationCount             =properties            %iterationCount     +1
-       class default
+    class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
     return
@@ -654,9 +654,13 @@ contains
           elementsPrevious (i)%ionizationStateFraction=properties%elements(i)%ionizationStateFraction
           elementsReference(i)%ionizationStateFraction=properties%elements(i)%ionizationStateFraction
           if (.not.converged) then
-             elementsPrevious(i)%photoHeatingRate   =+properties%elements(i)%photoHeatingRate   
-             elementsPrevious(i)%photoIonizationRate=+properties%elements(i)%photoIonizationRate &
-                  &                                  /properties%elements(i)%densityNumber
+             elementsPrevious(i)%photoHeatingRate   =+properties%elements(i)%photoHeatingRate
+             if (properties%elements(i)%densityNumber > 0.0d0) then
+                elementsPrevious(i)%photoIonizationRate=+properties%elements(i)%photoIonizationRate &
+                     &                                  /properties%elements(i)%densityNumber
+             else
+                elementsPrevious(i)%photoIonizationRate=+0.0d0
+             end if
           end if
        end do
        do while (.not.converged)
@@ -682,8 +686,12 @@ contains
           do i=1,self%countElements
              do j=0,self%elementAtomicNumbers(i)-1
                 ! Compute the photoionization rate.
-                elementsPhotoRate(i)%photoIonizationRate    (j)=+properties%elements(i)%photoIonizationRate(j) &
-                     &                                          /properties%elements(i)%densityNumber
+                if (properties%elements(i)%densityNumber > 0.0d0) then
+                   elementsPhotoRate(i)%photoIonizationRate    (j)=+properties%elements(i)%photoIonizationRate(j) &
+                        &                                          /properties%elements(i)%densityNumber
+                else
+                   elementsPhotoRate(i)%photoIonizationRate    (j)=+0.0d0
+                end if
                 ! Compute heating/cooling rates (in W cm⁻³).
                 elementsPhotoRate(i)%photoHeatingRate       (j)=+properties%elements(i)%photoHeatingRate   (j)
                 ! Scale the photoionization and photoheating rates with the lower-level state fraction to better approximate the
@@ -766,7 +774,7 @@ contains
                    ! Compute the abundance of this ionization state relative to the lower state by requiring balance between
                    ! ionization and recombination rates.
                    !! Rate of upward transitions from photoionization.
-                   if    (elementsReference(i)%ionizationStateFraction(j-1) > 0.0d0) then
+                   if    (elementsReference(i)%ionizationStateFraction(j-1) > 0.0d0 .and. properties%elements(i)%densityNumber > 0.0d0) then
                       rateUpward=+properties%elements         (i)%photoIonizationRate    (j-1) &
                            &     /properties%elements         (i)%densityNumber                &
                            &     /           elementsReference(i)%ionizationStateFraction(j-1)
@@ -797,6 +805,7 @@ contains
                         &                               *0.75d0                                               & !! TO DO use the correct factors.
                         &                               *boltzmannsConstant                                   &
                         &                               *properties%temperature                               &
+                        &                               *properties%elements   (i)%densityNumber              &
                         &                               *properties%elements   (i)%ionizationStateFraction(j) 
                    rateCoolingRecombinationDielectronic=+0.0d0 !! TO DO - get dielectronic cooling rates.
                    !! Find the net rate of downward transitions.
