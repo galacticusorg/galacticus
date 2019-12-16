@@ -90,7 +90,7 @@ module Computational_Domains
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <argument>class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket</argument>
-  !#   <argument>integer         (c_size_t                          ), dimension(:), intent(in   ) :: indices</argument>
+  !#   <argument>integer         (c_size_t                          ), dimension(:), intent(inout) :: indices</argument>
   !#  </method>
   !#  <method name="stateSolve" >
   !#   <description>Solve for the state of matter in the computational domain.</description>
