@@ -46,7 +46,8 @@
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
   </powerSpectrumPrimordialMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVarianceMethod value="filteredPower"> 
+    <tolerance value="1.0e-2"/>
     <sigma_8 value="0.807"/>
     <monotonicInterpolation value="true"/>
     <powerSpectrumWindowFunctionMethod value="topHat"/>

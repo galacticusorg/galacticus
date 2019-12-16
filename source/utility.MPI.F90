@@ -1663,7 +1663,7 @@ contains
     mpiGatherLogicalScalar=array(1,:)
 #else
     !GCC$ attributes unused :: self, scalar
-    mpiGatherLogicalScalar=0
+    mpiGatherLogicalScalar=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
