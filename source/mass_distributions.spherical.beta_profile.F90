@@ -66,6 +66,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityNormalization</name>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>The density normalization of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
@@ -73,6 +74,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>The mass of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
@@ -80,6 +82,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outerRadius</name>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>The outer radius of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
@@ -87,6 +90,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coreRadius</name>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>The core radius of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
@@ -94,6 +98,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
+    !#   <defaultValue>.false.</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>If true then the $\beta$-model mass distribution is considered to be in dimensionless units.</description>
     !#   <source>parameters</source>
