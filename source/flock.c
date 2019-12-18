@@ -64,7 +64,7 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
   (*ld)->fd=open(name,O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if ( (*ld)->fd < 0 ) {
     printf("flock_C(): opening file '%s' failed\n",name);
-    printf("  -> error no is : %d\n", errno);
+    printf("  -> error number is : %d\n", errno);
     printf("  -> error description is : %s\n",strerror(errno));
     abort();
   }
