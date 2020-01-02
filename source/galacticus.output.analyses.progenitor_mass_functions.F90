@@ -20,7 +20,7 @@
   !% Contains a module which implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   
   use :: Galactic_Filters                , only : galacticFilterAll 
-  use :: Node_Property_Extractors        , only : nodePropertyExtractorMassBasic
+  use :: Node_Property_Extractors        , only : nodePropertyExtractorMassHalo
   use :: Output_Analysis_Weight_Operators, only : outputAnalysisWeightOperatorNbodyMass
 
   !# <outputAnalysis name="outputAnalysisProgenitorMassFunction">
@@ -37,7 +37,7 @@
      private
      type            (galacticFilterAll                    ), pointer :: galacticFilterParentMass_
      type            (outputAnalysisWeightOperatorNbodyMass), pointer :: outputAnalysisWeightOperatorNbodyMass_
-     type            (nodePropertyExtractorMassBasic       ), pointer :: nodePropertyExtractorMassParent_
+     type            (nodePropertyExtractorMassHalo        ), pointer :: nodePropertyExtractorMassParent_
      double precision                                                 :: massRatioMinimum                      , massRatioMaximum , &
           &                                                              massParentMinimum                     , massParentMaximum, &
           &                                                              timeProgenitor                        , timeParent       , &
@@ -63,15 +63,17 @@ contains
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
     !% Constructor for the ``progenitorMassFunction'' output analysis class which takes a parameter set as input.
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: Input_Parameters                 , only : inputParameter         , inputParameters
+    use :: Input_Parameters                 , only : inputParameter            , inputParameters
     use :: ISO_Varying_String               , only : char
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisProgenitorMassFunction)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass             ), pointer                     :: nbodyHaloMassError_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
+    class           (virialDensityContrastClass          ), pointer                     :: virialDensityContrast_
     double precision                                      , dimension(:  ), allocatable :: functionValueTarget     , functionCovarianceTarget1D
     double precision                                      , dimension(:,:), allocatable :: functionCovarianceTarget
     double precision                                                                    :: massRatioMinimum        , massRatioMaximum          , &
@@ -83,9 +85,10 @@ contains
          &                                                                                 targetLabel             , fileName
     logical                                                                             :: alwaysIsolatedOnly
     
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/> 
+    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     if (parameters%isPresent('fileName')) then
        !# <inputParameter>
        !#   <name>fileName</name>
@@ -101,7 +104,7 @@ contains
        !#   <type>integer</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     else
        !# <inputParameter>
        !#   <name>label</name>
@@ -226,6 +229,7 @@ contains
        !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor)), &amp;
        !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    )), &amp;
        !#    &amp;                                    alwaysIsolatedOnly                                                                                 , &amp;
+       !#    &amp;                                    virialDensityContrast_                                                                             , &amp;
        !#    &amp;                                    nbodyHaloMassError_                                                                                , &amp;
        !#    &amp;                                    outputTimes_                                                                                         &amp;
        !#    &amp;                                    {conditions}                                                                                         &amp;
@@ -237,23 +241,26 @@ contains
        !# </conditionalCall>
        !# <inputParametersValidate source="parameters"/>
     end if
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="outputTimes_"          />
+    !# <objectDestructor name="nbodyHaloMassError_"   />
+    !# <objectDestructor name="virialDensityContrast_"/>
     return
   end function progenitorMassFunctionConstructorParameters
   
-  function progenitorMassFunctionConstructorFile(fileName,instance,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
+  function progenitorMassFunctionConstructorFile(fileName,instance,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object             , hdf5Access
+    use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisProgenitorMassFunction)                              :: self
     character       (len=*                               ), intent(in   )               :: fileName
     integer                                               , intent(in   )               :: instance
     class           (cosmologyFunctionsClass             ), intent(inout), target       :: cosmologyFunctions_
     class           (outputTimesClass                    ), intent(inout), target       :: outputTimes_
+    class           (virialDensityContrastClass          ), intent(in   ), target       :: virialDensityContrast_
     class           (nbodyHaloMassErrorClass             ), intent(in   ), target       :: nbodyHaloMassError_
     type            (varying_string                      )                              :: label                    , comment
     double precision                                                                    :: massParentMinimum        , massParentMaximum, &
@@ -288,13 +295,13 @@ contains
     alwaysIsolatedOnly=alwaysIsolatedOnlyInteger /= 0
     timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
-    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function progenitorMassFunctionConstructorFile
 
-  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Internal constructor for the ``progenitorMassFunction'' output analysis class.
-    use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                      , galacticFilterBasicMass                     , galacticFilterDescendentNode                , galacticFilterNot                             , &
+    use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                      , galacticFilterHaloMass                      , galacticFilterDescendentNode                , galacticFilterNot                             , &
          &                                                  galacticFilterHaloAlwaysIsolated                , filterList
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendentNode             , nodePropertyExtractorRatio
@@ -306,6 +313,7 @@ contains
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorLog10         , outputAnalysisPropertyOperatorIdentity
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisProgenitorMassFunction            )                                          :: self
     type            (varying_string                                  ), intent(in   )                           :: label                                                  , comment
@@ -316,6 +324,7 @@ contains
     logical                                                           , intent(in   )                           :: alwaysIsolatedOnly
     class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), intent(in   ), target                   :: nbodyHaloMassError_
+    class           (virialDensityContrastClass                      ), intent(in   ), target                   :: virialDensityContrast_
     type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
@@ -329,11 +338,11 @@ contains
     type            (galacticFilterHaloIsolated                      ), pointer                                 :: galacticFilterHaloIsolated_
     type            (galacticFilterDescendentNode                    ), pointer                                 :: galacticFilterParentNode_
     type            (galacticFilterNot                               ), pointer                                 :: galacticFilterNot_
-    type            (galacticFilterBasicMass                         ), pointer                                 :: galacticFilterProgenitorMass_                          , galacticFilterParentMassMinimum_        , &
+    type            (galacticFilterHaloMass                          ), pointer                                 :: galacticFilterProgenitorMass_                          , galacticFilterParentMassMinimum_        , &
          &                                                                                                         galacticFilterParentMassMaximum_
     type            (galacticFilterHaloAlwaysIsolated                ), pointer                                 :: galacticFilterHaloAlwaysIsolated_
     type            (filterList                                      ), pointer                                 :: filters_                                               , filtersParent_
-    type            (nodePropertyExtractorMassBasic                  ), pointer                                 :: nodePropertyExtractorMassProgenitor_
+    type            (nodePropertyExtractorMassHalo                   ), pointer                                 :: nodePropertyExtractorMassProgenitor_
     type            (nodePropertyExtractorRatio                      ), pointer                                 :: nodePropertyExtractorMassRatio_
     type            (nodePropertyExtractorDescendentNode             ), pointer                                 :: nodePropertyExtractorParentNode_
     type            (outputAnalysisDistributionNormalizerSequence    ), pointer                                 :: outputAnalysisDistributionNormalizer_
@@ -391,21 +400,21 @@ contains
     else
        nullify(galacticFilterHaloAlwaysIsolated_)
     end if
-    !# <referenceConstruct                             object="galacticFilterHaloIsolated_"      constructor="galacticFilterHaloIsolated  (                                                                 )"/>
-    !# <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterBasicMass     (massParentMinimum*massRatioMinimum*massRatioBuffer               )"/>
-    !# <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterBasicMass     (massParentMinimum                                                )"/>
-    !# <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterBasicMass     (massParentMaximum                                                )"/>
-    !# <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                 )"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                   )"/>
-    !# <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                        ,self%galacticFilterParentMass_)"/>
-    !# <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                         )"/>
+    !# <referenceConstruct                             object="galacticFilterHaloIsolated_"      constructor="galacticFilterHaloIsolated  (                                                                                 )"/>
+    !# <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterHaloMass      (massParentMinimum*massRatioMinimum*massRatioBuffer,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterHaloMass      (massParentMinimum                                 ,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterHaloMass      (massParentMaximum                                 ,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                 )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                   )"/>
+    !# <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,self%galacticFilterParentMass_)"/>
+    !# <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                         )"/>
     ! Build a node property extractor which gives the ratio of the progenitor and parent halo masses.
     allocate(     nodePropertyExtractorMassProgenitor_)
     allocate(self%nodePropertyExtractorMassParent_    )
     allocate(     nodePropertyExtractorMassRatio_     )
     allocate(     nodePropertyExtractorParentNode_    )
-    !# <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassBasic     (                                                                                                                               )"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassBasic     (                                                                                                                               )"/>
+    !# <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassHalo      (                                                     virialDensityContrast_                                                    )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassHalo      (                                                     virialDensityContrast_                                                    )"/>
     !# <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendentNode(                                                     timeParent                          ,self%nodePropertyExtractorMassParent_)"/>
     !# <referenceConstruct                             object="nodePropertyExtractorMassRatio_"      constructor="nodePropertyExtractorRatio         ('massRatio','Ratio of progenitor and parent masses.',nodePropertyExtractorMassProgenitor_,     nodePropertyExtractorParentNode_)"/>
     ! Create a distribution normalizer which normalizes to bin width.
