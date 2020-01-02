@@ -377,8 +377,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Interrupt differential evolution when a preset satellite becomes an orphan.
-    use :: Galacticus_Nodes, only : interruptTask, nodeComponentBasic, nodeComponentSatellite, propertyTypeInactive, &
-          &                         treeNode
+    use :: Galacticus_Nodes, only : interruptTask, nodeComponentBasic       , nodeComponentSatellite, propertyTypeInactive, &
+          &                         treeNode     , defaultSatelliteComponent
     use :: Histories       , only : history
     implicit none
     type     (treeNode              ), intent(inout), pointer :: node
@@ -391,7 +391,9 @@ contains
     type     (history               )                         :: historyBoundMass
     logical                                                   :: exceedsHistoryTime
     !GCC$ attributes unused :: odeConverged
-
+    
+    ! Return immediately if the preset satellite implementation is not active.
+    if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     basic            => node     %basic           ()
