@@ -29,6 +29,11 @@ module Numerical_Random_Numbers
   !#  <descriptiveName>Random Number Generators</descriptiveName>
   !#  <description>Class providing random number generators.</description>
   !#  <default>GSL</default>
+  !#  <method name="mpiIndependent" >
+  !#   <description>Return true if this random number generator produces independent sequences per MPI process.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !#  <method name="uniformSample" >
   !#   <description>Return a random number drawn from a uniform distribution on [0,1).</description>
   !#   <type>double precision</type>

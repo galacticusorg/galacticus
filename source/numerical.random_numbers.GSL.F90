@@ -32,6 +32,7 @@
      type   (FGSL_RNG ) :: gslRandomNumberGenerator
    contains
      final     ::                         gslDestructor
+     procedure :: mpiIndependent       => gslMPIIndependent
      procedure :: uniformSample        => gslUniformSample
      procedure :: poissonSample        => gslPoissonSample
      procedure :: standardNormalSample => gslStandardNormalSample
@@ -67,7 +68,7 @@ contains
     !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>ompThreadoffset</name>
+    !#   <name>ompThreadOffset</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the OpenMP thread number.</description>
@@ -130,6 +131,15 @@ contains
     call FGSL_RNG_Free(self%gslRandomNumberGenerator)
     return
   end subroutine gslDestructor
+
+  logical function gslMPIIndependent(self)
+    !% Return true if this random number generator produces independent sequences per MPI process.
+    implicit none    
+    class(randomNumberGeneratorGSL), intent(inout) :: self
+    
+    gslMPIIndependent=self%mpiRankOffset
+    return
+  end function gslMPIIndependent
 
   double precision function gslUniformSample(self)
     !% Sample from a uniform distribution on the interval [0,1).
