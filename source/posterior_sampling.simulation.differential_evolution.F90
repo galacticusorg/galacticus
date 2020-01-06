@@ -312,7 +312,7 @@ contains
     deallocate(modelParametersInactive_)
     return
   end function differentialEvolutionConstructorParameters
-
+  
   function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
@@ -416,6 +416,8 @@ contains
           call Galacticus_Warn         ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'//{introspection:location})
        end if
     end if
+    ! Check that the random number generator is independent across MPI processes.
+    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Galacticus_Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"

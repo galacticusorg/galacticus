@@ -340,6 +340,8 @@ contains
          &                                                                                                   forceAcceptance
     character       (len=32                                )                                              :: label
 
+    ! Check that the random number generator is independent across MPI processes.
+    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Galacticus_Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
