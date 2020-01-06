@@ -20,7 +20,7 @@
 !% Contains a module which implements various file-related utilities.
 
 ! Specify an explicit dependence on the C interface files.
-!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rename.o
+!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rename.o $(BUILDPATH)/access.o
 
 module File_Utilities
   !% Implements various file-related utilities.
@@ -117,6 +117,16 @@ module File_Utilities
      end function fsync
   end interface
 
+  ! Declare interface for the POSIX access() function.
+  interface
+     function access_C(name) bind(c,name='access_C')
+       !% Template for a C function that calls {\normalfont \ttfamily access()} to check for file existance.
+       import
+       integer  (c_int ) :: access_C
+       character(c_char) :: name
+     end function access_C
+  end interface
+
   type, public :: lockDescriptor
      !% Type used to store file lock descriptors.
      private
@@ -133,27 +143,26 @@ module File_Utilities
   
 contains
 
-  logical function File_Exists_VarStr(FileName)
-    !% Checks for existance of file {\normalfont \ttfamily FileName} (version for varying string argument).
+  logical function File_Exists_VarStr(fileName)
+    !% Checks for existance of file {\normalfont \ttfamily fileName} (version for varying string argument).
     use :: ISO_Varying_String, only : char
     implicit none
-    type(varying_string), intent(in   ) :: FileName
+    type(varying_string), intent(in   ) :: fileName
 
-    File_Exists_VarStr=File_Exists_Char(char(FileName))
+    File_Exists_VarStr=File_Exists_Char(char(fileName))
     return
   end function File_Exists_VarStr
 
-  logical function File_Exists_Char(FileName)
-    !% Checks for existance of file {\normalfont \ttfamily FileName} (version for character argument).
+  logical function File_Exists_Char(fileName)
+    !% Checks for existance of file {\normalfont \ttfamily fileName} (version for character argument).
     implicit none
-    character(len=*), intent(in   ) :: FileName
+    character(len=*), intent(in   ) :: fileName
 
     !# <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
-    !#  <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown.</description>
+    !#  <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existance.</description>
     !# </workaround>
-    !$omp critical(inquireLock)
-    inquire(file=FileName,exist=File_Exists_Char)
-    !$omp end critical(inquireLock)
+    !! inquire(file=fileName,exist=File_Exists_Char)
+    File_Exists_Char=access_C(trim(fileName)//char(0)) == 0
     return
   end function File_Exists_Char
 
