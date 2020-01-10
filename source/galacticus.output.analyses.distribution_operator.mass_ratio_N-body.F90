@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -133,7 +133,7 @@ contains
     class           (nodeComponentBasic                              ), pointer                                              :: basic
     double precision                                                                                                         :: massUncertaintyRatio              , massUncertaintyParent      , &
          &                                                                                                                      massUncertaintyCorrelation        , massParent                 , &
-         &                                                                                                                      massRatio                         , massUncertaintyRatioReduced, &
+         &                                                                                                                      massRatio                         , &
          &                                                                                                                      massRatioMinimum                  , massRatioMaximum           , &
          &                                                                                                                      massParentLimitLower              , massParentLimitUpper       , &
          &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper
@@ -165,8 +165,6 @@ contains
     massUncertaintyRatio       =+self%nbodyHaloMassError_%errorFractional(node           )*massRatio
     massUncertaintyParent      =+self%nbodyHaloMassError_%errorFractional(     nodeParent)*massParent
     massUncertaintyCorrelation =+self%nbodyHaloMassError_%correlation    (node,nodeParent)
-    massUncertaintyRatioReduced=+massUncertaintyRatio                                                 &
-         &                      *sqrt(1.0d0-massUncertaintyCorrelation**2)
     ! Check for zero uncertainties.
     if (massUncertaintyRatio <= 0.0d0 .or. massUncertaintyParent <= 0.0d0) then
        ! Zero uncertainties - add the full weight to the bin if the progenitor and parent are within range.
@@ -185,13 +183,13 @@ contains
             &                   +self%massParentMinimum, &
             &                   +massParent              &
             &                   -integrationExtent       &
-            &                   *massUncertaintyParent   &
+            &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
             &                  )
        massParentLimitUpper=min(                         &
             &                   +self%massParentMaximum, &
             &                   +massParent              &
             &                   +integrationExtent       &
-            &                   *massUncertaintyParent   &
+            &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
             &                  )
        if (massParentLimitUpper > massParentLimitLower) then
           do binIndex=1,size(propertyValueMinimum)
@@ -207,36 +205,58 @@ contains
                 massRatioMaximum= 0.0d0
                 call Galacticus_Error_Report('unsupported property type'//{introspection:location})
              end select
-             massRatioLimitLower=+massRatioMinimum       &
-                  &          -integrationExtent          &
-                  &          *massUncertaintyRatio       &
-                  &          +massUncertaintyCorrelation &
-                  &          *(                          &
-                  &            +massUncertaintyRatio     &
-                  &            /massUncertaintyParent    &
-                  &           )                          &
-                  &          *(                          &
-                  &            +massParentLimitLower     &
-                  &            -massParent               &
-                  &           )
-             massRatioLimitUpper=+massRatioMaximum       &
-                  &          +integrationExtent          &
-                  &          *massUncertaintyRatio       &
-                  &          +massUncertaintyCorrelation &
-                  &          *(                          &
-                  &            +massUncertaintyRatio     &
-                  &            /massUncertaintyParent    &
-                  &           )                          &
-                  &          *(                          &
-                  &            +massParentLimitUpper     &
-                  &            -massParent               &
-                  &           )
+             massRatioLimitLower=+massRatioMinimum           &
+                  &              -integrationExtent          &
+                  &              *massUncertaintyRatio       &
+                  &              +massUncertaintyCorrelation &
+                  &              *(                          &
+                  &                +massUncertaintyRatio     &
+                  &                /massUncertaintyParent    &
+                  &               )                          &
+                  &              *(                          &
+                  &                +massParentLimitLower     &
+                  &                -massParent               &
+                  &               )
+             massRatioLimitUpper=+massRatioMaximum           &
+                  &              +integrationExtent          &
+                  &              *massUncertaintyRatio       &
+                  &              +massUncertaintyCorrelation &
+                  &              *(                          &
+                  &                +massUncertaintyRatio     &
+                  &                /massUncertaintyParent    &
+                  &               )                          &
+                  &              *(                          &
+                  &                +massParentLimitUpper     &
+                  &                -massParent               &
+                  &               )
              if     (                                 &
                   &   massRatioLimitLower > massRatio &
                   &  .or.                             &
                   &   massRatioLimitUpper < massRatio &
                   & ) then
                 massRatioNBodyOperateScalar(binIndex)=0.0d0
+             else if (                                                                               &
+                  &    +massParent-integrationExtent*massUncertaintyParent >= self%massParentMinimum &
+                  &   .and.                                                                          &
+                  &    +massParent+integrationExtent*massUncertaintyParent <= self%massParentMaximum &
+                  &  ) then
+                ! Full parent mass range is included, so use analytic integral over the mass ratio.
+                massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                      &
+                     &                                *(                                                                          &
+                     &                                  +erf((massRatioMaximum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0)) &
+                     &                                  -erf((massRatioMinimum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0)) &
+                     &                                 )
+             else if (                                                                               &
+                  &    +massRatio -integrationExtent*massUncertaintyRatio  >= massRatioMinimum       &
+                  &   .and.                                                                          &
+                  &    +massRatio +integrationExtent*massUncertaintyRatio  <= massRatioMaximum       &
+                  &) then
+                ! Full mass ratio range is included, so use analytic integral over the parent mass.
+                massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                      &
+                     &                                *(                                                                          &
+                     &                                  +erf((massParentLimitUpper-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
+                     &                                  -erf((massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
+                     &                                 )
              else
                 massRatioNBodyOperateScalar(binIndex)=max(                                                      &
                      &                                    Integrate(                                            &
@@ -262,92 +282,24 @@ contains
   contains
 
     double precision function massRatioBivariateNormalIntegrand(massParentPrimed)
-      !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
-      use :: Galacticus_Error        , only : Galacticus_Error_Report
+      !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio. This is just
+      !% the bivariate normal distribution of parent mass and mass ratio integrated over the required range of mass ratio. The
+      !% remaining integral over the parent mass must then be found numerically.
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: massParentPrimed
-      double precision                :: massRatioShifted
-      
-      ! Find the shifted mass ratio.
-      massRatioShifted=+massRatio                  &
-           &           +massUncertaintyCorrelation &
-           &           *(                          &
-           &             +massUncertaintyRatio     &
-           &             /massUncertaintyParent    &
-           &            )                          &
-           &           *(                          &
-           &             +massParentPrimed         &
-           &             -massParent               &
-           &            )
-      ! Evaluate integrand. We divide through by the mass ratio here, such that our distribution is normalized to unity, but correctly accounts for the integral over mass ratio.
-      massRatioBivariateNormalIntegrand=+(                                    &
-           &                              +massRatioShifted                   &
-           &                              *erf(                               &
-           &                                   +(                             &
-           &                                     +massRatioMaximum            &
-           &                                     -massRatioShifted            &
-           &                                    )                             &
-           &                                   /sqrt(2.0d0)                   &
-           &                                   /massUncertaintyRatioReduced   &
-           &                                  )                               &
-           &                              /2.0d0                              &
-           &                              -massUncertaintyRatioReduced        &
-           &                              *exp(                               &
-           &                                   -(                             &
-           &                                     +(                           &
-           &                                       +massRatioMaximum          &
-           &                                       -massRatioShifted          &
-           &                                      )                           &
-           &                                     /massUncertaintyRatioReduced &
-           &                                    )**2                          &
-           &                                   /2.0d0                         &
-           &                                  )                               &
-           &                              /sqrt(                              &
-           &                                    +2.0d0                        &
-           &                                    *Pi                           &
-           &                                   )                              &
-           &                              -massRatioShifted                   &
-           &                              *erf(                               &
-           &                                   +(                             &
-           &                                     +massRatioMinimum            &
-           &                                     -massRatioShifted            &
-           &                                    )                             &
-           &                                   /sqrt(2.0d0)                   &
-           &                                   /massUncertaintyRatioReduced   &
-           &                                  )                               &
-           &                              /2.0d0                              &
-           &                              +massUncertaintyRatioReduced        &
-           &                              *exp(                               &
-           &                                   -(                             &
-           &                                     +(                           &
-           &                                       +massRatioMinimum          &
-           &                                       -massRatioShifted          &
-           &                                      )                           &
-           &                                     /massUncertaintyRatioReduced &
-           &                                    )**2                          &
-           &                                   /2.0d0                         &
-           &                                  )                               &
-           &                              /sqrt(                              &
-           &                                    +2.0d0                        &
-           &                                    *Pi                           &
-           &                                   )                              &
-           &                             )                                    &
-           &                            /massRatio                            &
-           &                            *exp(                                 &
-           &                                 -0.5d0                           & 
-           &                                 *(                               &
-           &                                   +(                             &
-           &                                     +massParentPrimed            &
-           &                                     -massParent                  &
-           &                                    )                             &
-           &                                   /massUncertaintyParent         &
-           &                                  )**2                            &
-           &                                )                                 &
-           &                            /sqrt(                                &
-           &                                  +2.0d0                          &
-           &                                  *Pi                             &
-           &                                 )                                & 
+      double precision                :: xParent         , xRatioMinimum, &
+           &                             xRatioMaximum
+
+      xParent                          =+(massParentPrimed-massParent)/massUncertaintyParent
+      xRatioMinimum                    =-(massRatioMinimum-massRatio )/massUncertaintyRatio
+      xRatioMaximum                    =-(massRatioMaximum-massRatio )/massUncertaintyRatio
+      massRatioBivariateNormalIntegrand=+(                                                                                                                                       &
+           &                              +exp(-0.5d0*xParent**2)*erf((-xRatioMaximum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)) &
+           &                              -exp(-0.5d0*xParent**2)*erf((-xRatioMinimum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)) &
+           &                             )                                                                                                                                       &
+           &                            /     2.0d0                                                                                                                              &
+           &                            /sqrt(2.0d0*Pi)                                                                                                                          &
            &                            /massUncertaintyParent
       return
     end function massRatioBivariateNormalIntegrand

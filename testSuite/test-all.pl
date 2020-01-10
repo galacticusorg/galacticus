@@ -100,6 +100,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.files.exe",                                                   # Tests of file functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.IO.HDF5.exe",                                                  # Tests of HDF5 IO routines.
 	valgrind => 0,
 	mpi      => 0
