@@ -490,6 +490,11 @@ my @executablesToRun = (
 	mpi      => 1
     },
     {
+	name     => "tests.recombination_computed.exe",                                   # Tests of computed radiative recombination coefficients.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
 	valgrind => 0,
 	mpi      => 0
