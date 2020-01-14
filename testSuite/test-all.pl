@@ -495,6 +495,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.recombination_cooling.Hummer.exe",                             # Tests of Hummer radiative recombination coefficients.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
 	valgrind => 0,
 	mpi      => 0
