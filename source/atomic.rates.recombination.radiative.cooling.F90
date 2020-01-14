@@ -29,7 +29,7 @@ module Atomic_Rates_Recombination_Radiative_Cooling
   !#  <description>Class providing atomic recombination cooling rates.</description>
   !#  <default>computed</default>
   !#  <method name="rate" >
-  !#   <description>Returns the recombination cooling rate.</description>
+  !#   <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
