@@ -33,8 +33,8 @@
      !% A halo mass function class convolves another halo mass function with a mass dependent error.
      private
      double precision                                   :: errorFractionalMaximum
-     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic => null()
-     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
+     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic  => null()
+     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_    => null()
    contains
      final     ::                 errorConvolvedDestructor
      procedure :: differential => errorConvolvedDifferential
