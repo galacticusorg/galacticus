@@ -309,16 +309,24 @@ if ( $drawLabels eq "gnuplot" ) {
 	    my $rangeMaximum = &latexFormat($data->{'x'}->[-1],$sigFigs);
 	    my @columns;
 	    my $label = exists($properties[$i-1]->{'label'}) ? "\$".$properties[$i-1]->{'label'}."\$" : $properties[$i-1]->{'xLabel'};
+	    my $j = -1;
 	    foreach ( $rangeMinimum, $label, $rangeMaximum ) {
+		++$j;
 		my $content;
-		$content .= "\\multicolumn{1}{p{".($width*$scale/3.25)."pt}}{";
+		if ( $j == 0 ) {
+		    $content .= "\\multicolumn{1}{p{".($width*$scale/3.25)."pt}}{";
+		} elsif ( $j == 1 ) {
+		    $content .= "\\multicolumn{1}{p{".($width*$scale/3.25)."pt}}{\\hspace{".($width*$scale/3.1/2.0)."pt}";
+		} elsif ( $j == 2 ) {
+		    $content .= "\\multicolumn{1}{r}{";
+		}
 		$content .= "\\raisebox{";
 		if ( $i == scalar(@properties) ) {
 		    $content .= "0pt";
 		} else {		
 		    $content .= ($height*$scale)."pt-\\widthof{\\".$labelStyle." x}";
 		}
-		$content .= "-\\widthof{\\".$labelStyle." ".$_."}}[0pt][0pt]{\\rotatebox{90}{\\".$labelStyle." ".$_."}}";
+		$content .= "-\\widthof{\\".$labelStyle." ".$_."}}[0pt][0pt]{\\rotatebox{90}{\\".$labelStyle." ".$_."}".($j == 2 ? "\\hspace{3pt}" : "")."}";
 		$content .= "}";
 		push(@columns,$content);	    
 	    }
