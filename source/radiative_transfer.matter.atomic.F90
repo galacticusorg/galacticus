@@ -17,14 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Atomic_Cross_Sections_Ionization_Photo , only : atomicCrossSectionIonizationPhotoClass
-  use :: Atomic_Ionization_Potentials           , only : atomicIonizationPotentialClass
-  use :: Atomic_Radiation_Gaunt_Factors         , only : gauntFactorClass
-  use :: Atomic_Rates_Excitation_Collisional    , only : atomicExcitationRateCollisionalClass
-  use :: Atomic_Rates_Ionization_Collisional    , only : atomicIonizationRateCollisionalClass
-  use :: Atomic_Rates_Recombination_Dielectronic, only : atomicRecombinationRateDielectronicClass
-  use :: Atomic_Rates_Recombination_Radiative   , only : atomicRecombinationRateRadiativeClass
-  use :: Mass_Distributions                     , only : massDistributionClass
+  use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoClass
+  use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialClass
+  use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactorClass
+  use :: Atomic_Rates_Excitation_Collisional         , only : atomicExcitationRateCollisionalClass
+  use :: Atomic_Rates_Ionization_Collisional         , only : atomicIonizationRateCollisionalClass
+  use :: Atomic_Rates_Recombination_Dielectronic     , only : atomicRecombinationRateDielectronicClass
+  use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeClass
+  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingClass
+  use :: Mass_Distributions                          , only : massDistributionClass
   
   !# <radiativeTransferMatter name="radiativeTransferMatterAtomic">
   !#  <description>A task which performs radiative transfer.</description>
@@ -32,22 +33,23 @@
   type, extends(radiativeTransferMatterClass) :: radiativeTransferMatterAtomic
      !% Implementation of a radiative transfer matter class for atomic matter.
      private
-     class           (massDistributionClass                   ), pointer                   :: massDistribution_                    => null()
-     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                   :: atomicCrossSectionIonizationPhoto_   => null()
-     class           (atomicRecombinationRateRadiativeClass   ), pointer                   :: atomicRecombinationRateRadiative_    => null()
-     class           (atomicIonizationRateCollisionalClass    ), pointer                   :: atomicIonizationRateCollisional_     => null()
-     class           (atomicRecombinationRateDielectronicClass), pointer                   :: atomicRecombinationRateDielectronic_ => null()
-     class           (atomicIonizationPotentialClass          ), pointer                   :: atomicIonizationPotential_           => null()
-     class           (atomicExcitationRateCollisionalClass    ), pointer                   :: atomicExcitationRateCollisional_     => null()
-     class           (gauntFactorClass                        ), pointer                   :: gauntFactor_                         => null()
-     integer                                                                               :: indexAbundancePattern                         , iterationAverageCount, &
-          &                                                                                   countElements                                 , indexHydrogen
-     integer         (c_size_t                                )                            :: countOutputs_
-     double precision                                                                      :: metallicity                                   , temperatureMinimum
-     double precision                                          , allocatable, dimension(:) :: numberDensityMassDensityRatio                 , elementAtomicMasses
-     type            (varying_string                          )                            :: abundancePattern
-     character       (len=2                                   ), allocatable, dimension(:) :: elements
-     integer                                                   , allocatable, dimension(:) :: elementAtomicNumbers
+     class           (massDistributionClass                       ), pointer                   :: massDistribution_                        => null()
+     class           (atomicCrossSectionIonizationPhotoClass      ), pointer                   :: atomicCrossSectionIonizationPhoto_       => null()
+     class           (atomicRecombinationRateRadiativeClass       ), pointer                   :: atomicRecombinationRateRadiative_        => null()
+     class           (atomicRecombinationRateRadiativeCoolingClass), pointer                   :: atomicRecombinationRateRadiativeCooling_ => null()
+     class           (atomicIonizationRateCollisionalClass        ), pointer                   :: atomicIonizationRateCollisional_         => null()
+     class           (atomicRecombinationRateDielectronicClass    ), pointer                   :: atomicRecombinationRateDielectronic_     => null()
+     class           (atomicIonizationPotentialClass              ), pointer                   :: atomicIonizationPotential_               => null()
+     class           (atomicExcitationRateCollisionalClass        ), pointer                   :: atomicExcitationRateCollisional_         => null()
+     class           (gauntFactorClass                            ), pointer                   :: gauntFactor_                             => null()
+     integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount, &
+          &                                                                                       countElements                                     , indexHydrogen
+     integer         (c_size_t                                    )                            :: countOutputs_
+     double precision                                                                          :: metallicity                                       , temperatureMinimum
+     double precision                                              , allocatable, dimension(:) :: numberDensityMassDensityRatio                     , elementAtomicMasses
+     type            (varying_string                              )                            :: abundancePattern
+     character       (len=2                                       ), allocatable, dimension(:) :: elements
+     integer                                                       , allocatable, dimension(:) :: elementAtomicNumbers
    contains
      !@ <objectMethods>
      !@   <object>radiativeTransferMatterAtomic</object>
@@ -107,20 +109,21 @@ contains
     use :: Input_Parameters                , only : inputParameters , inputParameter
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
-    type            (radiativeTransferMatterAtomic           )                             :: self
-    type            (inputParameters                         ), intent(inout)              :: parameters
-    class           (massDistributionClass                   ), pointer                    :: massDistribution_
-    class           (atomicCrossSectionIonizationPhotoClass  ), pointer                    :: atomicCrossSectionIonizationPhoto_
-    class           (atomicRecombinationRateRadiativeClass   ), pointer                    :: atomicRecombinationRateRadiative_
-    class           (atomicIonizationRateCollisionalClass    ), pointer                    :: atomicIonizationRateCollisional_
-    class           (atomicRecombinationRateDielectronicClass), pointer                    :: atomicRecombinationRateDielectronic_
-    class           (atomicIonizationPotentialClass          ), pointer                    :: atomicIonizationPotential_
-    class           (atomicExcitationRateCollisionalClass    ), pointer                    :: atomicExcitationRateCollisional_
-    class           (gauntFactorClass                        ), pointer                    :: gauntFactor_
-    character       (len=2                                   ), dimension(:) , allocatable :: elements
-    integer                                                                                :: iterationAverageCount    
-    double precision                                                                       :: temperatureMinimum                  , metallicity
-    type            (varying_string                          )                             :: abundancePattern
+    type            (radiativeTransferMatterAtomic               )                             :: self
+    type            (inputParameters                             ), intent(inout)              :: parameters
+    class           (massDistributionClass                       ), pointer                    :: massDistribution_
+    class           (atomicCrossSectionIonizationPhotoClass      ), pointer                    :: atomicCrossSectionIonizationPhoto_
+    class           (atomicRecombinationRateRadiativeClass       ), pointer                    :: atomicRecombinationRateRadiative_
+    class           (atomicRecombinationRateRadiativeCoolingClass), pointer                    :: atomicRecombinationRateRadiativeCooling_
+    class           (atomicIonizationRateCollisionalClass        ), pointer                    :: atomicIonizationRateCollisional_
+    class           (atomicRecombinationRateDielectronicClass    ), pointer                    :: atomicRecombinationRateDielectronic_
+    class           (atomicIonizationPotentialClass              ), pointer                    :: atomicIonizationPotential_
+    class           (atomicExcitationRateCollisionalClass        ), pointer                    :: atomicExcitationRateCollisional_
+    class           (gauntFactorClass                            ), pointer                    :: gauntFactor_
+    character       (len=2                                       ), dimension(:) , allocatable :: elements
+    integer                                                                                    :: iterationAverageCount    
+    double precision                                                                           :: temperatureMinimum                      , metallicity
+    type            (varying_string                              )                             :: abundancePattern
     
     !# <inputParameter>
     !#   <name>iterationAverageCount</name>
@@ -167,27 +170,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
-    !# <objectBuilder class="massDistribution"                    name="massDistribution_"                    source="parameters"/>
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"   name="atomicCrossSectionIonizationPhoto_"   source="parameters"/>
-    !# <objectBuilder class="atomicRecombinationRateRadiative"    name="atomicRecombinationRateRadiative_"    source="parameters"/>
-    !# <objectBuilder class="atomicIonizationRateCollisional"     name="atomicIonizationRateCollisional_"     source="parameters"/>
-    !# <objectBuilder class="atomicRecombinationRateDielectronic" name="atomicRecombinationRateDielectronic_" source="parameters"/>
-    !# <objectBuilder class="atomicIonizationPotential"           name="atomicIonizationPotential_"           source="parameters"/>
-    !# <objectBuilder class="atomicExcitationRateCollisional"     name="atomicExcitationRateCollisional_"     source="parameters"/>
-    !# <objectBuilder class="gauntFactor"                         name="gauntFactor_"                         source="parameters"/>
-    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
-    !# <objectDestructor name="massDistribution_"                   />
-    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"  />
-    !# <objectDestructor name="atomicRecombinationRateRadiative_"   />
-    !# <objectDestructor name="atomicIonizationRateCollisional_"    />
-    !# <objectDestructor name="atomicRecombinationRateDielectronic_"/>
-    !# <objectDestructor name="atomicIonizationPotential_"          />
-    !# <objectDestructor name="atomicExcitationRateCollisional_"    />
-    !# <objectDestructor name="gauntFactor_"                        />
+    !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
+    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
+    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
+    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"/>
+    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"/>
+    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"/>
+    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
+    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
+    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
+    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
+    !# <objectDestructor name="massDistribution_"                       />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
+    !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
+    !# <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
+    !# <objectDestructor name="atomicIonizationRateCollisional_"        />
+    !# <objectDestructor name="atomicRecombinationRateDielectronic_"    />
+    !# <objectDestructor name="atomicIonizationPotential_"              />
+    !# <objectDestructor name="atomicExcitationRateCollisional_"        />
+    !# <objectDestructor name="gauntFactor_"                            />
     return
   end function atomicConstructorParameters
 
-  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
+  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
     use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
@@ -197,24 +202,25 @@ contains
     use :: Numerical_Constants_Prefixes    , only : centi
     use :: String_Handling                 , only : String_Count_Words      , String_Split_Words
     implicit none
-    type            (radiativeTransferMatterAtomic           )                              :: self
-    integer                                                   , intent(in   )               :: iterationAverageCount
-    double precision                                          , intent(in   )               :: temperatureMinimum                  , metallicity
-    type            (varying_string                          ), intent(in   )               :: abundancePattern
-    character       (len=2                                   ), intent(in   ), dimension(:) :: elements
-    class           (massDistributionClass                   ), intent(in   ), target       :: massDistribution_
-    class           (atomicCrossSectionIonizationPhotoClass  ), intent(in   ), target       :: atomicCrossSectionIonizationPhoto_
-    class           (atomicRecombinationRateRadiativeClass   ), intent(in   ), target       :: atomicRecombinationRateRadiative_
-    class           (atomicIonizationRateCollisionalClass    ), intent(in   ), target       :: atomicIonizationRateCollisional_
-    class           (atomicRecombinationRateDielectronicClass), intent(in   ), target       :: atomicRecombinationRateDielectronic_
-    class           (atomicIonizationPotentialClass          ), intent(in   ), target       :: atomicIonizationPotential_
-    class           (atomicExcitationRateCollisionalClass    ), intent(in   ), target       :: atomicExcitationRateCollisional_
-    class           (gauntFactorClass                        ), intent(in   ), target       :: gauntFactor_
-    double precision                                          , allocatable  , dimension(:) :: abundancesRelative
-    double precision                                                                        :: numberDensityMassDensityRatioHydrogen, numberDensityMassDensityRatioHelium
-    type            (abundances                              )                              :: abundances_
-    integer                                                                                 :: i
-    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    type            (radiativeTransferMatterAtomic               )                              :: self
+    integer                                                       , intent(in   )               :: iterationAverageCount
+    double precision                                              , intent(in   )               :: temperatureMinimum                      , metallicity
+    type            (varying_string                              ), intent(in   )               :: abundancePattern
+    character       (len=2                                       ), intent(in   ), dimension(:) :: elements
+    class           (massDistributionClass                       ), intent(in   ), target       :: massDistribution_
+    class           (atomicCrossSectionIonizationPhotoClass      ), intent(in   ), target       :: atomicCrossSectionIonizationPhoto_
+    class           (atomicRecombinationRateRadiativeClass       ), intent(in   ), target       :: atomicRecombinationRateRadiative_
+    class           (atomicRecombinationRateRadiativeCoolingClass), intent(in   ), target       :: atomicRecombinationRateRadiativeCooling_
+    class           (atomicIonizationRateCollisionalClass        ), intent(in   ), target       :: atomicIonizationRateCollisional_
+    class           (atomicRecombinationRateDielectronicClass    ), intent(in   ), target       :: atomicRecombinationRateDielectronic_
+    class           (atomicIonizationPotentialClass              ), intent(in   ), target       :: atomicIonizationPotential_
+    class           (atomicExcitationRateCollisionalClass        ), intent(in   ), target       :: atomicExcitationRateCollisional_
+    class           (gauntFactorClass                            ), intent(in   ), target       :: gauntFactor_
+    double precision                                              , allocatable  , dimension(:) :: abundancesRelative
+    double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
+    type            (abundances                                  )                              :: abundances_
+    integer                                                                                     :: i
+    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
 
     ! Initialize count of outputs. (Just 1, for temperature.)
     self%countOutputs_=1_c_size_t
@@ -267,14 +273,15 @@ contains
     implicit none
     type(radiativeTransferMatterAtomic), intent(inout) :: self
 
-    !# <objectDestructor name="self%massDistribution_"                   />
-    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"  />
-    !# <objectDestructor name="self%atomicRecombinationRateRadiative_"   />
-    !# <objectDestructor name="self%atomicIonizationRateCollisional_"    />
-    !# <objectDestructor name="self%atomicRecombinationRateDielectronic_"/>
-    !# <objectDestructor name="self%atomicIonizationPotential_"          />
-    !# <objectDestructor name="self%atomicExcitationRateCollisional_"    />
-    !# <objectDestructor name="self%gauntFactor_"                        />
+    !# <objectDestructor name="self%massDistribution_"                       />
+    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"      />
+    !# <objectDestructor name="self%atomicRecombinationRateRadiative_"       />
+    !# <objectDestructor name="self%atomicRecombinationRateRadiativeCooling_"/>
+    !# <objectDestructor name="self%atomicIonizationRateCollisional_"        />
+    !# <objectDestructor name="self%atomicRecombinationRateDielectronic_"    />
+    !# <objectDestructor name="self%atomicIonizationPotential_"              />
+    !# <objectDestructor name="self%atomicExcitationRateCollisional_"        />
+    !# <objectDestructor name="self%gauntFactor_"                            />
     return
   end subroutine atomicDestructor
 
@@ -795,21 +802,21 @@ contains
                       ! Metals.
                       recombinationCase=recombinationCaseA
                    end select
-                   rateRecombinationRadiative          =+                                          densityNumberElectrons                                                                                 &
-                        &                               *self%atomicRecombinationRateRadiative_   %rate                   (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase)
-                   rateRecombinationDielectronic       =+                                          densityNumberElectrons                                                                                 &
-                        &                               *self%atomicRecombinationRateDielectronic_%rate                   (self%elementAtomicNumbers(i),j,properties%temperature                        )
+                   rateRecombinationRadiative          =+                                                       densityNumberElectrons                                                                                           &
+                        &                               *self      %atomicRecombinationRateRadiative_          %rate                             (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase)
+                   rateRecombinationDielectronic       =+                                                       densityNumberElectrons                                                                                           &
+                        &                               *self      %atomicRecombinationRateDielectronic_       %rate                             (self%elementAtomicNumbers(i),j,properties%temperature                        )
                    !! Accumulate the rates of cooling due to recombinations.
-                   rateCoolingRecombinationRadiative   =+rateCoolingRecombinationRadiative                    &
-                        &                               +rateRecombinationRadiative                           &
-                        &                               *0.75d0                                               & !! TO DO use the correct factors.
-                        &                               *boltzmannsConstant                                   &
-                        &                               *properties%temperature                               &
-                        &                               *properties%elements   (i)%densityNumber              &
-                        &                               *properties%elements   (i)%ionizationStateFraction(j) 
+                   rateCoolingRecombinationRadiative   =+                                                       rateCoolingRecombinationRadiative                                                                                &
+                        &                               +self      %atomicRecombinationRateRadiativeCooling_   %rate                             (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase) &
+                        &                               *                                                       boltzmannsConstant                                                                                               &
+                        &                               *properties%temperature                                                                                                                                                  &
+                        &                               *                                                       densityNumberElectrons                                                                                           &
+                        &                               *properties%elements                                (i)%densityNumber                                                                                                    &
+                        &                               *properties%elements                                (i)%ionizationStateFraction          (                             j                                               )
                    rateCoolingRecombinationDielectronic=+0.0d0 !! TO DO - get dielectronic cooling rates.
                    !! Find the net rate of downward transitions.
-                   rateDownward                        =+rateRecombinationRadiative                           &
+                   rateDownward                        =+rateRecombinationRadiative                                                                                                                                              &
                         &                               +rateRecombinationDielectronic
                    !! Compute the relative abundance required to balance upward and downward transitions.
                    if (rateDownward == 0.0d0) then
