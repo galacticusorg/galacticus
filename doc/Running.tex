@@ -370,14 +370,6 @@ Once all workers have finished, their outputs can (if required) be combined into
 \end{verbatim}
 where {\normalfont \ttfamily model1} etc. are the names of the various output files and {\normalfont \ttfamily modelOutput} is the file into which the combined results should be placed. The {\normalfont \ttfamily Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\normalfont \ttfamily globalHistory} groups in these files. The UUIDs of the merged files (see \S\ref{sec:UUID}) will be concatenated (with a ``:'' separator) and placed into the {\normalfont \ttfamily UUIDs} attribute of the new file. Additionally, a new UUID will be generated and stored in the {\normalfont \ttfamily UUID} attribute of the new file.
 
-\subsection{Limiting the Load Average}\index{load average}
-
-If {\normalfont \ttfamily [treeEvolveLimitLoadAverage]}$=${\normalfont \ttfamily true} then \glc\ will attempt to keep the load average of the system under {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\normalfont \ttfamily processorCount} in which case the number of processor cores present on the system will be used for {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]}.
-
-\subsubsection{Thread Locking via Semaphores}\label{sec:Semaphores}\index{semaphores}
-
-An alternative is to use Linux's semaphoring system to share processors between multiple instances of \glc\ running on a single machine. To activiate this mode, set {\normalfont \ttfamily [treeEvolveThreadLock]} to the total number of threads that should be active at any one time across all instances of \glc\ running on a machine. You can also set this parameter to {\normalfont \ttfamily processorCount} to set a a value equal to the total number of processors on the machine. With this parameter set, each instance of \glc\ running on a machine will request a semaphore for each thread that it attempts to run, with the maximum number of semaphores set to the value of {\normalfont \ttfamily [treeEvolveThreadLock]}. This means that, if one instance of \glc\ has claimed 6 semaphores when {\normalfont \ttfamily [treeEvolveThreadLock]}$=${\normalfont \ttfamily 8}, then a second instance of \glc\ will only run 2 threads. Once the first instance releases its semaphores, the second instance will claim them and begin running more threads.
-
 \section{Tasks}
 
 By default, \glc\ executes a single ``task'' when run---to evolve a set of merger tree forests and output the resulting halo and galaxy properties. Different tasks can be performed however, controlled by the {\normalfont \ttfamily taskMethod} parameter.
