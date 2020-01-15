@@ -95,7 +95,6 @@ contains
     !% Display an error message.
     !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
@@ -109,16 +108,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+    call BackTrace             (     )
+    call Galacticus_Warn_Review(     )
+    call Flush                 (    0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F             (error)
+    call H5Close_C             (     )
+    call Abort                 (     )
 #endif
     return
   end subroutine Galacticus_Error_Report_Char
@@ -209,7 +207,6 @@ contains
 #endif
     !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
@@ -243,10 +240,9 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F(error)
+    call H5Close_C(     )
+    call Abort    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGINT
@@ -258,7 +254,6 @@ contains
 #endif
     !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
@@ -292,10 +287,9 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F(error)
+    call H5Close_C(     )
+    call Abort    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGSEGV
@@ -307,7 +301,6 @@ contains
 #endif
     !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
     use    :: HDF5      , only : H5Close_F
 #endif
     implicit none
@@ -341,10 +334,9 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F(error)
+    call H5Close_C(     )
+    call Abort    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
@@ -352,12 +344,11 @@ contains
   subroutine Galacticus_Signal_Handler_SIGBUS()
     !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
+    use    :: MPI    , only : MPI_Comm_Rank          , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
+    !$ use :: OMP_Lib, only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -390,10 +381,9 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F(error)
+    call H5Close_C(     )
+    call Abort    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGBUS
@@ -401,12 +391,11 @@ contains
   subroutine Galacticus_Signal_Handler_SIGILL()
     !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
 #ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
+    use    :: MPI    , only : MPI_Comm_Rank  , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
+    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: Semaphores, only : Semaphore_Post_On_Error
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
     implicit none
     integer            :: error
@@ -441,7 +430,6 @@ contains
 #endif
     call H5Close_F                (error)
     call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
     call Abort                    (     )
 #endif
     return
@@ -449,15 +437,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
-    use :: Semaphores, only : Semaphore_Post_On_Error
 #ifndef UNCLEANEXIT
-    use :: HDF5      , only : H5Close_F
+    use :: HDF5, only : H5Close_F
 #endif
     implicit none
     integer :: error
 
     write (0,*) 'Galacticus exceeded available CPU time - will try to flush data before exiting.'
-    call Semaphore_Post_On_Error()
     call Flush(0)
 #ifndef UNCLEANEXIT
     call H5Close_F(error)
@@ -471,11 +457,10 @@ contains
     !% Handle errors from the GSL library, by flushing all data and then aborting.
     use   , intrinsic :: ISO_C_Binding, only : c_ptr
 #ifdef USEMPI
-    use               :: MPI          , only : MPI_Initialized        , MPI_Comm_Rank     , MPI_Comm_World
+    use               :: MPI          , only : MPI_Initialized, MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use            :: OMP_Lib      , only : OMP_In_Parallel        , OMP_Get_Thread_Num
+    !$ use            :: OMP_Lib      , only : OMP_In_Parallel, OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use               :: Semaphores   , only : Semaphore_Post_On_Error
     use               :: HDF5         , only : H5Close_F
 #endif
     type     (c_ptr                         ), value :: file       , reason
@@ -515,10 +500,9 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Semaphore_Post_On_Error  (     )
-    call Abort                    (     )
+    call H5Close_F(error)
+    call H5Close_C(     )
+    call Abort    (     )
 #endif
     else
        errorStatusGSL=errorNumber
