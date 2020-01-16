@@ -134,7 +134,7 @@
       <cdmAssumptions value="true"/>
     </mergerTreeBranchingProbabilityMethod>
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
-    <nodeMergersMethod value="singleLevelHierarchy"/>
+    <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
     <mergerTreeNodeEvolverMethod value="standard">
       <odeAlgorithm value="rungeKuttaSecondOrder"/>
       <odeToleranceAbsolute value="1.0e-3"/>

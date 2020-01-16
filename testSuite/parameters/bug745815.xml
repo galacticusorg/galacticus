@@ -102,7 +102,7 @@
   <mergerTreeBuildMassDistributionMethod value="uniform"/>
   <mergerTreeBuildTreesHaloMassExponent value="1"/>
   <mergerTreeConstructorMethod value="build"/>
-  <nodeMergersMethod value="single level hierarchy"/>
+  <mergerTreeNodeMergerMethod value="single level hierarchy"/>
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>

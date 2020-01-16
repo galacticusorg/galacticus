@@ -99,7 +99,7 @@
     <velocityRadial value="-0.90"/>
   </virialOrbitMethod>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   <stellarPopulationMethod value="standard">
     <recycledFraction value="0.46"/>
     <metalYield value="0.035"/>
