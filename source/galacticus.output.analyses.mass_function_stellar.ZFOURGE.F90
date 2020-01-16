@@ -38,7 +38,8 @@ contains
 
   function massFunctionStellarZFOURGEConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarZFOURGE'' output analysis class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Gravitational_Lensing, only : gravitationalLensingClass
+    use :: Input_Parameters     , only : inputParameter           , inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarZFOURGE)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters
