@@ -34,8 +34,9 @@
      !% A gravitational lensing output distribution operator class.
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_ => null()
-     class           (outputTimesClass         ), pointer                   :: outputTimes_ => null()
+     class           (outputTimesClass         ), pointer                   :: outputTimes_          => null()
      type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
+     integer                                                                :: lensedProperty
      double precision                                                       :: sizeSource
      !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock
    contains
@@ -55,6 +56,16 @@
   class  (gravitationalLensingClass), allocatable :: grvtnlLnsngGravitationalLensing_
   !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
 
+  !# <enumeration>
+  !#  <name>lensedProperty</name>
+  !#  <description>Enumeration of properties affected by gravitational lensing.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="luminosity"/>
+  !#  <entry label="size"      />
+  !# </enumeration>
+
 contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
@@ -65,9 +76,17 @@ contains
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (gravitationalLensingClass                    ), pointer       :: gravitationalLensing_
     class           (outputTimesClass                             ), pointer       :: outputTimes_
+    type            (varying_string                               )                :: lensedProperty
     double precision                                                               :: sizeSource
 
-    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>lensedProperty</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('luminosity')</defaultValue>
+    !#   <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSource</name>
     !#   <source>parameters</source>
@@ -77,26 +96,31 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     ! Construct the object.
-    self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource)
+    self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource,enumerationLensedPropertyEncode(char(lensedProperty),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="gravitationalLensing_"/>
     !# <objectDestructor name="outputTimes_"         />
     return
   end function grvtnlLnsngConstructorParameters
 
-  function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource) result(self)
+  function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
     !% Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                        :: self
-    class           (gravitationalLensingClass                    ), intent(in   ), target :: gravitationalLensing_
-    class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
-    double precision                                               , intent(in   )         :: sizeSource
-    !$ integer      (c_size_t                                     )                        :: i
+    type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                          :: self
+    class           (gravitationalLensingClass                    ), intent(in   ), target   :: gravitationalLensing_
+    class           (outputTimesClass                             ), intent(in   ), target   :: outputTimes_
+    integer                                                        , intent(in   ), optional :: lensedProperty
+    double precision                                               , intent(in   )           :: sizeSource
+    !$ integer      (c_size_t                                     )                          :: i
+    !# <optionalArgument name="lensedProperty" defaultsTo="lensedPropertyLuminosity" />
     !# <constructorAssign variables="*gravitationalLensing_, *outputTimes_, sizeSource"/>
-
+    
+    if (.not.enumerationLensedPropertyIsValid(lensedProperty_)) call Galacticus_Error_Report('invalid lensedProperty'//{introspection:location})
+    self%lensedProperty=lensedProperty_
     ! Allocate transfer matrices for all outputs.
     allocate   (self%transfer_   (self%outputTimes_%count()))
     !$ allocate(self%tabulateLock(self%outputTimes_%count()))
@@ -160,6 +184,7 @@ contains
     if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
        !$ call self%tabulateLock(outputIndex)%setWrite(haveReadLock=.true.)
        if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
+          redshift=self%outputTimes_%redshift(outputIndex)
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
           !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
@@ -232,6 +257,19 @@ contains
          ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(grvtnLnsngK)-propertyValue))
       case default
          call Galacticus_Error_Report('unknown property type'//{introspection:location})
+      end select
+
+      ! Scale ratios depending on the property being lensed.
+      select case (self%lensedProperty)
+      case (lensedPropertyLuminosity)
+         ! Luminosity scales linearly with magnification - no need to modify ratios.
+      case (lensedPropertySize      )
+         ! Size scales as the square-root of magnification. Our ratios as computed so far are ratios of size. To find the
+         ! corresponding ratios of magnification we must therefore square the ratios.
+         ratioMinimum=ratioMinimum**2
+         ratioMaximum=ratioMaximum**2
+      case default
+         call Galacticus_Error_Report('unknown lensedProperty'//{introspection:location})
       end select
       ! Compute the lensing CDF across this range of magnifications.
       magnificationCDFIntegrand=                                                     &
