@@ -128,7 +128,11 @@ contains
          &                                                                  velocityScale
 
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
     ! Check error codes.
@@ -151,12 +155,17 @@ contains
     orbitalCircularity= orbit%angularMomentum()                                                             &
          &             /equivalentCircularOrbitRadius                                                       &
          &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
-    ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
+    ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
     basic     =>  node     %basic()
     basicHost =>  nodeHost %basic()
-    massRatio =  +basicHost%mass () &
-         &       /basic    %mass () &
-         &       -1.0d0
+    if (node%isSatellite()) then
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    -1.0d0
+    else
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    end if
     ! Check for a non-zero mass ratio.
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
