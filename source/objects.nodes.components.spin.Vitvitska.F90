@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ Contributions to this file made by: Christoph Behrens.
+!+ Contributions to this file made by: Andrew Benson, Christoph Behrens.
 
 !% Contains a module implementing a node spin component using the approach of
 !% \cite{vitvitska_origin_2002}.
@@ -57,6 +57,13 @@ module Node_Component_Spin_Vitvitska
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
+  !#     <name>angularMomentumAccretionRate</name>
+  !#     <type>double</type>
+  !#     <rank>1</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+  !#   </property>
+  !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get" />
   !#     <type>double</type>
@@ -77,6 +84,9 @@ module Node_Component_Spin_Vitvitska
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
   double precision :: spinVitvitskaMassExponent
 
+  ! Parameter controlling differential evolution of spin.
+  logical          :: spinVitvitskaEvolveDifferentially
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -96,6 +106,14 @@ contains
     !#   <source>parameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
     !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>spinVitvitskaEvolveDifferentially</name>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <source>parameters_</source>
+    !#   <description>If true, the spin vector of the halo evolves under differential evolution due to the accretion of subresolution mass. If false, the spin vector is held fixed during differential evolution and only updates during node mergers. While the former should be more realistic, the latter is currently preferred as thestandard hot halo component treatment of angular momentum relies on this assumption.</description>
+    !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Bind deferred functions.
@@ -173,7 +191,7 @@ contains
     class           (nodeComponentSatellite        )               , pointer   :: satelliteSibling
     class           (nodeComponentDarkMatterProfile)               , pointer   :: darkMatterProfileUnresolved
     double precision                                , dimension(3)             :: angularMomentumOrbital            , angularMomentumTotal              , &
-         &                                                                        spinVector
+         &                                                                        spinVector                        , angularMomentumUnresolved
     double precision                                               , parameter :: massFunctionSlopeLogarithmic=1.9d0
     double precision                                                           :: spinValue                         , massRatio                         , &
          &                                                                        theta                             , phi                               , &
@@ -268,11 +286,20 @@ contains
                         &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
                         &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
                 end if
-                ! Accumulate the angular momentum of the unresolved mass.
-                angularMomentumTotal=+angularMomentumTotal                                                                   &
-                     &               +massUnresolved                                                                         &
-                     &               *virialOrbit_                      %angularMomentumVectorMean(nodeUnresolved,nodeChild) &
-                     &               *angularMomentumSubresolutionFactor                
+                ! Accumulate the angular momentum of the unresolved mass. Set the angular momentum accretion rate of the child
+                ! node such that it accretes the correct amount over its lifetime.
+                angularMomentumUnresolved=+massUnresolved                                                                         &
+                     &                    *virialOrbit_                      %angularMomentumVectorMean(nodeUnresolved,nodeChild) &
+                     &                    *angularMomentumSubresolutionFactor      
+                angularMomentumTotal     =+angularMomentumTotal                                                                   &
+                     &                    +angularMomentumUnresolved
+                call spinChild%angularMomentumAccretionRateSet(                           &
+                     &                                         +angularMomentumUnresolved &
+                     &                                         /(                         &
+                     &                                           +basic     %time()       &
+                     &                                           -basicChild%time()       &
+                     &                                          )                         &
+                     &                                        )
                 call nodeUnresolved%destroy()
                 deallocate(nodeUnresolved)
                 ! Convert angular momentum back to spin.
@@ -294,9 +321,9 @@ contains
     use :: Galacticus_Nodes   , only : nodeComponentSpinVitvitska         , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodesBranch
     implicit none
-    class  (nodeComponentSpinVitvitska         ), intent(inout) :: self
-    type   (treeNode                           ), pointer       :: node
-    type   (mergerTreeWalkerIsolatedNodesBranch)                :: treeWalker
+    class(nodeComponentSpinVitvitska         ), intent(inout) :: self
+    type (treeNode                           ), pointer       :: node
+    type (mergerTreeWalkerIsolatedNodesBranch)                :: treeWalker
 
     treeWalker=mergerTreeWalkerIsolatedNodesBranch(self%hostNode)
     do while (treeWalker%next(node))
@@ -330,23 +357,33 @@ contains
 
   double precision function Node_Component_Spin_Vitvitska_Spin_Growth_Rate(self)
     !% Return the growth rate of the spin parameter.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpinVitvitska
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
+    use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentSpinVitvitska
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
     class(nodeComponentBasic        ), pointer       :: basic
 
-    ! Assumes that the angular momentum of the halo remains unchanged during differential evolution, so changes in spin arise only
-    ! from changes in the mass and energy of the halo.
-    basic                                          =>  self                %hostNode%basic     (             )
-    Node_Component_Spin_Vitvitska_Spin_Growth_Rate =  +self                %spin               (             ) &
-         &                                            *(                                                       &
-         &                                              +0.5d0                                                 &
-         &                                              *darkMatterProfileDMO_%energyGrowthRate(self%hostNode) &
-         &                                              /darkMatterProfileDMO_%energy          (self%hostNode) &
-         &                                              -2.5d0                                                 &
-         &                                              *basic                %accretionRate   (             ) &
-         &                                              /basic                %mass            (             ) &
-         &                                             )
+    if (spinVitvitskaEvolveDifferentially) then
+       ! During differential evolution the spin evolves due to changes in mass, energy, and accretion of angular momentum. The vector
+       ! angular momentum accretion rate is available for each node. For the rate of change of the spin magnitude what we care about
+       ! if the projection of this vector rate of change onto the instantaneous spin unit vector.
+       basic                                          =>                                      self                 %hostNode%basic  (             )
+       Node_Component_Spin_Vitvitska_Spin_Growth_Rate =  +                                    self                 %spin            (             )                                      &
+            &                                            *(                                                                                                                              &
+            &                                              +0.5d0                                                                                                                        &
+            &                                              *                                  darkMatterProfileDMO_%energyGrowthRate(self%hostNode)                                      &
+            &                                              /                                  darkMatterProfileDMO_%energy          (self%hostNode)                                      &
+            &                                              -2.5d0                                                                                                                        &
+            &                                              *                                  basic                %accretionRate   (             )                                      &
+            &                                              /                                  basic                %mass            (             )                                      &
+            &                                              +Dot_Product                      (self                 %spinVector      (             ),self%angularMomentumAccretionRate()) &
+            &                                              /                                  self                 %spin            (             )                                      &
+            &                                              /Dark_Matter_Halo_Angular_Momentum(self                 %hostNode                       ,     darkMatterProfileDMO_         ) &
+            &                                             )
+    else
+       ! No differential evolution is applied.
+       Node_Component_Spin_Vitvitska_Spin_Growth_Rate=0.0d0
+    end if
     return
   end function Node_Component_Spin_Vitvitska_Spin_Growth_Rate
 
@@ -372,8 +409,9 @@ contains
     if (basic%time() /= basicParent%time()) &
          & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
     ! Adjust the spin to that of the parent node.
-    call spin%spinSet      (spinParent%spin      ())
-    call spin%spinVectorSet(spinParent%spinVector())
+    call spin%spinSet                        (spinParent%spin                        ())
+    call spin%spinVectorSet                  (spinParent%spinVector                  ())
+    call spin%angularMomentumAccretionRateSet(spinParent%angularMomentumAccretionRate())
     return
   end subroutine nodePromotion
 
@@ -382,8 +420,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
-    use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpin, nodeComponentSpinVitvitska, propertyTypeInactive, &
-          &                         treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
+    use :: Galacticus_Nodes      , only : defaultSpinComponent             , nodeComponentSpin, nodeComponentSpinVitvitska, propertyTypeInactive, &
+          &                               treeNode
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     logical                            , intent(in   )          :: odeConverged
@@ -404,13 +443,32 @@ contains
     ! Ensure that it is of the Vitvitska class.
     select type (spin)
     class is (nodeComponentSpinVitvitska)
-       ! Rate of change is set equal to the precomputed growth rate.
+       ! Rate of change of the spin magnitude is determined from the virtual property. For the rate of change of the spin vector
+       ! we split the results into two. The first part is the change in the magnitude of the spin vector, which is simply
+       ! proportional to the rate of change of the scalar spin. The second is the perpendicular component of the rate of change
+       ! (which therefore does not change the magnitude of the spin, and so does not depend on changes in the mass or energy of
+       ! the halo). This second term is computed by taking the vector rate of angular momentum accretion and subtracting off that
+       ! component along the instantaneous spin unit vector.
        spinGrowthRate=spin%spinGrowthRate()
        if (spinGrowthRate /= 0.0d0) then
           spinMagnitude =spin%spin          ()
           spinVector    =spin%spinVector    ()
-          call spin%spinRate      (spinGrowthRate                         )
-          call spin%spinVectorRate(spinGrowthRate*spinVector/spinMagnitude)
+          call spin%spinRate      (                                                                                                &
+               &                   +spinGrowthRate                                                                                 &
+               &                  )
+          call spin%spinVectorRate(                                                                                                &
+               &                   +  spinGrowthRate                                                                               &
+               &                   *  spinVector                                                                                   &
+               &                   /  spinMagnitude                                                                                &
+               &                   +  spinMagnitude                                                                                &
+               &                   /  Dark_Matter_Halo_Angular_Momentum(node                               ,darkMatterProfileDMO_) &
+               &                   *(                                                                                              &
+               &                     +                                  spin%angularMomentumAccretionRate()                        &
+               &                     -Dot_Product                      (spin%angularMomentumAccretionRate(),spinVector           ) &
+               &                     *spinVector                                                                                   &
+               &                     /spinMagnitude**2                                                                             &
+               &                   )                                                                                               &
+               &                  )
        end if
     end select
     return
