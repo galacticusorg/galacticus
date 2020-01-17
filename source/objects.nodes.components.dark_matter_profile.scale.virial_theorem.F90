@@ -254,7 +254,7 @@ contains
     
     ! Check if we are the default method.
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
-       ! ! Get the darkMatterProfile component.
+       ! Get the darkMatterProfile component.
        darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
        if (darkMatterProfile%scale() <= 0.0d0) then
           ! Get the resolution of the tree.
