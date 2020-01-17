@@ -66,7 +66,7 @@
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
 
   <!-- Substructure hierarchy options -->
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMOMethod value="NFW"/>

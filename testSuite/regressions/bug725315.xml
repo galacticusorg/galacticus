@@ -103,7 +103,7 @@
 
   <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="0"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,9 @@ contains
 
   function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     implicit none
     type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
     integer                                               , intent(in   )                   :: energyFixedAt
@@ -100,6 +102,24 @@ contains
     class  (linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
     !# <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
 
+    self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'CriticalOverdensity_'                           // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameVirialDensityContrast=galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'VirialDensityContrast_'                         // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameRadiusTurnaround     =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'TurnaroundRadius_'                              // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
     if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
     return
   end function cllsnlssMttrDarkEnergyConstructorInternal

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,8 +85,10 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Linear_Growth   , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
+    use :: Galacticus_Paths  , only : galacticusPath                 , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Linear_Growth     , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
     logical                                                    , intent(in   )         :: baryonsCluster
@@ -95,6 +97,24 @@ contains
     class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
     !# <constructorAssign variables="baryonsCluster, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
 
+    self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'CriticalOverdensity_'                           // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameVirialDensityContrast=galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'VirialDensityContrast_'                         // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameRadiusTurnaround     =galacticusPath(pathTypeDataDynamic)              // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'TurnaroundRadius_'                              // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
     if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
     if (baryonsCluster) then
        allocate(linearGrowthCollisionlessMatter            :: self%linearGrowth_)

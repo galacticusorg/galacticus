@@ -122,7 +122,7 @@ my $massTotal =
     +$properties    ->{'blackHoleMass'        }->($centrals)
     +$massSatellites;
 # Check that all masses are unity.
-if ( any(abs($massTotal-1.0) > 1.0e-6) ) {
+if ( any(abs($massTotal-1.0) > 1.0e-3) ) {
     print "FAILED: mass conservation [standard] failure -> ".($massTotal-1.0)."\n";
 } else {
     print "SUCCESS: mass conservation\n";

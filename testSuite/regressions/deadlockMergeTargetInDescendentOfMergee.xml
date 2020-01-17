@@ -36,7 +36,7 @@
     <satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008"/>
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
   </mergerTreeConstructorMethod>
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>

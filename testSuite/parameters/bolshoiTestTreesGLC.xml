@@ -90,7 +90,7 @@
   <!-- Treating fly-by Haloes, allow subhalo promotion -->
   <!-- Misc -->
   <!-- Substructure hierarchy options -->
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMOMethod value="NFW"/>

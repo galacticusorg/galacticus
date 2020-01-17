@@ -70,7 +70,7 @@
     <treesPerDecade value="2"/>
   </mergerTreeBuildMassesMethod>
   <!-- Substructure hierarchy options -->
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMOMethod value="NFW"/>
