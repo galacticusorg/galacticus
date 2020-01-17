@@ -147,23 +147,23 @@ contains
     if (makeFile) then
        ! Determine maximum metallicity to which we should tabulate.
        if (Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) > 0.0d0) then
-          self%metallicityMaximum=min(                                                                 &
-               &                      max(                                                             &
-               &                           atomicCIECloudyMetallicityMaximumDefault                  , &
-               &                          +3.0d0                                                       &
+          self%metallicityMaximum=min(                                                                                &
+               &                      max(                                                                            &
+               &                           atomicCIECloudyMetallicityMaximumDefault                                 , &
+               &                          +3.0d0                                                                      &
                &                          *Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) &
-               &                         )                                                           , &
-               &                           atomicCIECloudyMetallicityMaximumLimit                      &
+               &                         )                                                                          , &
+               &                           atomicCIECloudyMetallicityMaximumLimit                                     &
                &                     )
        else
           self%metallicityMaximum=atomicCIECloudyMetallicityMaximumDefault
        end if
        ! Generate the file.
-       call Interface_Cloudy_CIE_Tabulate(                                                                             &
-            &                             log10(self%metallicityMaximum                                             ), &
+       call Interface_Cloudy_CIE_Tabulate(                                                                                        &
+            &                             log10(self%metallicityMaximum                                                        ), &
             &                                   galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName), &
             &                                   galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName  ), &
-            &                                   cieFileFormatVersionCurrent                                            &
+            &                                   cieFileFormatVersionCurrent                                                       &
             &                            )
        ! Call routine to read in the tabulated data.
        call self%readFile(char(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName)))
