@@ -337,9 +337,9 @@ if ( $drawLabels eq "gnuplot" ) {
 	if ( $i < scalar(@properties) ) {
 	    my $xml          = new XML::Simple();
 	    my $data         = $xml->XMLin($outputDirectoryName."/".$outputBaseName."_".$i.".xml");
-	    my $centralValue = +$data->{'maximumLikelihoodValueX'}                   ;
-	    my $upperOffset  = +$data->{'spanUpperX'             }->[0]-$centralValue;
-	    my $lowerOffset  = -$data->{'spanLowerX'             }->[0]+$centralValue;
+	    my $centralValue = +$data->{'modeValueX'}                   ;
+	    my $upperOffset  = +$data->{'spanUpperX'}->[0]-$centralValue;
+	    my $lowerOffset  = -$data->{'spanLowerX'}->[0]+$centralValue;
 	    my $label        = exists($properties[$i]->{'label'}) ? "\$".$properties[$i]->{'label'}."\$" : $properties[$i]->{'xLabel'};
 	    open(my $constraint,">".$outputDirectoryName."/".$outputBaseName."_".$i.".tex");
 	    print $constraint $label." \$=".&latexFormatErrors($centralValue,$lowerOffset,$upperOffset,$sigFigs,mathMode => 1)."\$";
@@ -418,10 +418,8 @@ sub latexFormatErrors {
     my $orderLowest  = $lowerOrder < $upperOrder ? $lowerOrder : $upperOrder;
     my $sigFigsValue = $orderLowest < 0 ? $sigFigs-$orderLowest : $sigFigs;    
     my $format       = "%".($sigFigsValue+1).".".($sigFigsValue-1)."f";
-    my $formatLower  = "%".($lowerOrder > 0 ? $sigFigs+1 : $sigFigs+1-$lowerOrder).".".($lowerOrder > 0 ? $sigFigs-1 : $sigFigs-1-$lowerOrder)."f";    
-    my $formatUpper  = "%".($upperOrder > 0 ? $sigFigs+1 : $sigFigs+1-$upperOrder).".".($upperOrder > 0 ? $sigFigs-1 : $sigFigs-1-$upperOrder)."f";    
     # Return
-    my $result = ($order == 0 ? "" : "(").$isNegative.sprintf($format,$value)."^{+".sprintf($formatUpper,$upperOffset)."}_{-".sprintf($formatLower,$lowerOffset)."}".($order == 0 ? "" : ") \\times 10^{".$order."}");
+    my $result = ($order == 0 ? "" : "(").$isNegative.sprintf($format,$value)."^{+".sprintf($format,$upperOffset)."}_{-".sprintf($format,$lowerOffset)."}".($order == 0 ? "" : ") \\times 10^{".$order."}");
     $result = "\$".$result."\$"
 	unless ( exists($options{'mathMode'}) && $options{'mathMode'} == 1 );
     return $result;

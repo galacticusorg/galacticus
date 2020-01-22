@@ -30,43 +30,56 @@ module Interfaces_Cloudy_CIE
 
 contains
 
-  subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat)
+  subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
     !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-    use :: File_Utilities    , only : File_Exists                , File_Lock                       , File_Remove              , File_Unlock
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent, verbosityWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access                 , hdf5Object
-    use :: ISO_Varying_String, only : var_str                    , varying_string                  , operator(//)             , char                      , &
-         &                            assignment(=)
-    use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
-    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear
-    use :: String_Handling   , only : operator(//)
-    use :: System_Command    , only : System_Command_Do
+    use :: File_Utilities              , only : File_Exists                , File_Lock                       , File_Remove              , File_Unlock
+    use :: Galacticus_Display          , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                     Galacticus_Display_Unindent, verbosityWorking
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: IO_HDF5                     , only : hdf5Access                 , hdf5Object
+    use :: ISO_Varying_String          , only : var_str                    , varying_string                  , operator(//)             , char                      , &
+         &                                      assignment(=)
+    use :: Interfaces_Cloudy           , only : Interface_Cloudy_Initialize
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Units   , only : electronVolt
+    use :: Numerical_Ranges            , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: String_Handling             , only : operator(//)
+    use :: System_Command              , only : System_Command_Do
     implicit none
-    double precision                , intent(in   )                 :: metallicityMaximumLogarithmic
-    type            (varying_string), intent(in   )                 :: fileNameCoolingFunction               , fileNameChemicalState
-    integer                         , intent(in   )                 :: versionFileFormat
-    integer                         , parameter                     :: versionFileFormatCurrent     = 1
-    double precision                , parameter                     :: temperatureMinimumLogarithmic=+2.500d0, temperatureMaximumLogarithmic=+9.000d0, &
-         &                                                             temperatureStepLogarithmic   =+0.025d0
-    double precision                , parameter                     :: metallicityMinimumLogarithmic=-4.000d0, metallicityZeroLogarithmic   =-9.990d2, &
-         &                                                             metallicityStepLogarithmic   =+0.250d0
-    double precision                , parameter                     :: heliumAbundancePrimordial    =+0.072d0, heliumAbundanceSolar         =+0.100d0 ! Values as used by Cloudy.
-    double precision                , allocatable  , dimension(:  ) :: metallicitiesLogarithmic              , temperaturesLogarithmic
-    double precision                , allocatable  , dimension(:,:) :: coolingFunction                       , densityElectron                       , &
-         &                                                             densityHydrogenI                      , densityHydrogenII
-    logical                                                         :: computeCoolingFunctions               , computeChemicalStates
-    type            (hdf5Object    )                                :: outputFile                            , dataset
-    integer                                                         :: fileFormatFile                        , metallicityCount                     , &
-         &                                                             temperatureCount                      , cloudyScript                         , &
-         &                                                             iMetallicity                          , inputFile                            , &
-         &                                                             iTemperature                          , status
-    type            (varying_string)                                :: cloudyPath                            , cloudyVersion                        , &
-         &                                                             fileNameTempCooling                   , fileNameTempOverview
-    character       (len=8         )                                :: label
-    double precision                                                :: dummy                                 , abundanceHelium
-
+    double precision                , intent(in   )                   :: metallicityMaximumLogarithmic
+    type            (varying_string), intent(in   )                   :: fileNameCoolingFunction                , fileNameChemicalState
+    integer                         , intent(in   )                   :: versionFileFormat
+    logical                         , intent(in   ), optional         :: includeContinuum
+    integer                         , parameter                       :: versionFileFormatCurrent     = 1
+    double precision                , parameter                       :: temperatureMinimumLogarithmic=+2.500d+0, temperatureMaximumLogarithmic=+9.000d0, &
+         &                                                               temperatureStepLogarithmic   =+0.025d+0
+    double precision                , parameter                       :: metallicityMinimumLogarithmic=-4.000d+0, metallicityZeroLogarithmic   =-9.990d2, &
+         &                                                               metallicityStepLogarithmic   =+0.250d+0
+    double precision                , parameter                       :: energyMinimum                =+1.000d-2, energyMaximum                =+1.000d2
+    integer                         , parameter                       :: energyBinsPerDecade=50
+    double precision                , parameter                       :: heliumAbundancePrimordial    =+0.072d+0, heliumAbundanceSolar         =+0.100d0 ! Values as used by Cloudy.
+    double precision                , allocatable  , dimension(:    ) :: metallicitiesLogarithmic               , temperaturesLogarithmic               , &
+         &                                                               energyContinuum
+    double precision                , allocatable  , dimension(:,:  ) :: coolingFunction                        , densityElectron                       , &
+         &                                                               densityHydrogenI                       , densityHydrogenII
+    double precision                , allocatable  , dimension(:,:,:) :: powerEmittedFractionalCumulative
+    logical                                                           :: computeCoolingFunctions                , computeChemicalStates
+    type            (hdf5Object    )                                  :: outputFile                             , dataset
+    integer                                                           :: fileFormatFile                         , metallicityCount                     , &
+         &                                                               temperatureCount                       , cloudyScript                         , &
+         &                                                               iMetallicity                           , inputFile                            , &
+         &                                                               iTemperature                           , status                               , &
+         &                                                               energyCount                            , iEnergy
+    type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
+         &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
+         &                                                               fileNameTempContinuum
+    character       (len=   8      )                                  :: label
+    character       (len=1024      )                                  :: line
+    double precision                                                  :: dummy                                  , abundanceHelium                      , &
+         &                                                               energy                                 , intensity                            , &
+         &                                                               powerTotal
+    !# <optionalArgument name="includeContinuum" defaultsTo=".false."/>
+    
     !$omp critical(cloudyCIEFileLock)
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Galacticus_Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
@@ -105,22 +118,30 @@ contains
        call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
        call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
        ! Generate metallicity and temperature arrays.
-       metallicityCount        =int((+metallicityMaximumLogarithmic-metallicityMinimumLogarithmic)/metallicityStepLogarithmic+1.5d0)
-       temperatureCount        =int((+temperatureMaximumLogarithmic-temperatureMinimumLogarithmic)/temperatureStepLogarithmic+1.5d0)
-       allocate(metallicitiesLogarithmic(metallicityCount+1                 ))
-       allocate(temperaturesLogarithmic (                   temperatureCount))
-       allocate(coolingFunction         (metallicityCount+1,temperatureCount))
-       allocate(densityElectron         (metallicityCount+1,temperatureCount))
-       allocate(densityHydrogenI        (metallicityCount+1,temperatureCount))
-       allocate(densityHydrogenII       (metallicityCount+1,temperatureCount))
+       metallicityCount        =int(     (+metallicityMaximumLogarithmic-metallicityMinimumLogarithmic)/     metallicityStepLogarithmic+1.5d0)
+       temperatureCount        =int(     (+temperatureMaximumLogarithmic-temperatureMinimumLogarithmic)/     temperatureStepLogarithmic+1.5d0)
+       energyCount             =int(log10(+energyMaximum                /energyMinimum                )*dble(energyBinsPerDecade      )+1    )
+       allocate   (metallicitiesLogarithmic        (metallicityCount+1                             ))
+       allocate   (temperaturesLogarithmic         (                   temperatureCount            ))
+       allocate   (coolingFunction                 (metallicityCount+1,temperatureCount            ))
+       allocate   (densityElectron                 (metallicityCount+1,temperatureCount            ))
+       allocate   (densityHydrogenI                (metallicityCount+1,temperatureCount            ))
+       allocate   (densityHydrogenII               (metallicityCount+1,temperatureCount            ))
+       if (includeContinuum_) then
+          allocate(energyContinuum                 (                                    energyCount))
+          allocate(powerEmittedFractionalCumulative(metallicityCount+1,temperatureCount,energyCount))
+          powerEmittedFractionalCumulative=0.0d0
+       end if
        metallicitiesLogarithmic(1                   )=metallicityZeroLogarithmic
-       metallicitiesLogarithmic(2:metallicityCount+1)=Make_Range(metallicityMinimumLogarithmic,metallicityMaximumLogarithmic,metallicityCount,rangeTypeLinear)
-       temperaturesLogarithmic                       =Make_Range(temperatureMinimumLogarithmic,temperatureMaximumLogarithmic,temperatureCount,rangeTypeLinear)
+       metallicitiesLogarithmic(2:metallicityCount+1)=Make_Range(metallicityMinimumLogarithmic,metallicityMaximumLogarithmic,metallicityCount,rangeTypeLinear     )
+       temperaturesLogarithmic                       =Make_Range(temperatureMinimumLogarithmic,temperatureMaximumLogarithmic,temperatureCount,rangeTypeLinear     )
+       energyContinuum                               =Make_Range(energyMinimum                ,energyMaximum                ,energyCount     ,rangeTypeLogarithmic)
        ! Initialize Cloudy.
        call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion)
        ! Specify file names for temporary Cloudy data.
-       fileNameTempCooling ="cloudy_cooling.tmp"
-       fileNameTempOverview="cloudy_overview.tmp"
+       fileNameTempCooling  ="cloudy_cooling.tmp"
+       fileNameTempOverview ="cloudy_overview.tmp"
+       fileNameTempContinuum="cloudy_continuum.tmp"
        ! Begin iterating over metallicities.
        call Galacticus_Display_Indent("Computing cooling functions and chemical states using Cloudy (this may take a long time)....",verbosityWorking)
        do iMetallicity=1,metallicityCount+1
@@ -137,7 +158,7 @@ contains
           write (cloudyScript,'(a)') 'background, z=0'            ! Use a very low level incident continuum.
           write (cloudyScript,'(a)') 'cosmic rays background'     ! Include cosmic ray background ionization rate.
           write (cloudyScript,'(a)') 'stop zone 1'                ! Stop after a single zone.
-          write (cloudyScript,'(a)') 'no photoionization'         ! Do three iterations to ensure convergence is reached.
+          write (cloudyScript,'(a)') 'no photoionization'         ! Set no photoionization.
           write (cloudyScript,'(a)') 'hden 0.0'
           if (metallicitiesLogarithmic(iMetallicity) <= metallicityZeroLogarithmic) then
              write (cloudyScript,'(a)') 'abundances primordial'
@@ -147,12 +168,14 @@ contains
              abundanceHelium=heliumAbundancePrimordial+(heliumAbundanceSolar-heliumAbundancePrimordial)*(10.0d0**metallicitiesLogarithmic(iMetallicity))
              write (cloudyScript,'(a,f6.3)') 'element abundance linear helium ',abundanceHelium
           end if
-          write (cloudyScript,'(a,f6.3,a)') 'constant temper ',temperatureMinimumLogarithmic,' vary'
-          write (cloudyScript,'(a,f6.3,a,f6.3,a,f6.3)') 'grid ',temperatureMinimumLogarithmic,' to ',temperatureMaximumLogarithmic,' step ',temperatureStepLogarithmic
-          write (cloudyScript,'(a)') 'no molecules'
-          write (cloudyScript,'(a)') 'set trim -20'
-          write (cloudyScript,'(a)') 'punch cooling "' //char(fileNameTempCooling )//'"'
-          write (cloudyScript,'(a)') 'punch overview "'//char(fileNameTempOverview)//'"'
+          write        (cloudyScript,'(a,f6.3,a)') 'constant temper ',temperatureMinimumLogarithmic,' vary'
+          write        (cloudyScript,'(a,f6.3,a,f6.3,a,f6.3)') 'grid ',temperatureMinimumLogarithmic,' to ',temperatureMaximumLogarithmic,' step ',temperatureStepLogarithmic
+          write        (cloudyScript,'(a)') 'no molecules'
+          write        (cloudyScript,'(a)') 'set trim -20'
+          write        (cloudyScript,'(a)') 'save cooling "'                     //char(fileNameTempCooling  )//'"'
+          write        (cloudyScript,'(a)') 'save overview "'                    //char(fileNameTempOverview )//'"'
+          if (includeContinuum_) &
+               & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
           close(cloudyScript)
           call System_Command_Do("cd "//cloudyPath//"/source; cloudy.exe -r input",status);
           if (status /= 0) call Galacticus_Error_Report('Cloudy failed'//{introspection:location})
@@ -164,7 +187,7 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call File_Remove(fileNameTempCooling)
+          call File_Remove(cloudyPath//"/source/"//fileNameTempCooling)
           ! Extract the electron and hydrogen density.
           open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempOverview),status='old')
           read (inputFile,*) ! Skip the header line.
@@ -173,7 +196,47 @@ contains
              read (inputFile,*)
           end do
           close(inputFile)
-          call File_Remove(fileNameTempOverview)
+          call File_Remove(cloudyPath//"/source/"//fileNameTempOverview)
+          ! Extract the emitted continuum. The continuum is given in units of ν f_ν [ergs cm⁻² s⁻¹], and frequencies are
+          ! spaced uniformly in their logarithm. Therefore, to find the total power emitted we can simply sum the column
+          ! values. We sum these into bins of energy, while also accumulating the total power. After reading all lines we
+          ! normalize by the total power and cumulate to get the fraction of power emitted up to a given energy.
+          if (includeContinuum_) then
+             open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempContinuum),status='old')
+             read (inputFile,*,iostat=status) ! Skip the header line.
+             iTemperature=1
+             iEnergy     =1
+             powerTotal  =0.0d0
+             do while (status == 0)
+                read (inputFile,'(a)',iostat=status) line
+                if (status /= 0) exit
+                if (line(1:1) == "#") then
+                   ! New iteration reached.
+                   !! Normalize and cumulate the power
+                   powerEmittedFractionalCumulative(iMetallicity,iTemperature,:)=+powerEmittedFractionalCumulative(iMetallicity,iTemperature,:) &
+                        &                                                        /powerTotal
+                   do iEnergy=2,energyCount
+                      powerEmittedFractionalCumulative(iMetallicity,iTemperature,iEnergy)=+powerEmittedFractionalCumulative(iMetallicity,iTemperature,iEnergy  ) &
+                           &                                                              +powerEmittedFractionalCumulative(iMetallicity,iTemperature,iEnergy-1)
+                   end do
+                   !! Move to the next temperature.
+                   iTemperature=iTemperature+1
+                   iEnergy     =             1
+                   powerTotal  =             0.0d0
+                else
+                   read (line,*) energy,dummy,intensity
+                   do while (energy > energyContinuum(iEnergy))
+                      iEnergy=iEnergy+1
+                      if (iEnergy > energyCount) exit
+                   end do
+                   if (iEnergy < energyCount) &
+                        powerEmittedFractionalCumulative(iMetallicity,iTemperature,iEnergy)=powerEmittedFractionalCumulative(iMetallicity,iTemperature,iEnergy)+intensity
+                   powerTotal=powerTotal+intensity
+                end if
+             end do
+             close(inputFile)
+             call File_Remove(cloudyPath//"/source/"//fileNameTempContinuum)
+          end if
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.
@@ -181,23 +244,33 @@ contains
           !$ call hdf5Access%set()
           call outputFile%openFile      (char(fileNameCoolingFunction))
           ! Store data.
-          call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
-          call dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )
-          call dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                        )
-          call dataset   %writeAttribute('K'                                                       ,'units'                                  )
-          call dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
-          call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                         )
-          call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                        )
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (coolingFunction                                           ,'coolingRate'    ,datasetReturned=dataset)
-          call dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'                     ,datasetReturned=dataset)
+          call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                                          )
+          call    dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                                         )
+          call    dataset   %writeAttribute('K'                                                       ,'units'                                                   )
+          call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                                               )
+          call    dataset   %close         (                                                                                                                     )
+          call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'                     ,datasetReturned=dataset)
+          call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
+          call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+          call    dataset   %close         (                                                                                                                     )
+          call    outputFile%writeDataset  (coolingFunction                                           ,'coolingRate'                     ,datasetReturned=dataset)
+          call    dataset   %close         (                                                                                                                     )
+          if (includeContinuum_) then
+             call outputFile%writeDataset  (energyContinuum                                           ,'energyContinuum'                 ,datasetReturned=dataset)
+             call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
+             call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+             call dataset   %writeAttribute('keV'                                                     ,'units'                                                   )
+             call dataset   %writeAttribute(kilo*electronVolt                                         ,'unitsInSI'                                               )
+             call dataset   %close         (                                                                                                                     )
+             call outputFile%writeDataset  (powerEmittedFractionalCumulative                          ,'powerEmittedFractionalCumulative',datasetReturned=dataset)
+             call dataset   %close         (                                                                                                                     )
+          end if
           ! Add attributes.
-          call outputFile%writeAttribute("CIE cooling functions computed by Cloudy "//cloudyVersion,'description'                            )
-          call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
-          call outputFile%close         (                                                                                                    )
-          call hdf5Access%unset()
+          call    outputFile%writeAttribute("CIE cooling functions computed by Cloudy "//cloudyVersion,'description'                                             )
+          call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                                              )
+          call    outputFile%close         (                                                                                                                     )
+          !$ call hdf5Access%unset         (                                                                                                                     )
        end if
        ! Output chemical states to an HDF5 file.
        if (computeChemicalStates) then

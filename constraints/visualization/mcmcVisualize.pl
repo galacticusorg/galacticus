@@ -290,11 +290,6 @@ foreach my $fileRoot ( @fileRoots ) {
 	    my $include = 1;
 	    $include = 0
 		if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
-	    # Check for maximum likelihood parameters.
-	    if ( $columns[4] > $likelihoodMaximum ) {
-		$likelihoodMaximum = $columns[4];
-		@likelihoodMaximumParameters = @columns;
-	    }
 	    $include = 0
 		if ( exists($arguments{'minimumLogL'}) && $columns[4] < $arguments{'minimumLogL'} );
 	    $include = 0
@@ -309,11 +304,19 @@ foreach my $fileRoot ( @fileRoots ) {
 			);
 		}
 	    }
+	    # Proceed only if this state is to be included.
 	    if ( $include == 1 ) {
+		# Check for maximum likelihood parameters.
+		if ( $columns[4] > $likelihoodMaximum ) {
+		    $likelihoodMaximum = $columns[4];
+		    @likelihoodMaximumParameters = @columns;
+		}
+		# Take the log if necessary.
 		$columns[$xColumn] = log($columns[$xColumn])
 		    if ( $xScale eq "logarithm" );
 		$columns[$yColumn] = log($columns[$yColumn])
 		    if ( $yScale eq "logarithm" );
+		# Output the state.
 		print oHndl join("\t",@columns)."\n";
 	    }
 	}
@@ -347,9 +350,12 @@ foreach my $fileRoot ( @fileRoots ) {
     }
     close(iHndl);
 
+    # Find mode of the distribution.
+    my $modeX = $x->(($p->maximum_ind()))->sclr();
+    
     # Determine contour levels for confidence regions.
     my $pSorted          = $p->qsort();
-    my $total            = $p->sum ();
+    my $total            = $p->sum  ();
     my $pCumulant        = $pSorted->cumusumover()/$total;
     my $confidence       = pdl ( 0.682689492137,  0.954499736104, 0.997300203937 );
     my $excludedFraction = 1.0-$confidence;
@@ -466,6 +472,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	    @{$data->{'levels'                 }} = $confidence->list();
 	    @{$data->{'spanLowerX'             }} = @spanLowerX;
 	    @{$data->{'spanUpperX'             }} = @spanUpperX;
+	    $data  ->{'modeValueX'             }  = $modeX;
 	    $data  ->{'maximumLikelihoodValueX'}  = $likelihoodMaximumParameters[$xColumn];
 	    $data  ->{'xProperty'              }  = $arguments{'xProperty'};
 	    $data  ->{'xLabel'                 }  = $xLabel;
