@@ -2026,10 +2026,10 @@ contains
              else if (nodes(iNode)%halfMassRadius > 0.0d0) then
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
                 ! Set the active node and target half mass radius.
-                readNode                       => nodeList(iIsolatedNode)%node
-                readDarkMatterProfile => readNode%darkMatterProfile()
-                readBasic             => readNode%basic            ()
-                readRadiusHalfMass                   =  nodes(iNode)%halfMassRadius
+                readNode              => nodeList(iIsolatedNode)%node
+                readDarkMatterProfile => readNode               %darkMatterProfile()
+                readBasic             => readNode               %basic            ()
+                readRadiusHalfMass    =  nodes   (iNode        )%halfMassRadius
                 ! Solve for the scale radius.
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
