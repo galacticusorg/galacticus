@@ -45,7 +45,7 @@
      integer         (c_size_t                             )          :: countMassRatio                        , indexOutput
      logical                                                          :: alwaysIsolatedOnly
    contains
-     final                            progenitorMassFunctionDestructor
+     final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
      procedure :: reduce           => progenitorMassFunctionReduce
      procedure :: finalizeAnalysis => progenitorMassFunctionFinalizeAnalysis

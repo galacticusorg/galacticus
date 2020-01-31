@@ -26,7 +26,7 @@
      !% A dark matter halo profile class implementing isothermal dark matter halos.
      private
    contains
-     final                                             isothermalDestructor
+     final     ::                                      isothermalDestructor
      procedure :: density                           => isothermalDensity
      procedure :: densityLogSlope                   => isothermalDensityLogSlope
      procedure :: radialMoment                      => isothermalRadialMoment

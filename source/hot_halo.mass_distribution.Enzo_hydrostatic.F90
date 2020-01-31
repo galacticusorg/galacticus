@@ -40,7 +40,7 @@
      !@     <description>Return the normalization of the density profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                 enzoHydrostaticDestructor
+     final     ::                          enzoHydrostaticDestructor
      procedure :: densityNormalization  => enzoHydrostaticDensityNormalization
      procedure :: density               => enzoHydrostaticDensity
      procedure :: densityLogSlope       => enzoHydrostaticDensityLogSlope

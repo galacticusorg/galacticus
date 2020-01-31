@@ -50,7 +50,7 @@
      !@     <description>Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             heatedDestructor
+     final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset
      procedure :: radiusInitial                     => heatedRadiusInitial
