@@ -426,7 +426,7 @@ contains
          &                                                                                                  targetLabel
     logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog                       , &
          &                                                                                                  likelihoodNormalize
-    double precision                                                                                     :: propertyUnitsInSI                    , distributionUnitsInSI
+    double precision                                           , intent(in   )                           :: propertyUnitsInSI                    , distributionUnitsInSI
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
     double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight

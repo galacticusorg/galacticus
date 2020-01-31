@@ -388,7 +388,7 @@ contains
          &                                                                                                propertyUnits                               , scatterUnits
     type            (varying_string                         ), intent(in   ), optional                 :: xAxisLabel                                  , yAxisLabel                                   , &
          &                                                                                                targetLabel
-    double precision                                                                                   :: propertyUnitsInSI                           , scatterUnitsInSI
+    double precision                                         , intent(in   )                           :: propertyUnitsInSI                           , scatterUnitsInSI
     double precision                                         , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                               ), intent(in   )                           :: bufferCount
     double precision                                         , intent(in   )          , dimension(:,:) :: outputWeight

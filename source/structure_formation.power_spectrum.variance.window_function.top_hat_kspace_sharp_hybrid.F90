@@ -109,7 +109,7 @@ contains
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                        :: self
     class           (cosmologyParametersClass                     ), target, intent(in   ) :: cosmologyParameters_
-    double precision                                                                       :: normalization                        , radiiRatio
+    double precision                                                       , intent(in   ) :: normalization                        , radiiRatio
     character       (len=18                                       )                        :: normalizationText
     !# <constructorAssign variables="radiiRatio, *cosmologyParameters_"/>
 
