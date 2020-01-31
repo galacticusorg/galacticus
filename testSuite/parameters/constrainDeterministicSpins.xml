@@ -43,12 +43,12 @@
   
   <!-- Structure formation -->
   <haloEnvironmentMethod value="normal">
-    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <radiusEnvironment value="7.1022727"/>
   </haloEnvironmentMethod>
   <linearGrowthMethod value="collisionlessMatter"/>
-  <criticalOverdensityMethod   value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <haloMassFunctionMethod value="environmental">
     <haloMassFunctionConditioned value="shethTormen">
       <a             value="0.851879452240045"/>
@@ -60,7 +60,7 @@
         </cosmologicalMassVarianceMethod>
       </cosmologicalMassVarianceMethod>
       <criticalOverdensityMethod value="peakBackgroundSplit">
-        <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+        <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </criticalOverdensityMethod>
     </haloMassFunctionConditioned>
     <haloMassFunctionUnconditioned value="shethTormen">
@@ -130,7 +130,7 @@
     <branchIntervalStep value="true"/>
     <criticalOverdensityMethod value="environmental">
       <a value="0.0794070054754877"/>
-      <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+      <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     </criticalOverdensityMethod>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>

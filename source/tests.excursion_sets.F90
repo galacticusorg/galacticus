@@ -19,7 +19,7 @@
 
 program Tests_Excursion_Sets
   !% Tests of merger tree branching rates.
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
@@ -56,7 +56,7 @@ program Tests_Excursion_Sets
   type            (excursionSetBarrierCriticalOverdensity                       )               :: excursionSetBarrierCriticalOverdensity_
   type            (darkMatterParticleCDM                                        )               :: darkMatterParticleCDM_
   type            (treeNode                                                     )               :: node
-  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   double precision                                                                              :: time
   double precision                                                               , dimension(2) :: variance                                                      =[0.50d0,1.00d0]
   double precision                                                               , dimension(2) :: varianceProgenitor                                            =[1.00d0,1.01d0]
@@ -117,7 +117,7 @@ program Tests_Excursion_Sets
        &                                                                                                                       powerSpectrumPrimordialTransferred_    =powerSpectrumPrimordialTransferredSimple_                     , &
        &                                                                                                                       powerSpectrumWindowFunction_           =powerSpectrumWindowFunctionSharpKSpace_                         &
        &                                                                                                                      )
-  criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                                                        &
+  criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                                        &
        &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                              , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
@@ -125,7 +125,7 @@ program Tests_Excursion_Sets
        &                                                                                                                       tableStore                             =.true.                                                          &
        &                                                                                                                      )
   excursionSetBarrierCriticalOverdensity_                       =excursionSetBarrierCriticalOverdensity                       (                                                                                                        &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
        &                                                                                                                      )
   excursionSetFirstCrossingLinearBarrier_                       =excursionSetFirstCrossingLinearBarrier                       (                                                                                                        &

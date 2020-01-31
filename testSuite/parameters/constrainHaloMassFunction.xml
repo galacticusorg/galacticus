@@ -38,8 +38,8 @@
 
   <!-- Structure formation options -->
   <linearGrowthMethod          value="collisionlessMatter"                       />
-  <criticalOverdensityMethod   value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Halo mass function -->
   <nbodyHaloMassErrorMethod value="trenti2010">

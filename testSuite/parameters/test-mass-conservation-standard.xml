@@ -69,7 +69,7 @@
       <beta value="0.00986021548527724"/>
       <haloMassFunctionMethod value="tinker2008"/>
     </haloMassFunctionMethod>
-    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <virialDensityContrastMethod value="percolation">
       <linkingLength value="0.2"/>
     </virialDensityContrastMethod>

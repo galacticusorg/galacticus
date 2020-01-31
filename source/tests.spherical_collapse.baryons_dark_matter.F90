@@ -19,7 +19,7 @@
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !% Tests linear growth calculations.
-  use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                 , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
@@ -34,7 +34,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
   use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                         , Unit_Tests_End_Group                                         , Unit_Tests_Finish
-  use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
   double precision                                                                 , dimension(5), parameter :: redshift                                                   =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
   integer                                                                                        , parameter :: countFractionBaryon                                        =25
@@ -51,9 +51,9 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   type            (transferFunctionIdentity                                       )                          :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                       )                          :: powerSpectrumPrimordialTransferredSimple_
   type            (intergalacticMediumFilteringMassGnedin2000                     )                          :: intergalacticMediumFilteringMassGnedin2000_
-  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
-  type            (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
   character       (len=1024                                                       )                          :: message                                                                                     , outputFractions
   integer                                                                                                    :: i                                                                                           , j                         , &
@@ -162,7 +162,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      linearGrowth_                      =linearGrowthBaryonsDarkMatter_             , &
           &                                                                                                                      intergalacticMediumState_          =intergalacticMediumState_                    &
           &                                                                                                                     )
-     criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt  (                                                                                 &
+     criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  (                                                                                 &
           &                                                                                                                      linearGrowth_                      =linearGrowthCollisionlessMatter_           , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &
@@ -178,7 +178,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      tableStore                         =.false.                                    , &
           &                                                                                                                      normalization                      =1.0d0                                        &
           &                                                                                                                     )
-     virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                                 &
+     virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                 &
           &                                                                                                                      tableStore                         =.false.                                    , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_              &
           &                                                                                                                     )

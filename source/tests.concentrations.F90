@@ -21,7 +21,7 @@
 
 program Test_Concentrations
   !% Tests concentration models.
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
@@ -60,7 +60,7 @@ program Test_Concentrations
   type            (powerSpectrumPrimordialTransferredSimple                     )                                      :: powerSpectrumPrimordialTransferredSimple_
   type            (powerSpectrumStandard                                        )                                      :: powerSpectrumStandard_
   type            (darkMatterParticleCDM                                        )                                      :: darkMatterParticleCDM_
-  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                               )                                      :: parameterFile
   integer                                                                        , parameter                           :: countModels                                                   =5
   type            (varying_string                                               ), dimension(countModels)              :: modelName                                                       , modelLabel         , &
@@ -246,9 +246,9 @@ program Test_Concentrations
      !#    &amp;                                                       )
      !#  </constructor>
      !# </referenceConstruct>
-     !# <referenceConstruct object="criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_">
+     !# <referenceConstruct object="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_">
      !#  <constructor>
-     !#   criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                               &amp;
+     !#   criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                               &amp;
      !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
      !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
      !#    &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_   , &amp;
@@ -285,7 +285,7 @@ program Test_Concentrations
         !#       &amp;                                           scatter                  =0.00d0                                                        , &amp;
         !#       &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                               , &amp;
         !#       &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-        !#       &amp;                                           criticalOverdensity_     =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &amp;
+        !#       &amp;                                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
         !#       &amp;                                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                        , &amp;
         !#       &amp;                                           powerSpectrum_           =powerSpectrumStandard_                                          &amp;
         !#       &amp;                                          )
