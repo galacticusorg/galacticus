@@ -202,9 +202,14 @@ sub AddUses {
 	&Galacticus::Build::SourceTree::InsertBeforeNode($node->{'firstChild'},[$usesNode]);
     }
     # Merge the module usages.
+    # TODO: "openMP" and "conditions" status is overridden by the added module - this isn't the correct thing to do - we need to
+    # adopt the most permissive of the possibilities (e.g. if the new module is OpenMP-only, but the existing module use is not
+    # OpenMP, then we need to keep it as not-OpenMP - furthermore we need to do this on a per-symbol basis, requiring that we have
+    # OpenMP and conditions status per symbol and reproduce this correctly when updating the code).
     foreach my $moduleName ( keys(%{$moduleUses->{'moduleUse'}}) ) {
-	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'   } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'   };
-	$usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} = $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic'};
+	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'    } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'    };
+	$usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic' } = $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic' };
+	$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'} = $moduleUses->{'moduleUse'}->{$moduleName}->{'conditions'};
 	unless ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'all'}) ) {
 	    if ( exists($moduleUses->{'moduleUse'}->{$moduleName}->{'all'}) ) {
 		$usesNode->{'moduleUse'}->{$moduleName}->{'all'} = 1;
