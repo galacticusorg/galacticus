@@ -4,7 +4,11 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Storable;
 use List::ExtraUtils;
+use Galacticus::Build::Directives;
+use Galacticus::Build::SourceTree;
+use Fortran::Utils;
 use XML::Simple;
+use Data::Dumper;
 
 # Build Makefile rules which describe how to construct module files from source files.
 # Andrew Benson (12-September-2016)
@@ -15,6 +19,10 @@ die "Usage: moduleDependencies.pl <sourceDirectory>"
 my $sourceDirectoryName = $ARGV[0];
 # Specify a work directory.
 my $workDirectoryName = $ENV{'BUILDPATH'}."/";
+# Get an XML parser.
+my $xml                     = new XML::Simple();
+# Load the file of directive locations.
+my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
 # Build a list of source directories to search.
 my @sourceDirectoryDescriptors = ( {path => $sourceDirectoryName."/source", leaf => ""} );
 if ( -e $sourceDirectoryDescriptors[0]->{'path'} ) {
@@ -54,6 +62,46 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 	    unless ( $rescan );
 	delete($modulesPerFile->{$fileIdentifier})
     	    if ( $havePerFile && exists($modulesPerFile->{$fileIdentifier}) );
+	# Extract list of functionClass directives from this file which require special handling.
+	my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($sourceDirectoryDescriptor->{'path'}."/".$sourceFileName,'functionClass');
+	if ( scalar(@functionClasses) > 0 ) {
+	    foreach my $functionClass ( @functionClasses ) {
+		foreach my $functionClassFileName ( &List::ExtraUtils::as_array($locations->{$functionClass->{'name'}}->{'file'}) ) {
+		    my $classTree = &Galacticus::Build::SourceTree::ParseFile($functionClassFileName);
+		    my $classNode  = $classTree;
+		    my $classDepth = 0;
+		    my %classes;
+		    while ( $classNode ) {
+			if ( $classNode->{'type'} eq $functionClass->{'name'} ) {
+			    $classes{$classNode->{'directive'}->{'name'}}->{'name'} = $classNode->{'directive'}->{'name'};
+			} elsif ( $classNode->{'type'} eq "type" ) {
+			    if (
+				$classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$functionClass->{'name'}([a-z0-9_]+)\s*$/i 
+				&&
+				defined($2)
+				) {
+				$classes{$functionClass->{'name'}.$4}->{'extends'} = $2;
+			    }
+			}
+			$classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
+		    }
+		    my @submodules;
+		    foreach my $className ( keys(%classes) ) {
+			(my $fileName     = $functionClassFileName) =~ s/^.*\/(.*)\.F90$/$1/;
+			my $submoduleName =                                                                                   $classes{$className}->{'name'   }."_";
+			my $extends       = $classes{$className}->{'extends'} eq $functionClass->{'name'}."Class" ? undef() : $classes{$className}->{'extends'}."_";
+			my $submodule =
+			{
+			    name     => $submoduleName        ,
+			    fileName => $fileName             ,
+			    extends  => $extends              ,
+			    source   => $functionClassFileName
+			};
+			push(@{$modulesPerFile->{$fileIdentifier}->{'submodules'}},$submodule);
+		    }
+		}
+	    }
+	}
 	push(@{$modulesPerFile->{$fileIdentifier}->{'files'}},$sourceDirectoryDescriptor->{'path'}."/".$sourceFileName);
         $modulesPerFile->{$fileIdentifier}->{'sourceFileName'           } = $sourceFileName;
         $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'} = $sourceDirectoryDescriptor;
@@ -83,6 +131,17 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 	}
     }
 }
+# Build a map of submodules associated with each module.
+my %submodules;
+foreach my $fileIdentifier ( keys(%{$modulesPerFile}) ) {
+    next
+	unless ( exists($modulesPerFile->{$fileIdentifier}->{'submodules'}) && scalar(@{$modulesPerFile->{$fileIdentifier}->{'submodules'}}) > 0 );
+    die("useDependencies.pl: submodules associated with multiple modules")
+	unless ( scalar(@{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}}) == 1 );
+    (my $moduleName = ${$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}}[0]) =~ s/\.mod$//;
+    $submodules{lc($moduleName).".mod"} = $modulesPerFile->{$fileIdentifier}->{'submodules'};
+}
+
 # Create the output Makefile.
 open(my $makefile,">".$sourceDirectoryName."/".$workDirectoryName."Makefile_Module_Dependencies");
 foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
@@ -95,9 +154,39 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 	    print $makefile "\t  rm "      .$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectFileName." ; \\\n";
 	    print $makefile "\t  \$(MAKE) ".$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectFileName." ; \\\n";
 	    print $makefile "\tfi\n\n";
+	    (my $moduleName = $moduleFileName) =~ s/\.mod$//;
+	    foreach my $submodule ( @{$submodules{lc($moduleFileName)}} ) {
+		 print $makefile $workDirectoryName.$moduleName."\@".lc($submodule->{'name'}).".smod: ".$workDirectoryName.$submodule->{'fileName'}.".o\n";
+		 print $makefile "\t\@if [ ! -f ".$workDirectoryName.$moduleName."\@".lc($submodule->{'name'}).".smod ]; then \\\n";
+		 print $makefile "\t  rm "      .$workDirectoryName.$submodule->{'fileName'}.".o ; \\\n";
+		 print $makefile "\t  \$(MAKE) ".$workDirectoryName.$submodule->{'fileName'}.".o ; \\\n";
+		 print $makefile "\tfi\n\n";
+		 my $dependsOn;
+		 if ( defined($submodule->{'extends'}) ) {
+		     my @match = grep {$_->{'name'} eq $submodule->{'extends'}} @{$submodules{lc($moduleFileName)}};
+		     die('moduleDependencies.pl: no matching submodule found')
+			 if ( scalar(@match) == 0 );
+		     die('moduleDependencies.pl: multiple matching submodules found')
+			 if ( scalar(@match) >  1 );
+		     $dependsOn = $match[0]->{'fileName'}.".o";
+		 } else {
+		     $dependsOn = $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectFileName;
+		 }
+		 print $makefile $workDirectoryName.$submodule->{'fileName'}.".o: ".$workDirectoryName.$dependsOn."\n\n";
+		 (my $preprocessedFileName = $modulesPerFile->{$fileIdentifier}->{'sourceFileName'}) =~ s/\.F90$/.p.F90/;
+		 print $makefile $workDirectoryName.$submodule->{'fileName'}.".p.F90.up: ".$workDirectoryName.$modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$preprocessedFileName." ".$submodule->{'source'}."\n";
+		 print $makefile "\t\@if [ ! -f ".$workDirectoryName.$submodule->{'fileName'}.".p.F90 ]; then \\\n";
+		 print $makefile "\t  rm "      .$workDirectoryName.$modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$preprocessedFileName." ; \\\n";
+		 print $makefile "\t  \$(MAKE) ".$workDirectoryName.$modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$preprocessedFileName." ; \\\n";
+		 print $makefile "\tfi\n";
+		 print $makefile $workDirectoryName.$submodule->{'fileName'}.".p.F90: | ".$workDirectoryName.$submodule->{'fileName'}.".p.F90.up\n\n";
+	    }
 	    (my $objectDependencyFileName = $objectFileName) =~ s/.o$/.d/;
 	    print $makefile $workDirectoryName.$moduleFileName.".d: ".$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectDependencyFileName."\n";
 	    print $makefile "\t\@echo ".$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectFileName          ." > " .$workDirectoryName.$moduleFileName.".d~\n";
+	    foreach my $submodule ( @{$submodules{lc($moduleFileName)}} ) {
+		print $makefile "\t\@echo ".$workDirectoryName.$submodule->{'fileName'}.".o >> " .$workDirectoryName.$moduleFileName.".d~\n";
+	    }
 	    print $makefile "\t\@cat " .$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectDependencyFileName." >> ".$workDirectoryName.$moduleFileName.".d~\n";
 	    print $makefile "\t\@if cmp -s ".$workDirectoryName.$moduleFileName.".d ".$workDirectoryName.$moduleFileName.".d~ ; then \\\n";
 	    print $makefile "\t rm ".$workDirectoryName.$moduleFileName.".d~ ; \\\n";
@@ -116,8 +205,19 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 	foreach ( @{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}} ) {
 	    print $makefile "\t\@echo ".$workDirectoryName.$_." ".$director." ".$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$modulesProvidedFileName."\n";
 	    $director = ">>";
+	    if ( scalar(@{$submodules{lc($_)}}) > 0 ) {
+		(my $smodName = $_) =~ s/\.mod$/.smod/;
+		print $makefile "\t\@echo ".$workDirectoryName.$smodName." ".$director." ".$workDirectoryName. $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$modulesProvidedFileName."\n";
+	    }
 	}
 	print $makefile "\n";
+	foreach ( @{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}} ) {
+	    (my $moduleName = $_) =~ s/\.mod$//;
+	    foreach my $submodule ( @{$submodules{lc($_)}} ) {
+		print $makefile $workDirectoryName.$submodule->{'fileName'}.".m:\n";
+		print $makefile "\t\@echo ".$workDirectoryName.$moduleName."\@".lc($submodule->{'name'}).".smod > ".$workDirectoryName.$submodule->{'fileName'}.".m\n\n";
+	    }
+	}
     }
 }
 close($makefile);
@@ -130,7 +230,6 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
     $modulesByFile->{$modulesPerFile->{$fileIdentifier}->{'sourceFileName'}} = $modulesPerFile->{$fileIdentifier}->{'modulesProvided'}
         if ( scalar(@{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}}) > 0 );
 }
-my $xml = new XML::Simple();
 open(my $xmlOutput,">".$sourceDirectoryName."/".$workDirectoryName."moduleLocations.xml");
 print $xmlOutput $xml->XMLout($modulesByFile, rootName => "moduleLocations");
 close($xmlOutput);

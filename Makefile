@@ -140,8 +140,10 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # module - this will lead to circular dependency problems as Make becomes confused about how to
 # build the module file.
 vpath %.F90 source
-$(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
+$(BUILDPATH)/%.p.F90 : | $(BUILDPATH)/%.p.F90.up
+	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.pl $(BUILDPATH)/$*.p.F90
@@ -291,8 +293,10 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
-$(BUILDPATH)/%.Inc : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+$(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
+$(BUILDPATH)/%.Inc : | $(BUILDPATH)/%.Inc.up
+	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
@@ -348,7 +352,7 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 	 touch $*.h; \
 	fi
 
-# Rules for making update (".up") files if now explicit rule is given.
+# Rules for making update (".up") files if no explicit rule is given.
 %.up :
 	touch $*.up
 
@@ -393,7 +397,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up
 
 # Cancel all builtin rules.
 .SUFFIXES:
@@ -467,7 +471,7 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 

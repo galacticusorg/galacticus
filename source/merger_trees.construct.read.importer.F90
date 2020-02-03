@@ -27,6 +27,13 @@ module Merger_Tree_Read_Importers
   use            :: Kind_Numbers      , only : kind_int8
   private
   public :: nodeData, nodeDataMinimal
+  !# <workaround type="gfortran" PR="88632" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=88632">
+  !#  <description>
+  !#   importerUnitConvert is used by submodules, so must be exported to the object file. gfortran currently does not do this if
+  !#   the symbol is private, so we mark it as public.
+  !#  </description>
+  !# </workaround>
+  public :: importerUnitConvert
 
   ! Type used to specify units.
   type :: importerUnits

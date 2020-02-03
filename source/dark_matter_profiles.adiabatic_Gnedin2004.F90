@@ -28,6 +28,9 @@
   use :: Math_Exponentiation         , only : fastExponentiator
 
   ! Number of previous radius solutions to store.
+  !# <scoping>
+  !#  <module variables="adiabaticGnedin2004StoreCount"/>
+  !# </scoping>
   integer, parameter :: adiabaticGnedin2004StoreCount=10
 
   !# <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
@@ -94,7 +97,7 @@
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             adiabaticGnedin2004Destructor
+     final     ::                                      adiabaticGnedin2004Destructor
      procedure :: autoHook                          => adiabaticGnedin2004AutoHook
      procedure :: calculationReset                  => adiabaticGnedin2004CalculationReset
      procedure :: density                           => adiabaticGnedin2004Density
