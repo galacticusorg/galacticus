@@ -45,42 +45,29 @@ sub Process_Enumerations {
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Count=".$enumerationCount."\n";
 	    }
 	    $enumerationSource .= "  ! End auto-generated enumeration\n\n";
-	    # Create a new node.
-	    my $newNode =
-	    {
-		type       => "code"            ,
-		content    => $enumerationSource,
-		firstChild => undef()
-	    };
-	    # Insert the node.
-	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Create and insert new nodes.
+	    my $enumerationTree = &Galacticus::Build::SourceTree::ParseCode($enumerationSource,"Galacticus::Build::SourceTree::Process::Enumeration()");
+	    my @enumerationNodes = &Galacticus::Build::SourceTree::Children($enumerationTree);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,\@enumerationNodes);
 	    # Construct validator function as necessary.
 	    if ( $validator eq "yes" ) {
 		# Generate function code.
 		my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."IsValid";
-		my $encodeFunction;
-		$encodeFunction .= "\n";
-		$encodeFunction .= "  ! Auto-generated enumeration function\n";
-		$encodeFunction .= "  logical function ".$functionName."(enumerationValue)\n";
-		$encodeFunction .= "    !% Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
-		$encodeFunction .= "    implicit none\n\n";
-		$encodeFunction .= "    integer, intent(in   ) :: enumerationValue\n";
-		$encodeFunction .= "    ".$functionName."=(enumerationValue >= 0 .and. enumerationValue < ".$node->{'directive'}->{'name'}."Count)\n";
-		$encodeFunction .= "    return\n";
-		$encodeFunction .= "  end function ".$functionName."\n";
-		$encodeFunction .= "  ! End auto-generated enumeration function\n";
-		# Create a new node.
-		my $newNode =
-		{
-		    type       => "block"        ,
-		    content    => $encodeFunction,
-		    firstChild => undef()        ,
-		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
-		    line       => 1
-		};
-		&Galacticus::Build::SourceTree::BuildTree($newNode);
+		my $validatorFunction;
+		$validatorFunction .= "\n";
+		$validatorFunction .= "  ! Auto-generated enumeration function\n";
+		$validatorFunction .= "  logical function ".$functionName."(enumerationValue)\n";
+		$validatorFunction .= "    !% Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    implicit none\n\n";
+		$validatorFunction .= "    integer, intent(in   ) :: enumerationValue\n";
+		$validatorFunction .= "    ".$functionName."=(enumerationValue >= 0 .and. enumerationValue < ".$node->{'directive'}->{'name'}."Count)\n";
+		$validatorFunction .= "    return\n";
+		$validatorFunction .= "  end function ".$functionName."\n";
+		$validatorFunction .= "  ! End auto-generated enumeration function\n";
 		# Insert into the module.
-		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		my $validatorTree = &Galacticus::Build::SourceTree::ParseCode($validatorFunction,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @validatorNodes = &Galacticus::Build::SourceTree::Children($validatorTree);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@validatorNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
 	    }
@@ -163,18 +150,11 @@ sub Process_Enumerations {
 		$function .= "    return\n";
 		$function .= "  end function ".$decodeFunctionName."\n";
 		$function .= "  ! End auto-generated enumeration function\n";
-		# Create a new node.
-		my $newNode =
-		{
-		    type       => "block"  ,
-		    content    => $function,
-		    firstChild => undef()  ,
-		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
-		    line       => 1
-		};
-		&Galacticus::Build::SourceTree::BuildTree($newNode);
+
 		# Insert into the module.
-		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		my $encodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @encodeNodes = &Galacticus::Build::SourceTree::Children($encodeTree);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@encodeNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
