@@ -667,12 +667,17 @@ contains
     return
   end function standardYieldInstantaneous
 
-  function standardSpectra(self)
+  !# <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
+  !#  <description>
+  !#   If the function name is used as the result variable, instead of using "result(spectra)", this PR is triggered.
+  !#  </description>
+  !# </workaround>
+  function standardSpectra(self) result(spectra)
     !% Return the stellar spectra associated with this population.
     implicit none
-    class(stellarPopulationSpectraClass), pointer       :: standardSpectra
+    class(stellarPopulationSpectraClass), pointer       :: spectra
     class(stellarPopulationStandard    ), intent(inout) :: self
 
-    standardSpectra => self%stellarPopulationSpectra_
+    spectra => self%stellarPopulationSpectra_
     return
   end function standardSpectra
