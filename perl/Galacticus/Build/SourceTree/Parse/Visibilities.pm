@@ -122,4 +122,16 @@ sub Parse_Visibilities {
     }    
 }
 
+sub UpdateVisibilities {
+    # Update the code associated with visibilities.
+    my $visibilitiesNode = shift();
+    my $code = "! Galacticus::Build::SourceTree::Parse::Visibilities(): updated\n";
+    foreach my $visibility ( "public", "private" ) {
+	next
+	    unless ( exists($visibilitiesNode->{'visibility'}->{$visibility}) && scalar(keys(%{$visibilitiesNode->{'visibility'}->{$visibility}})) );
+	$code .= $visibility." :: ".join(", ",keys(%{$visibilitiesNode->{'visibility'}->{$visibility}}))."\n";
+    }
+    $visibilitiesNode->{'firstChild'}->{'content'} = $code;
+}
+
 1;
