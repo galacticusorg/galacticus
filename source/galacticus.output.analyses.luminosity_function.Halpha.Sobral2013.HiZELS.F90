@@ -24,7 +24,7 @@
   !#  <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionSobral2013HiZELS
-     !% An SDSS H$\alpha luminosity function output analysis class for the \cite{sobral_large_2013} analysis.
+     !% An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.
      private
   end type outputAnalysisLuminosityFunctionSobral2013HiZELS
 
@@ -57,12 +57,12 @@ contains
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then
        allocate(    randomErrorPolynomialCoefficient(parameters%count(    'randomErrorPolynomialCoefficient')))
     else
-       allocate(    randomErrorPolynomialCoefficient(1                                                   ))
+       allocate(    randomErrorPolynomialCoefficient(1                                                       ))
     end if
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
-       allocate(systematicErrorPolynomialCoefficient(1                                                   ))
+       allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !# <inputParameter>
     !#   <name>redshiftInterval</name>

@@ -145,7 +145,7 @@
      !@     <description>Tabulate properties of the Burkert halo profile which must be computed numerically.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             burkertDestructor
+     final     ::                                      burkertDestructor
      procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset
      procedure :: density                           => burkertDensity

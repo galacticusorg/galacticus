@@ -66,8 +66,8 @@ contains
   function massHaloConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``massHalo'' output analysis property extractor class.
     implicit none
-    type (nodePropertyExtractorMassHalo)         :: self
-    class(virialDensityContrastClass   ), target :: virialDensityContrast_
+    type (nodePropertyExtractorMassHalo)                        :: self
+    class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_
     !# <constructorAssign variables="*virialDensityContrast_"/>
 
     return

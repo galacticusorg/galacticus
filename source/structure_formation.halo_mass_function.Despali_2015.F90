@@ -20,7 +20,7 @@
 !% Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
   !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
@@ -36,7 +36,7 @@
      private
      class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_      => null()
      class(virialDensityContrastClass                                     ), pointer :: virialDensityContrast_   => null()
-     type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
+     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
      !@ <objectMethods>
      !@   <object>haloMassFunctionDespali2015</object>
@@ -102,7 +102,7 @@ contains
     !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
 
     allocate(self%referenceDensityContrast)
-    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
     return
   end function despali2015ConstructorInternal
 

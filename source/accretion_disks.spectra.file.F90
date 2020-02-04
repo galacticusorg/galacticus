@@ -84,7 +84,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
+    type     (accretionDiskSpectraFile)                :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
 
     ! Ensure that the required methods are supported.

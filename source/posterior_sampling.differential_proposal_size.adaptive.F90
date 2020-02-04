@@ -107,6 +107,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outliersInAcceptanceRate</name>
+    !#   <defaultValue>.true.</defaultValue>
     !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the proposal size.</description>
     !#   <source>parameters</source>

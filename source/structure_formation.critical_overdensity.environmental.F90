@@ -91,7 +91,7 @@ contains
     class           (cosmologyFunctionsClass         ), target, intent(in   ) :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass   ), target, intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass               ), target, intent(in   ) :: linearGrowth_
-    double precision                                                          :: a
+    double precision                                          , intent(in   ) :: a
     !# <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
 
     self%massEnvironment=self%haloEnvironment_%environmentMass()

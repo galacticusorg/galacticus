@@ -84,6 +84,18 @@ sub ParseCode {
     return $tree;
 }
 
+sub Children {
+    # Return an array of children.
+    my $node = shift();
+    my @children;
+    my $child = $node->{'firstChild'};
+    while ( $child ) {
+	push(@children,$child);
+	$child = $child->{'sibling'};
+    }
+    return @children;
+}
+
 sub BuildTree {
     # Get the root of the tree;
     my $tree = shift();

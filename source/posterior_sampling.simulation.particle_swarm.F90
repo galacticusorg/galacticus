@@ -267,7 +267,7 @@ contains
          &                                                                                           logFlushCount
     double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
-    logical                                                                                       :: resume
+    logical                                                 , intent(in   )                       :: resume
     integer                                                                                       :: i
     !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
 

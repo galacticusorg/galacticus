@@ -182,7 +182,7 @@ contains
     !% Compute the Bertschinger mass and turnaround radii
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasicStandardExtended  , treeNode
-    use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998, virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
+    use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode
@@ -192,10 +192,10 @@ contains
     if (.not.virialDensityContrastInitialized) then
        select case (nodeComponentBasicExtendedSphericalCollapseType)
        case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
-          allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: virialDensityContrast_)
+          allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: virialDensityContrast_)
           select type (virialDensityContrast_)
-          type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                                                         ,cosmologyFunctions_)
+          type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.                                                         ,cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeDE                    )
           allocate(virialDensityContrastSphericalCollapseCllsnlssMttrDrkEnrgy      :: virialDensityContrast_)

@@ -144,7 +144,7 @@
      !@     <description>Tabulate the density enclosed within a given radius for the NFW profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             nfwDestructor
+     final     ::                                      nfwDestructor
      procedure :: autoHook                          => nfwAutoHook
      procedure :: calculationReset                  => nfwCalculationReset
      procedure :: density                           => nfwDensity

@@ -115,10 +115,10 @@ contains
   function inSituConstructorInternal(timeStep,timeStepFine,timeFine,outputTimes_) result(self)
     !% Internal constructor for the ``inSitu'' star formation history class.
     implicit none
-    type            (starFormationHistoryInSitu)                :: self
-    double precision                            , intent(in   ) :: timeStep    , timeStepFine, &
-         &                                                         timeFine
-    class           (outputTimesClass          ), target        :: outputTimes_
+    type            (starFormationHistoryInSitu)                        :: self
+    double precision                            , intent(in   )         :: timeStep    , timeStepFine, &
+         &                                                                 timeFine
+    class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
     !# <constructorAssign variables="timeStep, timeStepFine, timeFine, *outputTimes_"/>
 
     return

@@ -1431,7 +1431,7 @@ CODE
 			if ( $node->{'type'} eq "declaration" ) {			    
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
 				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" ) {
+				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    # Look for pointers to functionClasses.
@@ -1647,7 +1647,7 @@ CODE
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
 		    # Identify variable type.
-		    if ( $declaration->{'intrinsic'} eq "procedure" ) {
+		    if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 			# Type-bound procedure - nothing to do.
 		    } elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 			# Look for pointers to functionClasses.
@@ -1819,7 +1819,7 @@ CODE
 			if ( $node->{'type'} eq "declaration" ) {			    
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
 				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" ) {
+				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    # Look for pointers to functionClasses.

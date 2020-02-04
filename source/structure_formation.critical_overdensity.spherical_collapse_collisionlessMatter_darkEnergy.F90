@@ -23,7 +23,7 @@
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </criticalOverdensity>
-  type, extends(criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
+  type, extends(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
   end type criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy

@@ -89,7 +89,7 @@ contains
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                        :: self
     class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_
-    double precision                                                                :: normalization
+    double precision                                                , intent(in   ) :: normalization
     character       (len=18                                )                        :: normalizationText
     !# <constructorAssign variables="*cosmologyParameters_"/>
 

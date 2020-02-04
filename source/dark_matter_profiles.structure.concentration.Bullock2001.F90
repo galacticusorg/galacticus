@@ -23,7 +23,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
-  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
@@ -41,7 +41,7 @@
      class           (cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_              => null()
      class           (criticalOverdensityClass                                       ), pointer :: criticalOverdensity_             => null()
      class           (cosmologicalMassVarianceClass                                  ), pointer :: cosmologicalMassVariance_        => null()
-     type            (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
+     type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW                                        ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                                                           :: F                                         , K
    contains
@@ -121,7 +121,7 @@ contains
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.                   ,self%cosmologyFunctions_                                      )"/>
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.                   ,self%cosmologyFunctions_                                      )"/>
     !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition             (self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
     !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                                        (                                                          darkMatterHaloScaleDefinition_)"/>
     !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                                          />

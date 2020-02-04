@@ -165,6 +165,6 @@
     <presetPositions value="false"/>
     <outputTimeSnapTolerance value="0.001"/>
   </mergerTreeConstructorMethod>
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   <mergerMassMovementsMethod value="verySimple"/>
 </parameters>

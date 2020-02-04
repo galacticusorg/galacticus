@@ -27,7 +27,7 @@ module Virial_Density_Contrast
   !#  <name>virialDensityContrast</name>
   !#  <descriptiveName>Virial Density Contrasts</descriptiveName>
   !#  <description>Class providing dark matter halo virial density contrasts.</description>
-  !#  <default>sphericalCollapseCllsnlssMttrCsmlgclCnstnt</default>
+  !#  <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
   !#  <method name="densityContrast" >
   !#   <description>Returns the virial density contrast at the given epoch.</description>
   !#   <type>double precision</type>

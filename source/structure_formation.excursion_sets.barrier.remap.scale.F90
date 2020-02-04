@@ -82,10 +82,10 @@ contains
     !% Internal constructor for the critical overdensity excursion set class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (excursionSetBarrierRemapScale)                :: self
-    class           (excursionSetBarrierClass     ), target        :: excursionSetBarrier_
-    double precision                               , intent(in   ) :: factor
-    integer                                        , intent(in   ) :: applyTo
+    type            (excursionSetBarrierRemapScale)                        :: self
+    class           (excursionSetBarrierClass     ), intent(in   ), target :: excursionSetBarrier_
+    double precision                               , intent(in   )         :: factor
+    integer                                        , intent(in   )         :: applyTo
     !# <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
 
     if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('applyTo is invalid'//{introspection:location})

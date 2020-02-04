@@ -210,27 +210,27 @@ contains
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
     implicit none
-    type            (virialOrbitJiang2014        )                         :: self
-    double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
-         &                                                                    gammaRatioLow                      , gammaRatioIntermediate        , gammaRatioHigh                      , &
-         &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate        , sigmaRatioHigh                      , &
-         &                                                                    muRatioLow                         , muRatioIntermediate           , muRatioHigh
-    class           (darkMatterHaloScaleClass    ), intent(in   ) , target :: darkMatterHaloScale_
-    class           (cosmologyParametersClass    ), intent(in   ) , target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass     ), intent(in   ) , target :: cosmologyFunctions_
-    integer                                       , parameter              :: tableCount                 =1000
-    integer                                                                :: i                                  , j                             , k
-    type            (distributionFunction1DVoight)                         :: voightDistribution
-    logical                                       , dimension(3,3), save   :: previousInitialized        =.false.
-    double precision                              , dimension(3,3), save   :: previousB                          , previousGamma                 , previousSigma                       , &
-         &                                                                    previousMu                         , previousVelocityTangentialMean, previousVelocityTotalRootMeanSquared
-    type            (table1DLinearLinear         ), dimension(3,3), save   :: previousVoightDistributions
-    double precision                                                       :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
-         &                                                                    fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
-    logical                                                                :: reUse                              , limitFound
-    type            (fgsl_function               )                         :: integrandFunction
-    type            (fgsl_integration_workspace  )                         :: integrationWorkspace
-    logical                                                                :: integrationReset
+    type            (virialOrbitJiang2014        )                                :: self
+    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
+         &                                                                           gammaRatioLow                      , gammaRatioIntermediate        , gammaRatioHigh                      , &
+         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate        , sigmaRatioHigh                      , &
+         &                                                                           muRatioLow                         , muRatioIntermediate           , muRatioHigh
+    class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
+    class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
+    class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
+    integer                                       , parameter                     :: tableCount                 =1000
+    integer                                                                       :: i                                  , j                             , k
+    type            (distributionFunction1DVoight)                                :: voightDistribution
+    logical                                       , save        , dimension(3,3)  :: previousInitialized        =.false.
+    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                 , previousSigma                       , &
+         &                                                                           previousMu                         , previousVelocityTangentialMean, previousVelocityTotalRootMeanSquared
+    type            (table1DLinearLinear         ), save        , dimension(3,3)  :: previousVoightDistributions
+    double precision                                                              :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
+         &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
+    logical                                                                       :: reUse                              , limitFound
+    type            (fgsl_function               )                                :: integrandFunction
+    type            (fgsl_integration_workspace  )                                :: integrationWorkspace
+    logical                                                                       :: integrationReset
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.

@@ -104,7 +104,7 @@
   <mergerTreeOperatorMethod value="pruneBaryons"/>
   
   <!-- Merger tree halo hierarchy -->
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   
   <!-- Dark matter halo structure -->
   <darkMatterProfileDMOMethod value="NFW"/>

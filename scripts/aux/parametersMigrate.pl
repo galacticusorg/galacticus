@@ -437,7 +437,8 @@ my @translations =
 	     "accretionHalosSimpleAccreteNewGrowthOnly"                              => "accretionHaloMethod.simple.--accretionNewGrowthOnly"                                     ,
 	     "reionizationSuppressionVelocity"                                       => "accretionHaloMethod.simple.--velocitySuppressionReionization"                            ,
 	     "reionizationSuppressionRedshift"                                       => "accretionHaloMethod.simple.--redshiftReionization"                                       ,
-	     "virialDensityContrastPercolationLinkingLength"                         => "virialDensityContrastMethod.percolation.--linkingLength"
+	     "virialDensityContrastPercolationLinkingLength"                         => "virialDensityContrastMethod.percolation.--linkingLength"                                 ,
+	     "nodeMergersMethod"                                                     => "mergerTreeNodeMergerMethod"
 	 },
 	 values        =>
 	 {
@@ -740,12 +741,12 @@ my @translations =
 	     },
 		     criticalOverdensityMethod                =>
 	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
 		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
 	     },
 	     virialDensityContrastMethod                      =>
 	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
 		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
 	     },
 	     imfSelectionFixed                                =>
