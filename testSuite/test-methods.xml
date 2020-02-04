@@ -752,8 +752,8 @@
       <darkEnergyEquationOfStateW0 value="-0.8"/>
       <darkEnergyEquationOfStateW1 value="0.0"/>
     </cosmologyFunctionsMethod>
-    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrDrkEnrgydsphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-    <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrDrkEnrgydsphericalCollapseClsnlssMttrCsmlgclCnstnt">
+    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrDrkEnrgy"/>
+    <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrDrkEnrgy">
   <energyFixedAt value="turnaround"/>
   </virialDensityContrastMethod>
     </parameters>
