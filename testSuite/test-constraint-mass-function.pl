@@ -17,7 +17,7 @@ unless ( $? == 0 ) {
 }
 
 # Read model results.
-my $model             = new PDL::IO::HDF5('outputs/constrainHaloMassFunction:MPI0000.hdf5');
+my $model             = new PDL::IO::HDF5('outputs/constrainHaloMassFunction.hdf5');
 my $outputs           = $model  ->group  ('Outputs'                       )       ;
 my $output            = $outputs->group  ('Output1'                       )       ;
 my $massHaloModel     = $output ->dataset('haloMass'                      )->get();
