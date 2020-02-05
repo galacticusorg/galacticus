@@ -958,6 +958,7 @@ contains
     !% concentration} which encloses a given mass (in $M_\odot$).
     use :: FGSL            , only : FGSL_SF_LAMBERT_W0
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
+    use :: Lambert_Ws      , only : Lambert_W0
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
     type            (treeNode                      ), intent(inout), target :: node
@@ -987,13 +988,13 @@ contains
        if (mass /= self%enclosedMassPrevious) then
           self%enclosedMassPrevious       = mass
           ! Compute scaled mass.
-          massScaleFree                   =+mass                                                   &
+          massScaleFree                   =+mass                                           &
                &                           *self%massScalePrevious
           ! Compute radius.
-          self%enclosingMassRadiusPrevious=-(                                                      &
-               &                             +1.0d0/FGSL_SF_LAMBERT_W0(-exp(-1.0d0-massScaleFree)) &
-               &                             +1.0d0                                                &
-               &                            )                                                      &
+          self%enclosingMassRadiusPrevious=-(                                              &
+               &                             +1.0d0/Lambert_W0(-exp(-1.0d0-massScaleFree)) &
+               &                             +1.0d0                                        &
+               &                            )                                              &
                &                           *scaleRadius
        end if
     end if
