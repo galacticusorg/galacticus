@@ -33,10 +33,10 @@
   </cosmologicalMassVarianceMethod>
   
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                       />
-  <haloMassFunctionMethod      value="tinker2008"                                />
-  <criticalOverdensityMethod   value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowthMethod          value="collisionlessMatter"                      />
+  <haloMassFunctionMethod      value="tinker2008"                               />
+  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMOMethod           value="NFW"    />

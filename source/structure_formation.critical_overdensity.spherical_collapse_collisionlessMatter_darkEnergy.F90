@@ -20,37 +20,37 @@
   !% An implementation of critical overdensity for collapse based on spherical collapse in a
   !% matter plus dark energy universe.
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy">
+  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </criticalOverdensity>
-  type, extends(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
+  type, extends(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
-  end type criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
+  end type criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
 
-  interface criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} critical overdensity for collapse class.
-     module procedure sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters
-     module procedure sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal
-  end interface criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy
+  interface criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity for collapse class.
+     module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
+     module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
+  end interface criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
 
 contains
 
-  function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} critical overdensity class
+  function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class
     !% which takes a parameter set as input.
     use :: Dark_Matter_Particles, only : darkMatterParticle     , darkMatterParticleClass
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Input_Parameters     , only : inputParameter         , inputParameters
     implicit none
-    type            (criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy)                :: self
-    type            (inputParameters                                         ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                                 ), pointer       :: cosmologyFunctions_
-    class           (linearGrowthClass                                       ), pointer       :: linearGrowth_
-    class           (cosmologicalMassVarianceClass                           ), pointer       :: cosmologicalMassVariance_
-    class           (darkMatterParticleClass                                 ), pointer       :: darkMatterParticle_
-    double precision                                                                          :: normalization
-    logical                                                                                   :: tableStore
+    type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)                :: self
+    type            (inputParameters                                        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                                ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass                                      ), pointer       :: linearGrowth_
+    class           (cosmologicalMassVarianceClass                          ), pointer       :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                                ), pointer       :: darkMatterParticle_
+    double precision                                                                         :: normalization
+    logical                                                                                  :: tableStore
 
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -72,28 +72,28 @@ contains
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
-    self=criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
+    self=criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="linearGrowth_"            />
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     !# <objectDestructor name="darkMatterParticle_"      />
     return
-  end function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorParameters
+  end function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrDrkEnrgy} critical overdensity class.
+  function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class.
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined, sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
-    type            (criticalOverdensitySphericalCollapseCllsnlssMttrDrkEnrgy)                          :: self
-    class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_
-    class           (linearGrowthClass                                       ), target  , intent(in   ) :: linearGrowth_
-    class           (cosmologicalMassVarianceClass                           ), target  , intent(in   ) :: cosmologicalMassVariance_
-    class           (darkMatterParticleClass                                 ), target  , intent(in   ) :: darkMatterParticle_
-    logical                                                                             , intent(in   ) :: tableStore
-    double precision                                                          , optional, intent(in   ) :: normalization
+    type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)                          :: self
+    class           (cosmologyFunctionsClass                                ), target  , intent(in   ) :: cosmologyFunctions_
+    class           (linearGrowthClass                                      ), target  , intent(in   ) :: linearGrowth_
+    class           (cosmologicalMassVarianceClass                          ), target  , intent(in   ) :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                                ), target  , intent(in   ) :: darkMatterParticle_
+    logical                                                                            , intent(in   ) :: tableStore
+    double precision                                                         , optional, intent(in   ) :: normalization
     !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
     !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, normalization, tableStore"/>
 
@@ -111,4 +111,4 @@ contains
        call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     return
-  end function sphericalCollapseCllsnlssMttrDrkEnrgyConstructorInternal
+  end function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
