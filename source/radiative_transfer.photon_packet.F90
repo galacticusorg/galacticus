@@ -39,9 +39,6 @@ module Radiative_Transfer_Photon_Packet
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
-
-
-
   !#  <method name="wavelengthMinimumSet" >
   !#   <description>Set the minimum wavelength (in \AA) of the photon packet.</description>
   !#   <type>void</type>
