@@ -291,19 +291,16 @@ contains
     
     ! Allocate indices to the correct size if necessary.
     if (allocated(indices)) then
-       if (size(indices) /= 2) then
+       if (size(indices) /= 1) then
           deallocate(indices   )
-          allocate  (indices(2))
+          allocate  (indices(1))
        end if
     else
-       allocate     (indices(2))
+       allocate     (indices(1))
     end if
     ! Determine indices.
     indices(1)=Search_Array(self%boundariesCells%boundary,sqrt(sum(position**2)))
-    if (indices(1) < 1 .or. indices(1) > self%countCells) indices=-huge(0)
-    ! Second index is used to indicate which boundary we just crossed, so that it can be ignored in the next "length-to-boundary"
-    ! calculation. Set it to a negative value here to indicate that no boundary was just crossed.
-    indices(2)=-1_c_size_t
+    if (indices(1) < 1 .or. indices(1) > self%countCells) indices=-huge(0_c_size_t)
     return
   end subroutine sphericalIndicesFromPosition
 
@@ -335,32 +332,31 @@ contains
     integer                                                                                        :: j
     double precision                                                                               :: lengthToFace        , argument            , &
          &                                                                                            lengthToFacePositive, lengthToFaceNegative, &
-         &                                                                                            radiusSquared       , directionRadius
-    
+         &                                                                                            radiusSquared       , directionRadius     , &
+         &                                                                                            radiusBoundary
+
     ! Allocate indices to the correct size if necessary.
     if (allocated(indicesNeighbor)) then
-       if (size(indicesNeighbor) /= 2) then
+       if (size(indicesNeighbor) /= 1) then
           deallocate(indicesNeighbor   )
-          allocate  (indicesNeighbor(2))
+          allocate  (indicesNeighbor(1))
        end if
     else
-       allocate     (indicesNeighbor(2))
+       allocate     (indicesNeighbor(1))
     end if
     ! Initialize to infinite distance.
     sphericalLengthToCellBoundary=huge(0.0d0)
     ! Get position and direction of the photon packet.
-    position                       =photonPacket%position ()
-    direction                      =photonPacket%direction()
+    position                     =photonPacket%position ()
+    direction                    =photonPacket%direction()
     ! Consider boundaries along the r-axis.
+    radiusSquared  =sum(position          **2)
+    directionRadius=sum(position*direction   )
     do j=0,1 ! Faces.
-       ! Ignore the boundary that was just crossed.
-       if (j == indices(2)) cycle
-       radiusSquared   =sum(position          **2)
-       directionRadius =sum(position*direction   )
-       argument        =+self%boundariesCells%boundary(indices(1)+j)**2-radiusSquared+directionRadius**2
+       argument=+self%boundariesCells%boundary(indices(1)+j)**2-radiusSquared+directionRadius**2
        if (argument > 0.0d0) then ! Negative argument means that the photon never crosses the boundary.
-          lengthToFacePositive=(+sqrt(argument)-directionRadius)
-          lengthToFaceNegative=(-sqrt(argument)-directionRadius)
+          lengthToFacePositive=+sqrt(argument)-directionRadius
+          lengthToFaceNegative=-sqrt(argument)-directionRadius
           if (lengthToFaceNegative > 0.0d0) then
              lengthToFace=min(lengthToFacePositive,lengthToFaceNegative)
           else
@@ -387,13 +383,22 @@ contains
              positionBoundary   =+position                   &
                   &              +direction                  &
                   &              *lengthToFace
-             if (indicesNeighbor(1) < 1 .or. indicesNeighbor(1) > self%countCells) then
-                indicesNeighbor(1)=-huge(0_c_size_t)
-             else
-                ! Record the direction of the boundary just crossed (as viewed from the neighbor cell) so that we can avoid
-                ! consdering this boundary on the next "length-to-boundary" calculation.
-                indicesNeighbor(2)=1-j
-             end if
+             ! Ensure that the boundary position we return is actually into the neighboring cell - due to rounding errors we
+             ! can't guarantee that the photon packet is precisely on the domain boundary, so we simply make small shifts in
+             ! the position until it is.
+             radiusBoundary=sqrt(sum(positionBoundary**2)) 
+             do while ((j == 0 .and. radiusBoundary >= self%boundariesCells%boundary(indices(1)+j)) .or. (j == 1 .and. radiusBoundary <= self%boundariesCells%boundary(indices(1)+j)) )
+                select case (j)
+                case (0)
+                   positionBoundary=positionBoundary/(1.0d0+epsilon(0.0d0))
+                case (1)
+                   positionBoundary=positionBoundary*(1.0d0+epsilon(0.0d0))
+                end select
+                radiusBoundary=sqrt(sum(positionBoundary**2)) 
+             end do
+             ! If the neighbor cell is outside of the domain, mark it as such.
+             if (indicesNeighbor(1) < 1 .or. indicesNeighbor(1) > self%countCells) &
+                  & indicesNeighbor(1)=-huge(0_c_size_t)
           end if
        end if
     end do

@@ -312,20 +312,17 @@ contains
     
     ! Allocate indices to the correct size if necessary.
     if (allocated(indices)) then
-       if (size(indices) /= 3) then
+       if (size(indices) /= 2) then
           deallocate(indices   )
-          allocate  (indices(3))
+          allocate  (indices(2))
        end if
     else
-       allocate     (indices(3))
+       allocate     (indices(2))
     end if
     ! Determine indices.
     indices(1)=Search_Array(self%boundariesCells(1)%boundary,sqrt(position(1)**2+position(2)**2))
     indices(2)=Search_Array(self%boundariesCells(2)%boundary,     position(3)                   )
-    if (any(indices(1:2) < 1) .or. any(indices(1:2) > self%countCells)) indices(1:2)=-huge(0)
-    ! Third index is used to indicate which boundary we just crossed, so that it can be ignored in the next "length-to-boundary"
-    ! calculation. Set it to a negative value here to indicate that no boundary was just crossed.
-    indices(3)=-1_c_size_t
+    if (any(indices(1:2) < 1) .or. any(indices(1:2) > self%countCells)) indices(1:2)=-huge(0_c_size_t)
     return
   end subroutine cylindricalIndicesFromPosition
 
@@ -359,16 +356,16 @@ contains
     double precision                                                                               :: lengthToFace        , argument            , &
          &                                                                                            lengthToFacePositive, lengthToFaceNegative, &
          &                                                                                            radiusSquared       , directionRadius     , &
-         &                                                                                            directionSquared
+         &                                                                                            directionSquared    , radiusBoundary
 
     ! Allocate indices to the correct size if necessary.
     if (allocated(indicesNeighbor)) then
-       if (size(indicesNeighbor) /= 3) then
+       if (size(indicesNeighbor) /= 2) then
           deallocate(indicesNeighbor   )
-          allocate  (indicesNeighbor(3))
+          allocate  (indicesNeighbor(2))
        end if
     else
-       allocate     (indicesNeighbor(3))
+       allocate     (indicesNeighbor(2))
     end if
     ! Initialize to infinite distance.
     cylindricalLengthToCellBoundary=huge(0.0d0)
@@ -404,20 +401,18 @@ contains
              positionBoundary   =+position                   &
                   &              +direction                  &
                   &              *lengthToFace
-             positionBoundary(2)=+self%boundariesCells(2)%boundary(indices(2)+j)
+             positionBoundary(3)=+self%boundariesCells(2)%boundary(indices(2)+j)
              if (indicesNeighbor(2) < 1 .or. indicesNeighbor(2) > self%countCells(2)) indicesNeighbor(2)=-huge(0_c_size_t)
           end if
        end do
     end if
     ! Consider boundaries along the r-axis.
     if (any(direction(1:2) /= 0.0d0)) then
+       radiusSquared   =sum(position(1:2)               **2)
+       directionSquared=sum(              direction(1:2)**2)
+       directionRadius =sum(position(1:2)*direction(1:2)   )/sqrt(directionSquared)
        do j=0,1 ! Faces.
-          ! Ignore the boundary that was just crossed.
-          if (j == indices(3)) cycle
-          radiusSquared   =sum(position(1:2)               **2)
-          directionSquared=sum(              direction(1:2)**2)
-          directionRadius =sum(position(1:2)*direction(1:2)   )
-          argument       =+self%boundariesCells(1)%boundary(indices(1)+j)**2-radiusSquared+directionRadius**2
+          argument=+self%boundariesCells(1)%boundary(indices(1)+j)**2-radiusSquared+directionRadius**2
           if (argument > 0.0d0) then ! Negative argument means that the photon never crosses the boundary.
              lengthToFacePositive=(+sqrt(argument)-directionRadius)/sqrt(directionSquared)
              lengthToFaceNegative=(-sqrt(argument)-directionRadius)/sqrt(directionSquared)
@@ -440,24 +435,33 @@ contains
                   &   )                                                   &
                   &  .and.                                                &
                   &       lengthToFace <  cylindricalLengthToCellBoundary & ! This is the shortest distance to a face we've found.
-                  & ) then
+                  & ) then 
                 cylindricalLengthToCellBoundary=lengthToFace
                 indicesNeighbor    =+indices
                 indicesNeighbor (1)=+indicesNeighbor(1)+(2*j-1)
                 positionBoundary   =+position                   &
                      &              +direction                  &
                      &              *lengthToFace
-                if (indicesNeighbor(1) < 1 .or. indicesNeighbor(1) > self%countCells(1)) then
-                   indicesNeighbor(1)=-huge(0_c_size_t)
-                else
-                   ! Record the direction of the boundary just crossed (as viewed from the neighbor cell) so that we can avoid
-                   ! consdering this boundary on the next "length-to-boundary" calculation.
-                   indicesNeighbor(3)=1-j
-                end if
+                ! Ensure that the boundary position we return is actually into the neighboring cell - due to rounding errors we
+                ! can't guarantee that the photon packet is precisely on the domain boundary, so we simply make small shifts in
+                ! the position until it is.
+                radiusBoundary=sqrt(sum(positionBoundary(1:2)**2)) 
+                do while ((j == 0 .and. radiusBoundary >= self%boundariesCells(1)%boundary(indices(1)+j)) .or. (j == 1 .and. radiusBoundary <= self%boundariesCells(1)%boundary(indices(1)+j)) )
+                   select case (j)
+                   case (0)
+                      positionBoundary(1:2)=positionBoundary(1:2)/(1.0d0+epsilon(0.0d0))
+                   case (1)
+                      positionBoundary(1:2)=positionBoundary(1:2)*(1.0d0+epsilon(0.0d0))
+                   end select
+                   radiusBoundary=sqrt(sum(positionBoundary(1:2)**2)) 
+                end do
+                ! If the neighbor cell is outside of the domain, mark it as such.
+                if (indicesNeighbor(1) < 1 .or. indicesNeighbor(1) > self%countCells(1)) &
+                     & indicesNeighbor(1)=-huge(0_c_size_t)
              end if
           end if
        end do
-    end if
+    end if    
     return
   end function cylindricalLengthToCellBoundary
 
@@ -495,9 +499,6 @@ contains
          &                                                                                                      )          , &
          &                                                                                          photonPacket             &
          &                                                                                    )
-    ! Reset the third index to indicate that no boundary was just crossed and so we should consider both boundaries on the next
-    ! "length-to-boundary" calculation.
-    indices(3)=-1_c_size_t
     return
   end function cylindricalInteractWithPhotonPacket
   

@@ -343,7 +343,7 @@ contains
     do i=1,3
        indices(i)=Search_Array(self%boundariesCells(i)%boundary,position(i))
     end do
-    if (any(indices < 1) .or. any(indices > self%countCells)) indices=-huge(0)
+    if (any(indices < 1) .or. any(indices > self%countCells)) indices=-huge(0_c_size_t)
     return
   end subroutine cartesian3DIndicesFromPosition
 
