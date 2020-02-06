@@ -10,17 +10,17 @@ use PDL::Constants qw(PI);
 # Andrew Benson (04-December-2019)
 
 # Run the calculation.
-#system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
-#die("FAILED: failed to run calculation")
-#    unless ( $? == 0 );
+system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+die("FAILED: failed to run calculation")
+    unless ( $? == 0 );
 # Read model output and parameters.
 my $outputFile                                                                    = new PDL::IO::HDF5('outputs/radiativeTransfer-StromgrenSphere:MPI0000.hdf5');
 my $parameters                                                                    = $outputFile         ->group  ('Parameters'                                                        )       ;
 my $recombination                                                                 = $parameters         ->group  ('atomicRecombinationRateRadiativeMethod'                            )       ;
 my $computationalDomain                                                           = $parameters         ->group  ('computationalDomainMethod'                                         )       ;
 my $model                                                                         = $outputFile         ->group  ('radiativeTransferModel'                                            )       ;
-my $densityNumber                                                                 = $model              ->dataset('densityNumber'                                                     )->get();
-my $fractionHydrogenII                                                            = $model              ->dataset('fractionHydrogenII'                                                )->get();
+my $densityNumber                                                                 = $model              ->dataset('densityNumberH'                                                    )->get();
+my $fractionHydrogenII                                                            = $model              ->dataset('fractionHII'                                                       )->get();
 (my $recombinationCoefficient                                                   ) = $recombination      ->attrGet('rateCoefficient'                                                   )       ;
 (my $xBoundaries              , my $yBoundaries, my $zBoundaries, my $countCells) = $computationalDomain->attrGet('xBoundaries'              ,'yBoundaries','zBoundaries','countCells')       ;
 (my $rateLymanContinuumEmitted                                                  ) = $model              ->attrGet('rateLymanContinuumEmitted'                                         )       ;
