@@ -83,6 +83,7 @@
      procedure :: rotationCurveGradient             => exponentialDiskRotationCurveGradient
      procedure :: radiusHalfMass                    => exponentialDiskRadiusHalfMass
      procedure :: surfaceDensityRadialMoment        => exponentialDiskSurfaceDensityRadialMoment
+     procedure :: positionSample                    => exponentialDiskPositionSample
   end type massDistributionExponentialDisk
 
   interface massDistributionExponentialDisk
@@ -654,3 +655,25 @@ contains
     exponentialDiskSurfaceDensityRadialMoment=(integralHigh-integralLow)*Gamma_Function(moment+1.0d0)*self%scaleRadius**(moment+1.0d0)
     return
   end function exponentialDiskSurfaceDensityRadialMoment
+
+  function exponentialDiskPositionSample(self,randomNumberGenerator_)
+    !% Sample a position from an exponential disk distribution.
+    use :: Lambert_Ws              , only : Lambert_Wm1
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision                                 , dimension(3)  :: exponentialDiskPositionSample
+    class           (massDistributionExponentialDisk), intent(inout) :: self
+    class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
+    double precision                                                 :: radius                       , height, &
+         &                                                              phi
+
+    ! Select a radial coordinate.
+    radius=(-1.0d0-Lambert_Wm1((-1.0d0+      randomNumberGenerator_%uniformSample())/exp(1.0d0)))*self%scaleRadius
+    ! Select a vertical coordinate.
+    height=(      -atanh      ( +1.0d0-2.0d0*randomNumberGenerator_%uniformSample()            ))*self%scaleHeight
+    ! Angular coordinate is uniformly distributed between 0 and 2π.
+    phi   =+                                 randomNumberGenerator_%uniformSample()              *2.0d0*Pi
+    ! Return Cartesian coordinates.
+    exponentialDiskPositionSample=[radius*cos(phi),radius*sin(phi),height]
+    return
+  end function exponentialDiskPositionSample

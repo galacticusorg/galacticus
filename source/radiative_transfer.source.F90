@@ -41,6 +41,12 @@ module Radiative_Transfer_Sources
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: wavelength</argument>
   !#  </method>
+  !#  <method name="luminosity" >
+  !#   <description>Return the luminosity (in units of $L_\odot$) of the source at the given wavelength range.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: wavelengthMinimum, wavelengthMaximum</argument>
+  !#  </method>
   !# </functionClass>
-
+  
 end module Radiative_Transfer_Sources

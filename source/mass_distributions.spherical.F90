@@ -34,10 +34,18 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
-     !@ </objectMethods>
+     !@   <objectMethod>
+     !@     <method>radiusEnclosingMass</method>
+     !@     <description>Returns the radius enclosing the given mass.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ mass\argin</arguments>
+     !@   </objectMethod>
+      !@ </objectMethods>
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass
+     procedure :: radiusEnclosingMass  => sphericalRadiusEnclosingMass
+     procedure :: positionSample       => sphericalPositionSample
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -101,15 +109,16 @@ contains
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
-  double precision function sphericalRadiusHalfMass(self)
-    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+  double precision function sphericalRadiusEnclosingMass(self,mass)
+    !% Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
     use :: FGSL       , only : FGSL_Root_fSolver_Brent
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (massDistributionSpherical), intent(inout) :: self
-    type            (rootFinder               ), save          :: finder
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: mass
+    type            (rootFinder               ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                           , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                           , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(                                                             &
@@ -130,9 +139,18 @@ contains
             &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
             &                  )
     end if
-    sphericalMassTarget    =+0.5d0            &
-         &                  *self%massTotal()
-    sphericalRadiusHalfMass=finder%find(rootGuess=1.0d0)
+    sphericalActive              => self
+    sphericalMassTarget          =  mass
+    sphericalRadiusEnclosingMass =  finder%find(rootGuess=1.0d0)
+    return
+  end function sphericalRadiusEnclosingMass
+
+  double precision function sphericalRadiusHalfMass(self)
+    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    implicit none
+    class(massDistributionSpherical), intent(inout) :: self
+
+    sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
 
@@ -145,3 +163,29 @@ contains
          &            -sphericalMassTarget
     return
   end function sphericalMassRoot
+
+  function sphericalPositionSample(self,randomNumberGenerator_)
+    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision                            , dimension(3)  :: sphericalPositionSample
+    class           (massDistributionSpherical ), intent(inout) :: self
+    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
+    double precision                                            :: mass                   , radius, &
+         &                                                         theta                  , phi
+
+    ! Choose an enclosed mass and find the radius enclosing that mass. Choose angular
+    ! coordinates at random and finally convert to Cartesian.
+    mass  =+              self                  %massTotal          (    )        &
+         & *              randomNumberGenerator_%uniformSample      (    )
+    radius=+              self                  %radiusEnclosingMass(mass)
+    phi   =+     2.0d0*Pi*randomNumberGenerator_%uniformSample      (    )
+    theta =+acos(2.0d0   *randomNumberGenerator_%uniformSample      (    )-1.0d0)
+    sphericalPositionSample=+radius                &
+         &                  *[                     &
+         &                    sin(theta)*cos(phi), &
+         &                    sin(theta)*sin(phi), &
+         &                    cos(theta)           &       
+         &                   ]
+    return
+  end function sphericalPositionSample

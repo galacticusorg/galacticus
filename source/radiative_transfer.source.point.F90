@@ -24,7 +24,7 @@
   !#  <description>A photon source class for point sources.</description>
   !# </radiativeTransferSource>
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourcePoint
-     !% Implementation of a point photon packet class which tracks only wavelength, position, and direction.
+     !% Implementation of a point source class for radiative transfer calculations.
      private
      class           (radiativeTransferSpectrumClass), pointer      :: radiativeTransferSpectrum_ => null()
      class           (randomNumberGeneratorClass    ), pointer      :: randomNumberGenerator_     => null()
@@ -32,11 +32,12 @@
    contains
      final     ::                           pointDestructor
      procedure :: initializePhotonPacket => pointInitializePhotonPacket
+     procedure :: luminosity             => pointLuminosity
      procedure :: spectrum               => pointSpectrum
   end type radiativeTransferSourcePoint
 
   interface radiativeTransferSourcePoint
-     !% Constructors for the {\normalfont \ttfamily point} radiative transfer photon packet class.
+     !% Constructors for the {\normalfont \ttfamily point} radiative transfer source class.
      module procedure pointConstructorParameters
      module procedure pointConstructorInternal
   end interface radiativeTransferSourcePoint
@@ -44,8 +45,7 @@
 contains
 
   function pointConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily point} radiative transfer photon packet class which takes a parameter set as
-    !% input.
+    !% Constructor for the {\normalfont \ttfamily point} radiative transfer source class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferSourcePoint  )                :: self
@@ -94,7 +94,7 @@ contains
   end subroutine pointDestructor
 
   subroutine pointInitializePhotonPacket(self,photonPacket)
-    !% Set the wavelength of the photon packet.
+    !% Initialize the wavelength of the photon packet.
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (radiativeTransferSourcePoint      ), intent(inout) :: self
@@ -113,7 +113,7 @@ contains
          &                           cos(theta)           &
          &                          ]                     &
          &                         )
-    call photonPacket%luminositySet(self%radiativeTransferSpectrum_%luminosity(photonPacket%wavelengthMinimum(),photonPacket%wavelengthMaximum()))
+    call photonPacket%luminositySet(self%luminosity(photonPacket%wavelengthMinimum(),photonPacket%wavelengthMaximum()))
     return
   end subroutine pointInitializePhotonPacket
 
@@ -126,3 +126,13 @@ contains
     pointSpectrum=self%radiativeTransferSpectrum_%spectrum(wavelength)
     return
   end function pointSpectrum
+
+  double precision function pointLuminosity(self,wavelengthMinimum,wavelengthMaximum)
+    !% Return the luminosity of the point source.
+    implicit none
+    class           (radiativeTransferSourcePoint), intent(inout) :: self
+    double precision                              , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+
+    pointLuminosity=self%radiativeTransferSpectrum_%luminosity(wavelengthMinimum,wavelengthMaximum)
+    return
+  end function pointLuminosity

@@ -21,7 +21,8 @@
 
 module Mass_Distributions
   !% Implements a class that provides mass distributions.
-  use :: Coordinates, only : coordinate
+  use :: Coordinates             , only : coordinate
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   private
 
   !# <functionClass>
@@ -79,6 +80,12 @@ module Mass_Distributions
   !#   <argument>double precision, intent(in   )           :: moment</argument>
   !#   <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
   !#   <argument>logical         , intent(  out), optional :: isInfinite</argument>
+  !#  </method>
+  !#  <method name="positionSample" >
+  !#   <description>Return a position sampled from the distribution.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_</argument>
   !#  </method>
   !#  <data>logical :: dimensionless</data>
   !# </functionClass>
