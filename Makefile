@@ -174,6 +174,7 @@ $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 # Configuration of file locking implementation.
 -include $(BUILDPATH)/Makefile_Config_OFD
 $(BUILDPATH)/Makefile_Config_OFD: source/flock_config.c
+	@mkdir -p $(BUILDPATH)
 	$(CCOMPILER) -c source/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DOFDAVAIL"   >  $(BUILDPATH)/Makefile_Config_OFD ; \
