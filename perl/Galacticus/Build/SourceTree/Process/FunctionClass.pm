@@ -18,6 +18,7 @@ use Fortran::Utils;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
+use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
@@ -89,48 +90,16 @@ sub Process_FunctionClass {
 	    my %dependencies;
 	    my %classes;
 	    foreach my $classLocation ( @classLocations ) {
-		my $classTree  = &Galacticus::Build::SourceTree::ParseFile($classLocation);
+		my $classTree = &Galacticus::Build::SourceTree::ParseFile($classLocation);
 		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
-		my $classNode  = $classTree;
-		my $classDepth = 0;
-		my $className;
-		my $class;
-		$class->{'file'} = $classLocation;
-		while ( $classNode ) {
-		    # Collect class directives.
-		    if ( $classNode->{'type'} eq $directive->{'name'} ) {
-			$class->{'node'} = $classNode;
-			$class->{$_    } = $classNode->{'directive'}->{$_}
-			    foreach ( keys(%{$classNode->{'directive'}}) );
-		    }
-		    if ( $classNode->{'type'} eq "type" ) {
-			# Parse class openers to find dependencies.
-			if (
-			    $classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive->{'name'}([a-z0-9_]+)\s*$/i
-			    &&
-			    defined($2)
-			    ) {
-			    my $extends = $2;
-			    my $type    = $directive->{'name'}.$4;
-			    $class->{'type'   } = $type;
-			    $class->{'extends'} = $extends;
-			    push(@{$dependencies{$extends}},$type);
-			    # Also determine if any other members of this class are used in this type definition, and add suitable dependencies.
-			    my $childNode = $classNode->{'firstChild'};
-			    while ( $childNode ) {
-				if ( $childNode->{'type'} eq "declaration" ) {
-				    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
-					push(@{$dependencies{$declaration->{'type'}}},$type)
-					    if ( ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) && $declaration->{'type'} =~ m/^$directive->{'name'}/ && $declaration->{'type'} ne $type );
-				    }
-				}
-				$childNode = $childNode->{'sibling'};
-			    }
-			}
-		    }
-		    $classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
+		my $classNode = $classTree;
+		(my $class, my @classDependencies) = &Galacticus::Build::SourceTree::Process::FunctionClass::Utils::Class_Dependencies($classNode,$directive->{'name'});
+		foreach my $classDependency ( @classDependencies ) {
+		    push(@{$dependencies{$classDependency}},$class->{'type'})
+			unless ( $classDependency eq $class->{'type'});
 		}
-		# Store tree.
+		# Store tree and file location.
+		$class->{'file'} = $classLocation;
 		$class->{'tree'} = $classTree;
 		# Set defaults.
 		$class->{'abstract'} = "no"
@@ -602,10 +571,9 @@ CODE
 		    push(@sourceFiles,$sourceFile);
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
-		$code::digest = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash(@sourceFiles);
 		$hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 type is ({$type})
-descriptorString=descriptorString//":sourceDigest\{{$digest}\}"
+descriptorString=descriptorString//":sourceDigest\{"//String_C_To_Fortran({$type}5)//"\}"
 CODE
 	    }
 	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -622,7 +590,7 @@ CODE
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic FoX_DOM",
+		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
@@ -2837,7 +2805,20 @@ CODE
 		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$moduleUseNode);
 		}
 	    }
-
+	    # Insert bindings for any hashed source code descriptors.
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+                $modulePreContains->{'content'} .= $code::digest = &Galacticus::Build::SourceTree::Process::SourceDigest::Binding($nonAbstractClass->{'name'});
+	    }
+	    # C-types are required for the bindings.
+	    my $bindingNode =
+	    {
+		type       => "moduleUse",
+	        sibling    => undef()    ,
+	        parent     => undef()    ,
+		firstChild => undef()    ,
+                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}}
+	    };
+            &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	    # Create initialization function.
 	    $modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."subroutine ".$directive->{'name'}."Initialize()\n";
 	    $modulePostContains->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
