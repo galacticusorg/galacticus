@@ -55,7 +55,7 @@ contains
          &                                                               temperatureStepLogarithmic   =+0.025d+0
     double precision                , parameter                       :: metallicityMinimumLogarithmic=-4.000d+0, metallicityZeroLogarithmic   =-9.990d2, &
          &                                                               metallicityStepLogarithmic   =+0.250d+0
-    double precision                , parameter                       :: energyMinimum                =+1.000d-2, energyMaximum                =+1.000d2
+    double precision                , parameter                       :: energyMinimum                =+1.000d-3, energyMaximum                =+1.000d2
     integer                         , parameter                       :: energyBinsPerDecade=50
     double precision                , parameter                       :: heliumAbundancePrimordial    =+0.072d+0, heliumAbundanceSolar         =+0.100d0 ! Values as used by Cloudy.
     double precision                , allocatable  , dimension(:    ) :: metallicitiesLogarithmic               , temperaturesLogarithmic               , &
