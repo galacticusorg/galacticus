@@ -93,9 +93,6 @@ foreach my $fileName ( @sourceFileNames ) {
 			fileName => $directive->{'fileName'},
 			xml      => $xmlOutput->XMLout($directive)
 		    };
-		    # Add implicit directives for function directives.
-		    &addImplicitDirectives($directive,$directivesPerFile->{$fileIdentifier}->{'nonIncludeDirectives'},$fileIdentifier,$fileName,$sourceDirectoryName."/".$fileName)
-			if ( $directive->{'type'} eq "function" );
 		} else {
 		    # For non-include directives, simply record the file which originated the directive.
 		    push(@{$directivesPerFile->{$fileIdentifier}->{'nonIncludeDirectives'}->{$directive->{'rootElementType'}}->{'files'}},$sourceDirectoryName."/".$fileName);
@@ -204,7 +201,7 @@ sub addImplicitDirectives {
 	(
 	 stateful         => 
 	 {
-	     always => $directive->{'rootElementType'} eq "functionClass" && ! exists($directive->{'stateful'}),
+	     always => $directive->{'rootElementType'} eq "functionClass"           ,
 	     tasks  => [ "galacticusStateRetrieveTask", "galacticusStateStoreTask" ]
 	 },
 	 calculationReset => 
