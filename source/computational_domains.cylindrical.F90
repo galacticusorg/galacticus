@@ -309,7 +309,8 @@ contains
     class           (computationalDomainCylindrical), intent(inout)                            :: self
     double precision                                             , dimension(3), intent(in   ) :: position
     integer         (c_size_t                      ), allocatable, dimension(:), intent(inout) :: indices
-    
+    double precision                                                                           :: radius
+
     ! Allocate indices to the correct size if necessary.
     if (allocated(indices)) then
        if (size(indices) /= 2) then
@@ -320,9 +321,17 @@ contains
        allocate     (indices(2))
     end if
     ! Determine indices.
-    indices(1)=Search_Array(self%boundariesCells(1)%boundary,sqrt(position(1)**2+position(2)**2))
-    indices(2)=Search_Array(self%boundariesCells(2)%boundary,     position(3)                   )
-    if (any(indices(1:2) < 1) .or. any(indices(1:2) > self%countCells)) indices(1:2)=-huge(0_c_size_t)
+    radius=sqrt(sum(position(1:2)**2))
+    if     (                                                                                                                              &
+         &   radius      < self%boundariesCells(1)%boundary(1) .or. radius      >= self%boundariesCells(1)%boundary(self%countCells(1)+1) &
+         &  .or.                                                                                                                          &
+         &   position(3) < self%boundariesCells(2)%boundary(1) .or. position(3) >= self%boundariesCells(2)%boundary(self%countCells(2)+1) &
+         & ) then
+       indices(1:2)=-huge(0_c_size_t)
+    else
+       indices(1)=Search_Array(self%boundariesCells(1)%boundary,radius     )
+       indices(2)=Search_Array(self%boundariesCells(2)%boundary,position(3))
+    end if
     return
   end subroutine cylindricalIndicesFromPosition
 

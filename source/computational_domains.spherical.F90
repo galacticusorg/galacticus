@@ -284,10 +284,12 @@ contains
   subroutine sphericalIndicesFromPosition(self,position,indices)
     !% Determine the indices of the cell containing the given point.
     use :: Arrays_Search, only : Search_Array
+
     implicit none
     class           (computationalDomainSpherical), intent(inout)                            :: self
     double precision                                           , dimension(3), intent(in   ) :: position
     integer         (c_size_t                    ), allocatable, dimension(:), intent(inout) :: indices
+    double precision                                                                         :: radius
     
     ! Allocate indices to the correct size if necessary.
     if (allocated(indices)) then
@@ -299,8 +301,12 @@ contains
        allocate     (indices(1))
     end if
     ! Determine indices.
-    indices(1)=Search_Array(self%boundariesCells%boundary,sqrt(sum(position**2)))
-    if (indices(1) < 1 .or. indices(1) > self%countCells) indices=-huge(0_c_size_t)
+    radius=sqrt(sum(position**2))
+    if (radius < self%boundariesCells%boundary(1) .or. radius >= self%boundariesCells%boundary(self%countCells+1)) then
+       indices=-huge(0_c_size_t)
+    else
+       indices(1)=Search_Array(self%boundariesCells%boundary,radius)
+    end if
     return
   end subroutine sphericalIndicesFromPosition
 

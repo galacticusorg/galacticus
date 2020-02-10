@@ -341,9 +341,13 @@ contains
     end if
     ! Determine indices.
     do i=1,3
-       indices(i)=Search_Array(self%boundariesCells(i)%boundary,position(i))
+       if (position(i) < self%boundariesCells(i)%boundary(1) .or. position(i) >= self%boundariesCells(i)%boundary(self%countCells(i)+1)) then
+          indices=-huge(0_c_size_t)
+          exit
+       else
+          indices(i)=Search_Array(self%boundariesCells(i)%boundary,position(i))
+       end if
     end do
-    if (any(indices < 1) .or. any(indices > self%countCells)) indices=-huge(0_c_size_t)
     return
   end subroutine cartesian3DIndicesFromPosition
 
