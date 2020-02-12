@@ -32,7 +32,8 @@ contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
-    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Remove  , File_Unlock
+    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Remove  , File_Unlock, &
+         &                            Directory_Make
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
@@ -49,7 +50,8 @@ contains
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
-    call File_Lock(char(fspsPath//"/fsps.lock"),fspsLock)
+    call Directory_Make(     fspsPath                   )
+    call File_Lock     (char(fspsPath//"/fsps"),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Check out the code if not already done.
