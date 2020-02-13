@@ -279,6 +279,13 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 			}
 		    }
 		}
+		# Locate any submodules provided by this file.
+		if ( $line =~ m/^\s*submodule\s*\(\s*([a-z0-9_]+)(:([a-z0-9_]+))??\s*\)\s*([a-zA-Z0-9_]+)/i ) {
+		    # Construct the names of the module file and object file generated from this source file.
+		    my $moduleFileName = lc($1).".mod";
+		    my $submoduleName  = lc($4);
+		    push(@{$usesPerFile->{$fileIdentifier}->{'submodulesProvided'}},{submoduleName => $submoduleName, moduleFileName => $moduleFileName});
+		}
 		# Locate included files and push them to the stack of files to process.
 		if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
 		    my $preprocessedIncludedFile = $2;
@@ -313,6 +320,7 @@ push(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}},@{$usesPerFil
 @{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}} = uniq(sort(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}}));
 # Build a map of submodules associated with each module.
 my %submodules;
+## First include submodules generated from functionClasses.
 foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
     next
 	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodules'}) && scalar(@{$usesPerFile->{$fileIdentifier}->{'submodules'}}) > 0 );
@@ -321,6 +329,15 @@ foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
 	unless ( scalar(@modulesProvided) == 1 );
     $submodules{$workDirectoryName.lc($modulesProvided[0])} = $usesPerFile->{$fileIdentifier}->{'submodules'};
 }
+## Next include explictly defined submodules.
+foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
+    next
+	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodulesProvided'}) );
+    foreach my $submodule ( @{$usesPerFile->{$fileIdentifier}->{'submodulesProvided'}} ) {
+	push(@{$submodules{$workDirectoryName.$submodule->{'moduleFileName'}}},$submodule->{'submoduleName'});
+    }
+}
+
 # Iterate over files to generate make rules.
 foreach my $sourceFile ( @sourceFilesToProcess ) {
     # Push the main file onto the scan stack.
