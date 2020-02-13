@@ -134,12 +134,17 @@ sub Find_Hash {
 		if ( $useStoredCompositeHash ) {
 		    # Use the stored composite hash.
 		    open(my $md5File,$hashFileName);
-		    $compositeDigests{$fileName} = <$md5File>;
+		    my $compositeDigest = <$md5File>;
 		    close($md5File);
-		    $hasher->add($compositeDigests{$fileName});
-		    print "   => Reading stored composite hash: ".$compositeDigests{$fileName}."\n"
-			if ( $options{'report'} );
-		} else {
+		    $useStoredCompositeHash = defined($compositeDigest);
+		    if ( $useStoredCompositeHash ) {
+			$compositeDigests{$fileName} = $compositeDigest;
+			$hasher->add($compositeDigests{$fileName});
+			print "   => Reading stored composite hash: ".$compositeDigests{$fileName}."\n"
+			    if ( $options{'report'} );
+		    }
+		}
+		if ( ! $useStoredCompositeHash ) {
 		    print "   => Computing composite hash\n"
 			if ( $options{'report'} );
 		    open(my $dependencyFile,$dependencyFileName);
@@ -170,11 +175,16 @@ sub Find_Hash {
 				    if ( $useStoredHash ) {
 					# Use the stored hash.
 					open(my $md5File,$md5FileName);
-					$digests{$sourceFileName} = <$md5File>;
+					my $digest = <$md5File>;
 					close($md5File);
-					print "   => Reading stored hash: ".$digests{$sourceFileName}."\n"
-					    if ( $options{'report'} );
-				    } else {
+					$useStoredHash = defined($digest);
+					if ( $useStoredHash ) {
+					    $digests{$sourceFileName} = $digest;
+					    print "   => Reading stored hash: ".$digests{$sourceFileName}."\n"
+						if ( $options{'report'} );
+					}
+				    }
+				    if ( ! $useStoredHash ) {
 					# Stored hash is out of date or does not exist. Compute the hash now and store it.
 					print "   => Computing hash\n"
 					    if ( $options{'report'} );
