@@ -28,6 +28,7 @@
      procedure :: reset               => lymanContinuumRateReset
      procedure :: sourceProperties    => lymanContinuumRateSourceProperties
      procedure :: photonPacketEscapes => lymanContinuumRatePhotonPacketEscapes
+     procedure :: finalize            => lymanContinuumRateFinalize
      procedure :: output              => lymanContinuumRateOutput
   end type radiativeTransferOutputterLymanContinuumRate
 
@@ -146,6 +147,17 @@ contains
     end if
     return
   end subroutine lymanContinuumRatePhotonPacketEscapes
+
+  subroutine lymanContinuumRateFinalize(self)
+    !% Finalize the Lyman continuum photon escape rate.
+    use :: MPI_Utilities, only : mpiSelf
+    implicit none
+    class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
+
+    ! Sum the Lyc rate across all MPI processes.
+    self%lymanContinuumRateEscaping=mpiSelf%sum(self%lymanContinuumRateEscaping)
+    return
+  end subroutine lymanContinuumRateFinalize
 
   subroutine lymanContinuumRateOutput(self,outputGroup)
     !% Output the Lyman continuum photon escape rate.

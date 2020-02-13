@@ -58,6 +58,14 @@ module Radiative_Transfer_Outputters
   !#    !GCC$ attributes unused :: self, photonPacket
   !#   </code>
   !#  </method>
+  !#  <method name="finalize" >
+  !#   <description>Finalize any calculations output.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#   </code>
+  !#  </method>
   !#  <method name="output" >
   !#   <description>Perform final output.</description>
   !#   <type>void</type>

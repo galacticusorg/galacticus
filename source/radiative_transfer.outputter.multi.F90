@@ -36,6 +36,7 @@
      procedure :: reset               => multiReset
      procedure :: sourceProperties    => multiSourceProperties
      procedure :: photonPacketEscapes => multiPhotonPacketEscapes
+     procedure :: finalize            => multiFinalize
      procedure :: output              => multiOutput
      procedure :: deepCopy            => multiDeepCopy
   end type radiativeTransferOutputterMulti
@@ -151,6 +152,20 @@ contains
     return
   end subroutine multiPhotonPacketEscapes
 
+  subroutine multiFinalize(self)
+    !% Finalize the results.
+    implicit none
+    class(radiativeTransferOutputterMulti), intent(inout) :: self
+    type (multiOutputterList             ), pointer       :: outputter_
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%finalize()
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiFinalize
+  
   subroutine multiOutput(self,outputGroup)
     !% Output the results.
     implicit none
