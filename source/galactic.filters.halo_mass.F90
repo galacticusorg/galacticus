@@ -104,7 +104,7 @@ contains
          &                                                 self%virialDensityContrast_%densityContrast(               &
          &                                                                                             basic%mass (), &
          &                                                                                             basic%time ()  &
-         &                                                  )                                                         &
+         &                                                                                            )               &
          &                                                )                                                           &
          &            >=                                                                                              &
          &             self %massThreshold
