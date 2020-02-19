@@ -791,7 +791,7 @@ contains
 
   double precision function volumeFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a volumeFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
+    use :: Linear_Algebra          , only : vector                 , matrix, assignment(=), operator(*)
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
