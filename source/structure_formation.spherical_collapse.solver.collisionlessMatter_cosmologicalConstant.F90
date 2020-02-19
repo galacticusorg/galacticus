@@ -850,7 +850,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
-    !% Attempt to restore a table from file.
+    !% Store a table to file.
     use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
          &                            lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object
