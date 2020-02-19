@@ -90,7 +90,8 @@ module Radiative_Transfer_Matters
   !#   <description>Solve for the state of the matter.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout)           :: properties</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout), target   :: properties</argument>
   !#   <argument>integer                                   , intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="convergenceMeasure" >

@@ -101,7 +101,18 @@
      double precision                                     :: volume        , temperature
      type            (element), dimension(:), allocatable :: elements
   end type radiativeTransferMatterPropertiesAtomic
-  
+
+  ! Module-scope objects needed for solving for thermal equilibrium.
+  class           (radiativeTransferMatterAtomic          )                , pointer     :: atomicSelf
+  type            (element                                ), dimension( : ), allocatable :: atomicElementsPhotoRate
+  type            (radiativeTransferMatterPropertiesAtomic)                , pointer     :: atomicProperties
+  double precision                                                                       :: atomicDensityNumberElectrons
+  integer                                                                                :: atomicRecombinationCase
+  !$omp threadprivate(atomicSelf,atomicElementsPhotoRate,atomicProperties,atomicDensityNumberElectrons,atomicRecombinationCase)
+
+  ! Tolerance parameters.
+  double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-6, atomicIonizationStateFractionToleranceRelative=1.0d-2
+
 contains
 
   function atomicConstructorParameters(parameters) result(self)
@@ -315,7 +326,7 @@ contains
        ! + Initialize photoionization and photo heating rates to impossible values. These will be used as the "previous" value on
        !   the first iteration, guaranteeing that our first iteration is never judged to be converged.
        properties%iterationCount=+0
-       properties%temperature   =1.0d4
+       properties%temperature   =self%temperatureMinimum
        properties%volume        =+integrator%volume()
        allocate(properties%elements(self%countElements))
        do i=1,self%countElements
@@ -413,9 +424,9 @@ contains
     class           (radiativeTransferMatterProperties ), intent(inout) :: properties
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
     double precision                                                    :: crossSectionPhotoIonization
-    integer                                                             :: i                          , j             , &
-         &                                                                 k                          , n             , &
-         &                                                                 l                          , m             , &
+    integer                                                             :: i                          , j, &
+         &                                                                 k                          , n, &
+         &                                                                 l                          , m, &
          &                                                                 countElectrons
     
     select type (properties)
@@ -537,10 +548,10 @@ contains
                   &                                          +energyPhoton                                                                                                                                    &
                   &                                          -self                     %atomicIonizationPotential_   %potential              (self%elementAtomicNumbers(i),self%elementAtomicNumbers(i)-j)    &
                   &                                          *electronVolt                                                                                                                                    &
-                  &                                         )             
+                  &                                         )
           end do
-       end do       
-       class default
+       end do
+    class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
     return
@@ -580,49 +591,139 @@ contains
     return
   end subroutine atomicAccumulationReduction
 #endif
+
+  double precision function atomicStateThermalBalance(temperature)
+    !% Root function used in finding the equilibrium temperature for thermal balance.
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant, speedLight, electronMass, fineStructure, &
+         &                                      electronRadius
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Prefixes, only : centi
+    implicit none
+    double precision, intent(in   ) :: temperature
+    double precision                :: chargeIonic
+    integer                         :: i          , j
+
+    atomicStateThermalBalance=0.0d0
+    ! Iterate over all states of all elements, accumulating heating/cooling rates and computing the equilibrium ionization fractions.
+    do i=1,atomicSelf%countElements
+       do j=0,atomicSelf%elementAtomicNumbers(i)
+          ! Accumulate the photo-heating rate.
+          if (j < atomicSelf%elementAtomicNumbers(i)) atomicStateThermalBalance=+atomicStateThermalBalance                        &
+               &                                                                +atomicElementsPhotoRate  (i)%photoHeatingRate(j)
+          !! Accumulate rate of collisional excitation cooling.
+          if  (j < atomicSelf%elementAtomicNumbers(i))                                                                                                                       &
+               & atomicStateThermalBalance=+atomicStateThermalBalance                                                                                                        &
+               &                           -atomicDensityNumberElectrons                                                                                                     &
+               &                           *atomicProperties%elements                        (i)%densityNumber                                                               &
+               &                           *atomicProperties%elements                        (i)%ionizationStateFraction(                                   j              ) &
+               &                           *atomicSelf      %atomicExcitationRateCollisional_   %coolingRate            (atomicSelf%elementAtomicNumbers(i),j+1,temperature) &
+               &                           /centi**3
+          !! Accumulate rate of Bremsstrahlung cooling.
+          if (j > 0) then
+             chargeIonic              =dble(j)
+             atomicStateThermalBalance=+atomicStateThermalBalance                                                                                     &
+                  &                    -16.0d0                                                                                                        &
+                  &                    / 3.0d0                                                                                                        &
+                  &                    *sqrt(                                                                                                         &
+                  &                          +2.0d0                                                                                                   &
+                  &                          *Pi                                                                                                      &
+                  &                          /3.0d0                                                                                                   &
+                  &                         )                                                                                                         &
+                  &                    *chargeIonic**2                                                                                                &
+                  &                    *atomicProperties%elements(i)%densityNumber                                                                    &
+                  &                    *atomicProperties%elements(i)%ionizationStateFraction      (                                   j             ) &
+                  &                    *atomicDensityNumberElectrons                                                                                  &
+                  &                    *electronRadius          **3                                                                                   &
+                  &                    *speedLight                                                                                                    &
+                  &                    /electronRadius                                                                                                &
+                  &                    *sqrt(                                                                                                         &
+                  &                          +electronMass                                                                                            &
+                  &                          *speedLight        **2                                                                                   &
+                  &                          *boltzmannsConstant                                                                                      &
+                  &                          *temperature                                                                                             &
+                  &                         )                                                                                                         &
+                  &                    *fineStructure                                                                                                 &
+                  &                    *atomicSelf                  %gauntFactor_           %total(atomicSelf%elementAtomicNumbers(i),j,temperature)  &
+                  &                    /centi**3
+             !! Accumulate the rates of cooling due to recombinations.
+             atomicStateThermalBalance=+                                                       atomicStateThermalBalance                                                                                     &
+                  &                    -atomicSelf      %atomicRecombinationRateRadiativeCooling_   %rate                   (atomicSelf%elementAtomicNumbers(i),j,temperature,level=atomicRecombinationCase) &
+                  &                    *boltzmannsConstant                                                                                                                                                   &
+                  &                    *temperature                                                                                                                                                          &
+                  &                    *atomicDensityNumberElectrons                                                                                                                                         &
+                  &                    *atomicProperties%elements                                (i)%densityNumber                                                                                           &
+                  &                    *atomicProperties%elements                                (i)%ionizationStateFraction(                                   j                                          )
+             atomicStateThermalBalance=+atomicStateThermalBalance                                                                                                                                            &
+                  &                    -0.0d0 !! TO DO - get dielectronic cooling rates.     
+          end if
+       end do
+    end do
+    return
+  end function atomicStateThermalBalance
   
   subroutine atomicStateSolve(self,properties,status)
     !% Solve for the state of the matter.
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA       , recombinationCaseB
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail
-    use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Physical        , only : boltzmannsConstant       , speedLight                 , electronMass              , fineStructure    , &
-         &                                              electronRadius
-    use :: Numerical_Constants_Prefixes        , only : centi
+    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message   , verbosityStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail              , errorStatusOutOfRange
+    use :: Root_Finder                         , only : rangeExpandMultiplicative, rootFinder                 , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
     implicit none
-    class           (radiativeTransferMatterAtomic    ), intent(inout)               :: self
-    class           (radiativeTransferMatterProperties), intent(inout)               :: properties
+    class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
+    class           (radiativeTransferMatterProperties), intent(inout) , target      :: properties
     integer                                            , intent(  out) , optional    :: status
     double precision                                   , dimension(2)                :: temperaturePrevious                            , densityElectronsPrevious
-    double precision                                   , parameter                   :: ionizationStateFractionToleranceAbsolute=1.0d-6, ionizationStateFractionToleranceRelative=1.0d-3, &
-         &                                                                              ionizationStateFractionStepRelative     =5.0d-1, temperatureToleranceRelative            =1.0d-2, &
-         &                                                                              temperatureStepRelative                 =5.0d-1, temperatureToleranceAbsolute            =1.0d+0
-    integer                                            , parameter                   :: countIterationMaximum                   =100000, temperatureOscillatingCounts            =30    , &
+    double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-2, temperatureToleranceAbsolute =1.0d+0
+    integer                                            , parameter                   :: countIterationMaximum                   =1000  , temperatureOscillatingCounts =30    , &
          &                                                                              electronsOscillatingCounts              =30
     double precision                                   , parameter                   :: degreesOfFreedom                        =3.0d+0
-    type            (element                          ), dimension( : ), allocatable :: elementsPrevious                               , elementsReference                              , &
-         &                                                                              elementsPhotoRate
-    double precision                                                                 :: rateRecombinationRadiative                     , rateRecombinationDielectronic                  , &
-         &                                                                              densityNumberTotal                             , rateImbalanceFactor                            , &
-         &                                                                              densityNumberElectrons                         ,   temperatureReference                         , &
-         &                                                                              rateCoolingRecombinationRadiative              , rateCoolingRecombinationDielectronic           , &
-         &                                                                              rateCoolingCollisionalExcitation               , rateCoolingBremsstrahlung                      , &
-         &                                                                              rateHeating                                    , ratePhotoHeating                               , &
-         &                                                                              energyTemperatureRatio                         , timeStepTemperature                            , &
-         &                                                                              temperatureChangePrevious                      , chargeIonic                                    , &
+    double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+7
+    type            (element                          ), dimension( : ), allocatable :: elementsPrevious                               , elementsReference
+    double precision                                                                 :: rateRecombinationRadiative                     , rateRecombinationDielectronic       , &
+         &                                                                              densityNumberTotal                             , temperatureReference                , &
+         &                                                                              temperatureChangePrevious                      , temperatureEquilibrium              , &
          &                                                                              rateUpward                                     , rateDownward
-    logical                                                                          :: converged                                      , temperatureOscillating                         , &
-         &                                                                              electronsOscillating
-    integer                                                                          :: countIteration                                 , i                                              , &
-         &                                                                              temperatureOscillatingCount                    , j                                              , &
-         &                                                                              recombinationCase                              , electronsOscillatingCount
+    logical                                                                          :: converged                                      , temperatureOscillating              , &
+         &                                                                              electronsOscillating                           , heatingNonZero
+    integer                                                                          :: countIteration                                 , i                                   , &
+         &                                                                              temperatureOscillatingCount                    , j                                   , &
+         &                                                                              electronsOscillatingCount                      , statusTemperature                   , &
+         &                                                                              exponentIonizationStateFractionMaximum         , exponentIonizationState
+    type            (rootFinder                       ), save                        :: finder
+    !$omp threadprivate(finder)
+#ifdef RADTRANSDEBUG
+    integer                                                                          :: handlerPrevious
+#endif
     character       (len=256                         )                               :: message
     
+#ifdef RADTRANSDEBUG
+    handlerPrevious=Signal(8,debugAbort)
+#endif
     if (present(status)) status=errorStatusSuccess
     select type (properties)
     type is (radiativeTransferMatterPropertiesAtomic)
+       ! Set module-scope pointers to self and properties.
+       atomicSelf       => self
+       atomicProperties => properties
+       ! Initialize root finder.
+       if (.not.finder%isInitialized()) then
+          call finder   %tolerance          (                                                                  &
+               &                             toleranceRelative            =     temperatureToleranceRelative , &
+               &                             toleranceAbsolute            =     temperatureToleranceAbsolute   &
+               &                            )
+          call finder   %rangeExpand        (                                                                  &
+               &                             rangeExpandUpward            =     2.0d0                        , &
+               &                             rangeExpandDownward               =0.5d0                        , &
+               &                             rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
+               &                             rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
+               &                             rangeUpwardLimit             =     temperatureMaximum           , &
+               &                             rangeDownwardLimit           =self%temperatureMinimum           , &
+               &                             rangeExpandType              =     rangeExpandMultiplicative      &
+               &                            )
+          call finder   %rootFunction       (                                                                  &
+               &                                                                atomicStateThermalBalance      &
+               &                            )
+       end if
        ! Append the accumulated photoionization/photoheating rates to the history arrays, compute the average over those
        ! histories, and replace the photoionization/photoheating rates with those averages.
        if (self%iterationAverageCount > 1) then
@@ -640,23 +741,34 @@ contains
           end do
        end if
        ! Create array of elements matched to that in the domain cell.
-       allocate(elementsPrevious (self%countElements))
-       allocate(elementsReference(self%countElements))
-       allocate(elementsPhotoRate(self%countElements))
-       elementsPrevious =properties%elements
-       elementsReference=properties%elements
-       elementsPhotoRate=properties%elements
+       allocate(elementsPrevious       (self%countElements))
+       allocate(elementsReference      (self%countElements))
+       allocate(atomicElementsPhotoRate(self%countElements))
+       do i=1,self%countElements
+          allocate(elementsPrevious       (i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
+          allocate(elementsReference      (i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
+          allocate(atomicElementsPhotoRate(i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
+          allocate(elementsPrevious       (i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
+          allocate(elementsReference      (i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
+          allocate(atomicElementsPhotoRate(i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
+          allocate(elementsPrevious       (i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
+          allocate(elementsReference      (i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
+          allocate(atomicElementsPhotoRate(i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
+       end do
+       elementsPrevious       =properties%elements
+       elementsReference      =properties%elements
+       atomicElementsPhotoRate=properties%elements
        ! Iterate until convergence is achieved.
-       converged                       =all(properties%elements(:)%densityNumber <= 0.0d0)
-       countIteration                  =0
-       temperaturePrevious             =properties%temperature
-       temperatureReference            =properties%temperature
-       densityElectronsPrevious        =0.0d0
-       temperatureChangePrevious       =0.0d0
-       temperatureOscillating          =.false.
-       electronsOscillating            =.false.
-       temperatureOscillatingCount     =0
-       electronsOscillatingCount       =0
+       converged                  =all(properties%elements(:)%densityNumber <= 0.0d0)
+       countIteration             =0
+       temperaturePrevious        =properties%temperature
+       temperatureReference       =properties%temperature
+       densityElectronsPrevious   =0.0d0
+       temperatureChangePrevious  =0.0d0
+       temperatureOscillating     =.false.
+       electronsOscillating       =.false.
+       temperatureOscillatingCount=0
+       electronsOscillatingCount  =0
        do i=1,self%countElements
           elementsPrevious (i)%ionizationStateFraction=properties%elements(i)%ionizationStateFraction
           elementsReference(i)%ionizationStateFraction=properties%elements(i)%ionizationStateFraction
@@ -672,314 +784,209 @@ contains
        end do
        do while (.not.converged)
           ! Compute total electron density and particle density.
-          densityNumberElectrons=0.0d0
+          atomicDensityNumberElectrons=0.0d0
           do i=1,self%countElements
              do j=1,self%elementAtomicNumbers(i)
-                densityNumberElectrons=+                       densityNumberElectrons     &
-                     &                 +properties%elements(i)%densityNumber              &
-                     &                 *properties%elements(i)%ionizationStateFraction(j) &
-                     &                 *dble                                          (j)
+                atomicDensityNumberElectrons=+                       atomicDensityNumberElectrons    &
+                     &                       +properties%elements(i)%densityNumber                   &
+                     &                       *properties%elements(i)%ionizationStateFraction     (j) &
+                     &                       *dble                                               (j)
              end do
           end do
-          if (electronsOscillatingCount > 0) then
-             densityNumberElectrons=0.5d0*(densityNumberElectrons+densityElectronsPrevious(1))
-             electronsOscillatingCount=electronsOscillatingCount-1
-          end if
+          if (electronsOscillatingCount > 0) &
+               & atomicDensityNumberElectrons=0.5d0*(atomicDensityNumberElectrons+densityElectronsPrevious(1))
           densityNumberTotal=+sum(properties%elements%densityNumber         ) &
-               &             +                        densityNumberElectrons
+               &             +                        atomicDensityNumberElectrons
           ! Compute rates of change of the ionization states and temperature.
           !! Initialize rates and computed photoionization and photoheating rates.
-          ratePhotoHeating=0.0d0
+          heatingNonZero=.false.
           do i=1,self%countElements
              do j=0,self%elementAtomicNumbers(i)-1
                 ! Compute the photoionization rate.
                 if (properties%elements(i)%densityNumber > 0.0d0) then
-                   elementsPhotoRate(i)%photoIonizationRate    (j)=+properties%elements(i)%photoIonizationRate(j) &
-                        &                                          /properties%elements(i)%densityNumber
+                   atomicElementsPhotoRate (i)%photoIonizationRate(j)=+properties%elements(i)%photoIonizationRate(j) &
+                        &                                            /properties%elements(i)%densityNumber
                 else
-                   elementsPhotoRate(i)%photoIonizationRate    (j)=+0.0d0
+                   atomicElementsPhotoRate (i)%photoIonizationRate(j)=+0.0d0
                 end if
-                ! Compute heating/cooling rates (in W cm⁻³).
-                elementsPhotoRate(i)%photoHeatingRate       (j)=+properties%elements(i)%photoHeatingRate   (j)
-                ! Scale the photoionization and photoheating rates with the lower-level state fraction to better approximate the
-                ! correct solution in the optically thin limit. If the lower-level state fraction becomes zero, then we instead
-                ! set the photoionization rate to half of the previous value (otherwise the gas will immediately become fully
-                ! lower-level again).
-                if    (           elementsReference(i)%ionizationStateFraction(j) > 0.0d0) then
-                   if (properties%elements         (i)%ionizationStateFraction(j) > 0.0d0) then
-                      elementsPhotoRate(i)%photoIonizationRate(j)=+           elementsPhotoRate(i)%photoIonizationRate    (j) &
-                           &                                      *properties%elements         (i)%ionizationStateFraction(j) &
-                           &                                      /           elementsReference(i)%ionizationStateFraction(j)
-                      elementsPhotoRate(i)%photoHeatingRate   (j)=+           elementsPhotoRate(i)%photoHeatingRate       (j) &
-                           &                                      *properties%elements         (i)%ionizationStateFraction(j) &
-                           &                                      /           elementsReference(i)%ionizationStateFraction(j) 
-                   else
-                      elementsPhotoRate(i)%photoIonizationRate(j)=+           elementsPrevious (i)%photoIonizationRate    (j) &
-                           &                                      /2.0d0
-                      elementsPhotoRate(i)%photoHeatingRate   (j)=+           elementsPrevious (i)%photoHeatingRate       (j) &
-                           &                                      /2.0d0
-                   end if
-                   elementsPrevious(i)%photoIonizationRate(j)=elementsPhotoRate(i)%photoIonizationRate(j)
-                   elementsPrevious(i)%photoHeatingRate   (j)=elementsPhotoRate(i)%photoHeatingRate   (j)
-                end if
-                ! Accumulate the photo-heating rate.
-                ratePhotoHeating=+ratePhotoHeating                         &
-                     &           +elementsPhotoRate(i)%photoHeatingRate(j)
+                ! Compute photoheating rates (in W cm⁻³).
+                atomicElementsPhotoRate    (i)%photoHeatingRate   (j)=+properties%elements(i)%photoHeatingRate   (j)
+                if (atomicElementsPhotoRate(i)%photoHeatingRate   (j) > 0.0d0) heatingNonZero=.true.
              end do
              ! For the fully-ionized state, use a photoionization rate from the lower state - this is just used for scaling timescales.
-             elementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i))=elementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i)-1)
-             elementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i))=elementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i)-1)
+             atomicElementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i))=atomicElementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i)-1)
+             atomicElementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i))=atomicElementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i)-1)
           end do
-          ! Initialize heating/cooling rates to zero.
-          rateCoolingRecombinationRadiative=0.0d0
-          rateCoolingCollisionalExcitation=0.0d0
-          rateCoolingBremsstrahlung=0.0d0
-          ! Iterate over all states of all elements, accumulating heating/cooling rates and computing the equilibrium ionization fractions.
-          do i=1,self%countElements
-             do j=0,self%elementAtomicNumbers(i)
-                !! Accumulate rate of collisional excitation cooling.
-                if  (j < self%elementAtomicNumbers(i))                                                                                                                                   &
-                     & rateCoolingCollisionalExcitation=+rateCoolingCollisionalExcitation                                                                                                &
-                     &                                  +densityNumberElectrons                                                                                                          &
-                     &                                  *properties%elements                        (i)%densityNumber                                                                    &
-                     &                                  *properties%elements                        (i)%ionizationStateFraction(                             j                         ) &
-                     &                                  *self      %atomicExcitationRateCollisional_   %coolingRate            (self%elementAtomicNumbers(i),j+1,properties%temperature) &
-                     &                                  /centi**3
-                !! Accumulate rate of Bremsstrahlung cooling.
-                if (j > 0) then
-                   chargeIonic              =dble(j)
-                   rateCoolingBremsstrahlung=+rateCoolingBremsstrahlung                                                                                     &
-                        &                    +16.0d0                                                                                                        &
-                        &                    / 3.0d0                                                                                                        &
-                        &                    *sqrt(                                                                                                         &
-                        &                          +2.0d0                                                                                                   &
-                        &                          *Pi                                                                                                      &
-                        &                          /3.0d0                                                                                                   &
-                        &                         )                                                                                                         &
-                        &                    *chargeIonic**2                                                                                                &
-                        &                    *properties%elements(i)%densityNumber                                                                          &
-                        &                    *properties%elements(i)%ionizationStateFraction      (                             j                         ) &
-                        &                    *densityNumberElectrons                                                                                        &
-                        &                    *electronRadius          **3                                                                                   &
-                        &                    *speedLight                                                                                                    &
-                        &                    /electronRadius                                                                                                &
-                        &                    *sqrt(                                                                                                         &
-                        &                          +electronMass                                                                                            &
-                        &                          *speedLight        **2                                                                                   &
-                        &                          *boltzmannsConstant                                                                                      &
-                        &                          *properties%temperature                                                                                  &
-                        &                         )                                                                                                         &
-                        &                    *fineStructure                                                                                                 &
-                        &                    *self                  %gauntFactor_           %total(self%elementAtomicNumbers(i),j,properties%temperature)   &
-                        &                    /centi**3
-                end if
-                if (j == 0) then
-                   ! Set the neutral ion fraction to an arbitrary value - we will compute ratios of ionization fractions and
-                   ! renormalize at the end.
-                   properties%elements(i)%ionizationStateFraction(0)=1.0d0
-                else
-                   ! Compute the abundance of this ionization state relative to the lower state by requiring balance between
-                   ! ionization and recombination rates.
-                   !! Rate of upward transitions from photoionization.
-                   if    (elementsReference(i)%ionizationStateFraction(j-1) > 0.0d0 .and. properties%elements(i)%densityNumber > 0.0d0) then
-                      rateUpward=+properties%elements         (i)%photoIonizationRate    (j-1) &
-                           &     /properties%elements         (i)%densityNumber                &
-                           &     /           elementsReference(i)%ionizationStateFraction(j-1)
+          ! If there is photoheating occuring, solve for the state of matter.
+          if (heatingNonZero) then
+             ! Iterate over all states of all elements, computing the equilibrium ionization fractions.
+             do i=1,self%countElements
+                do j=0,self%elementAtomicNumbers(i)
+                   if (j == 0) then
+                      ! Set the neutral ion fraction to an arbitrary value - we will compute ratios of ionization fractions and
+                      ! renormalize at the end.
+                      properties%elements(i)%ionizationStateFraction(0)=1.0d0
                    else
-                      rateUpward=+0.0d0
-                   end if
-                   ! Rate of upward transitions from collisional ionizations.
-                   rateUpward                          =+                                          rateUpward                                                                                             &
-                        &                               +                                          densityNumberElectrons                                                                                 &
-                        &                               *self%atomicIonizationRateCollisional_    %rate                   (self%elementAtomicNumbers(i),j,properties%temperature                        )
-                   !! Rates of downward transitions from radiative and dielectronic recombintions.
-                   select case (self%elementAtomicNumbers(i))
-                   case (1,2)
-                      ! Hydrogen, helium.
-                      !! TO DO - hard-coded for case-B recombination
-                      recombinationCase=recombinationCaseB
-                   case default
-                      ! Metals.
-                      recombinationCase=recombinationCaseA
-                   end select
-                   rateRecombinationRadiative          =+                                                       densityNumberElectrons                                                                                           &
-                        &                               *self      %atomicRecombinationRateRadiative_          %rate                             (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase)
-                   rateRecombinationDielectronic       =+                                                       densityNumberElectrons                                                                                           &
-                        &                               *self      %atomicRecombinationRateDielectronic_       %rate                             (self%elementAtomicNumbers(i),j,properties%temperature                        )
-                   !! Accumulate the rates of cooling due to recombinations.
-                   rateCoolingRecombinationRadiative   =+                                                       rateCoolingRecombinationRadiative                                                                                &
-                        &                               +self      %atomicRecombinationRateRadiativeCooling_   %rate                             (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase) &
-                        &                               *                                                       boltzmannsConstant                                                                                               &
-                        &                               *properties%temperature                                                                                                                                                  &
-                        &                               *                                                       densityNumberElectrons                                                                                           &
-                        &                               *properties%elements                                (i)%densityNumber                                                                                                    &
-                        &                               *properties%elements                                (i)%ionizationStateFraction          (                             j                                               )
-                   rateCoolingRecombinationDielectronic=+0.0d0 !! TO DO - get dielectronic cooling rates.
-                   !! Find the net rate of downward transitions.
-                   rateDownward                        =+rateRecombinationRadiative                                                                                                                                              &
-                        &                               +rateRecombinationDielectronic
-                   !! Compute the relative abundance required to balance upward and downward transitions.
-                   if (rateDownward == 0.0d0) then
-                      if (rateUpward > 0.0d0) then
-                         ! If there are no downward transitions, but some upward transitions no solution is available. So simply
-                         ! assume that the relative abundance is 1 - this should get corrected in subsequent iterations.
-                         properties%elements(i)%ionizationStateFraction(j)=+properties%elements(i)%ionizationStateFraction(j-1)
+                      ! Compute the abundance of this ionization state relative to the lower state by requiring balance between
+                      ! ionization and recombination rates.
+                      !! Rate of upward transitions from photoionization.
+                      if     (                                                                                         &
+                           &              elementsReference(i)%ionizationStateFraction(j-1)       > 0.0d0              &
+                           &  .and.                                                                                    &
+                           &   properties%elements         (i)%densityNumber                      > 0.0d0              &
+                           &  .and.                                                                                    &
+                           &   +exponent(atomicElementsPhotoRate(i)%photoIonizationRate    (j-1))                      &
+                           &   -exponent(elementsReference      (i)%ionizationStateFraction(j-1)) < maxExponent(0.0d0) &
+                           & ) then
+                         rateUpward=+atomicElementsPhotoRate(i)%photoIonizationRate    (j-1) &
+                              &     /elementsReference      (i)%ionizationStateFraction(j-1)
                       else
-                         ! If there are no downward transitions, and no upward transitions then the upper state should have zero
-                         ! fraction.
-                         properties%elements(i)%ionizationStateFraction(j)=+0.0d0
+                         rateUpward=+0.0d0
                       end if
-                   else
-                      ! Solve for the relative abundance.
-                      properties%elements(i)%ionizationStateFraction   (j)=+properties%elements(i)%ionizationStateFraction(j-1) &
-                           &                                               *rateUpward                                          &
-                           &                                               /rateDownward
+                      ! Rate of upward transitions from collisional ionizations.
+                      rateUpward=+                                      rateUpward                                                                          &
+                           &     +                                      atomicDensityNumberElectrons                                                        &
+                           &     *self%atomicIonizationRateCollisional_%rate                        (self%elementAtomicNumbers(i),j,properties%temperature)
+                      !! Rates of downward transitions from radiative and dielectronic recombintions.
+                      select case (self%elementAtomicNumbers(i))
+                      case (1,2)
+                         ! Hydrogen, helium.
+                         !! TO DO - hard-coded for case-B recombination
+                         atomicRecombinationCase=recombinationCaseB
+                      case default
+                         ! Metals.
+                         atomicRecombinationCase=recombinationCaseA
+                      end select
+                      rateRecombinationRadiative   =+                                          atomicDensityNumberElectrons                                                                                      &
+                           &                        *self%atomicRecombinationRateRadiative_   %rate                        (self%elementAtomicNumbers(i),j,properties%temperature,level=atomicRecombinationCase)
+                      rateRecombinationDielectronic=+                                          atomicDensityNumberElectrons                                                                                      &
+                           &                        *self%atomicRecombinationRateDielectronic_%rate                        (self%elementAtomicNumbers(i),j,properties%temperature                              )
+                      !! Find the net rate of downward transitions.
+                      rateDownward                 =+rateRecombinationRadiative                                                                                                                                  &
+                           &                        +rateRecombinationDielectronic
+                      !! Compute the relative abundance required to balance upward and downward transitions.
+                      if (rateDownward == 0.0d0) then
+                         if (rateUpward > 0.0d0) then
+                            ! If there are no downward transitions, but some upward transitions no solution is available. So simply
+                            ! assume that the relative abundance is 1 - this should get corrected in subsequent iterations.
+                            properties%elements(i)%ionizationStateFraction(j)=+properties%elements(i)%ionizationStateFraction(j-1)
+                         else
+                            ! If there are no downward transitions, and no upward transitions then the upper state should have zero
+                            ! fraction.
+                            properties%elements(i)%ionizationStateFraction(j)=+0.0d0
+                         end if
+                      else
+                         ! Solve for the relative abundance.
+                         !! Ensure that the relative abundances are in a range such that the new abundance will not overflow.
+                         exponentIonizationState               =+     exponent(properties%elements(i)%ionizationStateFraction(j-1))
+                         exponentIonizationStateFractionMaximum=+  maxExponent(0.0d0                                              ) &
+                              &                                 -(                                                                  &
+                              &                                   +   exponent(rateUpward                                         ) &
+                              &                                   -   exponent(rateDownward                                       ) &
+                              &                                  )
+                         if (exponentIonizationState >= exponentIonizationStateFractionMaximum) &
+                              & properties%elements(i)%ionizationStateFraction(0:j-1)=properties%elements(i)%ionizationStateFraction(0:j-1)/dble(radix(0.0d0))**(exponentIonizationState-exponentIonizationStateFractionMaximum+1)
+                         !! Compute the relative abundance in this ionization state.
+                         properties%elements(i)%ionizationStateFraction   (j)=+properties%elements(i)%ionizationStateFraction(j-1) &
+                              &                                               *rateUpward                                          &
+                              &                                               /rateDownward
+                      end if
                    end if
-                end if
+                   ! Normalize all ionization states computed so far.                
+                   properties%elements(i)%ionizationStateFraction(0:j)=+    properties%elements(i)%ionizationStateFraction(0:j)  &
+                        &                                              /sum(properties%elements(i)%ionizationStateFraction(0:j))
+                end do
+                ! Renormalize ionization states so that the summed fraction is 1.
+                properties%elements(i)%ionizationStateFraction=+    properties%elements(i)%ionizationStateFraction  &
+                     &                                         /sum(properties%elements(i)%ionizationStateFraction)
+                ! If electron density is oscillating then bisect the current and previous ionization state fractions.
+                if (electronsOscillatingCount > 0) &
+                     & properties%elements(i)%ionizationStateFraction=0.5d0*(properties%elements(i)%ionizationStateFraction+elementsPrevious(i)%ionizationStateFraction)
              end do
-             ! Renormalize ionization states so that the summed fraction is 1.
-             properties%elements(i)%ionizationStateFraction=+    properties%elements(i)%ionizationStateFraction  &
-                  &                                         /sum(properties%elements(i)%ionizationStateFraction)
-          end do
-          ! Sum cooling and heating rates.
-          rateHeating=+ratePhotoHeating                     &
-               &      -rateCoolingRecombinationRadiative    &
-               &      -rateCoolingRecombinationDielectronic &
-               &      -rateCoolingCollisionalExcitation     &
-               &      -rateCoolingBremsstrahlung
-          ! Solve for temperature.         
-          if (ratePhotoHeating > 0.0d0) then
-             ! Compute timestep for temperature.
-             energyTemperatureRatio=+0.5d0*degreesOfFreedom*densityNumberTotal*boltzmannsConstant
-             if (abs(rateHeating) > 0.0d0) then
-                rateImbalanceFactor=min(1.0d0,abs(rateHeating)/ratePhotoHeating)
-                timeStepTemperature=+               temperatureStepRelative &
-                     &              *               rateImbalanceFactor     &
-                     &              *               energyTemperatureRatio  &
-                     &              *    properties%temperature             &
-                     &              /abs(           rateHeating           )
-                ! If temperature was oscillating, then limit the timestep such that the temperature can not change by more than
-                ! half of the change in the previous timestep - this helps to avoid further oscillation.
-                if (temperatureOscillatingCount > 0 .and. temperatureChangePrevious > 0.0d0) &
-                     & timeStepTemperature=min(timeStepTemperature,abs(0.5d0*temperatureChangePrevious/(rateHeating/energyTemperatureRatio)))
-                ! Adjust the temperature.
-                properties%temperature=+properties%temperature &
-                     &                 +timeStepTemperature    &
-                     &                 *rateHeating            &
-                     &                 /energyTemperatureRatio
-                if (properties%temperature < 0.0d0) properties%temperature=self%temperatureMinimum        
+             ! Decrement electron oscillation count.
+             if (electronsOscillatingCount > 0) &
+                  & electronsOscillatingCount=electronsOscillatingCount-1       
+             ! Solve for temperature - updating only if we find a solution in range.
+             temperatureEquilibrium=finder%find(rootGuess=properties%temperature,status=statusTemperature)
+             if (statusTemperature == errorStatusSuccess) &
+                  & properties%temperature=temperatureEquilibrium             
+             ! If temperature is oscillating bisect the temperature, and then decrease the count of steps for which we attempted
+             ! to break out of oscillation.
+             if (temperatureOscillatingCount > 0) then
+                properties%temperature=0.5d0*(properties%temperature+temperaturePrevious(1))
+                if (temperatureOscillatingCount > 0) temperatureOscillatingCount=+temperatureOscillatingCount &
+                     &                                                           -1
              end if
-             ! If temperature is oscillating decrease the count of steps for which we attempted to break out of oscillation.
-             if (temperatureOscillatingCount > 0) temperatureOscillatingCount=+temperatureOscillatingCount &
-                  &                                                           -1
           else
-             ! No photo-heating - set to minimum temperature.
-             properties%temperature                                    =self%temperatureMinimum
+             ! No photo-heating - set to minimum temperature and fully neutral.
+             properties%temperature=self%temperatureMinimum
+             do i=1,self%countElements
+                properties%elements(i)%ionizationStateFraction   =0.0d0
+                properties%elements(i)%ionizationStateFraction(0)=1.0d0
+             end do
           end if
           ! Check for convergence.
-          converged=   abs(properties%temperature-temperaturePrevious(1)) <  max(temperatureToleranceAbsolute,temperatureToleranceRelative*properties%temperature     ) &
-               &    .and.                                                                                                                                               &
-               &     (                                                                                                                                                  &
-               &       abs(rateHeating                                  ) <=                                  temperatureToleranceRelative*           ratePhotoHeating  &
-               &      .or.                                                                                                                                              &
-               &       abs(properties%temperature-temperaturePrevious(1)) <      temperatureToleranceAbsolute                                                           &
-               &     )
+          converged= abs(properties%temperature-temperaturePrevious(1)) <  max(temperatureToleranceAbsolute,temperatureToleranceRelative*properties%temperature) &
+               &    .or.                                                                                                                                         &
+               &     abs(properties%temperature-temperaturePrevious(1)) <      temperatureToleranceAbsolute
           do i=1,self%countElements
              if (.not.converged) exit
-             converged=all(abs(properties%elements(i)%ionizationStateFraction-elementsPrevious(i)%ionizationStateFraction) < max(ionizationStateFractionToleranceAbsolute,ionizationStateFractionToleranceRelative*properties%elements(i)%ionizationStateFraction))
+             converged=all(abs(properties%elements(i)%ionizationStateFraction-elementsPrevious(i)%ionizationStateFraction) < max(atomicIonizationStateFractionToleranceAbsolute,atomicIonizationStateFractionToleranceRelative*properties%elements(i)%ionizationStateFraction))
           end do
           ! Check for exceeding maximum iterations.
           countIteration=countIteration+1
           if (countIteration > countIterationMaximum .and. .not.converged) then
-             ! No solution was found - report on the state of this domain cell.
-             call Galacticus_Display_Indent('failed domain cell state report',verbosityStandard)
-             write (message,'(a,e23.16         )') 'volume                                    = ',properties%volume
-             call Galacticus_Display_Message(message,verbosityStandard)
-             write (message,'(a,e23.16         )') 'initial temperature                       = ',temperatureReference
-             call Galacticus_Display_Message(message,verbosityStandard)
-             do i=1,self%countElements
-                call Galacticus_Display_Indent('element: '//trim(adjustl(self%elements(i))),verbosityStandard)
-                write (message,'(a,e23.16         )') 'density                                   = ',properties%elements(i)%densityNumber
+             if (present(status)) then
+                status=errorStatusFail
+#ifdef RADTRANSDEBUG
+                call Signal(8,handlerPrevious)
+#endif
+                deallocate(atomicElementsPhotoRate)
+                return
+             else
+                ! No solution was found - report on the state of this domain cell.
+                call Galacticus_Display_Indent('failed domain cell state report',verbosityStandard)
+                write (message,'(a,e23.16         )') 'volume                                    = ',properties%volume
                 call Galacticus_Display_Message(message,verbosityStandard)
-                do j=0,self%elementAtomicNumbers(i)
-                   call Galacticus_Display_Indent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityStandard)
-                   if (j < self%elementAtomicNumbers(i)) then
-                      write (message,'(a,e23.16,a,e23.16)') 'photoionization rate (current : previous) = ',properties%elements         (i)%photoIonizationRate    (j),' : ',properties%elements(i)%photoIonizationRatePrevious(j)
-                      call Galacticus_Display_Message(message,verbosityStandard)
-                      write (message,'(a,e23.16,a,e23.16)') 'photoheating rate    (current : previous) = ',properties%elements         (i)%photoHeatingRate       (j),' : ',properties%elements(i)%photoHeatingRatePrevious   (j)
-                      call Galacticus_Display_Message(message,verbosityStandard)
-                   end if
-                   write    (message,'(a,e23.16,a,e23.16)') 'initial ionization state                  = ',           elementsReference(i)%ionizationStateFraction(j)
+                write (message,'(a,e23.16         )') 'initial temperature                       = ',temperatureReference
+                call Galacticus_Display_Message(message,verbosityStandard)
+                do i=1,self%countElements
+                   call Galacticus_Display_Indent('element: '//trim(adjustl(self%elements(i))),verbosityStandard)
+                   write (message,'(a,e23.16         )') 'density                                   = ',properties%elements(i)%densityNumber
                    call Galacticus_Display_Message(message,verbosityStandard)
+                   do j=0,self%elementAtomicNumbers(i)
+                      call Galacticus_Display_Indent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityStandard)
+                      if (j < self%elementAtomicNumbers(i)) then
+                         write (message,'(a,e23.16,a,e23.16)') 'photoionization rate (current : previous) = ',properties%elements         (i)%photoIonizationRate    (j),' : ',properties%elements(i)%photoIonizationRatePrevious(j)
+                         call Galacticus_Display_Message(message,verbosityStandard)
+                         write (message,'(a,e23.16,a,e23.16)') 'photoheating rate    (current : previous) = ',properties%elements         (i)%photoHeatingRate       (j),' : ',properties%elements(i)%photoHeatingRatePrevious   (j)
+                         call Galacticus_Display_Message(message,verbosityStandard)
+                      end if
+                      write    (message,'(a,e23.16,a,e23.16)') 'initial ionization state                  = ',           elementsReference(i)%ionizationStateFraction(j)
+                      call Galacticus_Display_Message(message,verbosityStandard)
+                      call Galacticus_Display_Unindent('done',verbosityStandard)
+                   end do
                    call Galacticus_Display_Unindent('done',verbosityStandard)
                 end do
                 call Galacticus_Display_Unindent('done',verbosityStandard)
-             end do
 #ifdef RADTRANSDEBUG
-             ! Debugging output. Writes the initial state for this failed case in a format that be directly pasted into the
-             ! relevant test suite code.
-             write    (0,'(a,i1)'         ) "properties            %iterationCount             = "    ,1
-             write    (0,'(a,e23.16)'     ) "properties            %volume                     = "    ,properties%volume
-             write    (0,'(a,e23.16)'     ) "properties            %temperature                = "    ,temperatureReference
-             do i=1,self%countElements
-                write (0,'(a,i1,a,e23.16)') "properties%elements(",i,")%densityNumber              = ",properties%elements(i)%densityNumber     
-                write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%ionizationStateFraction    =["
-                do j=0,self%elementAtomicNumbers(i)
-                   if (j < self%elementAtomicNumbers(i)) then
-                      write (0,'(e23.16,a,$)') elementsReference(i)%ionizationStateFraction    (j),','
-                   else
-                      write (0,'(e23.16,a)'  ) elementsReference(i)%ionizationStateFraction    (j),']'
-                   end if
-                end do
-                write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRate        =["
-                do j=0,self%elementAtomicNumbers(i)-1
-                   if (j < self%elementAtomicNumbers(i)-1) then
-                      write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRate        (j),','
-                   else
-                      write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRate        (j),']'
-                   end if
-                end do
-                write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRate           =["
-                do j=0,self%elementAtomicNumbers(i)-1
-                   if (j < self%elementAtomicNumbers(i)-1) then
-                      write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRate           (j),','
-                   else
-                      write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRate           (j),']'
-                   end if
-                end do
-                write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRatePrevious=["
-                do j=0,self%elementAtomicNumbers(i)-1
-                   if (j < self%elementAtomicNumbers(i)-1) then
-                      write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRatePrevious(j),','
-                   else
-                      write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRatePrevious(j),']'
-                   end if
-                end do
-                write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRatePrevious   =["
-                do j=0,self%elementAtomicNumbers(i)-1
-                   if (j < self%elementAtomicNumbers(i)-1) then
-                      write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRatePrevious   (j),','
-                   else
-                      write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRatePrevious   (j),']'
-                   end if
-                end do
-             end do
+                call debugReport()                
 #endif
-             call Galacticus_Display_Unindent('done',verbosityStandard)
-             if (present(status)) then
-                status=errorStatusFail
-                return
-             else
                 call Galacticus_Error_Report('solution not found'//{introspection:location})
              end if
           end if
           ! Check for oscillating temperature or electron density.
-          if (countIteration >= 3) then
-             temperatureOscillating=(properties%temperature-temperaturePrevious     (1))*(temperaturePrevious     (1)-temperaturePrevious     (2)) < 0.0d0
-             electronsOscillating  =(densityNumberElectrons-densityElectronsPrevious(1))*(densityElectronsPrevious(1)-densityElectronsPrevious(2)) < 0.0d0
-             ! If oscillation is detected set the number of steps for which we will attempt to break out of it.
-             if (temperatureOscillating) temperatureOscillatingCount=temperatureOscillatingCounts
-             if (electronsOscillating  ) electronsOscillatingCount  =electronsOscillatingCounts
+          if (countIteration >= temperatureOscillatingCounts) then
+             if (temperatureOscillatingCount == 0) then
+                temperatureOscillating=(properties%temperature      -temperaturePrevious     (1))*(temperaturePrevious     (1)-temperaturePrevious     (2)) < 0.0d0
+                ! If oscillation is detected set the number of steps for which we will attempt to break out of it.
+                if (temperatureOscillating) temperatureOscillatingCount=temperatureOscillatingCounts
+             end if
+             if (electronsOscillatingCount == 0) then
+                electronsOscillating  =(atomicDensityNumberElectrons-densityElectronsPrevious(1))*(densityElectronsPrevious(1)-densityElectronsPrevious(2)) < 0.0d0
+                ! If oscillation is detected set the number of steps for which we will attempt to break out of it.
+                if (electronsOscillating  ) electronsOscillatingCount  =electronsOscillatingCounts
+             end if
           end if
           ! Store current state to previous state.
           do i=1,self%countElements
@@ -989,12 +996,88 @@ contains
           temperaturePrevious           (2)=               temperaturePrevious     (1)
           temperaturePrevious           (1)=    properties%temperature
           densityElectronsPrevious      (2)=               densityElectronsPrevious(1)
-          densityElectronsPrevious      (1)=               densityNumberElectrons
-       end do
+          densityElectronsPrevious      (1)=               atomicDensityNumberElectrons
+       end do       
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
-    return
+#ifdef RADTRANSDEBUG
+    call Signal(8,handlerPrevious)
+#endif
+    deallocate(atomicElementsPhotoRate)
+   return
+
+  contains
+    
+#ifdef RADTRANSDEBUG
+    subroutine debugAbort()
+      !% Perform debug reporting and then exit.
+      implicit none
+      
+      call debugReport()
+      call Abort      ()
+      return
+    end subroutine debugAbort
+    
+    subroutine debugReport()
+      !% Report debugging information.
+      implicit none
+      
+      ! Debugging output. Writes the initial state for this failed case in a format that be directly pasted into the
+      ! relevant test suite code.
+      select type (properties)
+      type is (radiativeTransferMatterPropertiesAtomic)
+         write    (0,'(a,i1)'         ) "properties            %iterationCount             = "    ,1
+         write    (0,'(a,e23.16)'     ) "properties            %volume                     = "    ,properties%volume
+         write    (0,'(a,e23.16)'     ) "properties            %temperature                = "    ,temperatureReference
+         do i=1,self%countElements
+            write (0,'(a,i1,a,e23.16)') "properties%elements(",i,")%densityNumber              = ",properties%elements(i)%densityNumber     
+            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%ionizationStateFraction    =["
+            do j=0,self%elementAtomicNumbers(i)
+               if (j < self%elementAtomicNumbers(i)) then
+                  write (0,'(e23.16,a,$)') elementsReference(i)%ionizationStateFraction    (j),','
+               else
+                  write (0,'(e23.16,a)'  ) elementsReference(i)%ionizationStateFraction    (j),']'
+               end if
+            end do
+            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRate        =["
+            do j=0,self%elementAtomicNumbers(i)-1
+               if (j < self%elementAtomicNumbers(i)-1) then
+                  write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRate        (j),','
+               else
+                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRate        (j),']'
+               end if
+            end do
+            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRate           =["
+            do j=0,self%elementAtomicNumbers(i)-1
+               if (j < self%elementAtomicNumbers(i)-1) then
+                  write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRate           (j),','
+               else
+                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRate           (j),']'
+               end if
+            end do
+            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRatePrevious=["
+            do j=0,self%elementAtomicNumbers(i)-1
+               if (j < self%elementAtomicNumbers(i)-1) then
+                  write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRatePrevious(j),','
+               else
+                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRatePrevious(j),']'
+               end if
+            end do
+            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRatePrevious   =["
+            do j=0,self%elementAtomicNumbers(i)-1
+               if (j < self%elementAtomicNumbers(i)-1) then
+                  write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRatePrevious   (j),','
+               else
+                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRatePrevious   (j),']'
+               end if
+            end do
+         end do
+      end select
+      return
+    end subroutine debugReport
+#endif
+
   end subroutine atomicStateSolve
 
 #ifdef USEMPI
@@ -1032,22 +1115,30 @@ contains
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferMatterProperties), intent(inout) :: properties
-    integer                                                   :: i
+    integer                                                   :: i         , j
     !GCC$ attributes unused :: self
-    
+
     select type (properties)
     type is (radiativeTransferMatterPropertiesAtomic)
-       atomicConvergenceMeasure=-huge(0.0d0)
+       atomicConvergenceMeasure=0.0d0
        do i=1,self%countElements
-          atomicConvergenceMeasure=max(                                                                                                                          &
-               &                           atomicConvergenceMeasure                                                                                            , &
-               &                       max(                                                                                                                      &
-               &                           Disparity_Ratio(properties%elements(i)%photoIonizationRate(0),properties%elements(i)%photoIonizationRatePrevious(0)), &
-               &                           Disparity_Ratio(properties%elements(i)%photoHeatingRate   (0),properties%elements(i)%photoHeatingRatePrevious   (0))  &
-               &                          )                                                                                                                      &
-               &                      )
+          do j=0,self%elementAtomicNumbers(i)-1
+             ! Only consider states with some significant population when computing convergence measure.
+             if     (                                                                                                                                                      &
+                  &   properties%elements(i)%ionizationStateFraction (j) > atomicIonizationStateFractionToleranceAbsolute                                                  &
+                  &  .and.                                                                                                                                                 &
+                  &   properties%elements(i)%photoHeatingRatePrevious(j) > 0.0d0                                                                                           &
+                  & )                                                                                                                                                      &
+                  & atomicConvergenceMeasure=max(                                                                                                                          &
+                  &                                 atomicConvergenceMeasure                                                                                             , &
+                  &                              max(                                                                                                                      &
+                  &                                  Disparity_Ratio(properties%elements(i)%photoIonizationRate(j),properties%elements(i)%photoIonizationRatePrevious(j)), & 
+                  &                                  Disparity_Ratio(properties%elements(i)%photoHeatingRate   (j),properties%elements(i)%photoHeatingRatePrevious   (j))  &
+                  &                                 )                                                                                                                      &
+                  &                             )
+          end do
        end do
-    class default
+       class default
        atomicConvergenceMeasure=0.0d0
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -1174,4 +1265,3 @@ contains
     end if
     return
   end function atomicRecombinationRateHydrogen
-
