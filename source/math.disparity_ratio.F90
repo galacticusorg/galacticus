@@ -40,7 +40,7 @@ contains
     else if (exponent(xMaximum)-exponent(xMinimum) >= maxexponent(xMaximum) .or. xMinimum == 0.0d0) then
        Disparity_Ratio=huge(0.0d0)
     else
-       Disparity_Ratio=xMaximum/xMinimum
+       Disparity_Ratio=abs(xMaximum/xMinimum)
     end if    
     return
   end function Disparity_Ratio
