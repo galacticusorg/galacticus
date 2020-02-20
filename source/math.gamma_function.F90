@@ -50,10 +50,11 @@ contains
 
   double precision function Gamma_Function(argument)
     !% Computes the gamma function.
+    use :: FGSL, only : FGSL_SF_Gamma
     implicit none
     double precision, intent(in   ) :: argument
 
-    Gamma_Function=exp(Gamma_Function_Logarithmic(argument))
+    Gamma_Function=FGSL_SF_Gamma(argument)
     return
   end function Gamma_Function
 
