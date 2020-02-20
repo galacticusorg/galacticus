@@ -42,7 +42,8 @@ program Test_Math_Special_Functions
        &                             incompleteComplementaryGammaFunction                                                                                                                                                        , incompleteGammaFunction                    , &
        &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, &
        &                             logGammaFunction                                                                                                                                                                            , sineIntegral                               , &
-       &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx
+       &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx                    , &
+       &                             hypergeometric2F1NegativeArgument                                                                                                                                                           , hypergeometric2F1approxNegativeArgument
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -72,6 +73,8 @@ program Test_Math_Special_Functions
      hypergeometric2F1                          (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0],[1.5d0      ],1.0d0/(argument(i)+1.0d0)                         )
      hypergeometric2F1approx                    (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0],[1.5d0      ],1.0d0/(argument(i)+1.0d0),toleranceRelative=1.0d-6)
      hypergeometric1F2                          (i)=Hypergeometric_pFq                             ([1.5d0      ],[1.5d0,0.5d0],       argument(i)                                )
+     hypergeometric2F1NegativeArgument          (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0],[2.0d0      ],  -exp(argument(i)      )                         )
+     hypergeometric2F1approxNegativeArgument    (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0],[2.0d0      ],  -exp(argument(i)      ),toleranceRelative=1.0d-6)
   end do
 
   ! Test Bessel function results.
@@ -382,6 +385,40 @@ program Test_Math_Special_Functions
   call Assert("hypergeometric, ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1(1),0.7132641626d0,relTol=1.0d-6)
   hypergeometric2F1approx(1)=Hypergeometric_2F1([1.5d0,-0.7d0],[2.8d0],0.7d0,toleranceRelative=1.0d-6)
   call Assert("hypergeometric (approximate), ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1approx(1),0.7132641626d0,relTol=1.0d-6)
+
+  ! Test hypergeometric 2F1 function for x<-1.
+  call Assert("hypergeometric, ₂F₁([3/2,7/10],[2],x) (x<-1)", &
+       &       hypergeometric2F1NegativeArgument,             &
+       &       [                                              &
+       &        0.4789885350d0,                               &
+       &        0.2913537719d0,                               &
+       &        0.1612432319d0,                               &
+       &        0.08457261386d0,                              &
+       &        0.04313811262d0,                              &
+       &        0.02169967246d0,                              &
+       &        0.010841876494d0,                             &
+       &        0.005399413105d0,                             &
+       &        0.002684860664d0,                             &
+       &        0.0013340880235d0                             &
+       &       ],                                             &
+       &       relTol=1.0d-6                                  &
+       &     )
+  call Assert("hypergeometric (approximate), ₂F₁([3/2,7/10],[2],x) (x<-1)", &
+       &       hypergeometric2F1approxNegativeArgument,                     &
+       &       [                                                            &
+       &        0.4789885350d0,                                             &
+       &        0.2913537719d0,                                             &
+       &        0.1612432319d0,                                             &
+       &        0.08457261386d0,                                            &
+       &        0.04313811262d0,                                            &
+       &        0.02169967246d0,                                            &
+       &        0.010841876494d0,                                           &
+       &        0.005399413105d0,                                           &
+       &        0.002684860664d0,                                           &
+       &        0.0013340880235d0                                           &
+       &       ],                                                           &
+       &       relTol=1.0d-6                                                &
+       &     )
 
   ! Test error function with complex argument.
   errorFunctionComplex=Error_Function(                             &

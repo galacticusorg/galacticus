@@ -642,6 +642,15 @@ gsl_sf_hyperg_2F1_approx_e(double a, double b, const double c,
   }
 }
 
+int
+gsl_sf_hyperg_2F1_approx_series(const double a, const double b, const double c,
+                                const double x, const double tol,
+                                gsl_sf_result * result
+                               )
+{
+  return hyperg_2F1_approx_series(a, b, c, x, tol, result);
+}
+
 /*-*-*-*-*-*-*-*-*-* Functions w/ Natural Prototypes *-*-*-*-*-*-*-*-*-*-*/
 
 #include "eval.h"
