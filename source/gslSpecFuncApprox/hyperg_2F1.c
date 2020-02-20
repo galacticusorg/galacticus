@@ -39,8 +39,8 @@
 static int
 hyperg_2F1_approx_series(const double a, const double b, const double c,
 			 const double x, const double tol,
-                  gsl_sf_result * result
-                  )
+                         gsl_sf_result * result
+                        )
 {
   double sum_pos = 1.0;
   double sum_neg = 0.0;
@@ -64,8 +64,8 @@ hyperg_2F1_approx_series(const double a, const double b, const double c,
     if(++i > 30000) {
       result->val  = sum_pos - sum_neg;
       result->err  = del_pos + del_neg;
-      result->err += 2.0 * tol * (sum_pos + sum_neg);
-      result->err += 2.0 * tol * (2.0*sqrt(k)+1.0) * fabs(result->val);
+      result->err += 2.0 * GSL_DBL_EPSILON * (sum_pos + sum_neg);
+      result->err += 2.0 * GSL_DBL_EPSILON * (2.0*sqrt(k)+1.0) * fabs(result->val);
       GSL_ERROR ("error", GSL_EMAXITER);
     }
     del *= (a+k)*(b+k) * x / ((c+k) * (k+1.0));  /* Gauss series */
@@ -100,8 +100,8 @@ hyperg_2F1_approx_series(const double a, const double b, const double c,
 
   result->val  = sum_pos - sum_neg;
   result->err  = del_pos + del_neg;
-  result->err += 2.0 * tol * (sum_pos + sum_neg);
-  result->err += 2.0 * tol * (2.0*sqrt(k) + 1.0) * fabs(result->val);
+  result->err += 2.0 * GSL_DBL_EPSILON * (sum_pos + sum_neg);
+  result->err += 2.0 * GSL_DBL_EPSILON * (2.0*sqrt(k) + 1.0) * fabs(result->val);
 
   return GSL_SUCCESS;
 }
@@ -117,8 +117,8 @@ hyperg_2F1_approx_series(const double a, const double b, const double c,
 static
 int
 hyperg_2F1_approx_luke(const double a, const double b, const double c,
-                const double xin, const double tol, 
-                gsl_sf_result * result)
+                       const double xin, const double tol,
+                       gsl_sf_result * result)
 {
   int stat_iter;
   const double RECUR_BIG = 1.0e+50;
@@ -197,7 +197,7 @@ hyperg_2F1_approx_luke(const double a, const double b, const double c,
 
   result->val  = F;
   result->err  = 2.0 * fabs(prec * F);
-  result->err += 2.0 * tol * (n+1.0) * fabs(F);
+  result->err += 2.0 * GSL_DBL_EPSILON * (n+1.0) * fabs(F);
 
   /* FIXME: just a hack: there's a lot of shit going on here */
   result->err *= 8.0 * (fabs(a) + fabs(b) + 1.0);
@@ -213,7 +213,7 @@ hyperg_2F1_approx_luke(const double a, const double b, const double c,
 static
 int
 hyperg_2F1_approx_reflect(const double a, const double b, const double c,
-                   const double x, const double tol, gsl_sf_result * result)
+                          const double x, const double tol, gsl_sf_result * result)
 {
   const double d = c - a - b;
   const int intd  = floor(d+0.5);
@@ -327,19 +327,21 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
 
       /* Do F2 sum.
        */
+      double delta = 0.0;
       for(j=1; j<maxiter; j++) {
         /* values for psi functions use recurrence; Abramowitz+Stegun 6.3.5 */
         double term1 = 1.0/(double)j  + 1.0/(ad+j);
         double term2 = 1.0/(a+d1+j-1.0) + 1.0/(b+d1+j-1.0);
-        double delta = 0.0;
         psi_val += term1 - term2;
-        psi_err += tol * (fabs(term1) + fabs(term2));
+        psi_err += GSL_DBL_EPSILON * (fabs(term1) + fabs(term2));
         fact *= (a+d1+j-1.0)*(b+d1+j-1.0)/((ad+j)*j) * (1.0-x);
         delta = fact * psi_val;
         sum2_val += delta;
-        sum2_err += fabs(fact * psi_err) + tol*fabs(delta);
+        sum2_err += fabs(fact * psi_err) + GSL_DBL_EPSILON*fabs(delta);
         if(fabs(delta) < tol * fabs(sum2_val)) break;
       }
+
+      sum2_err += fabs(delta);
 
       if(j == maxiter) stat_F2 = GSL_EMAXITER;
 
@@ -456,8 +458,14 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
     result->val  = pre1.val*F1.val + pre2.val*F2.val;
     result->err  = fabs(pre1.val*F1.err) + fabs(pre2.val*F2.err);
     result->err += fabs(pre1.err*F1.val) + fabs(pre2.err*F2.val);
-    result->err += 2.0 * tol * (fabs(pre1.val*F1.val) + fabs(pre2.val*F2.val));
-    result->err += 2.0 * tol * fabs(result->val);
+    result->err += 2.0 * GSL_DBL_EPSILON * (fabs(pre1.val*F1.val) + fabs(pre2.val*F2.val));
+    result->err += 2.0 * GSL_DBL_EPSILON * fabs(result->val);
+
+    if (status_F1)
+      return status_F1;
+
+    if (status_F2)
+      return status_F2;
 
     return GSL_SUCCESS;
   }
@@ -484,7 +492,7 @@ static int pow_omx(const double x, const double p, gsl_sf_result * result)
 int
 gsl_sf_hyperg_2F1_approx_e(double a, double b, const double c,
 			   const double x, const double tol,
-                       gsl_sf_result * result)
+                           gsl_sf_result * result)
 {
   const double d = c - a - b;
   const double rinta = floor(a + 0.5);
