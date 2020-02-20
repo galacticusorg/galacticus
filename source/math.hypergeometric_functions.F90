@@ -70,6 +70,8 @@ contains
     integer         (fgsl_int      ), intent(  out), optional :: status
     double precision                , intent(  out), optional :: error
     double precision                , intent(in   ), optional :: toleranceRelative
+    double precision                , parameter               :: gsl_dbl_epsilon  =2.2204460492503131d-16
+    double precision                                          :: toleranceActual
     type            (fgsl_sf_result)                          :: fgslResult
     type            ( gsl_sf_result)                          ::  gslResult
 
@@ -78,26 +80,31 @@ contains
        call Galacticus_GSL_Error_Handler_Abort_Off()
        statusActual=FGSL_Success
     end if
+    if (present(toleranceRelative)) then
+       toleranceActual=toleranceRelative
+    else
+       toleranceActual=gsl_dbl_epsilon
+    end if
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
        ! |x|<1 so simply call the GSL function to compute the function.
-       if (.not.present(toleranceRelative)) then
+       if (.not.present(toleranceRelative) .and. abs(b(1)-a(1)-a(2)-dnint(b(1)-a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
           statusActual=FGSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,fgslResult)
           Hypergeometric_2F1=fgslResult%val
           if (present(error)) error=fgslResult%err
        else
-          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(1),a(2),b(1),x,toleranceRelative,gslResult)
+          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(1),a(2),b(1),x,toleranceActual,gslResult)
           Hypergeometric_2F1=gslResult%val
           if (present(error)) error=gslResult%err
        end if
     else if (x < -1.0d0) then
        ! x<-1 so use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1.
-       if (.not.present(toleranceRelative)) then
+       if (.not.present(toleranceRelative) .and. abs(a(1)-a(2)-dnint(a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
           statusActual=FGSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),fgslResult)
           Hypergeometric_2F1=fgslResult%val/(1.0d0-x)**a(2)
           if (present(error)) error=fgslResult%err/(1.0d0-x)**a(2)
        else
-          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),toleranceRelative,gslResult)
+          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),toleranceActual,gslResult)
           Hypergeometric_2F1=gslResult%val/(1.0d0-x)**a(2)
           if (present(error)) error=gslResult%err/(1.0d0-x)**a(2)
        end if

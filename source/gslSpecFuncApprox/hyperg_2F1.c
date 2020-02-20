@@ -21,6 +21,7 @@
 /* Author:  G. Jungman */
 
 /* #include <config.h> */
+#include <stdlib.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_sf_exp.h>
@@ -222,6 +223,7 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
   if(d_integer) {
     const double ln_omx = log(1.0 - x);
     const double ad = fabs(d);
+    const int aintd = abs(intd);
     int stat_F2 = GSL_SUCCESS;
     double sgn_2;
     gsl_sf_result F1;
@@ -230,9 +232,15 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
     gsl_sf_result lng_c;
     gsl_sf_result lng_ad2;
     gsl_sf_result lng_bd2;
+    gsl_sf_result lng_1pd;
+    double sgn_c;
+    double sgn_ad2;
+    double sgn_bd2;
+    double sgn_1pd;
     int stat_c;
     int stat_ad2;
     int stat_bd2;
+    int stat_1pd;
 
     if(d >= 0.0) {
       d1 = d;
@@ -243,13 +251,14 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
       d2 = d;
     }
 
-    stat_ad2 = gsl_sf_lngamma_e(a+d2, &lng_ad2);
-    stat_bd2 = gsl_sf_lngamma_e(b+d2, &lng_bd2);
-    stat_c   = gsl_sf_lngamma_e(c,    &lng_c);
+    stat_ad2 = gsl_sf_lngamma_sgn_e(a  +d2, &lng_ad2, &sgn_ad2);
+    stat_bd2 = gsl_sf_lngamma_sgn_e(b  +d2, &lng_bd2, &sgn_bd2);
+    stat_1pd = gsl_sf_lngamma_sgn_e(1.0+ad, &lng_1pd, &sgn_1pd);
+    stat_c   = gsl_sf_lngamma_sgn_e(c,      &lng_c  , &sgn_c  );
 
     /* Evaluate F1.
      */
-    if(ad < GSL_DBL_EPSILON) {
+    if(ad < locEPS) {
       /* d = 0 */
       F1.val = 0.0;
       F1.err = 0.0;
@@ -258,9 +267,12 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
       gsl_sf_result lng_ad;
       gsl_sf_result lng_ad1;
       gsl_sf_result lng_bd1;
-      int stat_ad  = gsl_sf_lngamma_e(ad,   &lng_ad);
-      int stat_ad1 = gsl_sf_lngamma_e(a+d1, &lng_ad1);
-      int stat_bd1 = gsl_sf_lngamma_e(b+d1, &lng_bd1);
+      double sgn_ad;
+      double sgn_ad1;
+      double sgn_bd1;
+      int stat_ad  = gsl_sf_lngamma_sgn_e(ad,   &lng_ad , &sgn_ad );
+      int stat_ad1 = gsl_sf_lngamma_sgn_e(a+d1, &lng_ad1, &sgn_ad1);
+      int stat_bd1 = gsl_sf_lngamma_sgn_e(b+d1, &lng_bd1, &sgn_bd1);
 
       if(stat_ad1 == GSL_SUCCESS && stat_bd1 == GSL_SUCCESS && stat_ad == GSL_SUCCESS) {
         /* Gamma functions in the denominator are ok.
@@ -271,13 +283,14 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
         double term = 1.0;
         double ln_pre1_val = lng_ad.val + lng_c.val + d2*ln_omx - lng_ad1.val - lng_bd1.val;
         double ln_pre1_err = lng_ad.err + lng_c.err + lng_ad1.err + lng_bd1.err + GSL_DBL_EPSILON * fabs(ln_pre1_val);
+        double sgn_pre1 = sgn_ad * sgn_c * sgn_ad1 * sgn_bd1;
         int stat_e;
 
         /* Do F1 sum.
          */
-        for(i=1; i<ad; i++) {
+        for(i=1; i<aintd; i++) {
           int j = i-1;
-          term *= (a + d2 + j) * (b + d2 + j) / (1.0 + d2 + j) / i * (1.0-x);
+          term *= (a + d2 + j) * (b + d2 + j) / (1.0 - ad + j) / i * (1.0-x);
           sum1 += term;
         }
         
@@ -287,6 +300,8 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
         if(stat_e == GSL_EOVRFLW) {
           OVERFLOW_ERROR(result);
         }
+
+        F1.val *= sgn_pre1;
       }
       else {
         /* Gamma functions in the denominator were not ok.
@@ -319,8 +334,9 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
       double fact = 1.0;
       double sum2_val = psi_val;
       double sum2_err = psi_err;
-      double ln_pre2_val = lng_c.val + d1*ln_omx - lng_ad2.val - lng_bd2.val;
-      double ln_pre2_err = lng_c.err + lng_ad2.err + lng_bd2.err + GSL_DBL_EPSILON * fabs(ln_pre2_val);
+      double ln_pre2_val = lng_c.val + d1*ln_omx - lng_ad2.val - lng_bd2.val - lng_1pd.val;
+      double ln_pre2_err = lng_c.err + lng_ad2.err + lng_bd2.err + lng_1pd.err + GSL_DBL_EPSILON * fabs(ln_pre2_val);
+      double sgn_pre2 = sgn_c * sgn_ad2 * sgn_bd2 * sgn_1pd;
       int stat_e;
 
       int j;
@@ -358,6 +374,8 @@ hyperg_2F1_approx_reflect(const double a, const double b, const double c,
           result->err = 0.0;
           GSL_ERROR ("error", GSL_EOVRFLW);
         }
+
+        F2.val *= sgn_pre2;
       }
       stat_F2 = GSL_ERROR_SELECT_2(stat_F2, stat_dall);
     }

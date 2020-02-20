@@ -376,6 +376,13 @@ program Test_Math_Special_Functions
   hypergeometric2F1(1)=Hypergeometric_2F1([1.0d0,1.0d0],[2.0d0],-2.0d0)
   call Assert("hypergeometric, ₂F₁([1,1],[2],-2)",hypergeometric2F1(1),log(3.0d0)/2.0d0,relTol=1.0d-6 )
 
+  ! Test bugs in the GSL implemntation of the hypergeometric function 2F1(a,b,c,x) at x>0.5 when c-a-b is an integer
+  ! and at least one of a, b, or c is negative.
+  hypergeometric2F1(1)=Hypergeometric_2F1([1.5d0,-0.7d0],[2.8d0],0.7d0)
+  call Assert("hypergeometric, ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1(1),0.7132641626d0,relTol=1.0d-6)
+  hypergeometric2F1approx(1)=Hypergeometric_2F1([1.5d0,-0.7d0],[2.8d0],0.7d0,toleranceRelative=1.0d-6)
+  call Assert("hypergeometric (approximate), ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1approx(1),0.7132641626d0,relTol=1.0d-6)
+
   ! Test error function with complex argument.
   errorFunctionComplex=Error_Function(                             &
        &                              [                            &
