@@ -21,7 +21,8 @@
 
 program Test_Math_Special_Functions
   !% Tests of mathematical special functions.
-  use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_K0                     , Bessel_Function_K1
+  use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_K0                     , Bessel_Function_K1        , &
+       &                                  Bessel_Function_J0               , Bessel_Function_J1
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
@@ -37,6 +38,7 @@ program Test_Math_Special_Functions
   double precision, dimension(10) :: Q                                   =[0.8646647168d0,0.5939941504d0,0.3233235840d0,0.1428765398d0,0.0526530176d0,0.0165636087d0,0.0045338057d0,0.0010967192d0,0.0002374473d0,0.0000464981d0]
   double precision, dimension(10) :: BesselI0                                                                                                                                                                                    , BesselI1                                   , &
        &                             BesselK0                                                                                                                                                                                    , BesselK1                                   , &
+       &                             BesselJ0                                                                                                                                                                                    , BesselJ1                                   , &
        &                             cosineIntegral                                                                                                                                                                              , doubleFactorial                            , &
        &                             factorials                                                                                                                                                                                  , gammaFunction                              , &
        &                             hypergeometric1F1                                                                                                                                                                           , hypergeometric2F1                          , &
@@ -57,6 +59,8 @@ program Test_Math_Special_Functions
   do i=1,10
      BesselK0                                   (i)=Bessel_Function_K0                             (                                   argument(i)                                )
      BesselK1                                   (i)=Bessel_Function_K1                             (                                   argument(i)                                )
+     BesselJ0                                   (i)=Bessel_Function_J0                             (                                   argument(i)                                )
+     BesselJ1                                   (i)=Bessel_Function_J1                             (                                   argument(i)                                )
      BesselI0                                   (i)=Bessel_Function_I0                             (                                   argument(i)                                )
      BesselI1                                   (i)=Bessel_Function_I1                             (                                   argument(i)                                )
      sineIntegral                               (i)=Sine_Integral                                  (                                   argument(i)                                )
@@ -107,6 +111,38 @@ program Test_Math_Special_Functions
        &        0.00001864877345d0  &
        &       ],                   &
        &       relTol=1.0d-6        &
+       &     )
+  call Assert("Bessel J₀(x)",            &
+       &       BesselJ0,                 &
+       &       [                         &
+       &        +0.765197686557966600d0, &
+       &        +0.223890779141235700d0, &
+       &        -0.260051954901933400d0, &
+       &        -0.397149809863847400d0, &
+       &        -0.177596771314338300d0, &
+       &        +0.150645257250996900d0, &
+       &        +0.300079270519555600d0, &
+       &        +0.171650807137553900d0, &
+       &        -0.090333611182876120d0, &
+       &        -0.245935764451348000d0  &
+       &       ],                        &
+       &       relTol=1.0d-6             &
+       &     )
+  call Assert("Bessel J₁(x)",            &
+       &       BesselJ1,                 &
+       &       [                         &
+       &        +0.440050585744933500d0, &
+       &        +0.576724807756873400d0, &
+       &        +0.339058958525936500d0, &
+       &        -0.066043328023549140d0, &
+       &        -0.327579137591465200d0, &
+       &        -0.276683858127565600d0, & 
+       &        -0.004682823482345833d0, &
+       &        +0.234636346853914600d0, &
+       &        +0.245311786573325300d0, &
+       &        +0.04347274616886136d0   &
+       &       ],                        &
+       &       relTol=1.0d-6             &
        &     )
   call Assert("Bessel I₀(x)",       &
        &       BesselI0,            &
