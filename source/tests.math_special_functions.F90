@@ -22,6 +22,7 @@
 program Test_Math_Special_Functions
   !% Tests of mathematical special functions.
   use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_K0                     , Bessel_Function_K1
+  use :: Binomial_Coefficients   , only : Binomial_Coefficient
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
@@ -421,8 +422,15 @@ program Test_Math_Special_Functions
        &      ]                                                      , &
        &      relTol=dcmplx(1.0d-6,1.0d-6)&
        &     )
+
+  ! Test binomial coefficients.
+  call Assert(                                                                                                                                                                               &
+       &             "binomial coefficient, ₂C₁, ₁₀C₃, ₋₂C₀, ₋₂C₁₀, ₋₂C₂₀, ₋₂C₂₀₀"                                                                                                         , &
+       &             [Binomial_Coefficient(2,1),Binomial_Coefficient(10,3),Binomial_Coefficient(-2,0),Binomial_Coefficient(-2,10),Binomial_Coefficient(-2,20),Binomial_Coefficient(-2,200)], &
+       &             [2.0d0                    ,120.0d0                   ,1.0d0                     ,11.0d0                     ,21.0d0                     ,201.0d0                     ], &
+       &      relTol=1.0d-9)
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_Finish   ()
 
 end program Test_Math_Special_Functions
