@@ -217,18 +217,83 @@ contains
 
   double precision function Hypergeometric_pFq_Real(a,b,x,toleranceRelative)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Gamma_Functions , only : Gamma_Function
     implicit none
     double precision, intent(in   ), dimension(:) :: a                , b
     double precision, intent(in   )               :: x
     double precision, intent(in   ), optional     :: toleranceRelative
     double precision                              :: toleranceActual
+    double precision                              :: aP(size(a))      , bQ(size(b))
+    double precision                              :: aMulti           , bMulti     , &
+         &                                           aaMulti          , baMulti    , &
+         &                                           term
+    integer                                       :: p                , q          , &
+         &                                           i                , j          , &
+         &                                           k
 
     if (present(toleranceRelative)) then
        toleranceActual=toleranceRelative
     else
        toleranceActual=1.0d-10
     end if
-    Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x),toleranceActual))
+    p=size(a)
+    q=size(b)
+    if (x >= -1.0d0) then
+       Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x),toleranceActual))
+    else
+       if (p == q+1) then
+          ! Use the transformation x -> 1/x to evaluate in terms of a hypergeometric function with |x|<1.
+          ! Note that the transformation is only valid when a(j), b(j), a(j)-a(k) (|j-k|>0) are not zero
+          ! negative integers. For details, see
+          ! <http://functions.wolfram.com/07.31.06.0019.01>.
+          aMulti=1.0d0
+          bMulti=1.0d0
+          do i=1, p
+             aMulti=aMulti*Gamma_Function(a(i))
+          end do
+          do i=1, q
+             bMulti=bMulti*Gamma_Function(b(i))
+          end do
+          Hypergeometric_pFq_Real=0.0d0
+          do k=1, p
+             aaMulti=1.0d0
+             baMulti=1.0d0
+             do j=1, p
+                if (j .ne. k) aaMulti=aaMulti*Gamma_Function(a(j)-a(k))
+             end do
+             do j=1, q
+                ! Check whether b(j)-a(k) is a nonpositive integer.
+                if (b(j)-a(k) <= 0.0d0 .and. (b(j)-a(k)-dnint(b(j)-a(k))) == 0.0d0) then
+                   aaMulti=0.0d0
+                   baMulti=1.0d0
+                else
+                   baMulti=baMulti*Gamma_Function(b(j)-a(k))
+                end if
+             end do
+             aP(1 )=a(k)
+             aP(2:)=a(k)-b+1.0d0
+             do i=1, q
+                if (i < k) then
+                   bQ(i)=1.0d0-a(i  )+a(k)
+                else
+                   bQ(i)=1.0d0-a(i+1)+a(k)
+                end if
+             end do
+             term=real(Hypergeometric_pFq_Complex(dcmplx(aP),dcmplx(bQ),dcmplx(1.0d0/x),toleranceActual))
+             Hypergeometric_pFq_Real=+Hypergeometric_pFq_Real &
+                  &                  +Gamma_Function(a(k))    &
+                  &                  *aaMulti                 &
+                  &                  /baMulti                 &
+                  &                  /(-x)**a(k)              &
+                  &                  *term
+          end do
+          Hypergeometric_pFq_Real=bMulti/aMulti*Hypergeometric_pFq_Real
+       else
+          Hypergeometric_pFq_Real=0.0d0
+          call Galacticus_Error_Report('not implemented yet'//{introspection:location})
+       end if
+    end if
     return
   end function Hypergeometric_pFq_Real
 
