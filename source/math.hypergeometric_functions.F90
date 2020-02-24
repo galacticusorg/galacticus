@@ -190,18 +190,23 @@ contains
     return
   end function Hypergeometric_2F1
 
-  double complex function Hypergeometric_pFq_Complex(a,b,x)
+  double complex function Hypergeometric_pFq_Complex(a,b,x,toleranceRelative)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
     !% \cite{perger_numerical_1993}.
     implicit none
-    double complex, intent(in   ), dimension(:) :: a    , b
-    double complex, intent(in   )               :: x
-    double complex                              :: PFQ
-    integer                                     :: LNPFQ, IX, NSIGFIG
+    double complex  , intent(in   ), dimension(:) :: a                , b
+    double complex  , intent(in   )               :: x
+    double precision, intent(in   ), optional     :: toleranceRelative
+    double complex                                :: PFQ
+    integer                                       :: LNPFQ            , IX, NSIGFIG
 
     LNPFQ  = 0
     IX     = 0
-    NSIGFIG=10
+    if (present(toleranceRelative)) then
+       NSIGFIG=ceiling(-(log10(toleranceRelative)))
+    else
+       NSIGFIG=10
+    end if
     if (dreal(x) == 0.0d0) then
        Hypergeometric_pFq_Complex=1.0d0
     else
@@ -210,13 +215,20 @@ contains
     return
   end function Hypergeometric_pFq_Complex
 
-  double precision function Hypergeometric_pFq_Real(a,b,x)
+  double precision function Hypergeometric_pFq_Real(a,b,x,toleranceRelative)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
     implicit none
-    double precision, intent(in   ), dimension(:) :: a  , b
+    double precision, intent(in   ), dimension(:) :: a                , b
     double precision, intent(in   )               :: x
+    double precision, intent(in   ), optional     :: toleranceRelative
+    double precision                              :: toleranceActual
 
-    Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x)))
+    if (present(toleranceRelative)) then
+       toleranceActual=toleranceRelative
+    else
+       toleranceActual=1.0d-10
+    end if
+    Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x),toleranceActual))
     return
   end function Hypergeometric_pFq_Real
 
