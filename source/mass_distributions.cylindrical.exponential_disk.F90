@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an exponential disk mass distribution class.
-
+  
   !$ use :: OMP_Lib, only : omp_lock_kind
   use    :: Tables , only : table1DLogarithmicLinear
 
@@ -27,22 +27,28 @@
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
      !% The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
-     private
-     double precision                           :: scaleRadius                           , scaleHeight                           , &
-          &                                        densityNormalization                  , surfaceDensityNormalization           , &
-          &                                        mass
-     ! Tables used for rotation curves and potential.
-     logical                                    :: scaleLengthFactorSet                  , rotationCurveInitialized              , &
-          &                                        rotationCurveGradientInitialized      , potentialInitialized
-     double precision                           :: scaleLengthFactor
-     double precision                           :: rotationCurveHalfRadiusMinimum        , rotationCurveHalfRadiusMaximum
-     double precision                           :: rotationCurveGradientHalfRadiusMinimum, rotationCurveGradientHalfRadiusMaximum
-     type            (table1DLogarithmicLinear) :: rotationCurveTable                    , rotationCurveGradientTable            , &
-          &                                        potentialTable
-     ! Locks.
-     !$ integer      (omp_lock_kind           ) :: factorComputeLock                    , rotationCurveLock                     , &
-     !$   &                                        rotationCurveGradientLock            , potentialLock
-   contains
+  private
+  double precision                                                        :: scaleRadius                           , scaleHeight                           , &
+       &                                                                     densityNormalization                  , surfaceDensityNormalization           , &
+       &                                                                     mass
+  ! Tables used for rotation curves and potential.
+  logical                                                                 :: scaleLengthFactorSet                  , rotationCurveInitialized              , &
+       &                                                                     rotationCurveGradientInitialized      , potentialInitialized                  , &
+       &                                                                     accelerationInitialized
+  double precision                                                        :: scaleLengthFactor
+  double precision                                                        :: rotationCurveHalfRadiusMinimum        , rotationCurveHalfRadiusMaximum
+  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum, rotationCurveGradientHalfRadiusMaximum
+  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                    , rotationCurveGradientTable            , &
+       &                                                                     potentialTable
+  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                     , accelerationHeights
+  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                    , accelerationVertical
+  double precision                                                        :: accelerationRadiusMinimumLog          , accelerationRadiusMaximumLog          , &
+       &                                                                     accelerationHeightMinimumLog          , accelerationHeightMaximumLog          , &
+       &                                                                     accelerationRadiusInverseInterval     , accelerationHeightInverseInterval
+  ! Locks.
+  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                     , rotationCurveLock                     , &
+  !$   &                                                                     rotationCurveGradientLock             , potentialLock
+contains
      !@ <objectMethods>
      !@   <object>massDistributionExponentialDisk</object>
      !@   <objectMethod>
@@ -69,6 +75,12 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ halfRadius\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>accelerationTabulate</method>
+     !@     <description>Tabulate the gravitational acceleration due to the disk.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                      exponentialDiskDestructor
      procedure :: tabulate                          => exponentialDiskTabulate
@@ -83,6 +95,8 @@
      procedure :: rotationCurveGradient             => exponentialDiskRotationCurveGradient
      procedure :: radiusHalfMass                    => exponentialDiskRadiusHalfMass
      procedure :: surfaceDensityRadialMoment        => exponentialDiskSurfaceDensityRadialMoment
+     procedure :: acceleration                      => exponentialDiskAcceleration
+     procedure :: accelerationTabulate              => exponentialDiskAccelerationTabulate
   end type massDistributionExponentialDisk
 
   interface massDistributionExponentialDisk
@@ -213,6 +227,7 @@ contains
     self%rotationCurveInitialized              =.false.
     self%rotationCurveGradientInitialized      =.false.
     self%potentialInitialized                  =.false.
+    self%accelerationInitialized               =.false.
     self%scaleLengthFactor                     =0.0d0
     ! Initialize locks.
     !$ call OMP_Init_Lock(self%factorComputeLock        )
@@ -654,3 +669,457 @@ contains
     exponentialDiskSurfaceDensityRadialMoment=(integralHigh-integralLow)*Gamma_Function(moment+1.0d0)*self%scaleRadius**(moment+1.0d0)
     return
   end function exponentialDiskSurfaceDensityRadialMoment
+
+  function exponentialDiskAcceleration(self,coordinates)
+    !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                                 , dimension(3  ) :: exponentialDiskAcceleration
+    class           (massDistributionExponentialDisk), intent(inout)  :: self
+    class           (coordinate                     ), intent(in   )  :: coordinates
+    double precision                                 , dimension(3  ) :: positionCartesian
+    double precision                                 , dimension(0:1) :: hRadius                   , hHeight
+    type            (coordinateCylindrical          )                 :: coordinatesCylindrical
+    type            (coordinateCartesian            )                 :: coordinatesCartesian
+    double precision                                                  :: radiusCylindrical         , radiusCylindricalLog, &
+         &                                                               heightCylindrical         , heightCylindricalLog, &
+         &                                                               accelerationRadial        , accelerationVertical, &
+         &                                                               radiusSpherical
+    integer                                                           :: iRadius                   , iHeight             , &
+         &                                                               jRadius, jHeight
+    
+    ! Get position in cylindrical and Cartesian coordinate systems.
+    coordinatesCylindrical=coordinates
+    coordinatesCartesian  =coordinates
+    positionCartesian     =coordinatesCartesian
+    ! Ensure that acceleration is tabulated.
+    call self%accelerationTabulate()
+    ! Find interpolating factors.
+    radiusCylindrical=    coordinatesCylindrical%r()/self%scaleRadius
+    heightCylindrical=abs(coordinatesCylindrical%z()/self%scaleRadius)
+    if     (                                                                              &
+         &   radiusCylindrical > self%accelerationRadii  (size(self%accelerationRadii  )) &
+         &  .or.                                                                          &
+         &   heightCylindrical > self%accelerationHeights(size(self%accelerationHeights)) &
+         & ) then
+       ! Use spherical approximation.
+       radiusSpherical            =+sqrt(sum(positionCartesian**2))
+       exponentialDiskAcceleration=-positionCartesian    &
+            &                      /radiusSpherical  **3
+    else
+       ! Interpolate in tabulated solution.
+       if (radiusCylindrical < self%accelerationRadii  (1)) then
+          iRadius   = 1
+          hRadius   =[0.0d0,1.0d0]
+       else
+          radiusCylindricalLog   =log(radiusCylindrical)
+          hRadius             (0)=+(                                        &
+               &                    +     radiusCylindricalLog              &
+               &                    -self%accelerationRadiusMinimumLog      &
+               &                   )                                        &
+               &                  *  self%accelerationRadiusInverseInterval
+          iRadius                =+int(hRadius(0))+             1
+          hRadius             (0)=+    hRadius(0) -dble(iRadius-1    )
+          hRadius             (1)=-    hRadius(0) +             1.0d0
+       end if
+       if (heightCylindrical < self%accelerationHeights(1)) then
+          iHeight                = 1
+          hHeight                =[0.0d0,1.0d0]
+       else
+          heightCylindricalLog   =log(heightCylindrical)
+          hHeight             (0)=+(                                        &
+               &                    +     heightCylindricalLog              &
+               &                    -self%accelerationHeightMinimumLog      &
+               &                   )                                        &
+               &                  *  self%accelerationHeightInverseInterval
+          iHeight                =+int(hHeight(0))+             1
+          hHeight             (0)=+    hHeight(0) -dble(iHeight-1    )
+          hHeight             (1)=-    hHeight(0) +             1.0d0
+       end if
+       accelerationRadial  =0.0d0
+       accelerationVertical=0.0d0
+       do jRadius=0,1
+          do jHeight=0,1
+             accelerationRadial  =accelerationRadial  +self%accelerationRadial  (iRadius+jRadius,iHeight+jHeight)*(1.0d0-hRadius(jRadius))*(1.0d0-hHeight(jHeight))
+             accelerationVertical=accelerationVertical+self%accelerationVertical(iRadius+jRadius,iHeight+jHeight)*(1.0d0-hRadius(jRadius))*(1.0d0-hHeight(jHeight))
+          end do
+       end do
+       if (radiusCylindrical < self%accelerationRadii  (1)) accelerationRadial  =accelerationRadial  *radiusCylindrical/self%accelerationRadii  (1)
+       if (heightCylindrical < self%accelerationHeights(1)) accelerationVertical=accelerationVertical*heightCylindrical/self%accelerationHeights(1)
+       if (abs(accelerationRadial) > 0.0d0) then
+          exponentialDiskAcceleration(1:2)=+           accelerationRadial             &
+               &                           *           positionCartesian       (1:2)  &
+               &                           /           coordinatesCylindrical%r(   )
+       else
+          exponentialDiskAcceleration(1:2)=+0.0d0
+       end if
+       exponentialDiskAcceleration   (3  )=+           accelerationVertical           &
+            &                              *sign(1.0d0,coordinatesCylindrical%z(   ))
+    end if
+    if (.not.self%isDimensionless())                                    &
+         & exponentialDiskAcceleration=+exponentialDiskAcceleration     &
+         &                             *kilo                            &
+         &                             *gigaYear                        &
+         &                             /megaParsec                      &
+         &                             *gravitationalConstantGalacticus &
+         &                             *self%mass                       &
+         &                             /self%scaleRadius**2
+    return
+  end function exponentialDiskAcceleration
+
+  subroutine exponentialDiskAccelerationTabulate(self)
+    !% Tabulate the acceleration due to the exponential disk mass distribution. Uses the approach of \cite{kuijken_mass_1989}. The
+    !% tabulation is built for a dimensionless disk.
+    use :: Bessel_Functions        , only : Bessel_Function_J0_Zero    , Bessel_Function_J1_Zero
+    use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+         &                                  verbosityWorking
+    use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
+    use :: FGSL                    , only : fgsl_function              , fgsl_integration_workspace
+    use :: File_Utilities          , only : File_Exists                , File_Lock                          , File_Unlock              , File_Path                  , &
+         &                                  Directory_Make             , lockDescriptor
+    use :: ISO_Varying_String      , only : operator(//)               , char                               , varying_string
+    use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : Integrate                  , Integrate_Done
+    use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
+    implicit none
+    class           (massDistributionExponentialDisk), intent(inout) :: self
+    double precision                                 , parameter     :: radiusMinimum          = 1.0d-2, radiusMaximum    =5.0d1
+    double precision                                 , parameter     :: radiiPerDecade         =30.0d+0
+    double precision                                 , parameter     :: wavenumberMaximumFactor=10.0d+0
+    integer                                          , parameter     :: xi                     = 2
+    type            (fgsl_function                  ), save          :: integrandFunction
+    type            (fgsl_integration_workspace     ), save          :: integrationWorkspace
+    logical                                          , save          :: integrationReset               , converged
+    integer                                          , save          :: iBesselZero
+    double precision                                 , save          :: height                         , accelerationDelta      , &
+         &                                                              wavenumberLow                  , wavenumberHigh
+    !$omp threadprivate(height,accelerationDelta,wavenumberLow, wavenumberHigh,iBesselZero,converged,integrationReset,integrandFunction,integrationWorkspace)
+    integer                                                          :: countRadii                     , iRadius                , &
+         &                                                              iHeight                        , countWork
+    double precision                                                 :: radius                         , beta
+    type            (varying_string                 )                :: fileName
+    character       (len=8                          )                :: label
+    type            (hdf5Object                     )                :: file
+    type            (lockDescriptor                 )                :: fileLock
+
+    ! Return if acceleration is initialized.
+    if (self%accelerationInitialized) return
+    ! Construct a file name for the table.
+    write (label,'(f8.6)') self%scaleHeight/self%scaleRadius
+    fileName=galacticusPath(pathTypeDataDynamic)// &
+         &   'galacticStructure/'               // &
+         &   self%objectType()                  // &
+         &   '_h'                               // &
+         &   trim(adjustl(label))               // &
+         &   '.hdf5'
+    call Directory_Make(char(File_Path(char(fileName))))
+    if (File_Exists(fileName)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile    (char(fileName              )                          )
+       call file%readDataset(      'radii'                ,self%accelerationRadii   )
+       call file%readDataset(      'heights'              ,self%accelerationHeights )
+       call file%readDataset(      'accelerationRadial'   ,self%accelerationRadial  )
+       call file%readDataset(      'accelerationVertical' ,self%accelerationVertical)
+       call file%close      (                                                       )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
+    else
+       ! Generate grid in radius and height.
+       countRadii=int(log10(radiusMaximum/radiusMinimum)*radiiPerDecade)+1
+       allocate(self%accelerationRadii   (countRadii           ))
+       allocate(self%accelerationHeights (countRadii           ))
+       allocate(self%accelerationRadial  (countRadii,countRadii))
+       allocate(self%accelerationVertical(countRadii,countRadii))
+       self%accelerationRadii  =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
+       self%accelerationHeights=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
+       ! Compute the vertical inverse scale-height. Note that our definition of beta differs slightly from that of Kuijken & Gilmore
+       ! (1989). They assume a density profile in the vertical direction of the form:
+       !
+       !  ρ(z) = sech^ξ(βz/ξ)
+       !
+       ! while we use:
+       !
+       !  ρ(z) = sech^ξ(z/h)
+       !
+       ! where h is the scale-height. Therefore:
+       !
+       !  β=ξ/h
+       !
+       ! and we then make it dimensionless by multiplying by the radial scale length.
+       beta   =+dble(xi)         &
+            &  *self%scaleRadius &
+            &  /self%scaleHeight
+       ! Iterate over radii and heights.
+       call Galacticus_Display_Indent("tabulating gravitational accelerations for exponential disk",verbosityWorking)
+       countWork=0
+       do iRadius=1,countRadii
+          radius=self%accelerationRadii(iRadius)
+          !$omp parallel do
+          do iHeight=1,countRadii
+             !$omp atomic
+             countWork=countWork+1
+             call Galacticus_Display_Counter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityWorking)
+             height=self%accelerationHeights(iHeight)          
+             ! Evaluate the integral for the radial component of acceleration.
+             self%accelerationRadial(iRadius,iHeight)=0.0d0
+             wavenumberHigh                          =0.0d0
+             iBesselZero                             =0
+             converged                               =.false.
+             do while (.not.converged)
+                iBesselZero      =+                        iBesselZero  &
+                     &            +                        1
+                wavenumberLow    =+wavenumberHigh
+                wavenumberHigh   =+Bessel_Function_J1_Zero(iBesselZero) &
+                     &            /radius        
+                integrationReset =.true.
+                accelerationDelta=+Integrate(                                                 &
+                     &                                         wavenumberLow                , &
+                     &                                         wavenumberHigh               , &
+                     &                                         accelerationRadialIntegrand  , &
+                     &                                         integrandFunction            , &
+                     &                                         integrationWorkspace         , &
+                     &                       reset            =integrationReset             , &
+                     &                       toleranceAbsolute=1.0d-6                       , &
+                     &                       toleranceRelative=1.0d-3                         &
+                     &                      )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+                converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationRadial(iRadius,iHeight))
+                self%accelerationRadial(iRadius,iHeight)=+self%accelerationRadial(iRadius,iHeight) &
+                     &                                   +     accelerationDelta
+             end do
+             ! Evaluate the integral for the vertical component of acceleration.
+             self%accelerationVertical(iRadius,iHeight)=0.0d0
+             wavenumberHigh                            =0.0d0
+             iBesselZero                               =0
+             converged                                 =.false.
+             do while (.not.converged)
+                iBesselZero      =+                       iBesselZero   &
+                     &            +                       1
+                wavenumberLow    =+wavenumberHigh
+                wavenumberHigh   =+Bessel_Function_J0_Zero(iBesselZero) &
+                     &            /radius
+                integrationReset =.true.
+                accelerationDelta=+Integrate(                                                 &
+                     &                                         wavenumberLow                , &
+                     &                                         wavenumberHigh               , &
+                     &                                         accelerationVerticalIntegrand, &
+                     &                                         integrandFunction            , &
+                     &                                         integrationWorkspace         , &
+                     &                       reset            =integrationReset             , &
+                     &                       toleranceAbsolute=1.0d-6                       , &
+                     &                       toleranceRelative=1.0d-3                         &
+                     &                      )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+                converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationVertical  (iRadius,iHeight))
+                self%accelerationVertical(iRadius,iHeight)=+self%accelerationVertical(iRadius,iHeight) &
+                     &                                     +     accelerationDelta
+             end do
+          end do
+          !$omp end parallel do
+       end do
+       call Galacticus_Display_Counter_Clear(       verbosityWorking)
+       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+       !$ call hdf5Access%set()
+       call file%openFile    (char   (fileName                 )                       ,overWrite=.true.,readOnly=.false.)
+       call file%writeDataset(        self%accelerationRadii    ,'radii'                                                 )
+       call file%writeDataset(        self%accelerationHeights  ,'heights'                                               )
+       call file%writeDataset(        self%accelerationRadial   ,'accelerationRadial'                                    )
+       call file%writeDataset(        self%accelerationVertical ,'accelerationVertical'                                  )
+       call file%close       (                                                                                           )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
+    end if
+    ! Compute factors needed for interpolation.
+    self%accelerationRadiusMinimumLog     =      log(self%accelerationRadii  (                            1 ))
+    self%accelerationRadiusMaximumLog     =      log(self%accelerationRadii  (size(self%accelerationRadii  )))
+    self%accelerationHeightMinimumLog     =      log(self%accelerationHeights(                            1 ))
+    self%accelerationHeightMaximumLog     =      log(self%accelerationHeights(size(self%accelerationHeights)))
+    self%accelerationRadiusInverseInterval=1.0d0/log(self%accelerationRadii  (2)/self%accelerationRadii  (1))
+    self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(2)/self%accelerationHeights(1))
+    ! Record that the acceleration table is initialized.
+    self%accelerationInitialized=.true.
+    return
+
+  contains
+
+    double precision function accelerationRadialIntegrand(wavenumber)
+      !% Integrand for the radial component of the acceleration.
+      use :: Bessel_Functions, only : Bessel_Function_J1
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      accelerationRadialIntegrand=-                   wavenumber            &
+           &                      *Bessel_Function_J1(wavenumber*radius)    &
+           &                      *Iz                (wavenumber       )    &
+           &                      /(                                        &
+           &                        +                 1.0d0                 &
+           &                        +                 wavenumber        **2 &
+           &                       )**1.5d0                                 &
+           &                      /self%scaleHeight                         &
+           &                      /4.0d0
+      return
+    end function accelerationRadialIntegrand
+
+    double precision function accelerationVerticalIntegrand(wavenumber)
+      !% Integrand for the radial component of the acceleration.
+      use :: Bessel_Functions, only : Bessel_Function_J0
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      accelerationVerticalIntegrand=+Bessel_Function_J0(wavenumber*radius)    &
+           &                        *dIzdz             (wavenumber       )    &
+           &                        /(                                        &
+           &                          +                 1.0d0                 &
+           &                          +                 wavenumber        **2 &
+           &                         )**1.5d0                                 &
+           &                        /self%scaleHeight                         &
+           &                        /4.0d0
+      return
+    end function accelerationVerticalIntegrand
+
+    double precision function Iz(wavenumber)
+      !% $z$-dependent term appearing in the expression for the potential of the disk.
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+      double precision                :: IzmOdd    , IzmEven, &
+           &                             IzDelta
+      integer                         :: m
+      logical                         :: converged
+
+      Iz       =+0.0d0
+      m        =-2
+      converged=.false.
+      do while (.not.converged)
+         m      =+m                   &
+              &  +2
+         IzmOdd =+Izm(wavenumber,m-1)
+         IzmEven=+Izm(wavenumber,m  )
+         IzDelta=+IzmOdd              &
+              &  +IzmEven
+         Iz     =+Iz                  &
+              &  +IzDelta
+         if (abs(IzDelta) < 1.0d-3*abs(Iz) .or. (m > 100 .and. (abs(Iz) == 0.0d0 .or. abs(IzDelta) == 0.0d0))) converged=.true.
+      end do
+      Iz=Iz*2.0d0**(1+xi)
+      return
+    end function Iz
+
+    double precision function Izm(wavenumber,m)
+      !% Evalute the $m$-dependent part of the $I(z)$ integral.
+      use Binomial_Coefficients, only : Binomial_Coefficient
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+      integer         , intent(in   ) :: m
+      double precision                :: mFactor   , divisor
+
+      if (m < 0) then
+         Izm=0.0d0
+      else
+         mFactor=+1.0d0         &
+              &  +2.0d0         &
+              &  *dble(m )      &
+              &  /dble(xi)
+         divisor=+mFactor   **2 &
+              &  *beta      **2 &
+              &  -wavenumber**2
+         if (divisor == 0.0d0) then
+            ! Divisor is zero, but the term is still regular - use l'Hopital's rule to derive the correct value.
+            Izm     =+Binomial_Coefficient(-xi,m)                         &
+                 &  *(                                                    &
+                 &    +beta*mFactor*height                                &
+                 &    +1.0d0                                              &
+                 &   )                                                    &
+                 &  *exp(-wavenumber*height)                              &
+                 &  /     wavenumber&
+                 &/2.0d0
+         else
+            Izm    =+Binomial_Coefficient(-xi,m)                          &
+                 &  *(                                                    &
+                 &    +beta      *mFactor*exp(-wavenumber        *height) &
+                 &    -wavenumber        *exp(-beta      *mFactor*height) &
+                 &   )                                                    &
+                 &  /divisor
+         end if
+      end if
+      return
+    end function Izm
+    
+    double precision function dIzdz(wavenumber)
+      !% $z$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
+      use Binomial_Coefficients, only : Binomial_Coefficient
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+      double precision                :: dIzdzmOdd , dIzdzmEven, &
+           &                             dIzdzDelta
+      integer                         :: m
+      logical                         :: converged
+
+      dIzdz    =+0.0d0
+      m        =-2
+      converged=.false.
+      do while (.not.converged)
+         m         =+m                      &
+              &     +2
+         dIzdzmOdd =+dIzdzm(wavenumber,m-1)
+         dIzdzmEven=+dIzdzm(wavenumber,m  )
+         dIzdzDelta=+dIzdzmOdd              &
+              &     +dIzdzmEven
+         dIzdz     =+dIzdz                  &
+              &     +dIzdzDelta
+         if (abs(dIzdzDelta) < 1.0d-3*abs(dIzdz) .or. (m > 100 .and. (abs(dIzdz) == 0.0d0 .or. abs(dIzdzDelta) == 0.0d0))) converged=.true.
+      end do
+      dIzdz=dIzdz*2.0d0**(1+xi)
+      return
+    end function dIzdz
+
+    double precision function dIzdzm(wavenumber,m)
+      !% Evalute the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
+      use Binomial_Coefficients, only : Binomial_Coefficient
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+      integer         , intent(in   ) :: m
+      double precision                :: mFactor   , divisor
+
+      if (m < 0) then
+         dIzdzm=0.0d0
+      else
+         mFactor=+1.0d0         &
+              &  +2.0d0         &
+              &  *dble(m )      &
+              &  /dble(xi)
+         divisor=+mFactor   **2 &
+              &  *beta      **2 &
+              &  -wavenumber**2
+         if (divisor == 0.0d0) then
+            ! Divisor is zero, but the term is still regular - use l'Hopital's rule to derive the correct value.
+            dIzdzm=-Binomial_Coefficient(-xi,m)       &
+                 & *beta                              &
+                 & *mFactor                           &
+                 & *                height            &
+                 & *exp(-wavenumber*height)           &
+                 & /2.0d0
+         else
+            dIzdzm=-Binomial_Coefficient(-xi,m)       &
+                 & *       beta                       &
+                 & *                 mFactor          &
+                 & *       wavenumber                 &
+                 & *(                                 &
+                 &   +exp(-wavenumber        *height) &
+                 &   -exp(-beta      *mFactor*height) &
+                 &  )                                 &
+                 & /divisor
+         end if
+      end if
+      return
+    end function dIzdzm
+    
+  end subroutine exponentialDiskAccelerationTabulate
+

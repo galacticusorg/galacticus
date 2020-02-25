@@ -46,6 +46,12 @@ module Mass_Distributions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="acceleration" >
+  !#   <description>Return the gravitational acceleration due to the distribution at the given coordinates.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+  !#  </method>
   !#  <method name="density" >
   !#   <description>Return the density of the distribution at the given coordinates.</description>
   !#   <type>double precision</type>

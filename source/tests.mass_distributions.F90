@@ -24,10 +24,10 @@ program Test_Mass_Distributions
   use :: Coordinates             , only : assignment(=)                 , coordinateSpherical
   use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error        , only : Galacticus_Error_Report
-  use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass , massDistributionHernquist, massDistributionSersic, &
-          &                               massDistributionSpherical
+  use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass          , massDistributionHernquist, massDistributionSersic, &
+          &                               massDistributionSpherical     , massDistributionExponentialDisk
   use :: Numerical_Constants_Math, only : Pi
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group     , Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group     , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass), allocatable                 :: massDistribution_
   integer                                , parameter                   :: sersicTableCount          =8
@@ -42,8 +42,9 @@ program Test_Mass_Distributions
        &                                                                  sersicTablePotential
   type            (coordinateSpherical  )                              :: position                                                                                                     , positionZero
   integer                                                              :: i
-  double precision                                                     :: radiusInProjection
-
+  double precision                                                     :: radiusInProjection                                                                                           , radius
+  character       (len=4                )                              :: label
+  
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Begin unit tests.
@@ -138,6 +139,46 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
+  ! Exponential disk profile.
+  call Unit_Tests_Begin_Group("Exponential disk profile")
+  allocate(massDistributionExponentialDisk :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionExponentialDisk)
+     massDistribution_=massDistributionExponentialDisk(scaleHeight=0.01d0,dimensionless=.true.)
+     ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
+     call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
+     radius  =45.0d0
+     write (label,'(f4.1)') radius
+     ! Vertically above the disk.
+     position=[radius,0.0d0,0.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+     ! Vertically below the disk.
+     position=[radius,Pi,0.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+     ! Disk plane, along +x-axis.
+     position=[radius,Pi/2.0d0,0.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+     ! Disk plane, along -y-axis.
+     position=[radius,Pi/2.0d0,-Pi/2.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+     call Unit_Tests_End_Group()
+     ! Test that gravitational acceleration matches expectations for a thin disk in the midplane.
+     call Unit_Tests_Begin_Group("Acceleration approaches razor-thin disk in midplane")
+     radius  =0.1d0
+     write (label,'(f4.1)') radius
+     ! Disk plane, along +x-axis.
+     position=[radius,Pi/2.0d0,0.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0,0.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     ! Disk plane, along -y-axis.
+     position=[radius,Pi/2.0d0,-Pi/2.0d0]
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     call Unit_Tests_End_Group()
+  class default
+     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+  end select
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
