@@ -25,7 +25,7 @@
   type :: cylindricalBoundaries
      !% Type used to store boundaries of computational domain cells for cylindrical domains.
      private
-     double precision          , allocatable, dimension(:) :: boundary
+     double precision, allocatable, dimension(:) :: boundary
   end type cylindricalBoundaries
   
   !# <computationalDomain name="computationalDomainCylindrical">
@@ -675,15 +675,29 @@ contains
 
   subroutine cylindricalOutput(self,outputGroup)
     !% Output the computational domain.
-    !$ use :: IO_HDF5           , only : hdf5Access
-    use    :: ISO_Varying_String, only : char
+    !$ use :: IO_HDF5                         , only : hdf5Access
+    use    :: ISO_Varying_String              , only : char
+    use    :: Numerical_Constants_Astronomical, only : megaparsec
     implicit none
     class           (computationalDomainCylindrical), intent(inout)                 :: self
     type            (hdf5Object                    ), intent(inout)                 :: outputGroup
     integer         (c_size_t                      )                                :: i             , j           , &
          &                                                                             output        , countOutputs
     double precision                                , allocatable  , dimension(:,:) :: propertyScalar
-
+    type            (hdf5Object                    )                                :: dataset
+    
+    !$ call hdf5Access%set  ()
+    call outputGroup%writeDataset  (self%boundariesCells(1)%boundary                                                               ,'domainBoundariesRadial'  ,datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                                     ,'unitsInSI'                                       )
+    call dataset    %writeAttribute('Mpc'                                                                                          ,'units'                                           )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the radial direction in cylindrical coordinates'  ,'description'                                     )
+    call dataset    %close         (                                                                                                                                                  )
+    call outputGroup%writeDataset  (self%boundariesCells(2)%boundary                                                               ,'domainBoundariesVertical',datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                                     ,'unitsInSI'                                       )
+    call dataset    %writeAttribute('Mpc'                                                                                          ,'units'                                           )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the vertical direction in cylindrical coordinates','description'                                     )
+    call dataset    %close         (                                                                                                                                                  )
+    !$ call hdf5Access%unset()
     countOutputs=self%radiativeTransferMatter_%countOutputs()
     allocate(propertyScalar(self%countCells(1),self%countCells(2)))
     do output=1,countOutputs

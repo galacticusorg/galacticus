@@ -589,15 +589,24 @@ contains
 
   subroutine sphericalOutput(self,outputGroup)
     !% Output the computational domain.
-    !$ use :: IO_HDF5           , only : hdf5Access
-    use    :: ISO_Varying_String, only : char
+    !$ use :: IO_HDF5                         , only : hdf5Access
+    use    :: ISO_Varying_String              , only : char
+    use    :: Numerical_Constants_Astronomical, only : megaparsec
     implicit none
     class           (computationalDomainSpherical), intent(inout)               :: self
     type            (hdf5Object                  ), intent(inout)               :: outputGroup
     integer         (c_size_t                    )                              :: i             , countOutputs, &
          &                                                                         output
     double precision                              , allocatable  , dimension(:) :: propertyScalar
+    type            (hdf5Object                  )                              :: dataset
     
+    !$ call hdf5Access%set  ()
+    call outputGroup%writeDataset  (self%boundariesCells%boundary                                                              ,'domainBoundariesRadial'  ,datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                                 ,'unitsInSI'                                       )
+    call dataset    %writeAttribute('Mpc'                                                                                      ,'units'                                           )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the radial direction in spherical coordinates','description'                                     )
+    call dataset    %close         (                                                                                                                                              )
+    !$ call hdf5Access%unset()
     countOutputs=self%radiativeTransferMatter_%countOutputs()
     allocate(propertyScalar(self%countCells))
     do output=1,countOutputs

@@ -628,8 +628,9 @@ contains
 
   subroutine cartesian3DOutput(self,outputGroup)
     !% Output the computational domain.
-    !$ use :: IO_HDF5           , only : hdf5Access
-    use    :: ISO_Varying_String, only : char
+    !$ use :: IO_HDF5                         , only : hdf5Access
+    use    :: ISO_Varying_String              , only : char
+    use    :: Numerical_Constants_Astronomical, only : megaparsec
     implicit none
     class           (computationalDomainCartesian3D), intent(inout)                   :: self
     type            (hdf5Object                    ), intent(inout)                   :: outputGroup
@@ -637,7 +638,25 @@ contains
          &                                                                               k             , output, &
          &                                                                               countOutputs
     double precision                                , allocatable  , dimension(:,:,:) :: propertyScalar
+    type            (hdf5Object                    )                                  :: dataset
     
+    !$ call hdf5Access%set  ()
+    call outputGroup%writeDataset  (self%boundariesCells(1)%boundary                                                         ,'domainBoundariesX',datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                               ,'unitsInSI'                                )
+    call dataset    %writeAttribute('Mpc'                                                                                    ,'units'                                    )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the x direction in 3D Cartesian coordinates','description'                              )
+    call dataset    %close         (                                                                                                                                     )
+    call outputGroup%writeDataset  (self%boundariesCells(2)%boundary                                                         ,'domainBoundariesY',datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                               ,'unitsInSI'                                )
+    call dataset    %writeAttribute('Mpc'                                                                                    ,'units'                                    )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the y direction in 3D Cartesian coordinates','description'                              )
+    call dataset    %close         (                                                                                                                                     )
+    call outputGroup%writeDataset  (self%boundariesCells(3)%boundary                                                         ,'domainBoundariesZ',datasetReturned=dataset)
+    call dataset    %writeAttribute(megaparsec                                                                               ,'unitsInSI'                                )
+    call dataset    %writeAttribute('Mpc'                                                                                    ,'units'                                    )
+    call dataset    %writeAttribute('boundaries of computational domain cells in the z direction in 3D Cartesian coordinates','description'                              )
+    call dataset    %close         (                                                                                                                                     )
+    !$ call hdf5Access%unset()
     countOutputs=self%radiativeTransferMatter_%countOutputs()
     allocate(propertyScalar(self%countCells(1),self%countCells(2),self%countCells(3)))
     do output=1,countOutputs
