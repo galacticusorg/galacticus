@@ -215,38 +215,56 @@ contains
     return
   end function Hypergeometric_pFq_Complex
 
-  double precision function Hypergeometric_pFq_Real(a,b,x,toleranceRelative)
+  double precision function Hypergeometric_pFq_Real(a,b,x,toleranceRelative,useAcceleration)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
-    double precision, intent(in   ), dimension(:) :: a                , b
+    double precision, intent(in   ), dimension(:) :: a                    , b
     double precision, intent(in   )               :: x
     double precision, intent(in   ), optional     :: toleranceRelative
+    logical         , intent(in   ), optional     :: useAcceleration
     double precision                              :: toleranceActual
-    double precision                              :: aP(size(a))      , bQ(size(b))
-    double precision                              :: aMulti           , bMulti     , &
-         &                                           aaMulti          , baMulti    , &
+    double precision                              :: aP(size(a))          , bQ(size(b))
+    double precision                              :: aMulti               , bMulti     , &
+         &                                           aaMulti              , baMulti    , &
          &                                           term
-    integer                                       :: p                , q          , &
-         &                                           i                , j          , &
+    integer                                       :: p                    , q          , &
+         &                                           i                    , j          , &
          &                                           k
+    logical                                       :: useAccelerationActual
 
     if (present(toleranceRelative)) then
        toleranceActual=toleranceRelative
     else
        toleranceActual=1.0d-10
     end if
+    if (present(useAcceleration)) then
+       useAccelerationActual= useAcceleration
+    else
+       useAccelerationActual=.false.
+    end if
     p=size(a)
     q=size(b)
-    if (x >= -1.0d0) then
+    if (x >= 1.0d0) then
        Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x),toleranceActual))
+    else if (x >= -1.0d0) then
+       if (useAccelerationActual) then
+          Hypergeometric_pFq_Real=Hypergeometric_pFq_approx_series(a,b,x,toleranceActual)
+       else
+          Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x),toleranceActual))
+       end if
     else
        if (p == q+1) then
           ! Use the transformation x -> 1/x to evaluate in terms of a hypergeometric function with |x|<1.
           ! Note that the transformation is only valid when a(j), b(j), a(j)-a(k) (|j-k|>0) are not zero
           ! negative integers. For details, see
           ! <http://functions.wolfram.com/07.31.06.0019.01>.
+          ! First, check whether any of a(i) is a nonpositive integer.
+          if (any(a <= 0.0d0 .and. a-dnint(a) == 0.0d0)) then
+             Hypergeometric_pFq_Real=Hypergeometric_pFq_approx_series(a,b,x,toleranceActual)
+             return
+          end if
           aMulti=1.0d0
           bMulti=1.0d0
           do i=1, p
@@ -280,7 +298,11 @@ contains
                    bQ(i)=1.0d0-a(i+1)+a(k)
                 end if
              end do
-             term=real(Hypergeometric_pFq_Complex(dcmplx(aP),dcmplx(bQ),dcmplx(1.0d0/x),toleranceActual))
+             if (useAccelerationActual) then
+                term=Hypergeometric_pFq_approx_series(aP,bQ,1.0d0/x,toleranceActual)
+             else
+                term=real(Hypergeometric_pFq_Complex(dcmplx(aP),dcmplx(bQ),dcmplx(1.0d0/x),toleranceActual))
+             end if
              Hypergeometric_pFq_Real=+Hypergeometric_pFq_Real &
                   &                  +Gamma_Function(a(k))    &
                   &                  *aaMulti                 &
@@ -296,5 +318,99 @@ contains
     end if
     return
   end function Hypergeometric_pFq_Real
+
+  double precision function Hypergeometric_pFq_approx_series(a,b,x,toleranceRelative)
+    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ by direct summation.
+    !% Shanks transformation (\cite{shanks_non_linear_1955}) is used to accelerate the calculations.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
+    implicit none
+    double precision                , intent(in   ), dimension(:) :: a                 , b
+    double precision                , intent(in   )               :: x
+    double precision                , intent(in   ), optional     :: toleranceRelative
+    double precision                                              :: toleranceActual
+    double precision                , parameter                   :: gsl_dbl_epsilon=2.2204460492503131d-16
+    double precision                                              :: An                , Sn                , &
+         &                                                           SnPrevious        , delta             , &
+         &                                                           deltaPrevious     , deltaSn           , &
+         &                                                           deltaSnPrevious   , denominator       , &
+         &                                                           numerator         , correction        , &
+         &                                                           correctionPrevious
+    integer                         , parameter                   :: nMax=50000
+    integer                                                       :: i
+    type            (varying_string)                              :: message
+    character       (len=13        )                              :: label
+
+    if (present(toleranceRelative)) then
+       toleranceActual=toleranceRelative
+    else
+       toleranceActual=gsl_dbl_epsilon
+    end if
+    An        =1.0d0
+    Sn        =1.0d0
+    delta     =1.0d0
+    deltaSn   =0.0d0
+    correction=0.0d0
+    deltaPrevious     =1.0d0
+    deltaSnPrevious   =0.0d0
+    correctionPrevious=0.0d0
+    do i=1,nMax
+       SnPrevious=Sn
+       if (i >= 2) deltaPrevious     =delta
+       if (i >= 3) correctionPrevious=correction
+       if (i >= 4) deltaSnPrevious   =deltaSn
+       delta=delta*product(a+i-1.0d0)/product(b+i-1.0d0)*x/i
+       An   =An+delta
+       Sn   =An
+       ! Perform a Shanks transformation on An.
+       correction=0.0d0
+       if (i >= 2) then
+          denominator=delta-deltaPrevious
+          if (denominator .ne. 0.0d0) then
+             numerator = delta**2
+             correction=-numerator/denominator
+             Sn=An+correction
+          end if
+       end if
+       ! If x<0, perform a second Shanks transformation on Sn. This is very useful when x<0, which will make the
+       ! result converge much faster.
+       if (x < 0.0d0) then
+          if (i >= 3) then
+             deltaSn=delta+correction-correctionPrevious
+          end if
+          if (i >= 4) then
+             denominator=deltaSn-deltaSnPrevious
+             if (denominator .ne. 0.0d0) then
+                numerator=deltaSn**2
+                Sn=Sn-numerator/denominator
+             end if
+             ! If the increment of the series in one step is larger than the asymptotic value of the series,
+             ! roundoff error may prevent the result from achiving specified relative tolerance. This usually
+             ! happens when x is close to -1. In such case, try to increase the tolerance.
+             if (abs(delta/Sn) > 1.0d0) toleranceActual=max(abs(delta/Sn)*gsl_dbl_epsilon, toleranceActual)
+          end if
+       end if
+       ! Check the convergence of the result.
+       if (abs(Sn-SnPrevious) < toleranceActual*abs(Sn)) exit
+    end do
+    if (i <= nMax) then
+       Hypergeometric_pFq_approx_series=Sn
+       if (present(toleranceRelative)) then
+          if (toleranceActual > toleranceRelative) then
+             message='Warning: roundoff error prevents the result from achiving specified relative tolerance ['
+             write (label,'(e12.6)') toleranceRelative
+             message=message//trim(label)//']. A relative tolerance of ['
+             write (label,'(e12.6)') toleranceActual
+             message=message//trim(label)//'] is used instead.'//char(10)
+             call Galacticus_Display_Message(message//{introspection:location},verbosityWarn)
+          end if
+       end if
+    else
+       Hypergeometric_pFq_approx_series=0.0d0
+       call Galacticus_Error_Report('maximum number of iterations is reached before the relative tolerence is satisfied. Try to increase the value of [nMax]'//{introspection:location})
+    end if
+    return
+  end function Hypergeometric_pFq_approx_series
 
 end module Hypergeometric_Functions

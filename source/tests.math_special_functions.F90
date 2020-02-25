@@ -44,7 +44,7 @@ program Test_Math_Special_Functions
        &                             logGammaFunction                                                                                                                                                                            , sineIntegral                               , &
        &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx                    , &
        &                             hypergeometric2F1NegativeArgument                                                                                                                                                           , hypergeometric2F1approxNegativeArgument    , &
-       &                             hypergeometric3F2NegativeArgument
+       &                             hypergeometric3F2NegativeArgument                                                                                                                                                           , hypergeometric3F2Accelerated
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -56,27 +56,28 @@ program Test_Math_Special_Functions
 
   ! Evaluate functions.
   do i=1,10
-     BesselK0                                   (i)=Bessel_Function_K0                             (                                         argument(i)                                )
-     BesselK1                                   (i)=Bessel_Function_K1                             (                                         argument(i)                                )
-     BesselI0                                   (i)=Bessel_Function_I0                             (                                         argument(i)                                )
-     BesselI1                                   (i)=Bessel_Function_I1                             (                                         argument(i)                                )
-     sineIntegral                               (i)=Sine_Integral                                  (                                         argument(i)                                )
-     cosineIntegral                             (i)=Cosine_Integral                                (                                         argument(i)                                )
-     factorials                                 (i)=Factorial                                      (                                                  i                                 )
-     doubleFactorial                            (i)=Logarithmic_Double_Factorial                   (                                                  i                                 )
-     gammaFunction                              (i)=Gamma_Function                                 (                                         argument(i)                                )
-     logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                                         argument(i)                                )
-     incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                                         argument(i),2.0d0                          )
-     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                                         argument(i),2.0d0                          )
-     inverseGammaFunctionIncomplete             (i)=Inverse_Gamma_Function_Incomplete              (                                         argument(i),P(i)                           )
-     inverseGammaFunctionIncompleteComplementary(i)=Inverse_Gamma_Function_Incomplete_Complementary(                                         argument(i),Q(i)                           )
-     hypergeometric1F1                          (i)=Hypergeometric_1F1                             ([1.0d0            ],[2.0d0      ],       argument(i)                                )
-     hypergeometric2F1                          (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0      ],[1.5d0      ],1.0d0/(argument(i)+1.0d0)                         )
-     hypergeometric2F1approx                    (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0      ],[1.5d0      ],1.0d0/(argument(i)+1.0d0),toleranceRelative=1.0d-6)
-     hypergeometric1F2                          (i)=Hypergeometric_pFq                             ([1.5d0            ],[1.5d0,0.5d0],       argument(i)                                )
-     hypergeometric2F1NegativeArgument          (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0      ],[2.0d0      ],  -exp(argument(i)      )                         )
-     hypergeometric2F1approxNegativeArgument    (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0      ],[2.0d0      ],  -exp(argument(i)      ),toleranceRelative=1.0d-6)
-     hypergeometric3F2NegativeArgument          (i)=Hypergeometric_pFq                             ([1.5d0,0.7d0,1.1d0],[2.0d0,0.2d0],  -exp(argument(i)      )                         )
+     BesselK0                                   (i)=Bessel_Function_K0                             (                                         argument(i)                                      )
+     BesselK1                                   (i)=Bessel_Function_K1                             (                                         argument(i)                                      )
+     BesselI0                                   (i)=Bessel_Function_I0                             (                                         argument(i)                                      )
+     BesselI1                                   (i)=Bessel_Function_I1                             (                                         argument(i)                                      )
+     sineIntegral                               (i)=Sine_Integral                                  (                                         argument(i)                                      )
+     cosineIntegral                             (i)=Cosine_Integral                                (                                         argument(i)                                      )
+     factorials                                 (i)=Factorial                                      (                                                  i                                       )
+     doubleFactorial                            (i)=Logarithmic_Double_Factorial                   (                                                  i                                       )
+     gammaFunction                              (i)=Gamma_Function                                 (                                         argument(i)                                      )
+     logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                                         argument(i)                                      )
+     incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                                         argument(i),2.0d0                                )
+     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                                         argument(i),2.0d0                                )
+     inverseGammaFunctionIncomplete             (i)=Inverse_Gamma_Function_Incomplete              (                                         argument(i),P(i)                                 )
+     inverseGammaFunctionIncompleteComplementary(i)=Inverse_Gamma_Function_Incomplete_Complementary(                                         argument(i),Q(i)                                 )
+     hypergeometric1F1                          (i)=Hypergeometric_1F1                             ([1.0d0            ],[2.0d0      ],       argument(i)                                      )
+     hypergeometric2F1                          (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0      ],[1.5d0      ],1.0d0/(argument(i)+1.0d0)                               )
+     hypergeometric2F1approx                    (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0      ],[1.5d0      ],1.0d0/(argument(i)+1.0d0)      ,toleranceRelative=1.0d-6)
+     hypergeometric1F2                          (i)=Hypergeometric_pFq                             ([1.5d0            ],[1.5d0,0.5d0],       argument(i)                                      )
+     hypergeometric2F1NegativeArgument          (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0      ],[2.0d0      ],  -exp(argument(i)      )                               )
+     hypergeometric2F1approxNegativeArgument    (i)=Hypergeometric_2F1                             ([1.5d0,0.7d0      ],[2.0d0      ],  -exp(argument(i)      )      ,toleranceRelative=1.0d-6)
+     hypergeometric3F2NegativeArgument          (i)=Hypergeometric_pFq                             ([1.5d0,0.7d0,1.1d0],[2.0d0,0.2d0],  -exp(argument(i)      )                               )
+     hypergeometric3F2Accelerated               (i)=Hypergeometric_pFq                             ([1.5d0,0.7d0,1.1d0],[2.0d0,0.2d0],      (argument(i)-6.0d0)/5.0d0,useAcceleration=.true.  )
   end do
 
   ! Test Bessel function results.
@@ -423,21 +424,39 @@ program Test_Math_Special_Functions
        &     )
 
   ! Test hypergeometric 3F2 function for x<-1.
-  call Assert("hypergeometric,₃F₂([3/2,7/10,11/10],[2,1/5],x) (x<-1)", &
-       &       hypergeometric3F2NegativeArgument,                      &
-       &       [                                                       &
-       &        -0.5235443366d0,                                       &
-       &        -0.5125266122d0,                                       &
-       &        -0.3583570728d0,                                       &
-       &        -0.2128977422d0,                                       &
-       &        -0.1165025820d0,                                       &
-       &        -0.06108436160d0,                                      &
-       &        -0.03130060634d0,                                      &
-       &        -0.01583617207d0,                                      &
-       &        -0.007954088823d0,                                     &
-       &        -0.003978068717d0                                      &
-       &       ],                                                      &
-       &       relTol=1.0d-6                                           &
+  call Assert("hypergeometric, ₃F₂([3/2,7/10,11/10],[2,1/5],x) (x<-1)", &
+       &       hypergeometric3F2NegativeArgument,                       &
+       &       [                                                        &
+       &        -0.5235443366d0,                                        &
+       &        -0.5125266122d0,                                        &
+       &        -0.3583570728d0,                                        &
+       &        -0.2128977422d0,                                        &
+       &        -0.1165025820d0,                                        &
+       &        -0.06108436160d0,                                       &
+       &        -0.03130060634d0,                                       &
+       &        -0.01583617207d0,                                       &
+       &        -0.007954088823d0,                                      &
+       &        -0.003978068717d0                                       &
+       &       ],                                                       &
+       &       relTol=1.0d-6                                            &
+       &     )
+
+  ! Test hypergeometric 3F2 function with accleration algarithm.
+  call Assert("hypergeometric (acclerated), ₃F₂([3/2,7/10,11/10],[2,1/5],x)", &
+       &       hypergeometric3F2accelerated,                                  &
+       &       [                                                              &
+       &        -0.2171553593d0,                                              &
+       &        -0.1108443669d0,                                              &
+       &         0.03478627832d0,                                             &
+       &         0.2398652189d0,                                              &
+       &         0.5395008837d0,                                              &
+       &         1.000000000d0,                                               &
+       &         1.761012496d0,                                               &
+       &         3.167565670d0,                                               &
+       &         6.326044401d0,                                               &
+       &         17.27894316d0                                                &
+       &       ],                                                             &
+       &       relTol=1.0d-6                                                  &
        &     )
 
   ! Test error function with complex argument.
