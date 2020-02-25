@@ -25,7 +25,7 @@ program Test_Parameters
   use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass
   use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: IO_HDF5                   , only : hdf5Object
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=), var_str
+  use :: ISO_Varying_String        , only : varying_string                , assignment(=)                , var_str
   use :: Input_Parameters          , only : inputParameters
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

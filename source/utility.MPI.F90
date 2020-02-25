@@ -95,6 +95,12 @@ module MPI_Utilities
      !@     <description>Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>broadcastData</method>
+     !@     <type>void</type>
+     !@     <arguments>\intzero sendFrom\argin, \doublezero|\doubleone|\doubletwo|\doublethree\ array\arginout</arguments>
+     !@     <description>Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>messageWaiting</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\intzero\ [from]\argin, \intzero\ [tag]\argin</arguments>
@@ -173,17 +179,23 @@ module MPI_Utilities
           &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
      generic   :: requestData    => mpiRequestData1D    , mpiRequestData2D       , &
           &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
+     procedure ::                   mpiBroadcastData1D  , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
+     generic   :: broadcastData  => mpiBroadcastData1D  , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
      procedure :: messageWaiting => mpiMessageWaiting
      procedure ::                   mpiAverageScalar    , mpiAverageArray
      generic   :: average        => mpiAverageScalar    , mpiAverageArray
      procedure ::                   mpiMedianArray
      generic   :: median         => mpiMedianArray
      procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
+     procedure ::                   mpiSumScalarSizeT   , mpiSumArraySizeT
      procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
           &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
+          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble , &
+          &                         mpiSumScalarSizeT   , mpiSumArraySizeT
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure ::                   mpiAllLogicalScalar
@@ -885,6 +897,98 @@ contains
     return
   end function mpiRequestDataLogical1D
 
+  subroutine mpiBroadcastDataScalar(self,sendFrom,scalar)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   ) :: self
+    integer                    , intent(in   ) :: sendFrom
+    double precision           , intent(inout) :: scalar
+#ifdef USEMPI
+    integer                                    :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, scalar
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastDataScalar
+  
+  subroutine mpiBroadcastData1D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )               :: self
+    integer                    , intent(in   )               :: sendFrom
+    double precision           , intent(inout), dimension(:) :: array
+#ifdef USEMPI
+    integer                                                  :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData1D
+  
+  subroutine mpiBroadcastData2D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                 :: self
+    integer                    , intent(in   )                 :: sendFrom
+    double precision           , intent(inout), dimension(:,:) :: array
+#ifdef USEMPI
+    integer                                                    :: status
+    !GCC$ attributes unused :: self
+    
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData2D
+  
+  subroutine mpiBroadcastData3D(self,sendFrom,array)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                   :: self
+    integer                    , intent(in   )                   :: sendFrom
+    double precision           , intent(inout), dimension(:,:,:) :: array
+#ifdef USEMPI
+    integer                                                      :: status
+    !GCC$ attributes unused :: self
+
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, sendFrom, array
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData3D
+  
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -919,6 +1023,40 @@ contains
     return
   end function mpiSumArrayInt
 
+  function mpiSumArraySizeT(self,array,mask)
+    !% Sum an integer array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                    :: self
+    integer(c_size_t ), intent(in   ), dimension( :          )           :: array
+    logical           , intent(in   ), dimension(0:          ), optional :: mask
+    integer(c_size_t )               , dimension(size(array))            :: mpiSumArraySizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array))            :: maskedArray
+    integer                                                              :: iError        , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0_c_size_t
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArraySizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, array, mask
+    mpiSumArraySizeT=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArraySizeT
+
   integer function mpiSumScalarInt(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
 #ifndef USEMPI
@@ -942,6 +1080,31 @@ contains
 #endif
     return
   end function mpiSumScalarInt
+
+  function mpiSumScalarSizeT(self,scalar,mask)
+    !% Sum a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+#ifndef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
+    implicit none
+    integer(c_size_t )                                        :: mpiSumScalarSizeT
+    class  (mpiObject), intent(in   )                         :: self
+    integer(c_size_t ), intent(in   )                         :: scalar
+    logical           , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(1)           :: array
+#endif
+
+#ifdef USEMPI
+    array=self%sum([scalar],mask)
+    mpiSumScalarSizeT=array(1)
+#else
+    !GCC$ attributes unused :: self, scalar, mask
+    mpiSumScalarSizeT=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumScalarSizeT
 
   function mpiSumArrayDouble(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.

@@ -29,13 +29,23 @@ module Accretion_Disk_Spectra
   !#  <descriptiveName>Accretion Disk Spectra</descriptiveName>
   !#  <description>Class providing spectra of accretion disks.</description>
   !#  <default>hopkins2007</default>
-  !#  <method name="spectrum" >
+  !#  <method name="spectrumNode" >
   !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: wavelength</argument>
   !#  </method>
+  !#  <method name="spectrumMassRate" >
+  !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for a specified accretion rate, and radiative efficiency.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: accretionRate, efficiencyRadiative, wavelength</argument>
+  !#  </method>
+  !#  <generic name="spectrum">
+  !#   <method>spectrumNode</method>
+  !#   <method>spectrumMassRate</method>
+  !#  </generic>
   !# </functionClass>
 
 end module Accretion_Disk_Spectra

@@ -31,7 +31,7 @@ module Atomic_Rates_Excitation_Collisional
   !#  <description>Class providing atomic collisional excitation rates.</description>
   !#  <default>scholzWalters1991</default>
   !#  <method name="coolingRate" >
-  !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
+  !#   <description>Return the collisional excitation cooling rate , in units of J m$^3$ s$^{-1}$, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>

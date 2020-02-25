@@ -32,7 +32,7 @@ module Coordinates
      module procedure Coordinates_Assign
   end interface assignment(=)
 
-  type, public :: coordinate
+  type, abstract, public :: coordinate
      !% The base coordinate object class.
      double precision :: position(3)
    contains
@@ -56,10 +56,24 @@ module Coordinates
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rSpherical</method>
+     !@     <description>Return the spherical radial coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rSphericalSquared</method>
+     !@     <description>Return the square of the spherical radial coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian   => Coordinates_Null_To
-     procedure :: fromCartesian => Coordinates_Null_From
-     procedure :: rCylindrical  => Coordinates_Radius_Cylindrical
+     procedure                                      :: toCartesian       => Coordinates_Null_To
+     procedure                                      :: fromCartesian     => Coordinates_Null_From
+     procedure                                      :: rCylindrical      => Coordinates_Radius_Cylindrical
+     procedure                                      :: rSpherical        => Coordinates_Radius_Spherical
+     procedure(rSphericalSquaredTemplate), deferred :: rSphericalSquared
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
@@ -104,14 +118,15 @@ module Coordinates
      !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian  =>Coordinates_Cartesian_To_Cartesian
-     procedure :: fromCartesian=>Coordinates_Cartesian_From_Cartesian
-     procedure :: x            =>Coordinates_Cartesian_X
-     procedure :: y            =>Coordinates_Cartesian_Y
-     procedure :: z            =>Coordinates_Cartesian_Z
-     procedure :: xSet         =>Coordinates_Cartesian_Set_X
-     procedure :: ySet         =>Coordinates_Cartesian_Set_Y
-     procedure :: zSet         =>Coordinates_Cartesian_Set_Z
+     procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian
+     procedure :: fromCartesian     => Coordinates_Cartesian_From_Cartesian
+     procedure :: x                 => Coordinates_Cartesian_X
+     procedure :: y                 => Coordinates_Cartesian_Y
+     procedure :: z                 => Coordinates_Cartesian_Z
+     procedure :: xSet              => Coordinates_Cartesian_Set_X
+     procedure :: ySet              => Coordinates_Cartesian_Set_Y
+     procedure :: zSet              => Coordinates_Cartesian_Set_Z
+     procedure :: rSphericalSquared => Coordinates_Cartesian_R_Spherical_Squared
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
@@ -156,14 +171,16 @@ module Coordinates
      !@     <arguments>\doublezero\ phi\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian  =>Coordinates_Spherical_To_Cartesian
-     procedure :: fromCartesian=>Coordinates_Spherical_From_Cartesian
-     procedure :: r            =>Coordinates_Spherical_R
-     procedure :: theta        =>Coordinates_Spherical_Theta
-     procedure :: phi          =>Coordinates_Spherical_Phi
-     procedure :: rSet         =>Coordinates_Spherical_Set_R
-     procedure :: thetaSet     =>Coordinates_Spherical_Set_Theta
-     procedure :: phiSet       =>Coordinates_Spherical_Set_Phi
+     procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
+     procedure :: fromCartesian     => Coordinates_Spherical_From_Cartesian
+     procedure :: r                 => Coordinates_Spherical_R
+     procedure :: theta             => Coordinates_Spherical_Theta
+     procedure :: phi               => Coordinates_Spherical_Phi
+     procedure :: rSet              => Coordinates_Spherical_Set_R
+     procedure :: thetaSet          => Coordinates_Spherical_Set_Theta
+     procedure :: phiSet            => Coordinates_Spherical_Set_Phi
+     procedure :: rSpherical        => Coordinates_Spherical_R_Spherical
+     procedure :: rSphericalSquared => Coordinates_Spherical_R_Spherical_Squared
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
@@ -208,16 +225,24 @@ module Coordinates
      !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian  =>Coordinates_Cylindrical_To_Cartesian
-     procedure :: fromCartesian=>Coordinates_Cylindrical_From_Cartesian
-     procedure :: r            =>Coordinates_Cylindrical_R
-     procedure :: phi          =>Coordinates_Cylindrical_Phi
-     procedure :: z            =>Coordinates_Cylindrical_Z
-     procedure :: rSet         =>Coordinates_Cylindrical_Set_R
-     procedure :: phiSet       =>Coordinates_Cylindrical_Set_Phi
-     procedure :: zSet         =>Coordinates_Cylindrical_Set_Z
+     procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian
+     procedure :: fromCartesian     => Coordinates_Cylindrical_From_Cartesian
+     procedure :: r                 => Coordinates_Cylindrical_R
+     procedure :: phi               => Coordinates_Cylindrical_Phi
+     procedure :: z                 => Coordinates_Cylindrical_Z
+     procedure :: rSet              => Coordinates_Cylindrical_Set_R
+     procedure :: phiSet            => Coordinates_Cylindrical_Set_Phi
+     procedure :: zSet              => Coordinates_Cylindrical_Set_Z
+     procedure :: rSphericalSquared => Coordinates_Cylindrical_R_Spherical_Squared
   end type coordinateCylindrical
 
+  abstract interface
+     double precision function rSphericalSquaredTemplate(self)
+       import coordinate
+       class(coordinate), intent(in   ) :: self
+     end function rSphericalSquaredTemplate
+  end interface
+  
 contains
 
   subroutine Coordinates_Null_From(self,x)
@@ -361,6 +386,15 @@ contains
     return
   end subroutine Coordinates_Cartesian_Set_Z
 
+  double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
+    !% Return the squared spherical radius, $r^2$ of a Cartesian {\normalfont \ttfamily coordinate} object.
+    implicit none
+    class(coordinateCartesian), intent(in   ) :: self
+
+    Coordinates_Cartesian_R_Spherical_Squared=sum(self%position**2)
+    return
+  end function Coordinates_Cartesian_R_Spherical_Squared
+
   ! Spherical coordinate object.
   subroutine Coordinates_Spherical_From_Cartesian(self,x)
     !% Create a spherical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
@@ -460,6 +494,24 @@ contains
     return
   end subroutine Coordinates_Spherical_Set_Phi
 
+  double precision function Coordinates_Spherical_R_Spherical(self)
+    !% Return the spherical radius, $r$ of a spherical {\normalfont \ttfamily coordinate} object.
+    implicit none
+    class(coordinateSpherical), intent(in   ) :: self
+
+    Coordinates_Spherical_R_Spherical=self%position(1)
+    return
+  end function Coordinates_Spherical_R_Spherical
+
+  double precision function Coordinates_Spherical_R_Spherical_Squared(self)
+    !% Return the squared spherical radius, $r^2$ of a spherical {\normalfont \ttfamily coordinate} object.
+    implicit none
+    class(coordinateSpherical), intent(in   ) :: self
+
+    Coordinates_Spherical_R_Spherical_Squared=self%position(1)**2
+    return
+  end function Coordinates_Spherical_R_Spherical_Squared
+
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
     !% Create a cylindrical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
@@ -552,6 +604,16 @@ contains
     return
   end subroutine Coordinates_Cylindrical_Set_Z
 
+  double precision function Coordinates_Cylindrical_R_Spherical_Squared(self)
+    !% Return the squared spherical radius, $r^2$ of a cylindrical {\normalfont \ttfamily coordinate} object.
+    implicit none
+    class(coordinateCylindrical), intent(in   ) :: self
+
+    Coordinates_Cylindrical_R_Spherical_Squared=self%position(1)**2+self%position(3)**2
+    return
+  end function Coordinates_Cylindrical_R_Spherical_Squared
+
+  ! General functions.
   double precision function Coordinates_Radius_Cylindrical(self)
     implicit none
     class(coordinate           ), intent(in   ) :: self
@@ -568,5 +630,13 @@ contains
     end select
    return
   end function Coordinates_Radius_Cylindrical
+
+  double precision function Coordinates_Radius_Spherical(self)
+    implicit none
+    class(coordinate), intent(in   ) :: self
+
+    Coordinates_Radius_Spherical=sqrt(self%rSphericalSquared())
+    return
+  end function Coordinates_Radius_Spherical
 
 end module Coordinates
