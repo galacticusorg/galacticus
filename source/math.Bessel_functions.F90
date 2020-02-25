@@ -21,12 +21,12 @@
 
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
-  use :: FGSL, only : FGSL_SF_Bessel_Jc0, FGSL_SF_Bessel_Jc1, FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1, &
-       &              FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1
+  use :: FGSL, only : FGSL_SF_Bessel_Jc0, FGSL_SF_Bessel_Jc1, FGSL_SF_Bessel_Ic0     , FGSL_SF_Bessel_Ic1     , &
+       &              FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1, FGSL_SF_Bessel_Zero_Jc0, FGSL_SF_Bessel_Zero_Jc1
   implicit none
   private
-  public :: Bessel_Function_J0, Bessel_Function_J1, Bessel_Function_K0, Bessel_Function_K1, &
-       &    Bessel_Function_I0, Bessel_Function_I1
+  public :: Bessel_Function_J0, Bessel_Function_J1, Bessel_Function_K0     , Bessel_Function_K1     , &
+       &    Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_J0_Zero, Bessel_Function_J1_Zero
 
 contains
 
@@ -47,7 +47,25 @@ contains
     Bessel_Function_J1=FGSL_SF_Bessel_Jc1(argument)
     return
   end function Bessel_Function_J1
-  
+
+  double precision function Bessel_Function_J0_Zero(n)
+    !% Computes the $n^\mathrm{th}$ zero of the $J_0$ Bessel function.
+    implicit none
+    integer, intent(in   ) :: n
+
+    Bessel_Function_J0_Zero=FGSL_SF_Bessel_Zero_Jc0(n)
+    return
+  end function Bessel_Function_J0_Zero
+
+  double precision function Bessel_Function_J1_Zero(n)
+    !% Computes the $n^\mathrm{th}$ zero of the $J_1$ Bessel function.
+    implicit none
+    integer, intent(in   ) :: n
+
+    Bessel_Function_J1_Zero=FGSL_SF_Bessel_Zero_Jc1(n)
+    return
+  end function Bessel_Function_J1_Zero
+
   double precision function Bessel_Function_K0(argument)
     !% Computes the $K_0$ Bessel function.
     implicit none
