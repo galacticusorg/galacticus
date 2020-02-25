@@ -198,7 +198,9 @@ contains
          &                                                                              slicesPerProcess, slicesExtra
     type            (computationalDomainVolumeIntegratorCylindrical), allocatable    :: integrator
     double precision                                                , dimension(2,2) :: boundariesCell
+#ifdef USEMPI
     integer                                                                          :: p
+#endif
     type            (timer                                         )                 :: timer_
 
     ! Establish a timer.
@@ -514,15 +516,18 @@ contains
   subroutine cylindricalStateSolve(self)
     !% Solve for the state of matter in the computational domain.
     use :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            Galacticus_Display_Message, verbosityStandard        , verbosityWorking
+         &                            Galacticus_Display_Message, verbosityStandard          , verbosityWorking
     use :: Galacticus_Error  , only : errorStatusSuccess
     use :: MPI_Utilities     , only : mpiSelf                   , mpiBarrier
     use :: Timers            , only : timer
     implicit none
     class    (computationalDomainCylindrical), intent(inout) :: self
-    integer  (c_size_t                      )                :: i        , j     , &
+    integer  (c_size_t                      )                :: i        , j, &
          &                                                      countFail
-    integer                                                  :: p        , status
+    integer                                                  :: status
+#ifdef USEMPI
+    integer                                                  :: p
+#endif
     type     (timer                         )                :: timer_
     type     (varying_string                )                :: message
     character(len=12                        )                :: label

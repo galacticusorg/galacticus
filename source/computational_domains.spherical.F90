@@ -184,7 +184,9 @@ contains
          &                                                                           slicesExtra
     type            (computationalDomainVolumeIntegratorSpherical), allocatable   :: integrator
     double precision                                              , dimension(2)  :: boundariesCell
+#ifdef USEMPI
     integer                                                                       :: p
+#endif
     type            (timer                                       )                :: timer_
 
     ! Establish a timer.
@@ -458,7 +460,9 @@ contains
     implicit none
     class  (computationalDomainSpherical), intent(inout) :: self
     integer(c_size_t                    )                :: i
+#ifdef USEMPI
     integer                                              :: p
+#endif
     type   (timer                       )                :: timer_
 
     ! Establish a timer.

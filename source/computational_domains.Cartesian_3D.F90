@@ -209,7 +209,9 @@ contains
          &                                                                              slicesExtra
     type            (computationalDomainVolumeIntegratorCartesian3D), allocatable    :: integrator
     double precision                                                , dimension(3,2) :: boundariesCell
+#ifdef USEMPI
     integer                                                                          :: p
+#endif
     type            (timer                                         )                 :: timer_
 
     ! Establish a timer.
@@ -480,7 +482,9 @@ contains
     class  (computationalDomainCartesian3D), intent(inout) :: self
     integer(c_size_t                      )                :: i     , j, &
          &                                                    k
+#ifdef USEMPI
     integer                                                :: p
+#endif
     type   (timer                         )                :: timer_
 
     ! Establish a timer.
