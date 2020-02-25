@@ -1737,7 +1737,7 @@ contains
     !% Return the $y$-values for a 2D log-log table.
     implicit none
     class(table2DLogLogLin), intent(in   )             :: self
-    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Ys
+    double precision       , dimension(size(self%yv))  :: Table_2DLogLogLin_Ys
 
     Table_2DLogLogLin_Ys=exp(self%yv)
     return

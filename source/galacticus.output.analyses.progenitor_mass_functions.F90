@@ -38,17 +38,20 @@
      type            (galacticFilterAll                    ), pointer :: galacticFilterParentMass_
      type            (outputAnalysisWeightOperatorNbodyMass), pointer :: outputAnalysisWeightOperatorNbodyMass_
      type            (nodePropertyExtractorMassHalo        ), pointer :: nodePropertyExtractorMassParent_
-     double precision                                                 :: massRatioMinimum                      , massRatioMaximum , &
-          &                                                              massParentMinimum                     , massParentMaximum, &
-          &                                                              timeProgenitor                        , timeParent       , &
-          &                                                              weightParents
+     double precision                                                 :: massRatioMinimum                      , massRatioMaximum            , &
+          &                                                              massParentMinimum                     , massParentMaximum           , &
+          &                                                              timeProgenitor                        , timeParent                  , &
+          &                                                              weightParents                         , massRatioLikelihoodMinimum  , &
+          &                                                              massRatioLikelihoodMaximum            , rootVarianceTargetFractional
      integer         (c_size_t                             )          :: countMassRatio                        , indexOutput
-     logical                                                          :: alwaysIsolatedOnly
+     logical                                                          :: alwaysIsolatedOnly                    , covarianceDiagonalize       , &
+          &                                                              covarianceTargetOnly
    contains
      final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
      procedure :: reduce           => progenitorMassFunctionReduce
      procedure :: finalizeAnalysis => progenitorMassFunctionFinalizeAnalysis
+     procedure :: logLikelihood    => progenitorMassFunctionLogLikelihood
   end type outputAnalysisProgenitorMassFunction
 
   interface outputAnalysisProgenitorMassFunction
@@ -74,21 +77,64 @@ contains
     class           (nbodyHaloMassErrorClass             ), pointer                     :: nbodyHaloMassError_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
     class           (virialDensityContrastClass          ), pointer                     :: virialDensityContrast_
-    double precision                                      , dimension(:  ), allocatable :: functionValueTarget     , functionCovarianceTarget1D
+    double precision                                      , dimension(:  ), allocatable :: functionValueTarget         , functionCovarianceTarget1D
     double precision                                      , dimension(:,:), allocatable :: functionCovarianceTarget
-    double precision                                                                    :: massRatioMinimum        , massRatioMaximum          , &
-         &                                                                                 massParentMinimum       , massParentMaximum         , &
-         &                                                                                 redshiftProgenitor      , redshiftParent
+    double precision                                                                    :: massRatioMinimum            , massRatioMaximum          , &
+         &                                                                                 massParentMinimum           , massParentMaximum         , &
+         &                                                                                 redshiftProgenitor          , redshiftParent            , &
+         &                                                                                 massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
+         &                                                                                 rootVarianceTargetFractional
     integer         (c_size_t                            )                              :: countMassRatio
     integer                                                                             :: instance
-    type            (varying_string                      )                              :: label                   , comment                   , &
-         &                                                                                 targetLabel             , fileName
-    logical                                                                             :: alwaysIsolatedOnly
+    type            (varying_string                      )                              :: label                       , comment                   , &
+         &                                                                                 targetLabel                 , fileName
+    logical                                                                             :: alwaysIsolatedOnly          , covarianceDiagonalize     , &
+          &                                                                                covarianceTargetOnly
     
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/> 
     !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>covarianceDiagonalize</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, all off-diagonal elements of the covariance matrix are set to zero.</description>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>covarianceTargetOnly</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).</description>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>rootVarianceTargetFractional</name>
+    !#   <source>parameters</source>
+    !#   <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared.</description>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massRatioLikelihoodMinimum</name>
+    !#   <source>parameters</source>
+    !#   <description>The minimum mass ratio to include in likelihood calculations.</description>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massRatioLikelihoodMaximum</name>
+    !#   <source>parameters</source>
+    !#   <description>The maximum mass ratio to include in likelihood calculations.</description>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     if (parameters%isPresent('fileName')) then
        !# <inputParameter>
        !#   <name>fileName</name>
@@ -104,7 +150,7 @@ contains
        !#   <type>integer</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
+       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     else
        !# <inputParameter>
        !#   <name>label</name>
@@ -229,6 +275,11 @@ contains
        !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor)), &amp;
        !#    &amp;                                    cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    )), &amp;
        !#    &amp;                                    alwaysIsolatedOnly                                                                                 , &amp;
+       !#    &amp;                                    massRatioLikelihoodMinimum                                                                         , &amp;
+       !#    &amp;                                    massRatioLikelihoodMaximum                                                                         , &amp;
+       !#    &amp;                                    covarianceDiagonalize                                                                              , &amp;
+       !#    &amp;                                    covarianceTargetOnly                                                                               , &amp;
+       !#    &amp;                                    rootVarianceTargetFractional                                                                       , &amp;
        !#    &amp;                                    virialDensityContrast_                                                                             , &amp;
        !#    &amp;                                    nbodyHaloMassError_                                                                                , &amp;
        !#    &amp;                                    outputTimes_                                                                                         &amp;
@@ -248,7 +299,7 @@ contains
     return
   end function progenitorMassFunctionConstructorParameters
   
-  function progenitorMassFunctionConstructorFile(fileName,instance,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
+  function progenitorMassFunctionConstructorFile(fileName,instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
@@ -258,20 +309,23 @@ contains
     type            (outputAnalysisProgenitorMassFunction)                              :: self
     character       (len=*                               ), intent(in   )               :: fileName
     integer                                               , intent(in   )               :: instance
+    double precision                                      , intent(in   )               :: massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
+         &                                                                                 rootVarianceTargetFractional
+    logical                                               , intent(in   )               :: covarianceDiagonalize       , covarianceTargetOnly
     class           (cosmologyFunctionsClass             ), intent(inout), target       :: cosmologyFunctions_
     class           (outputTimesClass                    ), intent(inout), target       :: outputTimes_
     class           (virialDensityContrastClass          ), intent(in   ), target       :: virialDensityContrast_
     class           (nbodyHaloMassErrorClass             ), intent(in   ), target       :: nbodyHaloMassError_
-    type            (varying_string                      )                              :: label                    , comment
-    double precision                                                                    :: massParentMinimum        , massParentMaximum, &
-         &                                                                                 timeProgenitor           , timeParent       , &
-         &                                                                                 redshiftProgenitor       , redshiftParent
+    type            (varying_string                      )                              :: label                        , comment
+    double precision                                                                    :: massParentMinimum            , massParentMaximum        , &
+         &                                                                                 timeProgenitor               , timeParent               , &
+         &                                                                                 redshiftProgenitor           , redshiftParent
     integer                                                                             :: alwaysIsolatedOnlyInteger
     logical                                                                             :: alwaysIsolatedOnly
     type            (varying_string                      )                              :: targetLabel
-    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget      , massRatio
+    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget          , massRatio
     double precision                                      , allocatable, dimension(:,:) :: functionCovarianceTarget
-    type            (hdf5Object                          )                              :: dataFile                 , instanceGroup
+    type            (hdf5Object                          )                              :: dataFile                     , instanceGroup
     character       (len=32                              )                              :: instanceGroupName
 
     write (instanceGroupName,'(a,i4.4)') 'progenitorMassFunction',instance
@@ -295,11 +349,11 @@ contains
     alwaysIsolatedOnly=alwaysIsolatedOnlyInteger /= 0
     timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
-    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function progenitorMassFunctionConstructorFile
 
-  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Internal constructor for the ``progenitorMassFunction'' output analysis class.
     use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                      , galacticFilterHaloMass                      , galacticFilterDescendentNode                , galacticFilterNot                             , &
          &                                                  galacticFilterHaloAlwaysIsolated                , filterList
@@ -319,9 +373,12 @@ contains
     type            (varying_string                                  ), intent(in   )                           :: label                                                  , comment
     double precision                                                  , intent(in   )                           :: massRatioMinimum                                       , massRatioMaximum                        , &
          &                                                                                                         massParentMinimum                                      , massParentMaximum                       , &
-         &                                                                                                         timeProgenitor                                         , timeParent
+         &                                                                                                         timeProgenitor                                         , timeParent                              , &
+         &                                                                                                         rootVarianceTargetFractional
     integer         (c_size_t                                        ), intent(in   )                           :: countMassRatio
-    logical                                                           , intent(in   )                           :: alwaysIsolatedOnly
+    logical                                                           , intent(in   )                           :: alwaysIsolatedOnly                                     , covarianceDiagonalize                   , &
+         &                                                                                                         covarianceTargetOnly
+    double precision                                                  , intent(in   )                           :: massRatioLikelihoodMinimum                             , massRatioLikelihoodMaximum
     class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), intent(in   ), target                   :: nbodyHaloMassError_
     class           (virialDensityContrastClass                      ), intent(in   ), target                   :: virialDensityContrast_
@@ -355,7 +412,7 @@ contains
     type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                                 :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                                 :: outputAnalysisPropertyIdentity_
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
-    !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly"/>
+    !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional"/>
 
     ! Build grid of mass ratios.
     call allocateArray(massRatios,[countMassRatio])
@@ -584,9 +641,11 @@ contains
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif
-     implicit none
+    implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
 
+    ! If already finalized, no need to do anything.
+    if (self%finalized) return
     call self%outputAnalysisVolumeFunction1D%finalizeAnalysis()
 #ifdef USEMPI
     ! If running under MPI, perform a summation reduction of the parent weights across all processes.
@@ -600,3 +659,73 @@ contains
     end if
     return
   end subroutine progenitorMassFunctionFinalizeAnalysis
+
+  double precision function progenitorMassFunctionLogLikelihood(self)
+    !% Return the log-likelihood of the progenitor mass function.
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Linear_Algebra  , only : vector                 , matrix, assignment(=), operator(*)
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (outputAnalysisProgenitorMassFunction), intent(inout)                 :: self
+    double precision                                      , allocatable  , dimension(:,:) :: functionCovarianceCombined
+    double precision                                      , allocatable  , dimension(:  ) :: functionValueDifference
+    logical                                               , allocatable  , dimension(:  ) :: mask
+    type            (vector                              )                                :: residual
+    type            (matrix                              )                                :: covariance
+    integer         (c_size_t                            )                                :: i                         , j , &
+         &                                                                                   ii                        , jj
+
+    ! Check for existance of a target distribution.
+    if (allocated(self%functionValueTarget)) then
+       ! Finalize analysis.
+       call self%finalizeAnalysis()
+       ! Find bins which satisfy the mass ratio limits and have a measured target value.
+       mask   = self%binCenter           > self%massRatioLikelihoodMinimum &
+            &  .and.                                                       &
+            &   self%binCenter           < self%massRatioLikelihoodMaximum &
+            &  .and.                                                       &
+            &   self%functionValueTarget > 0.0d0
+       if (count(mask) > 0) then
+          ! Allocate workspaces.
+          allocate(functionCovarianceCombined(count(mask),count(mask)))
+          allocate(functionValueDifference   (count(mask)            ))
+          ! Find combined covariance and difference between model and target.
+          ii=0
+          do i=1,self%binCount
+             if (mask(i)) then
+                ii=ii+1
+                functionValueDifference(ii)=+self%functionValue      (i) &
+                     &                      -self%functionValueTarget(i)
+                jj=0
+                do j=1,self%binCount
+                   if (mask(j)) then
+                      jj=jj+1
+                      if (ii == jj) then
+                         functionCovarianceCombined       (ii,jj)=     +                                  self%functionCovarianceTarget  ( i, j)
+                         if (.not.self%covarianceTargetOnly)                                                                                          &
+                              & functionCovarianceCombined(ii,jj)=     +                                       functionCovarianceCombined(ii,jj)      &
+                              &                                        +                                  self%functionCovariance        ( i, j)
+                         functionCovarianceCombined       (ii,jj)=max(                                                                                &
+                              &                                       (+self%rootVarianceTargetFractional*self%functionValueTarget       ( i   ))**2, &
+                              &                                        +                                  self%functionCovarianceTarget  ( i, j)      &
+                              &                                      )
+                      else
+                         if (self%covarianceDiagonalize) functionCovarianceCombined(ii,jj)=0.0d0
+                      end if
+                   end if
+                end do
+             end if
+          end do
+          residual  =functionValueDifference
+          covariance=functionCovarianceCombined
+          ! Compute the log-likelihood.
+          progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual)
+       else
+          progenitorMassFunctionLogLikelihood=+0.0d0
+       end if
+    else
+       progenitorMassFunctionLogLikelihood   =+0.0d0
+       call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})
+    end if
+    return
+  end function progenitorMassFunctionLogLikelihood

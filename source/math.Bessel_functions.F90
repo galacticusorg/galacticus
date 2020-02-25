@@ -21,13 +21,33 @@
 
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
-  use :: FGSL, only : FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1, FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1
+  use :: FGSL, only : FGSL_SF_Bessel_Jc0, FGSL_SF_Bessel_Jc1, FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1, &
+       &              FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1
   implicit none
   private
-  public :: Bessel_Function_K0, Bessel_Function_K1, Bessel_Function_I0, Bessel_Function_I1
+  public :: Bessel_Function_J0, Bessel_Function_J1, Bessel_Function_K0, Bessel_Function_K1, &
+       &    Bessel_Function_I0, Bessel_Function_I1
 
 contains
 
+  double precision function Bessel_Function_J0(argument)
+    !% Computes the $J_0$ Bessel function.
+    implicit none
+    double precision, intent(in   ) :: argument
+
+    Bessel_Function_J0=FGSL_SF_Bessel_Jc0(argument)
+    return
+  end function Bessel_Function_J0
+
+  double precision function Bessel_Function_J1(argument)
+    !% Computes the $J_1$ Bessel function.
+    implicit none
+    double precision, intent(in   ) :: argument
+
+    Bessel_Function_J1=FGSL_SF_Bessel_Jc1(argument)
+    return
+  end function Bessel_Function_J1
+  
   double precision function Bessel_Function_K0(argument)
     !% Computes the $K_0$ Bessel function.
     implicit none
