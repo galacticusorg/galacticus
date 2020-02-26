@@ -24,7 +24,8 @@ module Hot_Halo_Mass_Distributions
   use :: Galacticus_Nodes, only : treeNode
   private
   public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve        , &
-       &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient
+       &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient, &
+       &    hotHaloMassDistributionAcceleration
 
   !# <functionClass>
   !#  <name>hotHaloMassDistribution</name>
@@ -101,6 +102,34 @@ contains
     end if
     return
   end function hotHaloMassDistributionEnclosedMass
+
+  !# <accelerationTask>
+  !#  <unitName>hotHaloMassDistributionAcceleration</unitName>
+  !# </accelerationTask>
+  function hotHaloMassDistributionAcceleration(node,positionCartesian,componentType,massType)
+    !% Computes the acceleration due to a dark matter profile.
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                         , dimension(3) :: hotHaloMassDistributionAcceleration
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                      , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                        :: radius
+
+    radius                             =+sqrt(sum(positionCartesian**2))
+    hotHaloMassDistributionAcceleration=-kilo                                                                                                 &
+         &                              *gigaYear                                                                                             &
+         &                              /megaParsec                                                                                           &
+         &                              *gravitationalConstantGalacticus                                                                      &
+         &                              *hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull) &
+         &                              *positionCartesian                                                                                    &
+         &                              /radius**3
+    return
+  end function hotHaloMassDistributionAcceleration
 
   !# <rotationCurveTask>
   !#  <unitName>hotHaloMassDistributionRotationCurve</unitName>

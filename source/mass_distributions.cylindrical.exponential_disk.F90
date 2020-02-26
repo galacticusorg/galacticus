@@ -709,6 +709,7 @@ contains
        ! Use spherical approximation.
        radiusSpherical            =+sqrt(sum(positionCartesian**2))
        exponentialDiskAcceleration=-positionCartesian    &
+            &                      *self%scaleRadius **2 &
             &                      /radiusSpherical  **3
     else
        ! Interpolate in tabulated solution.

@@ -958,6 +958,18 @@ module Galacticus_Nodes
     return
   end function Node_Component_Null_Double0_InOut
 
+  function Node_Component_Null_Double1_InOut(self,resultSize)
+    !% A null {\normalfont \ttfamily double} function for rank 1 {\normalfont \ttfamily nodeComponent} arrays.
+    implicit none
+    class           (nodeComponent), intent(inout)         :: self
+    integer                        , intent(in   )         :: resultSize
+    double precision               , dimension(resultSize) :: Node_Component_Null_Double1_InOut
+    !GCC$ attributes unused :: self
+
+    Node_Component_Null_Double1_InOut=0.0d0
+    return
+  end function Node_Component_Null_Double1_InOut
+
   double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex)
     !% A null implementation of the enclosed mass in a component. Always returns zero.
     implicit none
@@ -970,13 +982,26 @@ module Galacticus_Nodes
     return
   end function Node_Component_Enclosed_Mass_Null
 
+  function Node_Component_Acceleration_Null(self,positionCartesian,componentType,massType)
+    !% A null implementation of the acceleration due to a component. Always returns zero.
+    implicit none
+    double precision               , dimension(3)                :: Node_Component_Acceleration_Null
+    class           (nodeComponent)              , intent(inout) :: self
+    integer                                      , intent(in   ) :: componentType    , massType
+    double precision               , dimension(3), intent(in   ) :: positionCartesian
+    !GCC$ attributes unused :: self, positionCartesian, componentType, massType
+
+    Node_Component_Acceleration_Null=0.0d0
+    return
+  end function Node_Component_Acceleration_Null
+
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% A null implementation of the density in a component. Always returns zero.
     implicit none
-    class           (nodeComponent)              , intent(inout):: self
-    integer                                      , intent(in   ):: componentType    , massType, weightBy, &
-         &                                                         weightIndex
-    double precision               , dimension(3), intent(in   ):: positionSpherical
+    class           (nodeComponent)              , intent(inout) :: self
+    integer                                      , intent(in   ) :: componentType    , massType, weightBy, &
+         &                                                          weightIndex
+    double precision               , dimension(3), intent(in   ) :: positionSpherical
     !GCC$ attributes unused :: self, positionSpherical, componentType, massType, weightBy, weightIndex
 
     Node_Component_Density_Null=0.0d0

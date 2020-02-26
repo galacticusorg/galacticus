@@ -26,7 +26,8 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   implicit none
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task
+       &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task       , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
 
   type (massDistributionBetaProfile  ), public          :: coldModeMassDistribution
   class(hotHaloColdModeCoreRadiiClass), public, pointer :: hotHaloColdModeCoreRadii_
@@ -76,6 +77,34 @@ contains
     Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=coldModeMassDistribution%massEnclosedBySphere(radius)
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task
+
+  !# <accelerationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task</unitName>
+  !# </accelerationTask>
+  function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task(node,positionCartesian,componentType,massType)
+    !% Computes the acceleration due to a dark matter profile.
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                                      , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                        :: radius
+
+    radius                                             =+sqrt(sum(positionCartesian**2))
+    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task=-kilo                                                                                                                 &
+         &                                              *gigaYear                                                                                                               &
+         &                                              /megaParsec                                                                                                            &
+         &                                              *gravitationalConstantGalacticus                                                                                       &
+         &                                              *Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius,componentType,massType,weightByMass,weightIndexNull) &
+         &                                              *positionCartesian                                                                                                     &
+         &                                              /radius**3
+    return
+  end function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
 
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task</unitName>

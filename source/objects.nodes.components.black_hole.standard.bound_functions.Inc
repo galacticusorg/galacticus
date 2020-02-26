@@ -94,3 +94,35 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   if (self%radialPosition() <= 0.0d0) Node_Component_Black_Hole_Standard_Enclosed_Mass=self%mass()
   return
 end function Node_Component_Black_Hole_Standard_Enclosed_Mass
+
+ function Node_Component_Black_Hole_Standard_Acceleration(self,positionCartesian,componentType,massType)
+  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
+  use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+  use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Prefixes    , only : kilo
+  implicit none
+  double precision                                               , dimension(3) :: Node_Component_Black_Hole_Standard_Acceleration
+  class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
+  integer                                         , intent(in   )               :: componentType                                  , massType
+  double precision                                , intent(in   ), dimension(3) :: positionCartesian
+  double precision                                                              :: radius
+  
+  ! Set zero enclosed acceleration by default.
+  Node_Component_Black_Hole_Standard_Acceleration=0.0d0
+  ! Return the black hole mass only if massType and componentType are of black hole type.
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  radius=sqrt(sum(positionCartesian**2))
+  if (      radius        <  0.0d0                                                         ) return
+  ! Compute the acceleration.
+  if (self%radialPosition() <= 0.0d0)                                                     &
+       & Node_Component_Black_Hole_Standard_Acceleration=-kilo                            &
+          &                                              *gigaYear                        &
+          &                                              /megaParsec                      &
+          &                                              *gravitationalConstantGalacticus &
+          &                                              *self%mass()                     &
+          &                                              *positionCartesian               &
+          &                                              /radius**3
+  return
+end function Node_Component_Black_Hole_Standard_Acceleration

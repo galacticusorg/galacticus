@@ -85,6 +85,35 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   return
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
+function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,componentType,massType)
+  !% Computes the gravitational acceleration at a given position for a standard spheroid.
+  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull
+  use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+  use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Prefixes    , only : kilo
+  implicit none
+  double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Acceleration
+  class           (nodeComponentSpheroidStandard), intent(inout)               :: self
+  double precision                               , intent(in   ), dimension(3) :: positionCartesian
+  integer                                        , intent(in   )               :: componentType                                , massType
+  double precision                                                             :: radius                                       , massEnclosed
+  
+  ! Return if the spheroid component is not selected.
+  Node_Component_Spheroid_Standard_Acceleration=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+  ! Compute the acceleration.
+  radius                                       =sqrt(sum(positionCartesian**2))
+  massEnclosed                                 =Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightByMass,weightIndexNull)
+  Node_Component_Spheroid_Standard_Acceleration=-kilo                            &
+         &                                      *gigaYear                        &
+         &                                      /megaParsec                      &
+         &                                      *gravitationalConstantGalacticus &
+         &                                      *massEnclosed                    &
+         &                                      *positionCartesian               &
+         &                                      /radius**3
+  return
+end function Node_Component_Spheroid_Standard_Acceleration
+
 double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
   !% Computes the rotation curve at a given radius for a standard spheroid.
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull

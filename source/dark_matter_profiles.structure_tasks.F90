@@ -22,9 +22,8 @@
 module Dark_Matter_Profile_Structure_Tasks
   !% Implements structure tasks related to the dark matter halo density profile.
   private
-  public :: Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Density_Task&
-       &,Dark_Matter_Profile_Rotation_Curve_Task ,Dark_Matter_Profile_Potential_Task&
-       &,Dark_Matter_Profile_Rotation_Curve_Gradient_Task
+  public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task, &
+       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task
 
 contains
 
@@ -67,6 +66,34 @@ contains
     end if
     return
   end function Dark_Matter_Profile_Enclosed_Mass_Task
+
+  !# <accelerationTask>
+  !#  <unitName>Dark_Matter_Profile_Acceleration_Task</unitName>
+  !# </accelerationTask>
+  function Dark_Matter_Profile_Acceleration_Task(node,positionCartesian,componentType,massType)
+    !% Computes the acceleration due to a dark matter profile.
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                         , dimension(3) :: Dark_Matter_Profile_Acceleration_Task
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                        , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                        :: radius
+
+    radius=sqrt(sum(positionCartesian**2))
+    Dark_Matter_Profile_Acceleration_Task=-kilo                                                                                                    &
+         &                                *gigaYear                                                                                                &
+         &                                /megaParsec                                                                                              &
+         &                                *gravitationalConstantGalacticus                                                                         &
+         &                                *Dark_Matter_Profile_Enclosed_Mass_Task(node,radius,componentType,massType,weightByMass,weightIndexNull) &
+         &                                *positionCartesian                                                                                       &
+         &                                /radius**3
+    return
+  end function Dark_Matter_Profile_Acceleration_Task
 
   !# <rotationCurveTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
