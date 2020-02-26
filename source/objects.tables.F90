@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1737,7 +1737,7 @@ contains
     !% Return the $y$-values for a 2D log-log table.
     implicit none
     class(table2DLogLogLin), intent(in   )             :: self
-    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Ys
+    double precision       , dimension(size(self%yv))  :: Table_2DLogLogLin_Ys
 
     Table_2DLogLogLin_Ys=exp(self%yv)
     return

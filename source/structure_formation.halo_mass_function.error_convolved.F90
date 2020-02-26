@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,8 +33,8 @@
      !% A halo mass function class convolves another halo mass function with a mass dependent error.
      private
      double precision                                   :: errorFractionalMaximum
-     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic => null()
-     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
+     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic  => null()
+     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_    => null()
    contains
      final     ::                 errorConvolvedDestructor
      procedure :: differential => errorConvolvedDifferential

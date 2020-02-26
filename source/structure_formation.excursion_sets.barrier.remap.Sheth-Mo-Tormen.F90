@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,11 +102,11 @@ contains
     !% Internal constructor for the critical overdensity excursion set class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (excursionSetBarrierRemapShethMoTormen)                :: self
-    class           (excursionSetBarrierClass             ), target        :: excursionSetBarrier_
-    double precision                                       , intent(in   ) :: a                   , b, &
-         &                                                                    c
-    integer                                                , intent(in   ) :: applyTo
+    type            (excursionSetBarrierRemapShethMoTormen)                        :: self
+    class           (excursionSetBarrierClass             ), intent(in   ), target :: excursionSetBarrier_
+    double precision                                       , intent(in   )         :: a                   , b, &
+         &                                                                            c
+    integer                                                , intent(in   )         :: applyTo
     !# <constructorAssign variables="a, b, c, applyTo, *excursionSetBarrier_"/>
 
     if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('applyTo is invalid'//{introspection:location})

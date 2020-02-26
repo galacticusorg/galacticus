@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,7 +38,8 @@ contains
 
   function massFunctionStellarZFOURGEConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarZFOURGE'' output analysis class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Gravitational_Lensing, only : gravitationalLensingClass
+    use :: Input_Parameters     , only : inputParameter           , inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarZFOURGE)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters

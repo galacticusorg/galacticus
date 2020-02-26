@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,7 +84,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
+    type     (accretionDiskSpectraFile)                :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
 
     ! Ensure that the required methods are supported.

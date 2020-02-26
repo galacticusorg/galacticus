@@ -368,7 +368,7 @@ sub Process_FunctionClass {
 		my $parentConstructorUsed = 0;
 		my @failureMessage;
 		while ( $node ) {
-		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*function\s+$node->{'name'}\s*\(\s*parameters\s*\)/ ) {
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive\s+)??function\s+$node->{'name'}\s*\(\s*parameters\s*(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
 			# Extract the name of the return variable in this function.
 			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
 			# Check if this is the parameters constructor.
@@ -1431,7 +1431,7 @@ CODE
 			if ( $node->{'type'} eq "declaration" ) {			    
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
 				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" ) {
+				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    # Look for pointers to functionClasses.
@@ -1647,7 +1647,7 @@ CODE
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
 		    # Identify variable type.
-		    if ( $declaration->{'intrinsic'} eq "procedure" ) {
+		    if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 			# Type-bound procedure - nothing to do.
 		    } elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 			# Look for pointers to functionClasses.
@@ -1819,7 +1819,7 @@ CODE
 			if ( $node->{'type'} eq "declaration" ) {			    
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
 				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" ) {
+				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    # Look for pointers to functionClasses.

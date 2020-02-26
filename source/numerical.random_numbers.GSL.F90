@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implements a random number generator class which utilizes the \gls{gsl} random number generators.
 
   use :: FGSL, only : FGSL_RNG
@@ -32,6 +32,7 @@
      type   (FGSL_RNG ) :: gslRandomNumberGenerator
    contains
      final     ::                         gslDestructor
+     procedure :: mpiIndependent       => gslMPIIndependent
      procedure :: uniformSample        => gslUniformSample
      procedure :: poissonSample        => gslPoissonSample
      procedure :: standardNormalSample => gslStandardNormalSample
@@ -67,7 +68,7 @@ contains
     !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>ompThreadoffset</name>
+    !#   <name>ompThreadOffset</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the OpenMP thread number.</description>
@@ -130,6 +131,15 @@ contains
     call FGSL_RNG_Free(self%gslRandomNumberGenerator)
     return
   end subroutine gslDestructor
+
+  logical function gslMPIIndependent(self)
+    !% Return true if this random number generator produces independent sequences per MPI process.
+    implicit none    
+    class(randomNumberGeneratorGSL), intent(inout) :: self
+    
+    gslMPIIndependent=self%mpiRankOffset
+    return
+  end function gslMPIIndependent
 
   double precision function gslUniformSample(self)
     !% Sample from a uniform distribution on the interval [0,1).

@@ -31,14 +31,10 @@ my %arguments =
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
-my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
-
-# Validate the config file.
-die("convergenceGelmanRubin.pl: workDirectory must be specified in config file")
-    unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+my $config = &Galacticus::Constraints::Parameters::parseConfig($configFile);
 
 # Compute the number of parallel chains.
-my $chainCount = &Galacticus::Constraints::Parameters::Chains_Count($config,\%arguments);
+my $chainCount = &Galacticus::Constraints::Parameters::chainCount($config,\%arguments);
 print "Found ".$chainCount." chains\n";
 
 # Construct mask of outlier chains.
@@ -50,14 +46,15 @@ if ( exists($arguments{'outliers'}) ) {
 }
 
 # Determine the number of parameters.
-my $parameterCount = &Galacticus::Constraints::Parameters::Parameters_Count($config,\%arguments);
+my $parameterCount = &Galacticus::Constraints::Parameters::parameterCount($config,\%arguments);
 print "Found ".$parameterCount." parameters\n";
 
 # Get the chain state matrix.
 my @chainData;
 for(my $i=0;$i<$chainCount;++$i) {
-    $arguments{'selectChain'} = $i;
-    push(@chainData,&Galacticus::Constraints::Parameters::Sample_Matrix($config,\%arguments));
+    my $chainStates = &Galacticus::Constraints::Parameters::parameterMatrix($config,$i,\%arguments);
+    my $chainStatesBurned = exists($arguments{'burnCount'}) ? $chainStates->(:,$arguments{'burnCount'}:-1) : $chainStates;
+    push(@chainData,$chainStatesBurned);
 }
 
 # Detect outlier chains.
@@ -145,15 +142,12 @@ for(my $i=0;$i<$chainCount;++$i) {
     }
 }
 
+# Get parameter names.
+my @parameterNames = &Galacticus::Constraints::Parameters::parameterNames($config);
+
 # Iterate over parameters.
 my @convergence;
-my $iParameter = -1;
 for(my $j=0;$j<$parameterCount;++$j) {
-    # Find the next active parameter in our list.
-    ++$iParameter;
-    while ( ! exists($config->{'parameters'}->{'parameter'}->[$iParameter]->{'prior'}) ) {
-	++$iParameter;
-    }
     # Find the mean over all chains for this parameter.
     my $interChainMean  = pdl 0.0;
     my $interChainMean2 = pdl 0.0;
@@ -240,7 +234,7 @@ for(my $j=0;$j<$parameterCount;++$j) {
 	    between          => $interChainVariance,
 	    within           => $W                 ,
 	    degreesOfFreedom => $d                 ,
-	    label            => $config->{'parameters'}->{'parameter'}->[$iParameter]->{'name'}
+	    label            => $parameterNames[$j]
 	}
 	);
 }

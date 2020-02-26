@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,7 +89,7 @@ contains
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                        :: self
     class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_
-    double precision                                                                :: normalization
+    double precision                                                , intent(in   ) :: normalization
     character       (len=18                                )                        :: normalizationText
     !# <constructorAssign variables="*cosmologyParameters_"/>
 

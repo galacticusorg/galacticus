@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@
      !@     <description>Tabulate properties of the Burkert halo profile which must be computed numerically.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             burkertDestructor
+     final     ::                                      burkertDestructor
      procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset
      procedure :: density                           => burkertDensity

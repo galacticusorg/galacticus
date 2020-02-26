@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@ module Cosmological_Density_Field
   !#  <name>criticalOverdensity</name>
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
   !#  <description>Object providing critical overdensities.</description>
-  !#  <default>sphericalCollapseCllsnlssMttrCsmlgclCnstnt</default>
+  !#  <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
   !#  <data>integer         (kind_int8                    )          :: lastUniqueID                =  -1_kind_int8                                          </data>
   !#  <data>double precision                                         :: criticalOverdensityTarget                  , mass                                    </data>
   !#  <data>double precision                                         :: time                                       , timeNow                    =-huge(0.0d0)</data>

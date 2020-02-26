@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,7 +100,7 @@ contains
     !% Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
     implicit none
     type            (mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorInternal
-    type            (varying_string                  )                :: path
+    type            (varying_string                  ), intent(in   ) :: path
     double precision                                  , intent(in   ) :: massMinimum                      , massMaximum
 
     dumpToGraphVizConstructorInternal%path       =path

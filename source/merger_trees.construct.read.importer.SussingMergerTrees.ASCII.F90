@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -135,7 +135,7 @@ contains
          &                                                                           forestLast
     double precision                                , intent(in   )               :: subvolumeBuffer           , badValue        , &
          &                                                                           treeSampleRate
-    type            (varying_string                )                              :: forestFile
+    type            (varying_string                ), intent(in   )               :: forestFile
     !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*randomNumberGenerator_"/>
 
     self%useForestFile            =self%forestFile /= "none"

@@ -49,8 +49,8 @@
   <!-- Structure formation options -->
   <linearGrowthMethod value="collisionlessMatter"/>
   <haloMassFunctionMethod value="tinker2008"/>
-  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="fullySpecified">

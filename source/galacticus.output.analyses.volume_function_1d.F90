@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -426,7 +426,7 @@ contains
          &                                                                                                  targetLabel
     logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog                       , &
          &                                                                                                  likelihoodNormalize
-    double precision                                                                                     :: propertyUnitsInSI                    , distributionUnitsInSI
+    double precision                                           , intent(in   )                           :: propertyUnitsInSI                    , distributionUnitsInSI
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
     double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight
@@ -791,7 +791,7 @@ contains
 
   double precision function volumeFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a volumeFunction1D output analysis.
-    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
+    use :: Linear_Algebra          , only : vector                 , matrix, assignment(=), operator(*)
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none

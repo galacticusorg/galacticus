@@ -56,7 +56,7 @@
     <massTreeMinimum value="1.0e12"/>
   </mergerTreeBuildMassesMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <blackHoleWindEfficiency value="0.001"/>
   <treeNodeMethodBlackHole value="standard"/>
@@ -97,8 +97,8 @@
   </stellarPopulationMethod>
 
   <virialOrbitMethod value="benson2005"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="0"/>

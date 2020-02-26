@@ -430,8 +430,8 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .git/refs/heads/master)
 	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@if [ -f .git/refs/heads/master ] ; then git branch | grep \* | awk '{print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@date --utc | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
+	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
 
 # Rules for build information routines.
 $(BUILDPATH)/galacticus.output.build.environment.inc:

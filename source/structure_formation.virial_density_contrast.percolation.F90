@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +38,7 @@
      !% A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
      private
      double precision                                            :: linkingLength
+     type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
      !# <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
      !#  <description>Null initialization of the following class(*) pointer causes an ICE in gfortran 10.0</description>
@@ -64,6 +65,18 @@
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>restoreTable</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Restore a tabulated solution from file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>storeTable</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Store a tabulated solution to file.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                percolationDestructor
      procedure :: densityContrast             => percolationDensityContrast
@@ -71,6 +84,8 @@
      procedure :: isMassDependent             => percolationIsMassDepdendent
      procedure :: tabulate                    => percolationTabulate
      procedure :: deepCopy                    => percolationDeepCopy
+     procedure :: restoreTable                => percolationRestoreTable
+     procedure :: storeTable                  => percolationStoreTable
   end type virialDensityContrastPercolation
 
   interface virialDensityContrastPercolation
@@ -136,8 +151,10 @@ contains
 
   recursive  function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf) result(self)
     !% Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : operator(//)
+    use :: Input_Parameters  , only : inputParameter         , inputParameters
     implicit none
     type            (virialDensityContrastPercolation)                                  :: self
     double precision                                  , intent(in   )                   :: linkingLength
@@ -146,6 +163,13 @@ contains
     class           (virialDensityContrastClass      ), intent(in   ), target, optional :: recursiveSelf
     !# <constructorAssign variables="linkingLength, *cosmologyFunctions_, *percolationObjects_"/>
 
+    ! File name for tabulation.
+    self%fileName=galacticusPath(pathTypeDataDynamic)              // &
+         &        'darkMatterHalos/'                               // &
+         &        self%objectType      (                          )// &
+         &        '_'                                              // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &        '.hdf5'
     ! Initialize tabulations.
     self%densityContrastTableTimeMinimum= 1.0d-03
     self%densityContrastTableTimeMaximum=20.0d+00
@@ -227,6 +251,7 @@ contains
        ! Assume table does not need remaking.
        makeTable=.false.
        ! Check for uninitialized table.
+       if (.not.self%densityContrastTableInitialized) call self%restoreTable()
        if (.not.self%densityContrastTableInitialized) then
           makeTable=.true.
        ! Check for mass out of range.
@@ -290,6 +315,8 @@ contains
           call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
           ! Flag that the table is now initialized.
           self%densityContrastTableInitialized=.true.
+          ! Store the table.
+          call self%storeTable()
           ! Solving phase is finished.
           percolationSolving=.false.
        end if
@@ -414,6 +441,7 @@ contains
     select type (destination)
     type is (virialDensityContrastPercolation)
        destination%linkingLength                  =self%linkingLength
+       destination%fileName                       =self%fileName
        destination%isRecursive                    =self%isRecursive
        destination%densityContrastTableTimeMinimum=self%densityContrastTableTimeMinimum
        destination%densityContrastTableTimeMaximum=self%densityContrastTableTimeMaximum
@@ -511,4 +539,80 @@ contains
     end if
     return
   end subroutine percolationCopyTable
+
+  subroutine percolationStoreTable(self)
+    !% Store the table to file.
+    use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, lockDescriptor
+    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: ISO_Varying_String, only : char          , varying_string
+    implicit none
+    class(virialDensityContrastPercolation), intent(inout) :: self
+    type (hdf5Object                      )                :: file
+    type (lockDescriptor                  )                :: fileLock
+
+    call Directory_Make(char(File_Path(char(self%fileName))))
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock     (char(self%fileName),fileLock,lockIsShared=.false.)
+    !$ call hdf5Access%set()
+    call file%openFile      (char   (self%fileName                                                                                       ),overWrite=.true.        ,readOnly=.false.)
+    call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,          'timeMinimum'                  )
+    call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,          'timeMaximum'                  )
+    call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,          'massMinimum'                  )
+    call file%writeAttribute(        self%densityContrastTableMassMaximum                                                                 ,          'massMaximum'                  )
+    call file%writeAttribute(        self%densityContrastTableTimeCount                                                                   ,          'timeCount'                    )
+    call file%writeAttribute(        self%densityContrastTableMassCount                                                                   ,          'massCount'                    )
+    call file%writeDataset  (        self%densityContrastTable%xs()                                                                       ,          'mass'                         )
+    call file%writeDataset  (        self%densityContrastTable%ys()                                                                       ,          'time'                         )
+    call file%writeDataset  (reshape(self%densityContrastTable%zs(),[self%densityContrastTable%size(1),self%densityContrastTable%size(2)]),          'densityContrast'              )
+    call file%close         (                                                                                                                                                       )
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
+    return
+  end subroutine percolationStoreTable
+
+  subroutine percolationRestoreTable(self)
+    !% Attempt to restore a table from file.
+    use :: File_Utilities    , only : File_Exists, File_Lock     , File_Unlock, lockDescriptor
+    use :: IO_HDF5           , only : hdf5Access , hdf5Object
+    use :: ISO_Varying_String, only : char       , varying_string
+    implicit none
+    class           (virialDensityContrastPercolation), intent(inout)               :: self
+    double precision                                  , allocatable, dimension(:  ) :: timeTable           , massTable
+    double precision                                  , allocatable, dimension(:,:) :: densityContrastTable
+    type            (hdf5Object                      )                              :: file
+    type            (lockDescriptor                  )                              :: fileLock
+
+    if (File_Exists(self%fileName)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile     (char(self%fileName         ))
+       call file%readAttribute(          'timeMinimum'      ,self%densityContrastTableTimeMinimum)
+       call file%readAttribute(          'timeMaximum'      ,self%densityContrastTableTimeMaximum)
+       call file%readAttribute(          'massMinimum'      ,self%densityContrastTableMassMinimum)
+       call file%readAttribute(          'massMaximum'      ,self%densityContrastTableMassMaximum)
+       call file%readAttribute(          'timeCount'        ,self%densityContrastTableTimeCount  )
+       call file%readAttribute(          'massCount'        ,self%densityContrastTableMassCount  )
+       call file%readDataset  (          'mass'             ,massTable                           )
+       call file%readDataset  (          'time'             ,timeTable                           )
+       call file%readDataset  (          'densityContrast'  ,densityContrastTable                )
+       call file%close        (                                                                  )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
+       call self%densityContrastTable%create  (                                       &
+            &                                  massTable           (1              ), &
+            &                                  massTable           (size(massTable)), &
+            &                                                       size(massTable) , &
+            &                                  timeTable           (1              ), &
+            &                                  timeTable           (size(timeTable)), &
+            &                                                       size(timeTable)   &
+            &                                 )
+       call self%densityContrastTable%populate(                                       &
+            &                                  densityContrastTable                   &
+            &                                 )
+       self%densityContrastTableInitialized=.true.
+       self%densityContrastTableRemakeCount=0
+    end if
+    return
+  end subroutine percolationRestoreTable
 

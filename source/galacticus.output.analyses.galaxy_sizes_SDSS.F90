@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,8 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass             ), pointer       :: outputTimes_
-    double precision                                               :: massStellarRatio
+    class           (gravitationalLensingClass    ), pointer       :: gravitationalLensing_
+    double precision                                               :: massStellarRatio     , sizeSourceLensing
     integer                                                        :: distributionNumber
 
     !# <inputParameter>
@@ -68,16 +69,27 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
-    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_)
+    !# <inputParameter>
+    !#   <name>sizeSourceLensing</name>
+    !#   <source>parameters</source>
+    !#   <variable>sizeSourceLensing</variable>
+    !#   <defaultValue>2.0d-3</defaultValue>
+    !#   <description>The characteristic source size for gravitational lensing calculations.</description>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
+    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="outputTimes_"         />
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function galaxySizesSDSSConstructorParameters
 
-  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_) result(self)
+  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_) result(self)
     !% Internal constructor for the ``galaxySizesSDSS'' output analysis class.
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -86,6 +98,7 @@ contains
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: Galacticus_Paths                        , only : galacticusPath                             , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
+    use :: Gravitational_Lensing                   , only : gravitationalLensingClass
     use :: IO_HDF5                                 , only : hdf5Access                                 , hdf5Object
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
@@ -94,7 +107,8 @@ contains
     use :: Numerical_Constants_Prefixes            , only : kilo                                       , milli
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth     , outputAnalysisDistributionNormalizerSequence   , outputAnalysisDistributionNormalizerUnitarity
-    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass    , outputAnalysisDistributionOperatorDiskSizeInclntn, outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass    , outputAnalysisDistributionOperatorDiskSizeInclntn, outputAnalysisDistributionOperatorIdentity     , outputAnalysisDistributionOperatorGrvtnlLnsng, &
+         &                                                  outputAnalysisDistributionOperatorSequence , distributionOperatorList                         , lensedPropertySize
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyAnglrDstnc   , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10          , &
           &                                                 outputAnalysisPropertyOperatorMultiply     , outputAnalysisPropertyOperatorSequence           , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -103,9 +117,10 @@ contains
     implicit none
     type            (outputAnalysisGalaxySizesSDSS                  )                              :: self
     integer                                                                       , intent(in   )  :: distributionNumber
-    double precision                                                              , intent(in   )  :: massStellarRatio
+    double precision                                                              , intent(in   )  :: massStellarRatio                               , sizeSourceLensing
     class           (cosmologyFunctionsClass                        ), target     , intent(in   )  :: cosmologyFunctions_
     class           (outputTimesClass                               ), target     , intent(inout)  :: outputTimes_
+    class           (gravitationalLensingClass                      ), target     , intent(in   )  :: gravitationalLensing_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
     type            (nodePropertyExtractorHalfMassRadius            ), pointer                     :: nodePropertyExtractor_
@@ -118,7 +133,10 @@ contains
     type            (outputAnalysisWeightOperatorNormal             ), pointer                     :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence   ), pointer                     :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisPropertyOperatorAntiLog10        ), pointer                     :: outputAnalysisPropertyOperatorAntiLog10_
-    class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionOperatorSequence     ), pointer                     :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionOperatorGrvtnlLnsng  ), pointer                     :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperatorProjection_
+    type            (distributionOperatorList                       )               , pointer      :: distributionOperatorSequence
     type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
     type            (normalizerList                                 ), pointer                     :: normalizerSequence                              , normalizer_
     type            (propertyOperatorList                           ), pointer                     :: propertyOperatorSequence                        , weightPropertyOperatorSequence
@@ -224,30 +242,54 @@ contains
     propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorMultiply_
     propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperatorLog10_
     allocate(outputAnalysisPropertyOperatorSequence_ )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorSequence_"          constructor="outputAnalysisPropertyOperatorSequence            (propertyOperatorSequence                                                                                                                                   )"/>
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorSequence_"          constructor="outputAnalysisPropertyOperatorSequence             (propertyOperatorSequence                                                                                                                                   )"/>
     allocate(weightPropertyOperatorSequence          )
     allocate(weightPropertyOperatorSequence%next     )
     weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     weightPropertyOperatorSequence%next%operator_ => outputAnalysisPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperatorSequence_ )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSequence_"    constructor="outputAnalysisPropertyOperatorSequence           (weightPropertyOperatorSequence                                                                                                                              )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSequence_"    constructor="outputAnalysisPropertyOperatorSequence             (weightPropertyOperatorSequence                                                                                                                              )"/>
     ! Create a normal-weight weight operator.
     allocate(outputAnalysisWeightOperator_           )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorNormal               (log10(massStellarMinimum),log10(massStellarMaximum),massStellarErrorDex,outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperatorSequence_)"/>
-    ! Create an inclination distribution operator.
+    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorNormal                 (log10(massStellarMinimum),log10(massStellarMaximum),massStellarErrorDex,outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperatorSequence_)"/>
+    ! Create an projection distribution operator.
     if (isLateType) then
-       allocate(outputAnalysisDistributionOperatorDiskSizeInclntn :: outputAnalysisDistributionOperator_)
-       select type (outputAnalysisDistributionOperator_)
+       allocate(outputAnalysisDistributionOperatorDiskSizeInclntn :: outputAnalysisDistributionOperatorProjection_)
+       select type (outputAnalysisDistributionOperatorProjection_)
        type is (outputAnalysisDistributionOperatorDiskSizeInclntn)
-          !# <referenceConstruct object="outputAnalysisDistributionOperator_"           constructor="outputAnalysisDistributionOperatorDiskSizeInclntn(                                                                                                                                                             )"/>
+          !# <referenceConstruct object="outputAnalysisDistributionOperatorProjection_" constructor="outputAnalysisDistributionOperatorDiskSizeInclntn(                                                                                                                                                           )"/>
        end select
     else
-       allocate(outputAnalysisDistributionOperatorIdentity        :: outputAnalysisDistributionOperator_)
-       select type (outputAnalysisDistributionOperator_)
+       allocate(outputAnalysisDistributionOperatorIdentity        :: outputAnalysisDistributionOperatorProjection_)
+       select type (outputAnalysisDistributionOperatorProjection_)
        type is (outputAnalysisDistributionOperatorIdentity)
-          !# <referenceConstruct object="outputAnalysisDistributionOperator_"           constructor="outputAnalysisDistributionOperatorIdentity       (                                                                                                                                                             )"/>
+          !# <referenceConstruct object="outputAnalysisDistributionOperatorProjection_" constructor="outputAnalysisDistributionOperatorIdentity       (                                                                                                                                                           )"/>
        end select
     end if
+    ! Create a gravitational lensing distribution operator.
+    allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
+    !# <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    !# <constructor>
+    !# outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &amp;
+    !#      &amp;                                           gravitationalLensing_           , &amp;
+    !#      &amp;                                           outputTimes_                    , &amp;
+    !#      &amp;                                           sizeSourceLensing               , &amp;
+    !#      &amp;                                           lensedPropertySize                &amp;
+    !#      &amp;                                          )
+    !#  </constructor>
+    !# </referenceConstruct>
+    allocate(outputAnalysisDistributionOperator_     )
+    allocate(distributionOperatorSequence            )
+    allocate(distributionOperatorSequence       %next)
+    distributionOperatorSequence     %operator_ => outputAnalysisDistributionOperatorProjection_
+    distributionOperatorSequence%next%operator_ => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
+    !# <constructor>
+    !# outputAnalysisDistributionOperatorSequence(                             &amp;
+    !#      &amp;                                 distributionOperatorSequence &amp;
+    !#      &amp;                                )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Create anti-log10 operator.
     allocate(outputAnalysisPropertyOperatorAntiLog10_)
     !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10          (                                                                                                                                                             )"/>
@@ -345,7 +387,6 @@ contains
          &                                functionValueTarget                                   , &
          &                                functionCovarianceTarget                                &
          &                               )
-    ! Clean up.
     !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
@@ -356,6 +397,9 @@ contains
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"  />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorProjection_"   />
     !# <objectDestructor name="galacticFilterAll_"                              />
     !# <objectDestructor name="galacticFilterMassStellarMinimum_"               />
     !# <objectDestructor name="galacticFilterMassStellarMaximum_"               />
@@ -367,6 +411,7 @@ contains
     nullify(propertyOperatorSequence      )
     nullify(weightPropertyOperatorSequence)
     nullify(normalizerSequence            )
+    nullify(distributionOperatorSequence  )
     nullify(filters_                      )
     return
   end function galaxySizesSDSSConstructorInternal

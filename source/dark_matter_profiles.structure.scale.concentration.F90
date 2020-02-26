@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -202,7 +202,7 @@ contains
     ! Determine if concentration must be corrected.
     if (self%correctForConcentrationDefinition) then
        ! Get the basic component of the supplied node and extract its mass.
-       basic             => node %basic()
+       basic                                             => node %basic()
        concentrationState_(concentrationStateCount)%mass =  basic%mass ()
        ! If there is no difference between the alt and non-alt virial density contrasts, then no correction need be made.
        if     (                                                                                                      &

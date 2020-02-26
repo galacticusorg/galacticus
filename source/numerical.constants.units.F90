@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ module Numerical_Constants_Units
   ! Electron volt (in units of Joules).
   double precision, parameter :: electronVolt      =FGSL_CONST_MKSA_ELECTRON_VOLT
 
-  ! Barn (cross section unit, in units of m^2).
+  ! Barn (cross section unit, in units of m²).
   double precision, parameter :: barn              =1.0d-28
 
   ! Degree (in units of radians).

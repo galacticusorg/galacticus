@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
 
 program Test_Biases
   !% Tests concentration models.
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Halo_Biases             , only : darkMatterHaloBiasClass                 , darkMatterHaloBiasPressSchechter                             , darkMatterHaloBiasSheth2001        , darkMatterHaloBiasTinker2010
@@ -59,7 +59,7 @@ program Test_Biases
   type            (transferFunctionEisensteinHu1999                             )                                      :: transferFunctionEisensteinHu1999_
   type            (powerSpectrumPrimordialTransferredSimple                     )                                      :: powerSpectrumPrimordialTransferredSimple_
   type            (darkMatterParticleCDM                                        )                                      :: darkMatterParticleCDM_
-  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                               )                                      :: parameterFile
   integer                                                                        , parameter                           :: countModels                                      =3
   type            (varying_string                                               ), dimension(countModels)              :: modelName                                          , modelLabel    , &
@@ -230,9 +230,9 @@ program Test_Biases
      !#    &amp;                                                       )
      !#  </constructor>
      !# </referenceConstruct>
-     !# <referenceConstruct object="criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_">
+     !# <referenceConstruct object="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_">
      !#  <constructor>
-     !#   criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                               &amp;
+     !#   criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                               &amp;
      !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
      !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
      !#    &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_   , &amp;
@@ -255,7 +255,7 @@ program Test_Biases
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
         !#   darkMatterHaloBiasPressSchechter(                                                                                          &amp;
-        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &amp;
+        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
         !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          &amp;
         !#    &amp;                          )
         !#  </constructor>
@@ -264,7 +264,7 @@ program Test_Biases
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
         !#   darkMatterHaloBiasSheth2001     (                                                                                          &amp;
-        !#       &amp;                        criticalOverdensity_     =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &amp;
+        !#       &amp;                        criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
         !#       &amp;                        cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          &amp;
         !#    &amp;                          )
         !#  </constructor>
@@ -274,7 +274,7 @@ program Test_Biases
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
         !#   darkMatterHaloBiasTinker2010    (                                                                                          &amp;
-        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &amp;
+        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
         !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                        , &amp;
         !#    &amp;                           virialDensityContrast_   =virialDensityContrast_                                          &amp;
         !#    &amp;                          )

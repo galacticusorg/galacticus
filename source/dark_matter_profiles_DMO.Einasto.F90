@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -168,7 +168,7 @@
      !@     <description>Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                                      einastoDestructor
+     final     ::                                               einastoDestructor
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -115,10 +115,10 @@ contains
   function inSituConstructorInternal(timeStep,timeStepFine,timeFine,outputTimes_) result(self)
     !% Internal constructor for the ``inSitu'' star formation history class.
     implicit none
-    type            (starFormationHistoryInSitu)                :: self
-    double precision                            , intent(in   ) :: timeStep    , timeStepFine, &
-         &                                                         timeFine
-    class           (outputTimesClass          ), target        :: outputTimes_
+    type            (starFormationHistoryInSitu)                        :: self
+    double precision                            , intent(in   )         :: timeStep    , timeStepFine, &
+         &                                                                 timeFine
+    class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
     !# <constructorAssign variables="timeStep, timeStepFine, timeFine, *outputTimes_"/>
 
     return

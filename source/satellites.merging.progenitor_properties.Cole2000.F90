@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,7 +119,7 @@ contains
   subroutine cole2000Destructor(self)
     !% Destructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
     implicit none
-    type (mergerProgenitorPropertiesCole2000) :: self
+    type(mergerProgenitorPropertiesCole2000), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerMassMovements_"/>
     return

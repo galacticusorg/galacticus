@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@
      !% A dark matter halo profile class implementing isothermal dark matter halos.
      private
    contains
-     final                                             isothermalDestructor
+     final     ::                                      isothermalDestructor
      procedure :: density                           => isothermalDensity
      procedure :: densityLogSlope                   => isothermalDensityLogSlope
      procedure :: radialMoment                      => isothermalRadialMoment

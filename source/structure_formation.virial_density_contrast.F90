@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@ module Virial_Density_Contrast
   !#  <name>virialDensityContrast</name>
   !#  <descriptiveName>Virial Density Contrasts</descriptiveName>
   !#  <description>Class providing dark matter halo virial density contrasts.</description>
-  !#  <default>sphericalCollapseCllsnlssMttrCsmlgclCnstnt</default>
+  !#  <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
   !#  <method name="densityContrast" >
   !#   <description>Returns the virial density contrast at the given epoch.</description>
   !#   <type>double precision</type>

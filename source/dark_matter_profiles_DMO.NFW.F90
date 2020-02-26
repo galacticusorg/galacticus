@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -144,7 +144,7 @@
      !@     <description>Tabulate the density enclosed within a given radius for the NFW profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             nfwDestructor
+     final     ::                                      nfwDestructor
      procedure :: autoHook                          => nfwAutoHook
      procedure :: calculationReset                  => nfwCalculationReset
      procedure :: density                           => nfwDensity

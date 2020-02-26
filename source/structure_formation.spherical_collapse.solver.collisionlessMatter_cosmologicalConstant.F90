@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -850,7 +850,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
-    !% Attempt to restore a table from file.
+    !% Store a table to file.
     use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
          &                            lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object

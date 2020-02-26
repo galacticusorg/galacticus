@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,7 +55,7 @@
      !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             truncatedExponentialDestructor
+     final     ::                                      truncatedExponentialDestructor
      procedure :: autoHook                          => truncatedExponentialAutoHook
      procedure :: calculationReset                  => truncatedExponentialCalculationReset
      procedure :: density                           => truncatedExponentialDensity

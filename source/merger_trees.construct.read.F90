@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -383,7 +383,7 @@
   class           (nodeComponentBasic                 ), pointer :: readBasic
   type            (treeNode                           ), pointer :: readNode
   double precision                                               :: readRadiusHalfMass
-  class(mergerTreeConstructorRead), pointer :: readSelf
+  class           (mergerTreeConstructorRead          ), pointer :: readSelf
   !$omp threadprivate(readDarkMatterProfile,readBasic,readNode,readRadiusHalfMass,readSelf)
 
   ! Counter used to assign unique IDs to split forests.
@@ -2026,10 +2026,10 @@ contains
              else if (nodes(iNode)%halfMassRadius > 0.0d0) then
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
                 ! Set the active node and target half mass radius.
-                readNode                       => nodeList(iIsolatedNode)%node
-                readDarkMatterProfile => readNode%darkMatterProfile()
-                readBasic             => readNode%basic            ()
-                readRadiusHalfMass                   =  nodes(iNode)%halfMassRadius
+                readNode              => nodeList(iIsolatedNode)%node
+                readDarkMatterProfile => readNode               %darkMatterProfile()
+                readBasic             => readNode               %basic            ()
+                readRadiusHalfMass    =  nodes   (iNode        )%halfMassRadius
                 ! Solve for the scale radius.
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
@@ -2080,11 +2080,11 @@ contains
           end if
           if (useFallbackScaleMethod) then
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
-             ! the fallback concentration method.
+             ! the fallback method.
              readNode => nodeList(iIsolatedNode)%node
              radiusScale=max(                                                                                                         &
                   &          min(                                                                                                     &
-                  &              self%darkMatterProfileScaleRadius_%radius(nodeList(iIsolatedNode)%node)                            , &
+                  &              self%darkMatterProfileScaleRadius_%radius      (readNode)                                          , &
                   &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum  &
                   &             )                                                                                                   , &
                   &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum  &

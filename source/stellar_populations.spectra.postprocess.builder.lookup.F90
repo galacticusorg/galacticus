@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -104,19 +104,24 @@ contains
     return
   end subroutine lookupDestructor
 
-  function lookupBuild(self,descriptor)
+  !# <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
+  !#  <description>
+  !#   If the function name is used as the result variable, instead of using "result(postprocessor)", this PR is triggered.
+  !#  </description>
+  !# </workaround>
+  function lookupBuild(self,descriptor) result(postprocessor)
     !% Return a stellar population spectra postprocessor by lookup via name.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class  (stellarPopulationSpectraPostprocessorClass        ), pointer       :: lookupBuild
+    class  (stellarPopulationSpectraPostprocessorClass        ), pointer       :: postprocessor
     class  (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
     type   (varying_string                                    ), intent(in   ) :: descriptor
     integer                                                                    :: i
 
-    lookupBuild => null()
+    postprocessor => null()
     do i=1,size(self%names)
-       if (self%names(i) == descriptor) lookupBuild => self%postprocessors(i)%stellarPopulationSpectraPostprocessor_
+       if (self%names(i) == descriptor) postprocessor => self%postprocessors(i)%stellarPopulationSpectraPostprocessor_
     end do
-    if (.not.associated(lookupBuild)) call Galacticus_Error_Report('unable to located postprocessor "'//descriptor//'"'//{introspection:location})
+    if (.not.associated(postprocessor)) call Galacticus_Error_Report('unable to located postprocessor "'//descriptor//'"'//{introspection:location})
     return
   end function lookupBuild

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -235,10 +235,10 @@ contains
           !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
        end select
     case (duttonMaccio2014DensityContrastMethodVirial    )
-       allocate(virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
+       allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
-       type is (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
+       type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(darkMatterHaloScaleDefinition_)

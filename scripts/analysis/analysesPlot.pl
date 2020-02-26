@@ -217,6 +217,15 @@ sub function1DPlot {
 	$yMinimum  -= 0.05*$yRange;
 	$yMaximum  += 0.05*$yRange;
     }
+    # Override axes.
+    $xMinimum .= $options{'xMinimum'}
+        if ( exists($options{'xMinimum'}) );
+    $xMaximum .= $options{'xMaximum'}
+        if ( exists($options{'xMaximum'}) );
+    $yMinimum .= $options{'yMinimum'}
+        if ( exists($options{'yMinimum'}) );
+    $yMaximum .= $options{'yMaximum'}
+        if ( exists($options{'yMaximum'}) );
     # Determine a suitable pointsize.
     my $pointSize = "1.0";
     $pointSize = 0.25

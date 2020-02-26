@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +23,13 @@
   use :: Input_Parameters, only : inputParameter, inputParameters
   use :: Output_Analyses , only : outputAnalysis, outputAnalysisClass
 
-  type :: inputParameterList
+  type :: parameterList
      !% Type used to maintain a list of pointers to parameters to be modified.
      type   (inputParameter), pointer :: parameter_
      integer                          :: indexElement
      type   (varying_string)          :: definition
      logical                          :: resolved
-  end type inputParameterList
+  end type parameterList
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
@@ -43,7 +43,7 @@
      type   (inputParameters    ), pointer                   :: parametersModel        => null()
      class  (*                  ), pointer                   :: task_
      class  (outputAnalysisClass), pointer                   :: outputAnalysis_        => null()
-     type   (inputParameterList ), dimension(:), allocatable :: modelParametersActive_          , modelParametersInactive_
+     type   (parameterList      ), dimension(:), allocatable :: modelParametersActive_          , modelParametersInactive_
    contains
      final     ::                    galaxyPopulationDestructor
      procedure :: evaluate        => galaxyPopulationEvaluate

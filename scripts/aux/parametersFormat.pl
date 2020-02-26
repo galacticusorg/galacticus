@@ -127,17 +127,6 @@ my @groups =
 	     ]
      },
      {
-	 name        => "treeEvolution" ,
-	 description => "Merger tree evolution flow control",
-	 members     =>
-	     [
-	      "mergerTreesBuildFixedThreadAssignment",
-	      "treeEvolveThreadLock",
-	      "treeEvolveThreadLockName",
-	      "treeEvolveThreadsMaximum"
-	     ]
-     },
-     {
 	 name        => "haloHierarchy" ,
 	 description => "Merger tree halo hierarchy",
 	 members     =>

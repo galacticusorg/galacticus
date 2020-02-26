@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -488,7 +488,7 @@ contains
     double precision                               , intent(in   )          :: timeEarliestIn               , tolerance
     double precision                               , intent(inout)          :: treeBestWorstFit             , massCutoffScale               , &
          &                                                                     massOvershootScale
-    logical                                        , intent(in   )          :: extendingEndNode
+    logical                                        , intent(in   )          :: extendingEndNode             , treeBestOverride
     logical                                        , intent(inout)          :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
          &                                                                     newRescale
     type            (mergerTree                   ), intent(inout)          :: treeBest
@@ -503,7 +503,7 @@ contains
     integer                                                                 :: endNodeCount                 , nodeChildCount                , &
          &                                                                     status                       , treeAccepted
     type            (mergerTreeOperatorPruneByTime)                         :: pruneByTime
-    logical                                                                 :: treeBestOverride             , newTreeBest
+    logical                                                                 :: newTreeBest
     type            (varying_string               )                         :: message
     character       (len=16                       )                         :: label
     logical                                                                 :: primaryProgenitorIsClone
@@ -1265,7 +1265,7 @@ contains
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
     type            (mergerTree               ), intent(inout), target  :: treeBest
-    type            (treeNode                 )               , pointer :: nodeNonOverlapFirst
+    type            (treeNode                 ), intent(in   ), pointer :: nodeNonOverlapFirst
     double precision                           , intent(in   )          :: tolerance
     double precision                           , intent(inout)          :: massCutoffScale        , massOvershootScale
     type            (treeNode                 )               , pointer :: nodeCurrent
