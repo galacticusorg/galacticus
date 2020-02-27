@@ -135,7 +135,7 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
   ! Find the total mass.
   massTotal=Node_Component_Spheroid_Standard_Enclosed_Mass(self,radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (massTotal <= 0.0d0) return
+  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
   ! Compute the tidal tensor.
   positionScaleFree=positionCartesian/self%radius()
   Node_Component_Spheroid_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                         &
