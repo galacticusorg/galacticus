@@ -27,24 +27,26 @@ program Test_Mass_Distributions
   use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass          , massDistributionHernquist, massDistributionSersic, &
           &                               massDistributionSpherical     , massDistributionExponentialDisk
   use :: Numerical_Constants_Math, only : Pi
+  use :: Tensors                 , only : assignment(=)
   use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group     , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass), allocatable                 :: massDistribution_
-  integer                                , parameter                   :: sersicTableCount          =8
-  double precision                       , dimension(sersicTableCount) :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistributionClass         ), allocatable                 :: massDistribution_
+  integer                                         , parameter                   :: sersicTableCount          =8
+  double precision                                , dimension(sersicTableCount) :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount) :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                                , dimension(sersicTableCount) :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount) :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                                , dimension(sersicTableCount) :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                       , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                       , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass, &
-       &                                                                  sersicTablePotential
-  type            (coordinateSpherical  )                              :: position                                                                                                     , positionZero
-  integer                                                              :: i
-  double precision                                                     :: radiusInProjection                                                                                           , radius
-  character       (len=4                )                              :: label
-  
+  double precision                                , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
+  double precision                                , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass, &
+       &                                                                           sersicTablePotential
+  type            (coordinateSpherical           )                              :: position                                                                                                     , positionZero
+  integer                                                                       :: i
+  double precision                                                              :: radiusInProjection                                                                                           , radius
+  character       (len=4                         )                              :: label
+  double precision                                , dimension(3,3)              :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
+
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Begin unit tests.
@@ -147,20 +149,59 @@ program Test_Mass_Distributions
      massDistribution_=massDistributionExponentialDisk(scaleHeight=0.01d0,dimensionless=.true.)
      ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
      call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
-     radius  =45.0d0
-     write (label,'(f4.1)') radius
-     ! Vertically above the disk.
-     position=[radius,0.0d0,0.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
-     ! Vertically below the disk.
-     position=[radius,Pi,0.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
-     ! Disk plane, along +x-axis.
-     position=[radius,Pi/2.0d0,0.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
-     ! Disk plane, along -y-axis.
-     position=[radius,Pi/2.0d0,-Pi/2.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+     do i=1,2
+        select case (i)
+        case (1)
+           radius  =45.0d0
+        case (2)
+           radius  =55.0d0
+        end select
+        write (label,'(f4.1)') radius
+        ! Vertically above the disk.
+        position=[radius,0.0d0,0.0d0]
+        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+        ! Vertically below the disk.
+        position=[radius,Pi,0.0d0]
+        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+        ! Disk plane, along +x-axis.
+        position=[radius,Pi/2.0d0,0.0d0]
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+        ! Disk plane, along -y-axis.
+        position=[radius,Pi/2.0d0,-Pi/2.0d0]
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+     end do
+     call Unit_Tests_End_Group()
+     ! Test that gravitational tidal tensor matches expectations for a point mass distribution at large radii.
+     call Unit_Tests_Begin_Group("Tidal tensor approaches point mass solution at large radii")
+     do i=1,2
+        select case (i)
+        case (1)
+           radius  =45.0d0
+        case (2)
+           radius  =55.0d0
+        end select
+        write (label,'(f4.1)') radius
+        ! Vertically above the disk.
+        position                      =[radius,0.0d0,0.0d0]
+        tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0]/radius**3,[3,3])
+        tidalTensorComponents         =massDistribution_%tidalTensor         (position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+        ! Vertically below the disk.
+        position=[radius,Pi,0.0d0]
+        tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0]/radius**3,[3,3])
+        tidalTensorComponents         =massDistribution_%tidalTensor         (position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+        ! Disk plane, along +x-axis.
+        position                      =[radius,Pi/2.0d0,0.0d0]
+        tidalTensorSphericalComponents=reshape([+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]/radius**3,[3,3])
+        tidalTensorComponents         =massDistribution_%tidalTensor         (position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=2.0d-2)
+        ! Disk plane, along -y-axis.
+        position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
+        tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]/radius**3,[3,3])
+        tidalTensorComponents         =massDistribution_%tidalTensor         (position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=1.0d-2)
+     end do
      call Unit_Tests_End_Group()
      ! Test that gravitational acceleration matches expectations for a thin disk in the midplane.
      call Unit_Tests_Begin_Group("Acceleration approaches razor-thin disk in midplane")
