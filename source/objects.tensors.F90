@@ -223,6 +223,12 @@ module Tensors
      procedure         :: doubleContract  => Tensor_R2_D3_Sym_Double_Contract
   end type tensorRank2Dimension3Symmetric
 
+  ! Constructors for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+  interface tensorRank2Dimension3Symmetric
+     module procedure tensorRank2Dimension3SymmetricNull
+     module procedure tensorRank2Dimension3SymmetricInternal
+  end interface tensorRank2Dimension3Symmetric
+  
   ! Identity, unitary, and null tensors.
   type(tensorRank2Dimension3Symmetric), public :: tensorIdentityR2D3Sym=tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,1.0d0,0.0d0,1.0d0)
   type(tensorRank2Dimension3Symmetric), public :: tensorUnitR2D3Sym    =tensorRank2Dimension3Symmetric(1.0d0,1.0d0,1.0d0,1.0d0,1.0d0,1.0d0)
@@ -230,6 +236,32 @@ module Tensors
 
 contains
 
+  function tensorRank2Dimension3SymmetricNull() result(self)
+    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+    implicit none
+    type(tensorRank2Dimension3Symmetric) :: self
+
+    self%x00=0.0d0
+    self%x01=0.0d0
+    self%x02=0.0d0
+    self%x11=0.0d0
+    self%x12=0.0d0
+    self%x22=0.0d0
+    return
+  end function tensorRank2Dimension3SymmetricNull
+  
+  function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
+    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                :: self
+    double precision                                , intent(in   ) :: x00 , x01, &
+         &                                                             x02 , x11, &
+         &                                                             x12 , x22
+    !# <constructorAssign variables="x00, x01, x02, x11, x12, x22"/>
+    
+    return
+  end function tensorRank2Dimension3SymmetricInternal
+  
   subroutine Tensor_R2_D3_Sym_Destroy(self)
     !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
     implicit none
