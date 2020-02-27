@@ -607,7 +607,7 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     character       (len=*       )                , intent(in   )           :: testName
     double precision              , dimension(:,:), intent(in   )           :: value1       , value2
@@ -630,7 +630,7 @@ contains
        passed=.true.
        do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
           do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
-             if (Values_Differ(value1(iTest,jTest),value2(iTest,jTest),absTol,relTol)) then
+             if (.not.Values_Agree(value1(iTest,jTest),value2(iTest,jTest),absTol,relTol)) then
                 passed=.false.
                 exit
              end if
@@ -665,7 +665,7 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     character       (len=*       )                  , intent(in   )           :: testName
     double precision              , dimension(:,:,:), intent(in   )           :: value1       , value2
@@ -689,7 +689,7 @@ contains
        do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
           do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
              do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
-                if (Values_Differ(value1(iTest,jTest,kTest),value2(iTest,jTest,kTest),absTol,relTol)) then
+                if (.not.Values_Agree(value1(iTest,jTest,kTest),value2(iTest,jTest,kTest),absTol,relTol)) then
                    passed=.false.
                    exit
                 end if
@@ -725,7 +725,7 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     character       (len=*       )                    , intent(in   )           :: testName
     double precision              , dimension(:,:,:,:), intent(in   )           :: value1       , value2
@@ -751,7 +751,7 @@ contains
           do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
              do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
                 do lTest=1,min(size(value1,dim=4),size(value2,dim=4))
-                   if (Values_Differ(value1(iTest,jTest,kTest,lTest),value2(iTest,jTest,kTest,lTest),absTol,relTol)) then
+                   if (.not.Values_Agree(value1(iTest,jTest,kTest,lTest),value2(iTest,jTest,kTest,lTest),absTol,relTol)) then
                       passed=.false.
                       exit
                    end if
@@ -788,7 +788,7 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     character       (len=*       )                      , intent(in   )           :: testName
     double precision              , dimension(:,:,:,:,:), intent(in   )           :: value1       , value2
@@ -815,7 +815,7 @@ contains
              do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
                 do lTest=1,min(size(value1,dim=4),size(value2,dim=4))
                    do mTest=1,min(size(value1,dim=5),size(value2,dim=5))
-                      if (Values_Differ(value1(iTest,jTest,kTest,lTest,mTest),value2(iTest,jTest,kTest,lTest,mTest),absTol,relTol)) then
+                      if (.not.Values_Agree(value1(iTest,jTest,kTest,lTest,mTest),value2(iTest,jTest,kTest,lTest,mTest),absTol,relTol)) then
                          passed=.false.
                          exit
                       end if
