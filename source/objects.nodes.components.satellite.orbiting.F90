@@ -267,17 +267,17 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
     use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
-    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeGalactic                        , radiusLarge
+    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask                           , nodeComponentBasic   , nodeComponentSatellite, &
           &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : assignment(=)                   , operator(*)                             , tensorIdentityR2D3Sym
-    use :: Vectors                           , only : Vector_Magnitude                , Vector_Outer_Product                    , Vector_Product
+    use :: Tensors                           , only : assignment(=)                   , operator(*)
+    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(in   ) :: odeConverged
@@ -293,12 +293,11 @@ contains
     double precision                                                              :: radius                       , halfMassRadiusSatellite  , &
          &                                                                           halfMassRadiusCentral        , orbitalRadiusTest        , &
          &                                                                           radiusVirial                 , orbitalPeriod            , &
-         &                                                                           parentDensity                , parentEnclosedMass       , &
          &                                                                           satelliteMass                , basicMass                , &
          &                                                                           massDestruction              , tidalHeatingNormalized   , &
-         &                                                                           angularFrequency             , radialFrequency
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor                  , tidalTensorPathIntegrated, &
-         &                                                                           positionTensor
+         &                                                                           angularFrequency             , radialFrequency          , &
+         &                                                                           parentEnclosedMass
+    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor                  , tidalTensorPathIntegrated
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -312,13 +311,12 @@ contains
           ! Proceed only for satellites.
        if (thisNode%isSatellite()) then
           ! Get all required quantities.
-          hostNode                 => thisNode          %mergesWith               (                          )
-          position                 =  satelliteComponent%position                 (                          )
-          velocity                 =  satelliteComponent%velocity                 (                          )
-          tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated(                          )
-          tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   (                          )
-          positionTensor           =  Vector_Outer_Product                        (position,symmetrize=.true.)
-          radius                   =  Vector_Magnitude                            (position                  )
+          hostNode                 => thisNode          %mergesWith               (        )
+          position                 =  satelliteComponent%position                 (        )
+          velocity                 =  satelliteComponent%velocity                 (        )
+          tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated(        )
+          tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   (        )
+          radius                   =  Vector_Magnitude                            (position)
           ! Set rate of change of position.
           call satelliteComponent%positionRate(                               &
                &                               +(kilo*gigaYear/megaParsec)    &
@@ -327,12 +325,9 @@ contains
           ! Other rates are only non-zero if the satellite is at non-zero radius.
           if (radius > 0.0d0) then
              ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-             parentDensity         =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
-             parentEnclosedMass    =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
-             parentAccelerationBulk=  Galactic_Structure_Acceleration (hostNode,position                                            )
-             tidalTensor           = -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
-                  &                  +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
-                  &                  -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
+             parentEnclosedMass    =Galactic_Structure_Enclosed_Mass(hostNode,radius  )
+             parentAccelerationBulk=Galactic_Structure_Acceleration (hostNode,position)           
+             tidalTensor           =Galactic_Structure_Tidal_Tensor (hostNode,position)             
              ! Compute the orbital period.
              angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
                   &              /radius**2                                           &
