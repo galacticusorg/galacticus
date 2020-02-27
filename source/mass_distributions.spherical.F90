@@ -40,11 +40,12 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ mass\argin</arguments>
      !@   </objectMethod>
-      !@ </objectMethods>
+     !@ </objectMethods>
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass
      procedure :: acceleration         => sphericalAcceleration
+     procedure :: tidalTensor          => sphericalTidalTensor
      procedure :: radiusEnclosingMass  => sphericalRadiusEnclosingMass
      procedure :: positionSample       => sphericalPositionSample
   end type massDistributionSpherical
@@ -199,6 +200,45 @@ contains
     return
   end function sphericalAcceleration
 
+  function sphericalTidalTensor(self,coordinates)
+    !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    !% distributions.
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Tensors                     , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Vectors                     , only : Vector_Outer_Product
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
+    class           (massDistributionSpherical     ), intent(inout) :: self
+    class           (coordinate                    ), intent(in   ) :: coordinates
+    type            (coordinateSpherical           )                :: coordinatesSpherical
+    type            (coordinateCartesian           )                :: coordinatesCartesian
+    double precision                                                :: radius              , massEnclosed, &
+         &                                                             density
+    double precision                                , dimension(3)  :: positionCartesian
+    type            (tensorRank2Dimension3Symmetric)                :: positionTensor
+
+    ! Get position in spherical and Cartesian coordinate systems.
+    coordinatesSpherical=coordinates
+    coordinatesCartesian=coordinates
+    ! Compute the enclosed mass and density at this position.
+    positionCartesian= coordinatesCartesian
+    radius           =+coordinatesSpherical%r                   (           )
+    massEnclosed     =+self                %massEnclosedBySphere(radius     ) 
+    density          =+self                %density             (coordinates) 
+    positionTensor   =Vector_Outer_Product(positionCartesian,symmetrize=.true.)
+    ! Find the gravitational tidal tensor.
+    sphericalTidalTensor=-(massEnclosed         /radius**3)*tensorIdentityR2D3Sym &
+         &               +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
+         &               -(density     *4.0d0*Pi/radius**2)*positionTensor
+    ! For dimensionful profiles, add the appropriate normalization.
+    if (.not.self%isDimensionless())                              &
+         & sphericalTidalTensor=+sphericalTidalTensor             &
+         &                       *gravitationalConstantGalacticus
+    return
+  end function sphericalTidalTensor
+  
   function sphericalPositionSample(self,randomNumberGenerator_)
     !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     use :: Numerical_Constants_Math, only : Pi

@@ -23,6 +23,7 @@ module Mass_Distributions
   !% Implements a class that provides mass distributions.
   use :: Coordinates             , only : coordinate
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  use :: Tensors                 , only : tensorRank2Dimension3Symmetric
   private
 
   !# <functionClass>
@@ -50,6 +51,12 @@ module Mass_Distributions
   !#  <method name="acceleration" >
   !#   <description>Return the gravitational acceleration due to the distribution at the given coordinates.</description>
   !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+  !#  </method>
+  !#  <method name="tidalTensor" >
+  !#   <description>Return the gravitational tidal tensor due to the distribution at the given coordinates.</description>
+  !#   <type>type(tensorRank2Dimension3Symmetric)</type>
   !#   <pass>yes</pass>
   !#   <argument>class(coordinate), intent(in   ) :: coordinates</argument>
   !#  </method>
