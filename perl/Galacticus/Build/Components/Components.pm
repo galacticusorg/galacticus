@@ -175,6 +175,15 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "tidalTensor"                                                                                          ,
+	     function    => "Node_Component_Tidal_Tensor_Null"                                                                     ,
+	     description => "Compute the gravitational tidal tensor at a point."                                                   ,
+	     mappable    => "summation"                                                                                            ,
+	     returnType  => "\\textcolor{red}{\\textless type(tensorRank2Dimension3Symmetric)\\textgreater}"                       ,
+	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\arginn"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,

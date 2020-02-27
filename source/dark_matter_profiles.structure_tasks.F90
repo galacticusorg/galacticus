@@ -23,7 +23,7 @@ module Dark_Matter_Profile_Structure_Tasks
   !% Implements structure tasks related to the dark matter halo density profile.
   private
   public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task, &
-       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task
+       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task, Dark_Matter_Profile_Tidal_Tensor_Task
 
 contains
 
@@ -94,6 +94,41 @@ contains
          &                                /radius**3
     return
   end function Dark_Matter_Profile_Acceleration_Task
+
+  !# <tidalTensorTask>
+  !#  <unitName>Dark_Matter_Profile_Tidal_Tensor_Task</unitName>
+  !# </tidalTensorTask>
+  function Dark_Matter_Profile_Tidal_Tensor_Task(node,positionCartesian,componentType,massType)
+    !% Computes the tidalTensor due to a dark matter profile.
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : treeNode
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
+    use :: Vectors                     , only : Vector_Outer_Product
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                              :: Dark_Matter_Profile_Tidal_Tensor_Task
+    type            (treeNode                      ), intent(inout)               :: node
+    integer                                         , intent(in   )               :: componentType                        , massType
+    double precision                                , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                               , dimension(3) :: positionSpherical
+    double precision                                                              :: radius                               , massEnclosed, &
+         &                                                                           density
+    type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
+    
+    radius           =sqrt(sum(positionCartesian**2))
+    positionSpherical=[radius,0.0d0,0.0d0]
+    massEnclosed     =Dark_Matter_Profile_Enclosed_Mass_Task(node,radius           ,componentType,massType,weightByMass,weightIndexNull)
+    density          =Dark_Matter_Profile_Density_Task      (node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    positionTensor   =Vector_Outer_Product                  (     positionCartesian,symmetrize=.true.                                  )
+    Dark_Matter_Profile_Tidal_Tensor_Task=+gravitationalConstantGalacticus                           &
+         &                                *(                                                         &
+         &                                  -(massEnclosed         /radius**3)*tensorIdentityR2D3Sym &
+         &                                  +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
+         &                                  -(density     *4.0d0*Pi/radius**2)*positionTensor        &
+         &                                )
+    return
+  end function Dark_Matter_Profile_Tidal_Tensor_Task
 
   !# <rotationCurveTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>

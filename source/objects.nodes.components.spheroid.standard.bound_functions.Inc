@@ -114,6 +114,37 @@ function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,co
   return
 end function Node_Component_Spheroid_Standard_Acceleration
 
+function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
+  !% Computes the gravitational tidal tensor at a given position for a standard spheroid.
+  use :: Coordinates                          , only : assignment(=)                  , coordinateCartesian
+  use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
+       &                                               radiusLarge
+  use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+  use :: Numerical_Constants_Physical         , only : gravitationalConstantGalacticus
+  use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
+  implicit none
+  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
+  class           (nodeComponentSpheroidStandard ), intent(inout)               :: self
+  double precision                                , intent(in   ), dimension(3) :: positionCartesian
+  integer                                         , intent(in   )               :: componentType                                , massType
+  double precision                                                              :: massTotal
+  type            (coordinateCartesian           )                              :: positionScaleFree
+
+  ! Return if the spheroid component is not selected.
+  Node_Component_Spheroid_Standard_Tidal_Tensor=tensorNullR2D3Sym
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+  ! Find the total mass.
+  massTotal=Node_Component_Spheroid_Standard_Enclosed_Mass(self,radiusLarge,componentType,massType,weightByMass,weightIndexNull)
+  if (massTotal <= 0.0d0) return
+  ! Compute the tidal tensor.
+  positionScaleFree=positionCartesian/self%radius()
+  Node_Component_Spheroid_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                         &
+       &                                        *massTotal                                               &
+       &                                        *spheroidMassDistribution%tidalTensor(positionScaleFree) &
+       &                                        /self%radius()**3
+  return
+end function Node_Component_Spheroid_Standard_Tidal_Tensor
+
 double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
   !% Computes the rotation curve at a given radius for a standard spheroid.
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull

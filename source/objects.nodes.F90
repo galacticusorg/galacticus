@@ -37,7 +37,7 @@ module Galacticus_Nodes
   use            :: Numerical_Constants_Prefixes    , only : kilo
   use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric
+  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric, tensorNullR2D3Sym
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
@@ -970,6 +970,17 @@ module Galacticus_Nodes
     return
   end function Node_Component_Null_Double1_InOut
 
+  function Node_Component_Null_TensorR2D3_InOut(self)
+    !% A null {\normalfont \ttfamily tensorRank2Dimension3Symmetric} function for {\normalfont \ttfamily nodeComponent}s.
+    implicit none
+    type (tensorRank2Dimension3Symmetric)                :: Node_Component_Null_TensorR2D3_InOut
+    class(nodeComponent                 ), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    Node_Component_Null_TensorR2D3_InOut=tensorNullR2D3Sym
+    return
+  end function Node_Component_Null_TensorR2D3_InOut
+
   double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex)
     !% A null implementation of the enclosed mass in a component. Always returns zero.
     implicit none
@@ -987,13 +998,26 @@ module Galacticus_Nodes
     implicit none
     double precision               , dimension(3)                :: Node_Component_Acceleration_Null
     class           (nodeComponent)              , intent(inout) :: self
-    integer                                      , intent(in   ) :: componentType    , massType
+    integer                                      , intent(in   ) :: componentType                  , massType
     double precision               , dimension(3), intent(in   ) :: positionCartesian
     !GCC$ attributes unused :: self, positionCartesian, componentType, massType
 
     Node_Component_Acceleration_Null=0.0d0
     return
   end function Node_Component_Acceleration_Null
+
+  function Node_Component_Tidal_Tensor_Null(self,positionCartesian,componentType,massType)
+    !% A null implementation of the tidal tensor due to a component. Always returns zero.
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Tidal_Tensor_Null
+    class           (nodeComponent                 )              , intent(inout) :: self
+    integer                                                       , intent(in   ) :: componentType                   , massType
+    double precision                                , dimension(3), intent(in   ) :: positionCartesian
+    !GCC$ attributes unused :: self, positionCartesian, componentType, massType
+
+    Node_Component_Tidal_Tensor_Null=tensorNullR2D3Sym
+    return
+  end function Node_Component_Tidal_Tensor_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% A null implementation of the density in a component. Always returns zero.

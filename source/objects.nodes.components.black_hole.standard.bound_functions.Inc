@@ -126,3 +126,38 @@ end function Node_Component_Black_Hole_Standard_Enclosed_Mass
           &                                              /radius**3
   return
 end function Node_Component_Black_Hole_Standard_Acceleration
+
+function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
+  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
+  use :: Numerical_Constants_Math    , only : Pi
+  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
+       &                                     operator(*)  
+  use :: Vectors                     , only : Vector_Outer_Product
+  implicit none
+  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Black_Hole_Standard_Tidal_Tensor
+  class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
+  integer                                         , intent(in   )               :: componentType                                  , massType
+  double precision                                , intent(in   ), dimension(3) :: positionCartesian
+  double precision                                                              :: radius
+  type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
+
+  ! Set zero enclosed acceleration by default.
+  Node_Component_Black_Hole_Standard_Tidal_Tensor=tensorNullR2D3Sym
+  ! Return the black hole mass only if massType and componentType are of black hole type.
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  radius=sqrt(sum(positionCartesian**2))
+  if (      radius        <  0.0d0                                                         ) return
+  ! Compute the tidal tensor.
+  if (self%radialPosition() <= 0.0d0) then
+     positionTensor                                 = Vector_Outer_Product(positionCartesian,symmetrize=.true.)
+     Node_Component_Black_Hole_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                       &
+          &                                          *(                                                     &
+          &                                            -(self%mass()      /radius**3)*tensorIdentityR2D3Sym &
+          &                                            +(self%mass()*3.0d0/radius**5)*positionTensor        &
+          &                                           )
+  end if
+  return
+end function Node_Component_Black_Hole_Standard_Tidal_Tensor

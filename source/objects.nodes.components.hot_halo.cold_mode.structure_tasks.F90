@@ -27,7 +27,7 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
        &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task       , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
+       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task           , Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
 
   type (massDistributionBetaProfile  ), public          :: coldModeMassDistribution
   class(hotHaloColdModeCoreRadiiClass), public, pointer :: hotHaloColdModeCoreRadii_
@@ -105,6 +105,41 @@ contains
          &                                              /radius**3
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
+
+  !# <tidalTensorTask>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task</unitName>
+  !# </tidalTensorTask>
+  function Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task(node,positionCartesian,componentType,massType)
+    !% Computes the tidalTensor due to the cold mode halo.
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : treeNode
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
+    use :: Vectors                     , only : Vector_Outer_Product
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
+    type            (treeNode                      ), intent(inout)               :: node
+    integer                                         , intent(in   )               :: componentType                        , massType
+    double precision                                , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                               , dimension(3) :: positionSpherical
+    double precision                                                              :: radius                               , massEnclosed, &
+         &                                                                           density
+    type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
+    
+    radius                                             =sqrt(sum(positionCartesian**2))
+    positionSpherical                                  =[radius,0.0d0,0.0d0]
+    massEnclosed                                       =Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius           ,componentType,massType,weightByMass,weightIndexNull)
+    density                                            =Node_Component_Hot_Halo_Cold_Mode_Density_Task      (node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    positionTensor                                     =Vector_Outer_Product                                (     positionCartesian,symmetrize=.true.                                  )
+    Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task=+gravitationalConstantGalacticus                           &
+         &                                              *(                                                         &
+         &                                                -(massEnclosed         /radius**3)*tensorIdentityR2D3Sym &
+         &                                                +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
+         &                                                -(density     *4.0d0*Pi/radius**2)*positionTensor        &
+         &                                               )
+    return
+  end function Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
 
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task</unitName>

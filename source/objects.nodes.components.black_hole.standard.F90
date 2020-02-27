@@ -103,6 +103,7 @@ module Node_Component_Black_Hole_Standard
   !#  <bindings>
   !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
   !#   <binding method="acceleration" function="Node_Component_Black_Hole_Standard_Acceleration"  bindsTo="component"/>
+  !#   <binding method="tidalTensor"  function="Node_Component_Black_Hole_Standard_Tidal_Tensor"  bindsTo="component"/>
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>

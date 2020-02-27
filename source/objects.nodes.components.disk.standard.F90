@@ -152,6 +152,7 @@ module Node_Component_Disk_Standard
   !#   <binding method="attachPipes" function="Node_Component_Disk_Standard_Attach_Pipes" description="Attach pipes to the standard disk component." returnType="\void" arguments="" bindsTo="component" />
   !#   <binding method="enclosedMass"          function="Node_Component_Disk_Standard_Enclosed_Mass"           bindsTo="component" />
   !#   <binding method="acceleration"          function="Node_Component_Disk_Standard_Acceleration"            bindsTo="component" />
+  !#   <binding method="tidalTensor"           function="Node_Component_Disk_Standard_Tidal_Tensor"            bindsTo="component" />
   !#   <binding method="density"               function="Node_Component_Disk_Standard_Density"                 bindsTo="component" />
   !#   <binding method="potential"             function="Node_Component_Disk_Standard_Potential"               bindsTo="component" />
   !#   <binding method="rotationCurve"         function="Node_Component_Disk_Standard_Rotation_Curve"          bindsTo="component" />

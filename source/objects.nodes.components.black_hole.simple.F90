@@ -55,6 +55,7 @@ module Node_Component_Black_Hole_Simple
   !#  <bindings>
   !#     <binding method="enclosedMass" function="Node_Component_Black_Hole_Simple_Enclosed_Mass" bindsTo="component" />
   !#     <binding method="acceleration" function="Node_Component_Black_Hole_Simple_Acceleration"  bindsTo="component" />
+  !#     <binding method="tidalTensor"  function="Node_Component_Black_Hole_Simple_Tidal_Tensor"  bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   !# </component>
