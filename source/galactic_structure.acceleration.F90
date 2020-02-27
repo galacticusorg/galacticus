@@ -26,25 +26,19 @@ module Galactic_Structure_Accelerations
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
-  public :: Galactic_Structure_Acceleration, Galactic_Structure_Acceleration_Standard_Reset
+  public :: Galactic_Structure_Acceleration
 
   ! Module scope variables used in mapping over components.
   integer                                        :: componentTypeShared                    , massTypeShared
   double precision                , dimension(3) :: positionCartesianShared
   !$omp threadprivate(massTypeShared,componentTypeShared,positionCartesianShared)
 
-  ! Precomputed values.
-  integer         (kind=kind_int8)               :: lastUniqueID              =-1_kind_int8
-  logical                                        :: accelerationOffsetComputed=.false.
-  !$omp threadprivate(lastUniqueID,accelerationOffsetComputed)
-
 contains
 
   function Galactic_Structure_Acceleration(node,positionCartesian,componentType,massType)
     !% Compute the gravitational acceleration at a given position.
-    use :: Galactic_Structure_Options, only : componentTypeAll                  , massTypeAll                         , structureErrorCodeSuccess, coordinateSystemCartesian, &
-         &                                    coordinateSystemCylindrical       , coordinateSystemSpherical
-    use :: Galacticus_Nodes          , only : optimizeForAccelerationSummation  , reductionSummation                  , treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll                , massTypeAll
+    use :: Galacticus_Nodes          , only : optimizeForAccelerationSummation, reductionSummation, treeNode
     !# <include directive="accelerationTask" type="moduleUse">
     include 'galactic_structure.acceleration.tasks.modules.inc'
     !# </include>
@@ -73,8 +67,6 @@ contains
     end if
     ! Initialize pointer to function that supplies the acceleration for all components.
     componentAccelerationFunction => Component_Acceleration
-    ! Reset calculations if this is a new node.
-    if (node%uniqueID() /= lastUniqueID) call Galactic_Structure_Acceleration_Standard_Reset(node)
     ! Determine which component type to use.
     if (present(componentType)) then
        componentTypeShared=componentType
@@ -108,20 +100,6 @@ contains
     Component_Acceleration=component%acceleration(positionCartesianShared,componentTypeShared,massTypeShared)
     return
   end function Component_Acceleration
-
-  !# <calculationResetTask>
-  !# <unitName>Galactic_Structure_Acceleration_Standard_Reset</unitName>
-  !# </calculationResetTask>
-  subroutine Galactic_Structure_Acceleration_Standard_Reset(node)
-    !% Reset calculations for galactic structure accelerations.
-    use :: Galacticus_Nodes, only : treeNode
-    implicit none
-    type(treeNode), intent(in   ) :: node
-
-    accelerationOffsetComputed=.false.
-    lastUniqueID              =node%uniqueID()
-    return
-  end subroutine Galactic_Structure_Acceleration_Standard_Reset
 
 end module Galactic_Structure_Accelerations
 
