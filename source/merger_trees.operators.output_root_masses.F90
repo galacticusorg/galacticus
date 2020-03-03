@@ -20,6 +20,9 @@
   !% Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
 
   ! Buffer size for tree data.
+  !# <scoping>
+  !#  <module variables="outputRootMassesBufferSize"/>
+  !# </scoping>
   integer, parameter :: outputRootMassesBufferSize=1000
 
   !# <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">

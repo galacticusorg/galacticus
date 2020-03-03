@@ -19,10 +19,12 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module which defines the tensor symmetric structure used for describing symmetric tensors.
+!% Contains a module which defines the structure used for describing tensors.
 
 module Tensors
-  !% Defines the tensor symmetric structure used for describing symmetric tensors.
+  !% Defines the structure used for describing tensors.
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: FoX_DOM      , only : node
   implicit none
   private
   public :: tensorRank2Dimension3Symmetric, assignment(=), operator(*), max
@@ -234,505 +236,150 @@ module Tensors
   type(tensorRank2Dimension3Symmetric), public :: tensorUnitR2D3Sym    =tensorRank2Dimension3Symmetric(1.0d0,1.0d0,1.0d0,1.0d0,1.0d0,1.0d0)
   type(tensorRank2Dimension3Symmetric), public :: tensorNullR2D3Sym    =tensorRank2Dimension3Symmetric(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0)
 
-contains
-
-  function tensorRank2Dimension3SymmetricNull() result(self)
-    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects which sets all components to zero.
-    implicit none
-    type(tensorRank2Dimension3Symmetric) :: self
-
-    self%x00=0.0d0
-    self%x01=0.0d0
-    self%x02=0.0d0
-    self%x11=0.0d0
-    self%x12=0.0d0
-    self%x22=0.0d0
-    return
-  end function tensorRank2Dimension3SymmetricNull
-  
-  function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
-    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
-    implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: self
-    double precision                                , intent(in   ) :: x00 , x01, &
-         &                                                             x02 , x11, &
-         &                                                             x12 , x22
-    !# <constructorAssign variables="x00, x01, x02, x11, x12, x22"/>
-    
-    return
-  end function tensorRank2Dimension3SymmetricInternal
-  
-  subroutine Tensor_R2_D3_Sym_Destroy(self)
-    !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-    !GCC$ attributes unused :: self
-
-    return
-  end subroutine Tensor_R2_D3_Sym_Destroy
-
-  subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
-    !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
-    implicit none
-    class    (tensorRank2Dimension3Symmetric), intent(inout)              :: self
-    type     (node                          ), intent(in   ), pointer     :: tensorDefinition
-    type     (node                          )               , pointer     :: element
-    type     (xmlNodeList                   ), dimension(:) , allocatable :: elementList
-    character(len=3                         ), dimension(6) , parameter   :: elementNames=['x00','x01','x02','x11','x12','x22']
-    integer                                                               :: i
-
-    ! Get the elements
-    do i=1,6
-       call XML_Get_Elements_By_Tag_Name(tensorDefinition,elementNames(i),elementList)
-       if (size(elementList) > 1) call Galacticus_Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
-       if (size(elementList) < 1) call Galacticus_Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
-       element => elementList(0)%element
-       select case (elementNames(i))
-       case ( 'x00' )
-          call extractDataContent(element,self%x00)
-       case ( 'x01' )
-          call extractDataContent(element,self%x01)
-       case ( 'x02' )
-          call extractDataContent(element,self%x02)
-       case ( 'x11' )
-          call extractDataContent(element,self%x11)
-       case ( 'x12' )
-          call extractDataContent(element,self%x12)
-       case ( 'x22' )
-          call extractDataContent(element,self%x22)
-       end select
-    end do
-    return
-  end subroutine Tensor_R2_D3_Sym_Builder
-
-  subroutine Tensor_R2_D3_Sym_Dump(self)
-    !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
-    implicit none
-    class    (tensorRank2Dimension3Symmetric), intent(in   ) :: self
-    character(len=22                        )                :: label
-    type     (varying_string                )                :: message
-
-    write (label,'(e22.16)') self%x00
-    message='x00: '//label
-    call Galacticus_Display_Message(message)
-    write (label,'(e22.16)') self%x01
-    message='x01: '//label
-    call Galacticus_Display_Message(message)
-    write (label,'(e22.16)') self%x02
-    message='x02: '//label
-    call Galacticus_Display_Message(message)
-    write (label,'(e22.16)') self%x11
-    message='x11: '//label
-    call Galacticus_Display_Message(message)
-    write (label,'(e22.16)') self%x12
-    message='x12: '//label
-    call Galacticus_Display_Message(message)
-    write (label,'(e22.16)') self%x22
-    message='x22: '//label
-    call Galacticus_Display_Message(message)
-    return
-  end subroutine Tensor_R2_D3_Sym_Dump
-
-  subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
-    !% Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
-    implicit none
-    class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
-    integer                                , intent(in   ) :: fileHandle
-
-    ! Dump the content.
-    write (fileHandle) self%x00
-    write (fileHandle) self%x01
-    write (fileHandle) self%x02
-    write (fileHandle) self%x11
-    write (fileHandle) self%x12
-    write (fileHandle) self%x22
-    return
-  end subroutine Tensor_R2_D3_Sym_Dump_Raw
-
-  subroutine Tensor_R2_D3_Sym_Read_Raw(self,fileHandle)
-    !% Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
-    implicit none
-    class  (tensorRank2Dimension3Symmetric), intent(inout) :: self
-    integer                                , intent(in   ) :: fileHandle
-
-    ! Read the content.
-    read (fileHandle) self%x00
-    read (fileHandle) self%x01
-    read (fileHandle) self%x02
-    read (fileHandle) self%x11
-    read (fileHandle) self%x12
-    read (fileHandle) self%x22
-    return
-  end subroutine Tensor_R2_D3_Sym_Read_Raw
-
-  subroutine Tensor_R2_D3_Sym_Reset(self)
-    !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-
-    ! Zero all elements.
-    self                       %x00=0.0d0
-    self                       %x11=0.0d0
-    self                       %x22=0.0d0
-    self                       %x01=0.0d0
-    self                       %x02=0.0d0
-    self                       %x12=0.0d0
-    return
-  end subroutine Tensor_R2_D3_Sym_Reset
-
-  subroutine Tensor_R2_D3_Sym_Set_To_Unity(self)
-    !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to unity.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-
-    ! Set values to unity.
-    self                       %x00=1.0d0
-    self                       %x11=1.0d0
-    self                       %x22=1.0d0
-    self                       %x01=1.0d0
-    self                       %x02=1.0d0
-    self                       %x12=1.0d0
-    return
-  end subroutine Tensor_R2_D3_Sym_Set_To_Unity
-
-  subroutine Tensor_R2_D3_Sym_Set_To_Identity(self)
-    !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to the identity matrix.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-
-    ! Set values to unity.
-    self                       %x00=1.0d0
-    self                       %x11=1.0d0
-    self                       %x22=1.0d0
-    self                       %x01=0.0d0
-    self                       %x02=0.0d0
-    self                       %x12=0.0d0
-    return
-  end subroutine Tensor_R2_D3_Sym_Set_To_Identity
-
-  logical function Tensor_R2_D3_Sym_Is_Zero(self)
-    !% Test whether a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object is zero.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(in) :: self
-
-    ! Detect if all tensor elements are zero.
-    Tensor_R2_D3_Sym_Is_Zero=          &
-         &         (                   &
-         &           self%x00 == 0.0d0 &
-         &          .and.              &
-         &           self%x01 == 0.0d0 &
-         &          .and.              &
-         &           self%x02 == 0.0d0 &
-         &          .and.              &
-         &           self%x11 == 0.0d0 &
-         &          .and.              &
-         &           self%x12 == 0.0d0 &
-         &          .and.              &
-         &           self%x22 == 0.0d0 &
-         &         )
-    return
-  end function Tensor_R2_D3_Sym_Is_Zero
-
-  function Tensor_R2_D3_Sym_Add(tensor1,tensor2)
-    !% Add two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
-    implicit none
-    type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Add
-    class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
-    class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
-
-    Tensor_R2_D3_Sym_Add%x00=tensor1%x00
-    Tensor_R2_D3_Sym_Add%x01=tensor1%x01
-    Tensor_R2_D3_Sym_Add%x02=tensor1%x02
-    Tensor_R2_D3_Sym_Add%x11=tensor1%x11
-    Tensor_R2_D3_Sym_Add%x12=tensor1%x12
-    Tensor_R2_D3_Sym_Add%x22=tensor1%x22
-    if (present(tensor2)) then
-       Tensor_R2_D3_Sym_Add%x00=Tensor_R2_D3_Sym_Add%x00+tensor2%x00
-       Tensor_R2_D3_Sym_Add%x01=Tensor_R2_D3_Sym_Add%x01+tensor2%x01
-       Tensor_R2_D3_Sym_Add%x02=Tensor_R2_D3_Sym_Add%x02+tensor2%x02
-       Tensor_R2_D3_Sym_Add%x11=Tensor_R2_D3_Sym_Add%x11+tensor2%x11
-       Tensor_R2_D3_Sym_Add%x12=Tensor_R2_D3_Sym_Add%x12+tensor2%x12
-       Tensor_R2_D3_Sym_Add%x22=Tensor_R2_D3_Sym_Add%x22+tensor2%x22
-    end if
-    return
-  end function Tensor_R2_D3_Sym_Add
-
-  subroutine Tensor_R2_D3_Sym_Increment(self,increment)
-    !% Increment a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-    class(tensorRank2Dimension3Symmetric), intent(in   ) :: increment
-
-    self%x00=self%x00+increment%x00
-    self%x01=self%x01+increment%x01
-    self%x02=self%x02+increment%x02
-    self%x11=self%x11+increment%x11
-    self%x12=self%x12+increment%x12
-    self%x22=self%x22+increment%x22
-    return
-  end subroutine Tensor_R2_D3_Sym_Increment
-
-  function Tensor_R2_D3_Sym_Subtract(tensor1,tensor2)
-    !% Subtract two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
-    implicit none
-    type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Subtract
-    class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
-    class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
-
-    if (present(tensor2)) then
-       Tensor_R2_D3_Sym_Subtract%x00=+tensor1%x00-tensor2%x00
-       Tensor_R2_D3_Sym_Subtract%x01=+tensor1%x01-tensor2%x01
-       Tensor_R2_D3_Sym_Subtract%x02=+tensor1%x02-tensor2%x02
-       Tensor_R2_D3_Sym_Subtract%x11=+tensor1%x11-tensor2%x11
-       Tensor_R2_D3_Sym_Subtract%x12=+tensor1%x12-tensor2%x12
-       Tensor_R2_D3_Sym_Subtract%x22=+tensor1%x22-tensor2%x22
-    else
-       Tensor_R2_D3_Sym_Subtract%x00=-tensor1%x00
-       Tensor_R2_D3_Sym_Subtract%x01=-tensor1%x01
-       Tensor_R2_D3_Sym_Subtract%x02=-tensor1%x02
-       Tensor_R2_D3_Sym_Subtract%x11=-tensor1%x11
-       Tensor_R2_D3_Sym_Subtract%x12=-tensor1%x12
-       Tensor_R2_D3_Sym_Subtract%x22=-tensor1%x22
-    end if
-    return
-  end function Tensor_R2_D3_Sym_Subtract
-
-  function Tensor_R2_D3_Sym_Scalar_Multiply(tensor1,multiplier)
-    !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
-    implicit none
-    type (tensorRank2Dimension3Symmetric)             :: Tensor_R2_D3_Sym_Scalar_Multiply
-    class(tensorRank2Dimension3Symmetric), intent(in) :: tensor1
-    double precision , intent(in) :: multiplier
-
-    Tensor_R2_D3_Sym_Scalar_Multiply%x00=tensor1%x00*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x01=tensor1%x01*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x02=tensor1%x02*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x11=tensor1%x11*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x12=tensor1%x12*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x22=tensor1%x22*multiplier
-    return
-  end function Tensor_R2_D3_Sym_Scalar_Multiply
-
-  function Tensor_R2_D3_Sym_Scalar_Multiply_Switched(multiplier,tensor1)
-    !% Multiply a scalar by a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Multiply_Switched
-    type            (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
-    double precision                                , intent(in   ) :: multiplier
-
-    Tensor_R2_D3_Sym_Scalar_Multiply_Switched=Tensor_R2_D3_Sym_Scalar_Multiply(tensor1,multiplier)
-    return
-  end function Tensor_R2_D3_Sym_Scalar_Multiply_Switched
-
-  function Tensor_R2_D3_Sym_Max(tensor1,tensor2)
-    !% Return an element-by-element {\normalfont \ttfamily max()} on two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
-    implicit none
-    type(tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Max
-    type(tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1,tensor2
-
-    Tensor_R2_D3_Sym_Max%x00=max(tensor1%x00,tensor2%x00)
-    Tensor_R2_D3_Sym_Max%x01=max(tensor1%x01,tensor2%x01)
-    Tensor_R2_D3_Sym_Max%x02=max(tensor1%x02,tensor2%x02)
-    Tensor_R2_D3_Sym_Max%x11=max(tensor1%x11,tensor2%x11)
-    Tensor_R2_D3_Sym_Max%x12=max(tensor1%x12,tensor2%x12)
-    Tensor_R2_D3_Sym_Max%x22=max(tensor1%x22,tensor2%x22)
-    return
-  end function Tensor_R2_D3_Sym_Max
-
-  function Tensor_R2_D3_Sym_Scalar_Divide(tensor1,divisor)
-    !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
-    implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Divide
-    class           (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
-    double precision                                , intent(in   ) :: divisor
-
-    Tensor_R2_D3_Sym_Scalar_Divide%x00=tensor1%x00/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x01=tensor1%x01/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x02=tensor1%x02/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x11=tensor1%x11/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x12=tensor1%x12/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x22=tensor1%x22/divisor
-    return
-  end function Tensor_R2_D3_Sym_Scalar_Divide
-
-  double precision function Tensor_R2_D3_Sym_Double_Contract(self,tensor1)
-    !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(in   ) :: self,tensor1
-
-    Tensor_R2_D3_Sym_Double_Contract=  &
-         & +      self%x00*tensor1%x00 &
-         & +      self%x11*tensor1%x11 &
-         & +      self%x22*tensor1%x22 &
-         & +2.0d0*self%x01*tensor1%x01 &
-         & +2.0d0*self%x02*tensor1%x02 &
-         & +2.0d0*self%x12*tensor1%x12
-    return
-  end function Tensor_R2_D3_Sym_Double_Contract
-
-  double precision function Tensor_R2_D3_Sym_Contract(self)
-    !% Return the contraction (trace) of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
-
-    Tensor_R2_D3_Sym_Contract=self%x00+self%x11+self%x22
-    return
-  end function Tensor_R2_D3_Sym_Contract
-
-  integer function Tensor_R2_D3_Sym_Property_Count()
-    !% Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
-    implicit none
-    integer, parameter :: propertyCount=6
-
-    Tensor_R2_D3_Sym_Property_Count=propertyCount
-    return
-  end function Tensor_R2_D3_Sym_Property_Count
-
-  subroutine Tensor_R2_D3_Sym_Deserialize(self,tensorArray)
-    !% Pack an array into a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric structure.
-    implicit none
-    class           (tensorRank2Dimension3Symmetric), intent(inout)               :: self
-    double precision                                , intent(in   ), dimension(6) :: tensorArray
-
-    self%x00=tensorArray(1)
-    self%x01=tensorArray(2)
-    self%x02=tensorArray(3)
-    self%x11=tensorArray(4)
-    self%x12=tensorArray(5)
-    self%x22=tensorArray(6)
-    return
-  end subroutine Tensor_R2_D3_Sym_Deserialize
-
-  subroutine Tensor_R2_D3_Sym_Serialize(self,tensorArray)
-    !% Pack a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} into an array.
-    implicit none
-    double precision                                , intent(  out), dimension(:) :: tensorArray(6)
-    class           (tensorRank2Dimension3Symmetric), intent(in   )               :: self
-
-    ! Place tensor into array.
-    tensorArray(1)=self%x00
-    tensorArray(2)=self%x01
-    tensorArray(3)=self%x02
-    tensorArray(4)=self%x11
-    tensorArray(5)=self%x12
-    tensorArray(6)=self%x22
-    return
-  end subroutine Tensor_R2_D3_Sym_Serialize
-
-  subroutine Tensor_R2_D3_Sym_From_Matrix(self,matrix)
-    !% Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout)                 :: self
-    double precision                     , intent(in   ), dimension(3,3) :: matrix
-
-    ! Test for symmetry
-    if     (                            &
-         &   matrix(1,2) /= matrix(2,1) &
-         &  .or.                        &
-         &   matrix(1,3) /= matrix(3,1) &
-         &  .or.                        &
-         &   matrix(2,3) /= matrix(3,2) &
-         & ) call Galacticus_Error_Report('supplied matrix is not symmetric'//{introspection:location})
-    ! Set the values of the tensor object.
-    self%x00=matrix(1,1)
-    self%x01=matrix(1,2)
-    self%x02=matrix(1,3)
-    self%x11=matrix(2,2)
-    self%x12=matrix(2,3)
-    self%x22=matrix(3,3)
-    return
-  end subroutine Tensor_R2_D3_Sym_From_Matrix
-
-  function Tensor_R2_D3_Sym_To_Matrix(self)
-    !% Construct a matrix from a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
-    implicit none
-    double precision                     , dimension(3,3) :: Tensor_R2_D3_Sym_To_Matrix
-    class(tensorRank2Dimension3Symmetric), intent(in   )  :: self
-
-    Tensor_R2_D3_Sym_To_Matrix(1,1)=self%x00
-    Tensor_R2_D3_Sym_To_Matrix(1,2)=self%x01
-    Tensor_R2_D3_Sym_To_Matrix(1,3)=self%x02
-    Tensor_R2_D3_Sym_To_Matrix(2,1)=self%x01
-    Tensor_R2_D3_Sym_To_Matrix(2,2)=self%x11
-    Tensor_R2_D3_Sym_To_Matrix(2,3)=self%x12
-    Tensor_R2_D3_Sym_To_Matrix(3,1)=self%x02
-    Tensor_R2_D3_Sym_To_Matrix(3,2)=self%x12
-    Tensor_R2_D3_Sym_To_Matrix(3,3)=self%x22
-    return
-  end function Tensor_R2_D3_Sym_To_Matrix
-
-  subroutine Tensor_R2_D3_Sym_Assign_To(tensor,matrix)
-    !% Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(inout)                 :: tensor
-    double precision                     , intent(in   ), dimension(3,3) :: matrix
-
-    call tensor%fromMatrix(matrix)
-    return
-  end subroutine Tensor_R2_D3_Sym_Assign_To
-
-  subroutine Tensor_R2_D3_Sym_Assign_From(matrix,tensor)
-    !% Assign a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} to a matrix.
-    implicit none
-    double precision                     , intent(  out), dimension(3,3) :: matrix
-    class(tensorRank2Dimension3Symmetric), intent(in   )                 :: tensor
-
-    matrix(1,1)=tensor%x00
-    matrix(1,2)=tensor%x01
-    matrix(1,3)=tensor%x02
-    matrix(2,1)=tensor%x01
-    matrix(2,2)=tensor%x11
-    matrix(2,3)=tensor%x12
-    matrix(3,1)=tensor%x02
-    matrix(3,2)=tensor%x12
-    matrix(3,3)=tensor%x22
-    return
-  end subroutine Tensor_R2_D3_Sym_Assign_From
-
-  logical function Tensor_R2_D3_Sym_Matrix_Equality(self,matrix)
-    !% Return true if the supplied tensor and matrix are equal.
-    implicit none
-    class(tensorRank2Dimension3Symmetric), intent(in   )                 :: self
-    double precision                     , intent(in   ), dimension(3,3) :: matrix
-
-    Tensor_R2_D3_Sym_Matrix_Equality= &
-         &  matrix(1,1) == self%x00   &
-         & .and.                      &
-         &  matrix(1,2) == self%x01   &
-         & .and.                      &
-         &  matrix(1,3) == self%x02   &
-         & .and.                      &
-         &  matrix(2,1) == self%x01   &
-         & .and.                      &
-         &  matrix(2,2) == self%x11   &
-         & .and.                      &
-         &  matrix(2,3) == self%x12   &
-         & .and.                      &
-         &  matrix(3,1) == self%x02   &
-         & .and.                      &
-         &  matrix(3,2) == self%x12   &
-         & .and.                      &
-         &  matrix(3,3) == self%x22
-    return
-  end function Tensor_R2_D3_Sym_Matrix_Equality
-
-  function Tensor_R2_D3_Sym_Non_Static_Size_Of(self)
-    !% Return the size of any non-static components of the object.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    integer(c_size_t                      )                :: Tensor_R2_D3_Sym_Non_Static_Size_Of
-    class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
-    !GCC$ attributes unused :: self
-
-    Tensor_R2_D3_Sym_Non_Static_Size_Of=0_c_size_t
-    return
-  end function Tensor_R2_D3_Sym_Non_Static_Size_Of
-
+  ! Interfaces to type-bound functions.
+  interface
+     module function tensorRank2Dimension3SymmetricNull() result(self)
+       !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+       type(tensorRank2Dimension3Symmetric) :: self
+     end function tensorRank2Dimension3SymmetricNull
+     module function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
+       !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+       type            (tensorRank2Dimension3Symmetric)                :: self
+       double precision                                , intent(in   ) :: x00 , x01, &
+            &                                                             x02 , x11, &
+            &                                                             x12 , x22
+     end function tensorRank2Dimension3SymmetricInternal
+     module subroutine Tensor_R2_D3_Sym_Destroy(self)
+       !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
+       class(tensorRank2Dimension3Symmetric), intent(inout) :: self
+     end subroutine Tensor_R2_D3_Sym_Destroy
+     module subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
+       !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
+       implicit none
+       class(tensorRank2Dimension3Symmetric), intent(inout)              :: self
+       type (node                          ), intent(in   ), pointer     :: tensorDefinition
+     end subroutine Tensor_R2_D3_Sym_Builder
+     module subroutine Tensor_R2_D3_Sym_Dump(self)
+       !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
+       class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
+     end subroutine Tensor_R2_D3_Sym_Dump
+     module subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
+       !% Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
+       class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
+       integer                                , intent(in   ) :: fileHandle
+     end subroutine Tensor_R2_D3_Sym_Dump_Raw
+     module subroutine Tensor_R2_D3_Sym_Read_Raw(self,fileHandle)
+       !% Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
+       class  (tensorRank2Dimension3Symmetric), intent(inout) :: self
+       integer                                , intent(in   ) :: fileHandle
+     end subroutine Tensor_R2_D3_Sym_Read_Raw
+     module subroutine Tensor_R2_D3_Sym_Reset(self)
+       !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+       class(tensorRank2Dimension3Symmetric), intent(inout) :: self
+     end subroutine Tensor_R2_D3_Sym_Reset
+     module subroutine Tensor_R2_D3_Sym_Set_To_Unity(self)
+       !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to unity.
+       class(tensorRank2Dimension3Symmetric), intent(inout) :: self
+     end subroutine Tensor_R2_D3_Sym_Set_To_Unity
+     module subroutine Tensor_R2_D3_Sym_Set_To_Identity(self)
+       !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to the identity matrix.
+       class(tensorRank2Dimension3Symmetric), intent(inout) :: self
+     end subroutine Tensor_R2_D3_Sym_Set_To_Identity
+     module logical function Tensor_R2_D3_Sym_Is_Zero(self)
+       !% Test whether a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object is zero.
+       class(tensorRank2Dimension3Symmetric), intent(in) :: self
+     end function Tensor_R2_D3_Sym_Is_Zero
+     module function Tensor_R2_D3_Sym_Add(tensor1,tensor2)
+       !% Add two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+       type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Add
+       class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
+       class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
+     end function Tensor_R2_D3_Sym_Add
+     module subroutine Tensor_R2_D3_Sym_Increment(self,increment)
+       !% Increment a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+       class(tensorRank2Dimension3Symmetric), intent(inout) :: self
+       class(tensorRank2Dimension3Symmetric), intent(in   ) :: increment
+     end subroutine Tensor_R2_D3_Sym_Increment
+     module function Tensor_R2_D3_Sym_Subtract(tensor1,tensor2)
+       !% Subtract two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+       type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Subtract
+       class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
+       class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
+     end function Tensor_R2_D3_Sym_Subtract
+     module function Tensor_R2_D3_Sym_Scalar_Multiply(tensor1,multiplier)
+       !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+       type            (tensorRank2Dimension3Symmetric)             :: Tensor_R2_D3_Sym_Scalar_Multiply
+       class           (tensorRank2Dimension3Symmetric), intent(in) :: tensor1
+       double precision                                , intent(in) :: multiplier
+     end function Tensor_R2_D3_Sym_Scalar_Multiply
+     module function Tensor_R2_D3_Sym_Scalar_Multiply_Switched(multiplier,tensor1)
+       !% Multiply a scalar by a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+       type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Multiply_Switched
+       type            (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
+       double precision                                , intent(in   ) :: multiplier
+     end function Tensor_R2_D3_Sym_Scalar_Multiply_Switched
+     module function Tensor_R2_D3_Sym_Max(tensor1,tensor2)
+       !% Return an element-by-element {\normalfont \ttfamily max()} on two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+       type(tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Max
+       type(tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1,tensor2
+     end function Tensor_R2_D3_Sym_Max
+     module function Tensor_R2_D3_Sym_Scalar_Divide(tensor1,divisor)
+       !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+       type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Divide
+       class           (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
+       double precision                                , intent(in   ) :: divisor
+     end function Tensor_R2_D3_Sym_Scalar_Divide
+     module double precision function Tensor_R2_D3_Sym_Double_Contract(self,tensor1)
+       !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+       class(tensorRank2Dimension3Symmetric), intent(in   ) :: self,tensor1
+     end function Tensor_R2_D3_Sym_Double_Contract
+     module double precision function Tensor_R2_D3_Sym_Contract(self)
+       !% Return the contraction (trace) of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+       class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
+     end function Tensor_R2_D3_Sym_Contract
+     module integer function Tensor_R2_D3_Sym_Property_Count()
+       !% Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
+     end function Tensor_R2_D3_Sym_Property_Count
+     module subroutine Tensor_R2_D3_Sym_Deserialize(self,tensorArray)
+       !% Pack an array into a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric structure.
+       class           (tensorRank2Dimension3Symmetric), intent(inout)               :: self
+       double precision                                , intent(in   ), dimension(6) :: tensorArray
+     end subroutine Tensor_R2_D3_Sym_Deserialize
+     module subroutine Tensor_R2_D3_Sym_Serialize(self,tensorArray)
+       !% Pack a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} into an array.
+       double precision                                , intent(  out), dimension(:) :: tensorArray(6)
+       class           (tensorRank2Dimension3Symmetric), intent(in   )               :: self
+     end subroutine Tensor_R2_D3_Sym_Serialize
+     module subroutine Tensor_R2_D3_Sym_From_Matrix(self,matrix)
+       !% Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
+       class(tensorRank2Dimension3Symmetric), intent(inout)                 :: self
+       double precision                     , intent(in   ), dimension(3,3) :: matrix
+     end subroutine Tensor_R2_D3_Sym_From_Matrix
+     module function Tensor_R2_D3_Sym_To_Matrix(self)
+       !% Construct a matrix from a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+       double precision                     , dimension(3,3) :: Tensor_R2_D3_Sym_To_Matrix
+       class(tensorRank2Dimension3Symmetric), intent(in   )  :: self
+     end function Tensor_R2_D3_Sym_To_Matrix
+     module subroutine Tensor_R2_D3_Sym_Assign_To(tensor,matrix)
+       !% Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+       class(tensorRank2Dimension3Symmetric), intent(inout)                 :: tensor
+       double precision                     , intent(in   ), dimension(3,3) :: matrix
+     end subroutine Tensor_R2_D3_Sym_Assign_To
+     module subroutine Tensor_R2_D3_Sym_Assign_From(matrix,tensor)
+       !% Assign a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} to a matrix.
+       double precision                     , intent(  out), dimension(3,3) :: matrix
+       class(tensorRank2Dimension3Symmetric), intent(in   )                 :: tensor
+     end subroutine Tensor_R2_D3_Sym_Assign_From
+     module logical function Tensor_R2_D3_Sym_Matrix_Equality(self,matrix)
+       !% Return true if the supplied tensor and matrix are equal.
+       class(tensorRank2Dimension3Symmetric), intent(in   )                 :: self
+       double precision                     , intent(in   ), dimension(3,3) :: matrix
+     end function Tensor_R2_D3_Sym_Matrix_Equality
+     module function Tensor_R2_D3_Sym_Non_Static_Size_Of(self)
+       !% Return the size of any non-static components of the object.
+       integer(c_size_t                      )                :: Tensor_R2_D3_Sym_Non_Static_Size_Of
+       class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
+     end function Tensor_R2_D3_Sym_Non_Static_Size_Of
+  end interface
+ 
 end module Tensors

@@ -45,11 +45,13 @@ contains
     integer                                            :: status         , inputFile
     logical                                            :: upToDate
     character(len=40        )                          :: currentRevision
+    type     (varying_string)                          :: lockPath
     !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
-    call File_Lock(char(fspsPath//"/fsps.lock"),fspsLock)
+    lockPath=galacticusPath(pathTypeDataDynamic)//"fsps2.5"
+    call File_Lock(char(lockPath),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Check out the code if not already done.

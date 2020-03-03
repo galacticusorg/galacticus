@@ -51,7 +51,7 @@ contains
     implicit none
     class    (radiativeTransferConvergenceAlways     ), intent(inout) :: self
     class    (radiativeTransferMatterClass           ), intent(inout) :: radiativeTransferMatter_
-    class    (radiativeTransferMatterProperties      ), intent(inout) :: properties
+    class    (radiativeTransferPropertiesMatter      ), intent(inout) :: properties
     integer                                           , intent(in   ) :: statusCell
     logical                                           , intent(  out) :: converged
     !GCC$ attributes unused :: self, radiativeTransferMatter_, properties, statusCell

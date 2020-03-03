@@ -30,7 +30,7 @@ sub Process_Constructors {
 	if ( $node->{'type'} eq "constructorAssign" && ! $node->{'directive'}->{'processed'} ) {
 	    # Assert that our parent is a function.
 	    die("Process_Constructors: parent node must be a function")
-		unless ( $node->{'parent'}->{'type'} eq "function" );
+		unless ( $node->{'parent'}->{'type'} eq "function" || $node->{'parent'}->{'type'} eq "moduleProcedure" );
 	    # Get state storables database if we do not have it.
 	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
 		unless ( $stateStorables );
@@ -57,7 +57,12 @@ sub Process_Constructors {
 		die("Galacticus::Build::SourceTree::Process::Constructor::Process_Constructors(): syntax error")
 		    unless ( $matches );
 		# Get the variable declaration.
-		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
+		my $declaration;
+		if ( $node->{'parent'}->{'type'} eq "moduleProcedure" ) {
+		    
+		} else {
+		    $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
+		}
 		# Detect optional arguments.
 		my $optional    = (grep {$_ eq "optional"} @{$declaration->{'attributes'}}) ? "if (present(".$argumentName.")) " : "";
 		# Detect allocatable objects.

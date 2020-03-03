@@ -56,7 +56,7 @@
      !@   <objectMethod>
      !@     <method>recombinationRateHydrogen</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(radiativeTransferMatterPropertiesAtomic)\textgreater} properties</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
      !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -95,17 +95,17 @@
           &                                           ionizationStateFraction
   end type element
   
-  type, extends(radiativeTransferMatterProperties), public :: radiativeTransferMatterPropertiesAtomic
+  type, extends(radiativeTransferPropertiesMatter), public :: radiativeTransferPropertiesMatterAtomic
      !% Radiative transfer matter properties class for atomic matter.
      integer                                              :: iterationCount
      double precision                                     :: volume        , temperature
      type            (element), dimension(:), allocatable :: elements
-  end type radiativeTransferMatterPropertiesAtomic
+  end type radiativeTransferPropertiesMatterAtomic
 
   ! Module-scope objects needed for solving for thermal equilibrium.
   class           (radiativeTransferMatterAtomic          )                , pointer     :: atomicSelf
   type            (element                                ), dimension( : ), allocatable :: atomicElementsPhotoRate
-  type            (radiativeTransferMatterPropertiesAtomic)                , pointer     :: atomicProperties
+  type            (radiativeTransferPropertiesMatterAtomic)                , pointer     :: atomicProperties
   double precision                                                                       :: atomicDensityNumberElectrons
   integer                                                                                :: atomicRecombinationCase
   !$omp threadprivate(atomicSelf,atomicElementsPhotoRate,atomicProperties,atomicDensityNumberElectrons,atomicRecombinationCase)
@@ -300,10 +300,10 @@ contains
     !% Return the property class to use for the computational domain.
     implicit none
     class(radiativeTransferMatterAtomic    ), intent(inout)              :: self
-    class(radiativeTransferMatterProperties), intent(inout), allocatable :: properties
+    class(radiativeTransferPropertiesMatter), intent(inout), allocatable :: properties
     !GCC$ attributes unused :: self
     
-    allocate(radiativeTransferMatterPropertiesAtomic :: properties)
+    allocate(radiativeTransferPropertiesMatterAtomic :: properties)
     return
   end subroutine atomicPropertyClass
   
@@ -312,14 +312,14 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (radiativeTransferMatterAtomic           ), intent(inout) :: self
-    class           (radiativeTransferMatterProperties       ), intent(inout) :: properties
+    class           (radiativeTransferPropertiesMatter       ), intent(inout) :: properties
     class           (computationalDomainVolumeIntegratorClass), intent(inout) :: integrator
     logical                                                   , intent(in   ) :: onProcess
     double precision                                                          :: densityCell
     integer                                                                   :: i
 
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        ! Initialize properties:
        ! + Assume that the atomic species are fully neutral initially.
        ! + Assign an initial temperature.
@@ -376,11 +376,11 @@ contains
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                   , intent(in   ) :: sendFromProcess
-    class  (radiativeTransferMatterProperties), intent(inout) :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     !GCC$ attributes unused :: self
 
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        call mpiSelf%broadcastData(sendFromProcess,properties%elements%densityNumber)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
@@ -394,11 +394,11 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
-    class  (radiativeTransferMatterProperties), intent(inout) :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer                                                   :: i
     
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        ! Store the current photoionization and photoheating rates as the "previous" values, and then reset these rates to zero.
        do i=1,self%countElements
           properties%elements(i)%photoIonizationRatePrevious=properties%elements(i)%photoIonizationRate
@@ -421,7 +421,7 @@ contains
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
     implicit none
     class           (radiativeTransferMatterAtomic     ), intent(inout) :: self
-    class           (radiativeTransferMatterProperties ), intent(inout) :: properties
+    class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
     double precision                                                    :: crossSectionPhotoIonization
     integer                                                             :: i                          , j, &
@@ -430,7 +430,7 @@ contains
          &                                                                 countElectrons
     
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        atomicAbsorptionCoefficient=0.0d0
        do i=1,self%countElements
           do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.
@@ -482,7 +482,7 @@ contains
     use :: Numerical_Constants_Units       , only : angstromsPerMeter      , electronVolt
     implicit none
     class           (radiativeTransferMatterAtomic     ), intent(inout) :: self
-    class           (radiativeTransferMatterProperties ), intent(inout) :: properties
+    class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
     double precision                                    , intent(in   ) :: absorptionCoefficient      , lengthTraversed
     double precision                                                    :: energyPhoton               , rateIonization             , &
@@ -494,7 +494,7 @@ contains
     !GCC$ attributes unused :: absorptionCoefficient
 
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        ! Accumulate the photoionization rate per unit volume (cm⁻³), and photoheating rate per unit volume (J cm⁻³) using the Lucy
        ! (1999; A&A; 344; 282; https://ui.adsabs.harvard.edu/abs/1999A%26A...344..282L; see section 3.4) methodology.
        energyPhoton=+plancksConstant               &
@@ -561,7 +561,7 @@ contains
     !% Interact with a photon packet. In this case the photon packet is always absorbed.
     implicit none
     class(radiativeTransferMatterAtomic     ), intent(inout) :: self
-    class(radiativeTransferMatterProperties ), intent(inout) :: properties
+    class(radiativeTransferPropertiesMatter ), intent(inout) :: properties
     class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
     !GCC$ attributes unused :: self, properties, photonPacket
     
@@ -576,11 +576,11 @@ contains
     use :: MPI_Utilities   , only : mpiSelf
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout)  :: self
-    class  (radiativeTransferMatterProperties), intent(inout)  :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout)  :: properties
     integer                                                    :: i
     
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        do i=1,self%countElements
           properties%elements(i)%photoIonizationRate=mpiSelf%sum(properties%elements(i)%photoIonizationRate)
           properties%elements(i)%photoHeatingRate   =mpiSelf%sum(properties%elements(i)%photoHeatingRate   )
@@ -670,7 +670,7 @@ contains
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
-    class           (radiativeTransferMatterProperties), intent(inout) , target      :: properties
+    class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
     integer                                            , intent(  out) , optional    :: status
     double precision                                   , dimension(2)                :: temperaturePrevious                            , densityElectronsPrevious
     double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-2, temperatureToleranceAbsolute =1.0d+0
@@ -701,7 +701,7 @@ contains
 #endif
     if (present(status)) status=errorStatusSuccess
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        ! Set module-scope pointers to self and properties.
        atomicSelf       => self
        atomicProperties => properties
@@ -1026,7 +1026,7 @@ contains
       ! Debugging output. Writes the initial state for this failed case in a format that be directly pasted into the
       ! relevant test suite code.
       select type (properties)
-      type is (radiativeTransferMatterPropertiesAtomic)
+      type is (radiativeTransferPropertiesMatterAtomic)
          write    (0,'(a,i1)'         ) "properties            %iterationCount             = "    ,1
          write    (0,'(a,e23.16)'     ) "properties            %volume                     = "    ,properties%volume
          write    (0,'(a,e23.16)'     ) "properties            %temperature                = "    ,temperatureReference
@@ -1088,11 +1088,11 @@ contains
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                   , intent(in   ) :: sendFromProcess
-    class  (radiativeTransferMatterProperties), intent(inout) :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer                                                   :: i
     
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        do i=1,self%countElements
           call mpiSelf%broadcastData(sendFromProcess,properties%elements(i)%photoIonizationRate        )
           call mpiSelf%broadcastData(sendFromProcess,properties%elements(i)%photoIonizationRatePrevious)
@@ -1114,12 +1114,12 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
-    class  (radiativeTransferMatterProperties), intent(inout) :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer                                                   :: i         , j
     !GCC$ attributes unused :: self
 
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        atomicConvergenceMeasure=0.0d0
        do i=1,self%countElements
           do j=0,self%elementAtomicNumbers(i)-1
@@ -1150,13 +1150,13 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
-    class  (radiativeTransferMatterProperties), intent(inout) :: properties
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer(c_size_t                         ), intent(in   ) :: output
     integer(c_size_t                         )                :: output_
     integer                                                   :: i
     
     select type (properties)
-    type is (radiativeTransferMatterPropertiesAtomic)
+    type is (radiativeTransferPropertiesMatterAtomic)
        if (output == 1_c_size_t) then
           atomicOutputProperty=properties%temperature
        else if (output >= 2_c_size_t .and. output <= self%countOutputs_) then
@@ -1236,7 +1236,7 @@ contains
     use :: Numerical_Constants_Prefixes        , only : centi
     implicit none
     class           (radiativeTransferMatterAtomic          ), intent(inout) :: self
-    type            (radiativeTransferMatterPropertiesAtomic), intent(inout) :: properties
+    type            (radiativeTransferPropertiesMatterAtomic), intent(inout) :: properties
     double precision                                                         :: densityNumberElectrons
     integer                                                                  :: i                     , j
 

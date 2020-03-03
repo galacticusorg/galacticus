@@ -21,7 +21,7 @@
 
 module Radiative_Transfer_Convergences
   !% Provides a class that implements convergence criteria for radiative transfer calculations.
-  use :: Radiative_Transfer_Matters, only : radiativeTransferMatterClass, radiativeTransferMatterProperties
+  use :: Radiative_Transfer_Matters, only : radiativeTransferMatterClass, radiativeTransferPropertiesMatter
   private
 
   !# <functionClass>
@@ -34,7 +34,7 @@ module Radiative_Transfer_Convergences
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>class  (radiativeTransferMatterClass     ), intent(inout) :: radiativeTransferMatter_</argument>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#   <argument>integer                                   , intent(in   ) :: statusCell</argument>
   !#   <argument>logical                                   , intent(  out) :: converged</argument>
   !#  </method>

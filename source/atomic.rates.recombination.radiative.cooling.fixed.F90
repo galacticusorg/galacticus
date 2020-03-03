@@ -73,7 +73,7 @@ contains
     implicit none
     type            (atomicRecombinationRateRadiativeCoolingFixed)                        :: self
     class           (atomicRecombinationRateRadiativeClass       ), intent(in   ), target :: atomicRecombinationRateRadiative_
-    double precision                                                                      :: gamma
+    double precision                                              , intent(in   )         :: gamma
     !# <constructorAssign variables="gamma, *atomicRecombinationRateRadiative_"/>
 
     return

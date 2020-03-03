@@ -73,11 +73,11 @@ contains
     !% Test convergence in the computational domain cell.
     use :: Galacticus_Display        , only : Galacticus_Display_Message   , verbosityStandard
     use :: MPI_Utilities             , only : mpiSelf
-    use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferMatterPropertiesAtomic
+    use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferPropertiesMatterAtomic
     implicit none
     class    (radiativeTransferConvergenceHydrogenRecombinationRate), intent(inout) :: self
     class    (radiativeTransferMatterClass                         ), intent(inout) :: radiativeTransferMatter_
-    class    (radiativeTransferMatterProperties                    ), intent(inout) :: properties
+    class    (radiativeTransferPropertiesMatter                    ), intent(inout) :: properties
     integer                                                         , intent(in   ) :: statusCell
     logical                                                         , intent(  out) :: converged
     character(len=128                                              )                :: message
@@ -91,7 +91,7 @@ contains
     select type (radiativeTransferMatter_)
     type is (radiativeTransferMatterAtomic)
        select type (properties)
-       type is (radiativeTransferMatterPropertiesAtomic)
+       type is (radiativeTransferPropertiesMatterAtomic)
           self%recombinationRateTotal=+self                    %recombinationRateTotal                &
                &                      +radiativeTransferMatter_%recombinationRateHydrogen(properties)                   
        end select

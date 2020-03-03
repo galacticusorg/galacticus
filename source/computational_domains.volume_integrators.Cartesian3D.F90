@@ -109,11 +109,11 @@ contains
     use :: Numerical_Integration, only : Integrate          , Integrate_Done
     use :: Coordinates          , only : coordinateCartesian
     implicit none
-    class           (computationalDomainVolumeIntegratorCartesian3D), intent(inout), target :: self
-    procedure       (computationalDomainVolumeIntegrand            )                        :: integrand
-    type            (fgsl_function                                 )                        :: integrandFunction
-    type            (fgsl_integration_workspace                    )                        :: integrationWorkspace
-    type            (coordinateCartesian                           )                        :: coordinates
+    class    (computationalDomainVolumeIntegratorCartesian3D), intent(inout), target :: self
+    procedure(computationalDomainVolumeIntegrand            )                        :: integrand
+    type     (fgsl_function                                 )                        :: integrandFunction
+    type     (fgsl_integration_workspace                    )                        :: integrationWorkspace
+    type     (coordinateCartesian                           )                        :: coordinates
 
     cartesian3DIntegrate=Integrate(                                                         &
          &                                           self                 %boundaries(1,1), &

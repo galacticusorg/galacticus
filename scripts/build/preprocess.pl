@@ -4,6 +4,7 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Galacticus::Build::SourceTree;
+use File::Changes;
 
 # Preprocess a Galacticus Fortran source file.
 # Andrew Benson (17-April-2015)
@@ -25,8 +26,9 @@ my $tree = &Galacticus::Build::SourceTree::ParseFile($inputFileName);
     if ( exists($ENV{'GALACTICUS_PREPROCESSOR_ANALYZE'}) && $ENV{'GALACTICUS_PREPROCESSOR_ANALYZE'} eq "yes" );
 
 # Serialize back to source code.
-open(my $outputFile,">",$outputFileName);
+open(my $outputFile,">",$outputFileName.".tmp");
 print $outputFile &Galacticus::Build::SourceTree::Serialize($tree);
 close($outputFile);
+&File::Changes::Update($outputFileName,$outputFileName.".tmp", proveUpdate => "yes");
 
 exit;

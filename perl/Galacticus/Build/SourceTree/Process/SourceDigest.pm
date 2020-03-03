@@ -35,50 +35,97 @@ sub Process_SourceDigests {
 		(
 		 { 
 		     intrinsic  => "character",
-		     type       => "len=22",
-		     attributes => [ "parameter" ],
-		     variables  => [ $node->{'directive'}->{'name'}."=\"".&Find_Hash($tree->{'name'})."\"" ] 
+		     type       => "C_Char",
+		     attributes => [ "dimension(23)", "bind(C, name=\"".$node->{'directive'}->{'name'}."MD5\")" ],
+		     variables  => [ $node->{'directive'}->{'name'} ] 
 		 }
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@digestDeclaration);
+	    my $bindingNode =
+	    {
+		type       => "moduleUse",
+	        sibling    => undef()    ,
+	        parent     => undef()    ,
+		firstChild => undef()    ,
+                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}}
+	    };
+            &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	}
 	# Step to the next node in the tree.
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 
+sub Binding {
+    # Return code for a binding to the C global variable containing the named hash.
+    my $name = shift();
+    # Generate the code.
+    my $code = "   character(C_Char), dimension(23), bind(C, name=\"".$name."MD5\") :: ".$name."5\n";
+    return $code;
+}
+
 sub Find_Hash {
     # Get names of files to process.
-    my @fileNames = @_;
+    my @fileNames = @{shift(@_)};
+    my (%options) =         @_
+	if ( scalar(@_) > 0 );
+    # Initialize reporting.
+    $options{'report'} = 0
+	unless ( exists($options{'report'}) );
+    print "=> Begin computing MD5 hash\n"
+	if ( $options{'report'} );
     # Initialize an MD5 hash.
     my $hasher = Digest::MD5->new();
     # Iterate over files.
     foreach my $fileName ( @fileNames ) {
+	print " => Process file: ".$fileName."\n"
+	    if ( $options{'report'} );
 	# Check for a pre-existing composite digest.
 	if ( exists($compositeDigests{$fileName}) ) {
 	    # Use the composite digest.
 	    $hasher->add($compositeDigests{$fileName});
+	    print "  => Use pre-existing composite hash: ".$compositeDigests{$fileName}."\n"
+		if ( $options{'report'} );
 	} else {
-	    # Process all source files upon which this file depends.
+	    # Process all source files upon which this file depends, plus the file itself.
 	    my $compositeHasher = Digest::MD5->new();
+	    open(my $sourceFile,"source/".$fileName);
+	    $compositeHasher->addfile($sourceFile);
+	    close($sourceFile);
+	    (my $hashFileName       = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.md5c/;
 	    (my $dependencyFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.d/;
 	    if ( -e $dependencyFileName ) {
-		(my $hashFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.md5c/;
+		print "  => Processing dependencies\n"
+		    if ( $options{'report'} );
 		my $useStoredCompositeHash = -e $hashFileName;
 		if ( $useStoredCompositeHash ) {
 		    open(my $dependencyFile,$dependencyFileName);
 		    while ( my $objectFileName = <$dependencyFile> ) {
 			chomp($objectFileName);
 			(my $sourceFileNamePrefix = $objectFileName) =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/source\/$1/;
+			print "   => Dependency file: ".$sourceFileNamePrefix."\n"
+			    if ( $options{'report'} );
 			foreach my $suffix ( "F90", "c", "h", "Inc", "cpp" ) {
 			    my $sourceFileName = $sourceFileNamePrefix.".".$suffix;
 			    if ( -e $sourceFileName ) {
+				print "    => Dependency file: ".$sourceFileName."\n"
+				    if ( $options{'report'} );
 				unless ( exists($digests{$sourceFileName}) ) {
 				    # Determine if we can used a stored value of the hash.
 				    (my $md5FileName = $sourceFileName) =~ s/^source//;
 				    $md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
 				    $useStoredCompositeHash = 0
 					unless ( -e $md5FileName && &modificationTime($hashFileName) > &modificationTime($md5FileName) );
+				    if ( $options{'report'} ) {
+					if ( $useStoredCompositeHash ) {
+					    print "     => Can use stored hash: "    .$sourceFileName."\n";
+					} else {
+					    print "     => Can not use stored hash: ".$sourceFileName."\n";
+					}
+				    }
+				} else {
+				    print "     => Digest pre-exists\n"
+					if ( $options{'report'} );
 				}
 			    }
 			}
@@ -87,10 +134,19 @@ sub Find_Hash {
 		if ( $useStoredCompositeHash ) {
 		    # Use the stored composite hash.
 		    open(my $md5File,$hashFileName);
-		    $compositeDigests{$fileName} = <$md5File>;
+		    my $compositeDigest = <$md5File>;
 		    close($md5File);
-		    $hasher->add($compositeDigests{$fileName});
-		} else {
+		    $useStoredCompositeHash = defined($compositeDigest);
+		    if ( $useStoredCompositeHash ) {
+			$compositeDigests{$fileName} = $compositeDigest;
+			$hasher->add($compositeDigests{$fileName});
+			print "   => Reading stored composite hash: ".$compositeDigests{$fileName}."\n"
+			    if ( $options{'report'} );
+		    }
+		}
+		if ( ! $useStoredCompositeHash ) {
+		    print "   => Computing composite hash\n"
+			if ( $options{'report'} );
 		    open(my $dependencyFile,$dependencyFileName);
 		    while ( my $objectFileName = <$dependencyFile> ) {
 			chomp($objectFileName);
@@ -119,32 +175,49 @@ sub Find_Hash {
 				    if ( $useStoredHash ) {
 					# Use the stored hash.
 					open(my $md5File,$md5FileName);
-					$digests{$sourceFileName} = <$md5File>;
+					my $digest = <$md5File>;
 					close($md5File);
-				    } else {
+					$useStoredHash = defined($digest);
+					if ( $useStoredHash ) {
+					    $digests{$sourceFileName} = $digest;
+					    print "   => Reading stored hash: ".$digests{$sourceFileName}."\n"
+						if ( $options{'report'} );
+					}
+				    }
+				    if ( ! $useStoredHash ) {
 					# Stored hash is out of date or does not exist. Compute the hash now and store it.
+					print "   => Computing hash\n"
+					    if ( $options{'report'} );
 					my $fileHasher = Digest::MD5->new();
 					if ( $suffix eq "F90" || $suffix eq "Inc" ) {
 					    # Parse the file ignoring whitespace and comments.
-					    $fileHasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+					    $fileHasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1, stripEmpty => 1));
 					    # Search for use on any files from the data directory by this source file.
-					    &Hash_Data_Files(
-						$fileHasher,
+					    my @extraFiles = 
 						map 
 						{$_->{'submatches'}->[1]} 
-						&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/(char\s*\()??\s*galacticusPath\s*\(\s*pathTypeDataStatic\s*\)\s*\)??\/\/\]\s*[\"\']([a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
+					        &Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/(char\s*\()??\s*galacticusPath\s*\(\s*pathTypeDataStatic\s*\)\s*\)??\/\/\]\s*[\"\']([a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/);
+					    &Hash_Data_Files(
+						$fileHasher,
+						@extraFiles
 						);
+					    print "    => Computed hash from: ".$sourceFileName." {".join(", ",@extraFiles)."}\n"
+						if ( $options{'report'} );
 					} else {
 					    # Parse the raw file.
 					    open(my $sourceFile,$sourceFileName);
 					    $fileHasher->addfile($sourceFile);
 					    close($sourceFile);
+					    print "    => Computed hash from: ".$sourceFileName." {RAW}\n"
+						if ( $options{'report'} );
 					}
 					$digests{$sourceFileName} = $fileHasher->b64digest();
 					open(my $md5File,">".$md5FileName);
 					print $md5File $digests{$sourceFileName};
 					close($md5File);
 					&updateModificationTime($md5FileName);
+					print "   => Stored hash: ".$digests{$sourceFileName}."\n"
+					    if ( $options{'report'} );
 				    }
 				}
 				if ( exists($digests{$sourceFileName}) ) {
@@ -156,17 +229,22 @@ sub Find_Hash {
 			}
 		    }
 		    close($dependencyFile);
-		    $compositeDigests{$fileName} = $compositeHasher->b64digest();
-		    $hasher->add($compositeDigests{$fileName});
-		    open(my $md5File,">".$hashFileName);
-		    print $md5File $compositeDigests{$fileName};
-		    close($md5File);
-		    &updateModificationTime($fileName);
 		}
 	    }
+	    $compositeDigests{$fileName} = $compositeHasher->b64digest();
+	    $hasher->add($compositeDigests{$fileName});
+	    open(my $md5File,">".$hashFileName);
+	    print $md5File $compositeDigests{$fileName};
+	    close($md5File);
+	    &updateModificationTime($fileName);
+	    print "   => Composite hash stored ".$compositeDigests{$fileName}."\n"
+		if ( $options{'report'} );
 	}
     }
-    return $hasher->b64digest();
+    my $hash = $hasher->b64digest();
+    print "=> MD5 hash: ".$hash."\n"
+	if ( $options{'report'} );
+    return $hash;
 }
 
 sub Hash_Data_Files {

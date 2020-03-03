@@ -35,7 +35,7 @@ program Test_Radiative_Transfer_State_Solver
   use :: ISO_Varying_String                          , only : var_str
   use :: Mass_Distributions                          , only : massDistributionConstantDensityCloud
   use :: Numerical_Constants_Astronomical            , only : metallicitySolar
-  use :: Radiative_Transfer_Matters                  , only : radiativeTransferMatterAtomic                   , radiativeTransferMatterPropertiesAtomic
+  use :: Radiative_Transfer_Matters                  , only : radiativeTransferMatterAtomic                   , radiativeTransferPropertiesMatterAtomic
   use :: Unit_Tests                                  , only : Assert                                          , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
 #ifdef USEMPI
   use :: MPI                                         , only : MPI_Thread_Single
@@ -56,7 +56,7 @@ program Test_Radiative_Transfer_State_Solver
   type   (atomicRecombinationRateRadiativeCoolingHummer   ), pointer     :: atomicRecombinationRateRadiativeCoolingHummer_
   type   (massDistributionConstantDensityCloud            ), pointer     :: massDistribution_
   type   (radiativeTransferMatterAtomic                   ), pointer     :: radiativeTransferMatter_
-  type   (radiativeTransferMatterPropertiesAtomic         ), allocatable :: properties
+  type   (radiativeTransferPropertiesMatterAtomic         ), allocatable :: properties
   integer                                                                :: status
 
 #ifdef USEMPI

@@ -93,9 +93,6 @@ foreach my $fileName ( @sourceFileNames ) {
 			fileName => $directive->{'fileName'},
 			xml      => $xmlOutput->XMLout($directive)
 		    };
-		    # Add implicit directives for function directives.
-		    &addImplicitDirectives($directive,$directivesPerFile->{$fileIdentifier}->{'nonIncludeDirectives'},$fileIdentifier,$fileName,$sourceDirectoryName."/".$fileName)
-			if ( $directive->{'type'} eq "function" );
 		} else {
 		    # For non-include directives, simply record the file which originated the directive.
 		    push(@{$directivesPerFile->{$fileIdentifier}->{'nonIncludeDirectives'}->{$directive->{'rootElementType'}}->{'files'}},$sourceDirectoryName."/".$fileName);
@@ -179,7 +176,7 @@ foreach my $directive ( sort(keys(%{$includeDirectives})) ) {
 # Add additional dependencies for object files of source files that contain functionClass directives. These source files get other
 # source files incorporated into them via the source tree preprocessor.
 foreach my $directiveName ( sort(keys(%{$functionClasses})) ) {
-    print $directivesMakefile $functionClasses->{$directiveName}.": ".join(" ",sort(@{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
+    print $directivesMakefile $functionClasses->{$directiveName}.".up: ".join(" ",sort(@{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
 }
 # Include explicit dependencies for Makefile_Use_Dependencies to ensure that module dependencies get rebuilt
 # after these directive include files are constructed.
@@ -204,7 +201,7 @@ sub addImplicitDirectives {
 	(
 	 stateful         => 
 	 {
-	     always => $directive->{'rootElementType'} eq "functionClass" && ! exists($directive->{'stateful'}),
+	     always => $directive->{'rootElementType'} eq "functionClass"           ,
 	     tasks  => [ "galacticusStateRetrieveTask", "galacticusStateStoreTask" ]
 	 },
 	 calculationReset => 

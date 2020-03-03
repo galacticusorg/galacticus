@@ -91,7 +91,7 @@ contains
     implicit none
     type            (atomicRecombinationRateRadiativeCoolingHummer)                        :: self
     class           (atomicRecombinationRateRadiativeClass        ), intent(in   ), target :: atomicRecombinationRateRadiative_
-    double precision                                                                       :: gamma
+    double precision                                               , intent(in   )         :: gamma
     !# <constructorAssign variables="gamma, *atomicRecombinationRateRadiative_"/>
 
     ! Build the tables of cooling coefficients.

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferMatterProperties
+  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
   use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Multi_Counters                 , only : multiCounter
@@ -40,7 +40,7 @@
           &                                                                                convergenceThreshold                   , convergenceRatioThreshold
      integer         (c_size_t                         )                                :: countCellsConvergence
      integer         (c_size_t                         ), allocatable, dimension(    :) :: sliceMinimum                           , sliceMaximum
-     class           (radiativeTransferMatterProperties), allocatable, dimension(:,:,:) :: properties
+     class           (radiativeTransferPropertiesMatter), allocatable, dimension(:,:,:) :: properties
      class           (radiativeTransferMatterClass     ), pointer                       :: radiativeTransferMatter_      => null()
      class           (radiativeTransferConvergenceClass), pointer                       :: radiativeTransferConvergence_ => null()
      type            (cartesian3DBoundaries            )             , dimension(3    ) :: boundariesCells
@@ -203,7 +203,7 @@ contains
     use :: Timers                                 , only : timer
     implicit none
     class           (computationalDomainCartesian3D                ), intent(inout)  :: self
-    class           (radiativeTransferMatterProperties             ), allocatable    :: properties
+    class           (radiativeTransferPropertiesMatter             ), allocatable    :: properties
     integer         (c_size_t                                      )                 :: i             , j               , &
          &                                                                              k             , slicesPerProcess, &
          &                                                                              slicesExtra

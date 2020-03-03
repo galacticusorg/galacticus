@@ -25,12 +25,12 @@ module Radiative_Transfer_Matters
   use            :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorClass
   use            :: Radiative_Transfer_Photon_Packet       , only : radiativeTransferPhotonPacketClass
   private
-  public :: radiativeTransferMatterProperties
+  public :: radiativeTransferPropertiesMatter
 
-  type, abstract :: radiativeTransferMatterProperties
+  type, abstract :: radiativeTransferPropertiesMatter
      !% Parent class for properties of matter used in radiative transfer calculations.
    contains
-  end type radiativeTransferMatterProperties
+  end type radiativeTransferPropertiesMatter
   
   !# <functionClass>
   !#  <name>radiativeTransferMatter</name>
@@ -41,13 +41,13 @@ module Radiative_Transfer_Matters
   !#   <description>Return the property class to be used.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties), intent(inout), allocatable :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter), intent(inout), allocatable :: properties</argument>
   !#  </method>
   !#  <method name="populateDomain" >
   !#   <description>Populate a domain cell with matter.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties       ), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter       ), intent(inout) :: properties</argument>
   !#   <argument>class(computationalDomainVolumeIntegratorClass), intent(inout) :: integrator</argument>
   !#   <argument>logical                                        , intent(in   ) :: onProcess</argument>
   !#  </method>
@@ -56,26 +56,26 @@ module Radiative_Transfer_Matters
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>integer                                   , intent(in   ) :: sendFromProcess</argument>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#  </method>
   !#  <method name="reset" >
   !#   <description>Reset the matter prior to a new iteration.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties       ), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter       ), intent(inout) :: properties</argument>
   !#  </method>
   !#  <method name="absorptionCoefficient" >
   !#   <description>Return the absorption coefficient of the matter.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties ), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter ), intent(inout) :: properties</argument>
   !#   <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
   !#  </method>
   !#  <method name="accumulatePhotonPacket" >
   !#   <description>Return the absorption coefficient of the matter.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class           (radiativeTransferMatterProperties ), intent(inout) :: properties</argument>
+  !#   <argument>class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties</argument>
   !#   <argument>class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
   !#   <argument>double precision                                    , intent(in   ) :: absorptionCoefficient, lengthTraversed</argument>
   !#  </method>
@@ -83,7 +83,7 @@ module Radiative_Transfer_Matters
   !#   <description>Interact with a photon packet.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties ), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter ), intent(inout) :: properties</argument>
   !#   <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
   !#  </method>
   !#  <method name="stateSolve" >
@@ -91,20 +91,20 @@ module Radiative_Transfer_Matters
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout), target   :: properties</argument>
+  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout), target   :: properties</argument>
   !#   <argument>integer                                   , intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="convergenceMeasure" >
   !#   <description>Return a convergence measure for the matter.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#  </method>
   !#  <method name="outputProperty" >
   !#   <description>Return the value of the output property.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#   <argument>integer(c_size_t                         ), intent(in   ) :: output</argument>
   !#  </method>
   !#  <method name="countOutputs" >
@@ -122,14 +122,14 @@ module Radiative_Transfer_Matters
   !#   <description>Perform reduction across MPI processes of accumulated properties.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class(radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#  </method>
   !#  <method name="broadcastState" >
   !#   <description>Broadcast domain state to all MPI processes.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>integer                                   , intent(in   ) :: sendFromProcess</argument>
-  !#   <argument>class  (radiativeTransferMatterProperties), intent(inout) :: properties</argument>
+  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
   !#  </method>
   !# </functionClass>
   
