@@ -140,7 +140,8 @@ contains
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure, only : unitAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, treeNode, &
+         &                              defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -148,6 +149,8 @@ contains
     double precision                      , parameter              :: scaleMassRelative=1.0d-3
     double precision                                               :: massVirial
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%outflowTrackingIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of the standard class.

@@ -103,8 +103,8 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Inter_Output_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentInterOutput, nodeComponentInterOutputStandard, nodeComponentSpheroid, &
-          &                         treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentInterOutput   , nodeComponentInterOutputStandard, nodeComponentSpheroid, &
+          &                         treeNode         , defaultInterOutputComponent
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     class           (nodeComponentInterOutput)               , pointer :: interOutput
@@ -114,6 +114,8 @@ contains
     double precision                          , parameter              :: timeScale      =1.0d0
     double precision                                                   :: mass
 
+    ! Check if we are the default method.
+    if (.not.defaultInterOutputComponent%standardIsActive()) return
     ! Get the interoutput component.
     interOutput => node%interOutput()
     ! Check if component is of standard class.
@@ -184,7 +186,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
-    use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
+    use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode, defaultInterOutputComponent
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
@@ -194,7 +196,9 @@ contains
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: interOutput
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
-
+    
+    ! Check if we are the default method.
+    if (.not.defaultInterOutputComponent%standardIsActive()) return
     ! Get the interoutput component and check it is of our class.
     interOutput => node%interOutput()
     select type (interOutput)

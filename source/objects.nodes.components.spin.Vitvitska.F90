@@ -479,12 +479,14 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Vitvitska_Scale_Set(node)
     !% Set scales for properties in the Vitvitska implementation of the spin component.
-    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVitvitska, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVitvitska, treeNode, defaultSpinComponent
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     double precision                   , parameter              :: spinScaleAbsolute=1.0d-4
     class           (nodeComponentSpin)               , pointer :: spin
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpinComponent%vitvitskaIsActive()) return
     ! Get the spin component.
     spin => node%spin()
     ! Ensure that it is of the Vitvitska class.

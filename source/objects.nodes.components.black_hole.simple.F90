@@ -192,12 +192,15 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
+         &                          defaultBlackHoleComponent
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     class(nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
 
+    ! Check if we are the default method.
+    if (.not.defaultBlackHoleComponent%simpleIsActive()) return
     ! Get the black hole component.
     thisBlackHoleComponent => thisNode%blackHole()
     ! Ensure that it is of the standard class.

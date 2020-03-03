@@ -160,13 +160,16 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the massFlowStatistics component.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic                , nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode, &
+         &                          defaultMassFlowStatisticsComponent
     implicit none
     type            (treeNode                       ), pointer, intent(inout) :: node
     double precision                                 , parameter              :: scaleMassRelative =1.0d-6
     class           (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     class           (nodeComponentBasic             ), pointer                :: basic
 
+    ! Check if we are the default method.
+    if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     ! Get the massFlowStatistics component.
     massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.
@@ -184,7 +187,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset mass flow statistics at output time.
-    use            :: Galacticus_Nodes, only : nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode
+    use            :: Galacticus_Nodes, only : nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode, defaultMassFlowStatisticsComponent
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
@@ -195,9 +198,10 @@ contains
     class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
 
+    ! Check if we are the default method.
+    if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     ! Return immediately if we are not to reset mass flow statistics at output time.
     if (.not.massFlowStatisticsResetOnOutput) return
-
     ! Get the massFlowStatistics component.
     massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.

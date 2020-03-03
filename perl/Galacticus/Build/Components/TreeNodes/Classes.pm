@@ -48,7 +48,8 @@ sub Tree_Node_Class_Count {
 	     }
 	    ]
     };
-    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 select type (self)
 class is (treeNode)
  if (allocated(self%component{ucfirst($class->{'name'})})) then
@@ -66,6 +67,13 @@ class default
  call Galacticus_Error_Report('treeNode of unknown class'//\{introspection:location\})
 end select
 CODE
+    } else {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+treeNode{ucfirst($class->{'name'})}Count=0
+call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+CODE
+    }
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
@@ -87,6 +95,10 @@ sub Tree_Node_Class_Get {
 	name        => "treeNode".ucfirst($code::class->{'name'})."Get",
 	description => "Return a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.",
 	recursive   => 1,
+	modules     =>
+	    [
+	     "Galacticus_Error"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -115,7 +127,8 @@ sub Tree_Node_Class_Get {
 	     }
 	    ]
     };
-    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 instanceActual=1
 if (present(instance)) instanceActual=instance
 autoCreateActual=.false.
@@ -133,6 +146,13 @@ if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
 end if
 component => self%component{ucfirst($class->{'name'})}(instanceActual)
 CODE
+    } else {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self, instance, autoCreate, instanceActual, autoCreateActual
+component => null()
+call Galacticus_Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
+CODE
+    }
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},

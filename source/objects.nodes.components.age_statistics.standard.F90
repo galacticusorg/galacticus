@@ -168,7 +168,7 @@ contains
   subroutine Node_Component_Age_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk, nodeComponentSpheroid, &
-          &                         treeNode
+          &                         treeNode                  , defaultAgeStatisticsComponent
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
     class           (nodeComponentAgeStatistics)               , pointer :: ageStatistics
@@ -178,6 +178,8 @@ contains
     double precision                            , parameter              :: timeScale      =1.0d-3
     double precision                                                     :: mass
 
+    ! Check if we are the default method.
+    if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()
     ! Check if component is of standard class.

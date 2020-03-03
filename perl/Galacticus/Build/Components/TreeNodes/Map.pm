@@ -59,6 +59,8 @@ sub Tree_Node_Map_Void {
     };    
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%component{ucfirst($class->{'name'})})
   call mapFunction(self%component{ucfirst($class->{'name'})}(i))
@@ -448,6 +450,8 @@ sub Tree_Node_Map_TensorR2D3 {
 CODE
             # Iterate over classes.
             foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+		next
+		    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 		# If any members of this class override the base class for this method then evaluate them.
 		if ( 
 		    grep {$_->{'method'} eq $code::boundFunction->{'name'}}
@@ -481,6 +485,8 @@ case default
 end select
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%component{ucfirst($class->{'name'})})
   componentValue=mapFunction(self%component{ucfirst($class->{'name'})}(i))
