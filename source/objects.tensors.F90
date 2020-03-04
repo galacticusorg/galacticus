@@ -185,7 +185,13 @@ module Tensors
      !@   <objectMethod>
      !@     <method>doubleContract</method>
      !@     <description>Return the double contraction of two tensors, $\mathbf{A}^i_j \mathbf{B}^j_i$.</description>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1\argin</arguments>
+     !@     <type>\doublezero</type>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>vectorProject</method>
+     !@     <description>Return the projection of a tensor/vector dot product onto the same vector, $\sum_{i=1}^3 \sum_{j=1}^3 \mathbf{A}^i_j x_i x_j$.</description>
+     !@     <arguments>\doubleone\ vector\argin</arguments>
      !@     <type>\doublezero</type>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -223,6 +229,7 @@ module Tensors
      procedure         :: toMatrix        => Tensor_R2_D3_Sym_To_Matrix
      procedure         :: contract        => Tensor_R2_D3_Sym_Contract
      procedure         :: doubleContract  => Tensor_R2_D3_Sym_Double_Contract
+     procedure         :: vectorProject   => Tensor_R2_D3_Sym_Vector_Project
   end type tensorRank2Dimension3Symmetric
 
   ! Constructors for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
@@ -329,6 +336,12 @@ module Tensors
        class           (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
        double precision                                , intent(in   ) :: divisor
      end function Tensor_R2_D3_Sym_Scalar_Divide
+     module double precision function Tensor_R2_D3_Sym_Vector_Project(self,vector)
+       !% Find the magnitude of the projection of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}/vector dot product onto
+       !% the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+       class           (tensorRank2Dimension3Symmetric), intent(in   )               :: self
+       double precision                                , intent(in   ), dimension(3) :: vector
+     end function Tensor_R2_D3_Sym_Vector_Project
      module double precision function Tensor_R2_D3_Sym_Double_Contract(self,tensor1)
        !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: self,tensor1

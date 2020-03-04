@@ -317,6 +317,20 @@ contains
     Tensor_R2_D3_Sym_Scalar_Divide%x22=tensor1%x22/divisor
     return
   end procedure Tensor_R2_D3_Sym_Scalar_Divide
+  
+  module procedure Tensor_R2_D3_Sym_Vector_Project
+    !%  Find the magnitude of the projection of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}/vector dot product onto
+    !% the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+
+    Tensor_R2_D3_Sym_Vector_Project=           &
+         & +      self%x00*vector(1)*vector(1) &
+         & +      self%x11*vector(2)*vector(2) &
+         & +      self%x22*vector(3)*vector(3) &
+         & +2.0d0*self%x01*vector(1)*vector(2) &
+         & +2.0d0*self%x02*vector(1)*vector(3) &
+         & +2.0d0*self%x12*vector(2)*vector(3)
+    return
+  end procedure Tensor_R2_D3_Sym_Vector_Project
 
   module procedure Tensor_R2_D3_Sym_Double_Contract
     !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
