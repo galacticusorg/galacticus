@@ -220,6 +220,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.math.linear_algebra.exe",                                      # Tests of linear algebra functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.root_finding.exe",                                             # Tests of root finding functions.
 	valgrind => 0,
 	mpi      => 0
