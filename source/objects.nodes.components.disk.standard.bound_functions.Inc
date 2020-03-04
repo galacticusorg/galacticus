@@ -140,7 +140,7 @@ function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,compon
      massTotal=0.0d0
   end select
   ! Return if no mass.
-  if (massTotal <= 0.0d0) return
+  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
   ! Compute the acceleration.
   radius           =sqrt(sum(positionCartesian**2))
   positionScaleFree=positionCartesian/self%radius()
