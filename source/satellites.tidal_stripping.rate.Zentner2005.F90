@@ -122,43 +122,70 @@ contains
   end subroutine zentner2005Destructor
 
   double precision function zentner2005MassLossRate(self,node)
-    !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
-    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}. To
+    !% allow for non-spherical mass distributions, we proceed as follows to determine the tidal field:
+    !%
+    !% Let $\bm{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
+    !% $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\bm{\mathsf{G}} \boldsymbol{\hat{x}}$. The
+    !% radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \bm{\mathsf{G}}
+    !% \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
+    !% vectors).
+    !%
+    !% We can write our unit vector as
+    !% \begin{equation}
+    !%  \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
+    !% \end{equation}
+    !% where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\bm{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
+    !% definition, $\bm{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
+    !% eigenvalues of $\bm{\mathsf{G}}$, we have that
+    !% \begin{equation}
+    !%  \boldsymbol{\hat{x}} \bm{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
+    !% \end{equation}
+    !% The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
+    !% setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
+    !% the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
+    !% largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
+    !% compressive ones.)
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
+    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
+    use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive, rootFinder
+    use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
     class           (satelliteTidalStrippingZentner2005), intent(inout)         :: self
     type            (treeNode                          ), intent(inout), target :: node
     type            (treeNode                          ), pointer               :: nodeHost
     class           (nodeComponentSatellite            ), pointer               :: satellite
-    double precision                                    , dimension(3)          :: position                      , velocity
-    double precision                                    , parameter             :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
-    double precision                                    , parameter             :: radiusZero             =0.0d0
-    double precision                                    , parameter             :: radiusTidalTinyFraction=1.0d-6
+    double precision                                    , dimension(3  )        :: position                               , velocity, &
+         &                                                                         tidalTensorEigenValueComponents
+    double precision                                    , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
+    double precision                                    , parameter             :: toleranceAbsolute               =0.0d0 , toleranceRelative               =1.0d-3
+    double precision                                    , parameter             :: radiusZero                      =0.0d0
+    double precision                                    , parameter             :: radiusTidalTinyFraction         =1.0d-6
     type            (rootFinder                        ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                            :: massSatellite                 , densityHost             , &
-         &                                                                         massEnclosedHost              , frequencyAngular        , &
-         &                                                                         periodOrbital                 , radius                  , &
-         &                                                                         tidalTensor                   , radiusTidal             , &
-         &                                                                         massOuterSatellite            , frequencyRadial
+    double precision                                                            :: massSatellite                          , frequencyAngular                       , &
+         &                                                                         periodOrbital                          , radius                                 , &
+         &                                                                         tidalFieldRadial                       , radiusTidal                            , &
+         &                                                                         massOuterSatellite                     , frequencyRadial
+    type            (tensorRank2Dimension3Symmetric    )                        :: tidalTensor
+    type            (matrix                            )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
+    type            (vector                            )                        :: tidalTensorEigenValues
 
     ! Get required quantities from satellite and host nodes.
-    nodeHost          => node     %mergesWith()
-    satellite         => node     %satellite ()
-    massSatellite     =  satellite%boundMass ()
-    position          =  satellite%position  ()
-    velocity          =  satellite%velocity  ()
-    radius            =  Vector_Magnitude                (         position                          )
-    densityHost       =  Galactic_Structure_Density      (nodeHost,position,coordinateSystemCartesian)
-    massEnclosedHost  =  Galactic_Structure_Enclosed_Mass(nodeHost,radius                            )
+    nodeHost          => node     %mergesWith(        )
+    satellite         => node     %satellite (        )
+    massSatellite     =  satellite%boundMass (        )
+    position          =  satellite%position  (        )
+    velocity          =  satellite%velocity  (        )
+    radius            =  Vector_Magnitude    (position)
     ! Compute the orbital period.
     frequencyAngular  = +Vector_Magnitude(Vector_Product(position,velocity)) &
          &              /radius**2                                           &
@@ -173,29 +200,37 @@ contains
     ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
     ! radial or purely circular orbits.
     periodOrbital     = 2.0d0*Pi/max(frequencyAngular,frequencyRadial)
-    ! Find the tidal tensor.
-    tidalTensor       = -gravitationalConstantGalacticus &
-         &              *(                               &
-         &                 2.0d0                         &
-         &                *massEnclosedHost              &
-         &                /radius**3                     &
-         &                -4.0d0                         &
-         &                *Pi                            &
-         &                *densityHost                   &
-         &               )                               &
-         &              *(kilo*gigaYear/megaParsec)**2
+    ! Find the maximum of the tidal field over all directions in the satellite. To compute this we multiply the a unit vector by
+    ! the tidal tensor, which gives the vector tidal acceleration for displacements along that direction. We then take the dot
+    ! product with that same unit vector to get the magnitude of this acceleration in the that direction. This magnitude is
+    ! maximized for a vector coinciding with the eigenvector of the tidal tensor with the largest eigenvalue. For spherical mass
+    ! distributions this reduces to:
+    !
+    ! -2GM(r)r⁻³ - 4πGρ(r)
+    tidalTensor                     = Galactic_Structure_Tidal_Tensor(nodeHost,position)
+    tidalTensorComponents           = tidalTensor
+    tidalTensorMatrix               = tidalTensorComponents
+    call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
+    tidalTensorEigenValueComponents = tidalTensorEigenValues
+    tidalTensorEigenVectorComponents= tidalTensorEigenVectors
+    tidalFieldRadial                =-abs(tidalTensor%vectorProject(tidalTensorEigenVectorComponents(maxloc(tidalTensorEigenValueComponents,dim=1),:))) &
+         &                           *(                                                                                                                 &
+         &                             +kilo                                                                                                            &
+         &                             *gigaYear                                                                                                        &
+         &                             /megaParsec                                                                                                      &
+         &                            )**2
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    if     (                                                                 &
-         &   frequencyAngular**2                               > tidalTensor &
-         &  .and.                                                            &
-         &   massSatellite                                     >  0.0d0      &
-         &  .and.                                                            &
-         &   Galactic_Structure_Enclosed_Mass(node,radiusZero) >= 0.0d0      &
+    if     (                                                                      &
+         &   frequencyAngular**2                               > tidalFieldRadial &
+         &  .and.                                                                 &
+         &   massSatellite                                     >  0.0d0           &
+         &  .and.                                                                 &
+         &   Galactic_Structure_Enclosed_Mass(node,radiusZero) >= 0.0d0           &
          & ) then
        ! Check if node differs from previous one for which we performed calculations.
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Initial estimate of the tidal radius.
-       zentner2005TidalPull=  frequencyAngular**2-tidalTensor
+       zentner2005TidalPull=  frequencyAngular**2-tidalFieldRadial
        if (self%radiusTidalPrevious <= 0.0d0) then
           self%radiusTidalPrevious=+(                                 &
                &                     +gravitationalConstantGalacticus &
