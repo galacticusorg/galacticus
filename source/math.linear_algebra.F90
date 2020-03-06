@@ -29,7 +29,7 @@ module Linear_Algebra
           &           fgsl_matrix_init     , fgsl_permutation          , fgsl_size_t          , fgsl_vector
   implicit none
   private
-  public :: assignment(=), operator(*), matrixRotation
+  public :: assignment(=), operator(*), matrixRotation, matrixRotationPlusTranslation
 
   type, public :: vector
      !% Vector class.
@@ -575,7 +575,29 @@ contains
     return
   end subroutine matrixCholeskyDecompose
 
-  function matrixRotation(points,pointsRotated,translation)
+  function matrixRotation(points,pointsRotated)
+    !% Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
+    !% corresponding rotation matrix. The distances between the points must be the same---currently this is not checked. The
+    !% method used is that of \cite{andrei2016}
+    implicit none
+    type            (matrix)                                :: matrixRotation
+    type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
+    type            (matrix)                                :: P                , Q
+    double precision                       , dimension(3,3) :: matrixComponents
+
+    matrixComponents(:,1)=points          (1)
+    matrixComponents(:,2)=points          (2)
+    matrixComponents(:,3)=points          (3)
+    P                    =matrixComponents
+    matrixComponents(:,1)=pointsRotated   (1)
+    matrixComponents(:,2)=pointsRotated   (2)
+    matrixComponents(:,3)=pointsRotated   (3)
+    Q                    =matrixComponents
+    matrixRotation       =Q*P%invert()
+    return
+  end function matrixRotation
+
+  function matrixRotationPlusTranslation(points,pointsRotated,translation) result(matrixRotation)
     !% Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
     !% corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must
     !% be the same---currently this is not checked. The method used is that of \cite[][their ``More information, easier
@@ -609,7 +631,7 @@ contains
          & translation   = pointsRotated (1) &
          &                -matrixRotation    &
          &                *points        (1)
-   return
-  end function matrixRotation
+    return
+  end function matrixRotationPlusTranslation
 
 end module Linear_Algebra
