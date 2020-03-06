@@ -171,7 +171,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the gravitational acceleration at a point."                                                   ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doubleone"                                                                                          ,
-	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\arginn"
+	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -180,7 +180,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the gravitational tidal tensor at a point."                                                   ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\textcolor{red}{\\textless type(tensorRank2Dimension3Symmetric)\\textgreater}"                       ,
-	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\arginn"
+	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
