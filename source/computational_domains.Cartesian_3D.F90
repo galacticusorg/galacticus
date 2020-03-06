@@ -25,7 +25,7 @@
   type :: cartesian3DBoundaries
      !% Type used to store boundaries of computational domain cells for 3D Cartesian domains.
      private
-     double precision          , allocatable, dimension(:) :: boundary
+     double precision, allocatable, dimension(:) :: boundary
   end type cartesian3DBoundaries
   
   !# <computationalDomain name="computationalDomainCartesian3D">
@@ -70,6 +70,15 @@
      private
      type(multiCounter) :: counter_
    contains
+     !@ <objectMethods>
+     !@   <object>domainIteratorCartesian3D</object>
+     !@   <objectMethod>
+     !@     <method>next</method>
+     !@     <arguments></arguments>
+     !@     <type>\logicalzero</type>
+     !@     <description>Move to the next cell in the domain.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: next => domainIteratorCartesian3DNext
   end type domainIteratorCartesian3D
   

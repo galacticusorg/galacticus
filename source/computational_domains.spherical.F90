@@ -70,6 +70,15 @@
      private
      type(multiCounter) :: counter_
    contains
+     !@ <objectMethods>
+     !@   <object>domainIteratorSpherical</object>
+     !@   <objectMethod>
+     !@     <method>next</method>
+     !@     <arguments></arguments>
+     !@     <type>\logicalzero</type>
+     !@     <description>Move to the next cell in the domain.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: next => domainIteratorSphericalNext
   end type domainIteratorSpherical
   
