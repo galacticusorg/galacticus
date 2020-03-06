@@ -19,6 +19,8 @@
 
   !% Implementation of a Gaussian ellipsoid mass distribution class.
 
+  use :: Linear_Algebra, only : matrix
+  
   !# <massDistribution name="massDistributionGaussianEllipsoid">
   !#  <description>A mass distribution class for Gaussian ellipsoids.</description>
   !# </massDistribution>
@@ -26,17 +28,18 @@
      !% A Gaussian ellipsoid mass distribution. The formulation and calculations follow the parameterizations and approach of
      !% \cite[][chapter 3]{chandrasekhar_ellipsoidal_1987}. The ellipsoidal has scale lengths $a_\mathrm{i}$ along each of the
      !% three perpendicular axes (which are assumed to be aligned with the Cartesian $(x,y,z)$ axes).
-     double precision             , dimension(3          ) :: scaleLength
-     double precision                                      :: mass                             , density_
-     logical                                               :: accelerationInitialized
-     double precision, allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
-     double precision, allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
-     double precision                                      :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
-          &                                                   accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
-          &                                                   accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
-          &                                                   scaleLengthMaximum
-     integer                      , dimension(3          ) :: axesMapIn                        , axesMapOut
-     double precision             , dimension(2          ) :: axisRatio
+     double precision                     , dimension(3          ) :: scaleLength
+     double precision                                              :: mass                             , density_
+     logical                                                       :: accelerationInitialized
+     double precision        , allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
+     double precision        , allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
+     double precision                                              :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
+          &                                                           accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
+          &                                                           accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
+          &                                                           scaleLengthMaximum
+     integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
+     double precision                     , dimension(2          ) :: axisRatio
+     type            (matrix)                                      :: rotationIn                       , rotationOut
    contains
      !@ <objectMethods>
      !@   <object>massDistributionGaussianEllipsoid</object>
@@ -58,12 +61,19 @@
      !@     <type>\doubleone</type>
      !@     <arguments>\doubleone\ positionCartesian\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialie</method>
+     !@     <description>(Re)initialize the structural properties of the Gaussian ellispoid.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ scaleLength\argin, \textcolor{red}{\textless type(vector)\textgreater} axes\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: density                 => gaussianEllipsoidDensity
      procedure :: densityEllipsoidal      => gaussianEllipsoidDensityEllipsoidal
      procedure :: acceleration            => gaussianEllipsoidAcceleration
      procedure :: accelerationTabulate    => gaussianEllipsoidAccelerationTabulate
      procedure :: accelerationInterpolate => gaussianEllipsoidAccelerationInterpolate
+     procedure :: initialize              => gaussianEllipsoidInitialize
   end type massDistributionGaussianEllipsoid
 
   interface massDistributionGaussianEllipsoid
@@ -78,12 +88,15 @@ contains
     !% Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
     !% set.
     use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Linear_Algebra  , only : vector        , assignment(=)
     implicit none
-    type            (massDistributionGaussianEllipsoid)                   :: self
-    type            (inputParameters                     ), intent(inout) :: parameters
-    double precision                                      , dimension(3)  :: scaleLength
-    double precision                                                      :: mass
-    logical                                                               :: dimensionless
+    type            (massDistributionGaussianEllipsoid)                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    double precision                                   , dimension(3)  :: scaleLength  , axis1, &
+         &                                                                axis2        , axis3
+    double precision                                                   :: mass
+    logical                                                            :: dimensionless
+    type            (vector                           ), dimension(3)  :: axes
 
     !# <inputParameter>
     !#   <name>mass</name>
@@ -100,6 +113,30 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>axis1</name>
+    !#   <defaultValue>[1.0d0,0.0d0,0.0d0]</defaultValue>
+    !#   <cardinality>3</cardinality>
+    !#   <description>The unit vector defining the first axis of the ellipsoid.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>axis2</name>
+    !#   <defaultValue>[0.0d0,1.0d0,0.0d0]</defaultValue>
+    !#   <cardinality>3</cardinality>
+    !#   <description>The unit vector defining the second axis of the ellipsoid.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>axis3</name>
+    !#   <defaultValue>[0.0d0,0.0d0,1.0d0]</defaultValue>
+    !#   <cardinality>3</cardinality>
+    !#   <description>The unit vector defining the third axis of the ellipsoid.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
     !#   <cardinality>1</cardinality>
@@ -107,8 +144,11 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    axes(1)=axis1
+    axes(2)=axis2
+    axes(3)=axis3    
     !# <conditionalCall>
-    !#  <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength{conditions})</call>
+    !#  <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength,axes=axes{conditions})</call>
     !#  <argument name="mass"          value="mass"          parameterPresent="parameters"/>
     !#  <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
     !# </conditionalCall>
@@ -116,18 +156,19 @@ contains
     return
   end function gaussianEllipsoidConstructorParameters
   
-  function gaussianEllipsoidConstructorInternal(scaleLength,mass,dimensionless) result(self)
+  function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless) result(self)
     !% Constructor for ``gaussianEllipsoid'' convergence class.
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Numerical_Comparison    , only : Values_Differ
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Linear_Algebra      , only : vector
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    type            (massDistributionGaussianEllipsoid)                              :: self
-    double precision                                   , intent(in   ), dimension(3) :: scaleLength
-    double precision                                   , intent(in   ), optional     :: mass
-    logical                                            , intent(in   ), optional     :: dimensionless
-    integer                                                                          :: i
-    !# <constructorAssign variables="mass, scaleLength, dimensionless"/>
+    type            (massDistributionGaussianEllipsoid)                                        :: self
+    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
+    type            (matrix                           ), intent(in   )              , optional :: rotation
+    double precision                                   , intent(in   ), optional               :: mass
+    logical                                            , intent(in   ), optional               :: dimensionless
+    !# <constructorAssign variables="mass, dimensionless"/>
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -135,13 +176,48 @@ contains
     else
        self%dimensionless=.false.
     end if
-        ! If dimensionless, then maximum scale length and mass should both be 1.0.
+    ! If dimensionless, then maximum mass should be 1.0.
     if (self%dimensionless) then
-          if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
-       if (present(mass       )) then
-          if (Values_Differ(       mass        ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
+       if (present(mass)) then
+          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
        end if
        self%mass=1.0d0
+    end if
+    ! Initialize structural properties.
+    call self%initialize(scaleLength,axes,rotation)
+    ! Set acceleration as uninitialized.
+    self%accelerationInitialized=.false.
+    return
+  end function gaussianEllipsoidConstructorInternal
+
+  subroutine gaussianEllipsoidInitialize(self,scaleLength,axes,rotation)
+    !% (Re)initialize properties of a Gaussian ellipsoid mass distribution.
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Linear_Algebra          , only : vector                 , matrixRotation, assignment(=)
+    use :: Numerical_Comparison    , only : Values_Differ
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (massDistributionGaussianEllipsoid), intent(inout)                         :: self
+    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
+    type            (matrix                           ), intent(in   )              , optional :: rotation
+    type            (vector                           )               , dimension(3)           :: axesPrinciple
+    integer                                                                                    :: i
+
+    ! If dimensionless, then maximum scale length should be 1.0.
+    if (self%dimensionless) then
+       if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
+    end if
+    ! Assign scalelengths.
+    self%scaleLength=scaleLength
+    ! Assert that axis vectors are unit vectors and are orthogonal.
+    if (present(axes)) then
+       do i=1,3
+          if (Values_Differ(axes(i)%magnitude(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be unit vectors'//{introspection:location})
+       end do
+       if (Values_Differ(axes(1).dot.axes(2),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(1).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(2).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
     end if
     ! Compute the central density.
     self%density_=+        self%mass         &
@@ -160,21 +236,41 @@ contains
        self%axisRatio(i)=+self%scaleLength(self%axesMapOut(i)) &
             &            /self%scaleLengthMaximum
     end do
-    ! Set acceleration as uninitialized.
-    self%accelerationInitialized=.false.
+    ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
+    if (present(axes)) then
+       axesPrinciple(1)=[1.0d0,0.0d0,0.0d0]
+       axesPrinciple(2)=[0.0d0,1.0d0,0.0d0]
+       axesPrinciple(3)=[0.0d0,0.0d0,1.0d0]
+       self%rotationIn =matrixRotation(axes,axesPrinciple)
+    else if (present(rotation)) then
+       self%rotationIn=rotation
+    else
+       call Galacticus_Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
+    end if
+    self%rotationOut=self%rotationIn%invert()
     return
-  end function gaussianEllipsoidConstructorInternal
-
+  end subroutine gaussianEllipsoidInitialize
+  
   double precision function gaussianEllipsoidDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
-    use :: Coordinates, only : assignment(=), coordinateCartesian
+    use :: Coordinates   , only : assignment(=), coordinateCartesian
+    use :: Linear_Algebra, only : vector       , assignment(=)      , operator(*)
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     type            (coordinateCartesian              )                :: position
+    double precision                                   , dimension(3)  :: positionComponents
     double precision                                                   :: mSquared
+    type           (vector                            )                :: positionVector
 
+    ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
+    positionComponents      = position
+    positionVector          = positionComponents
+    positionVector          = self%rotationIn*positionVector
+    positionComponents      = positionVector
+    position                = positionComponents
+    ! Evaluate the density.
     mSquared                =+(position%x()/self%scaleLength(1))**2 &
          &                   +(position%y()/self%scaleLength(2))**2 &
          &                   +(position%z()/self%scaleLength(3))**2
@@ -200,6 +296,7 @@ contains
   function gaussianEllipsoidAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
     use :: Coordinates                 , only : assignment(=)                  , coordinateCartesian
+    use :: Linear_Algebra              , only : vector                         , assignment(=)      , operator(*)
     use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     double precision                                   , dimension(3  ) :: gaussianEllipsoidAcceleration
@@ -209,12 +306,16 @@ contains
     double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree, &
          &                                                                 accelerationScaleFree
     integer                                                             :: i
+    type            (vector                            )                :: positionVector               , accelerationVector
     
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
     coordinatesCartesian=coordinates
     positionCartesian   =coordinatesCartesian
+    positionVector      =positionCartesian
+    positionVector      =self%rotationIn*positionVector
+    positionCartesian   =positionVector
     do i=1,3
        positionCartesianScaleFree(self%axesMapIn(i))=positionCartesian(i)
     end do
@@ -226,6 +327,9 @@ contains
     do i=1,3
        gaussianEllipsoidAcceleration(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
+    accelerationVector           =gaussianEllipsoidAcceleration
+    accelerationVector           =self%rotationOut*accelerationVector
+    gaussianEllipsoidAcceleration=accelerationVector
     if (.not.self%isDimensionless())                                      &
          & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration   &
          &                               *gravitationalConstantGalacticus &
@@ -400,7 +504,7 @@ contains
        !$ call hdf5Access%unset()
     else
        ! Generate grid in position and scale length.
-       countX          =int(log10(          xMaximum/          xMinimum)*        xPerDecade)+1
+       countX          =int(log10(          xMaximum/          xMinimum)*          xPerDecade)+1
        countScaleLength=int(log10(scaleLengthMaximum/scaleLengthMinimum)*scaleLengthPerDecade)+1
        allocate(self%accelerationX          (  countX                                                ))
        allocate(self%accelerationScaleLength(                       countScaleLength                 ))
@@ -436,7 +540,7 @@ contains
                               &                                                                integrandFunction    , &
                               &                                                                integrationWorkspace , &
                               &                                              reset            =integrationReset     , &
-                              &                                              toleranceAbsolute=0.0d0                , &
+                              &                                              toleranceAbsolute=0.0d+0               , &
                               &                                              toleranceRelative=1.0d-3                 &
                               &                                             )
                          call Integrate_Done(integrandFunction,integrationWorkspace)
