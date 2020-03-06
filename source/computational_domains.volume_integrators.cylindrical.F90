@@ -145,7 +145,7 @@ contains
     end function cylindricalIntegrandR
 
     double precision function cylindricalIntegrandPhi(phi)
-      !% $\phi-integrand over cylindrical computational domain cells.
+      !% $\phi$-integrand over cylindrical computational domain cells.
       implicit none
       double precision                            , intent(in   ) :: phi
       type            (fgsl_function             )                :: integrandFunction
@@ -166,7 +166,7 @@ contains
     end function cylindricalIntegrandPhi
 
     double precision function cylindricalIntegrandZ(z)
-      !% $z-integrand over cylindrical computational domain cells.
+      !% $z$-integrand over cylindrical computational domain cells.
       implicit none
       double precision, intent(in   ) :: z
 
