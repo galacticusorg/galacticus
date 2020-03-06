@@ -54,7 +54,7 @@ module Linear_Algebra
      !@     <method>crossProduct</method>
      !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1} $\cross$ {\normalfont \ttfamily vector2}.</description>
+     !@     <description>Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>dotProduct</method>

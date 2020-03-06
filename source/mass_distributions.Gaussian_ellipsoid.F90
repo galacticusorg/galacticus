@@ -334,7 +334,7 @@ contains
     !% \begin{equation}
     !%  \mathfrak{B} = \pi \mathrm{G} a_1 a_2 a_3 \int_0^\infty {\mathrm{d} u \over \Delta(u)} \left[ \psi(1)-\psi(m^2(u)) \right],
     !% \end{equation}
-    !% where $a_1 \le a_2 \le a_3$ are the semi-axes of the ellipsoid, $\Delta^2(u) = \product_{i=1}^3 (a_i^2 + u)$,
+    !% where $a_1 \le a_2 \le a_3$ are the semi-axes of the ellipsoid, $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$,
     !% $m^2(u)=\sum_{i=1}^3 x_i^2/(a_i^2+u)$, and
     !% \begin{equation}
     !%  \psi(m^2) = \int_1^{m^2} \mathrm{d}m^2 \rho(m^2),
@@ -496,7 +496,7 @@ contains
     end function densityMSquared
 
     double precision function Delta(u)
-      !% The function $\Delta^2(u) = \product_{i=1}^3 (a_i^2 + u)$.
+      !% The function $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$.
       implicit none
       double precision, intent(in   ) :: u
 
