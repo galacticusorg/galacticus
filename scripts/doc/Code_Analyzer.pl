@@ -70,13 +70,13 @@ my %intrinsicDeclarations = (
 # Specify unit opening regexs.
 my %unitOpeners = (
     # Find module openings, avoiding module procedures.
-    module             => { unitName => 1, regEx => "^\\s*module\\s+(?!procedure\\s)([a-z0-9_]+)" },
+    module             => { unitName => 1, regEx => "^\\s*module\\s+(?!procedure\\s)([a-z0-9_]+)\$" },
     # Find program openings.
     program            => { unitName => 1, regEx => "^\\s*program\\s+([a-z0-9_]+)" },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
-    subroutine         => { unitName => 2, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*subroutine\\s+([a-z0-9_]+)"},
+    subroutine         => { unitName => 2, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+|module\\s+)*\\s*subroutine\\s+([a-z0-9_]+)"},
     # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
-    function           => { unitName => 6, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*(real|integer|double\\s+precision|double\\s+complex|character|logical)*\\s*(\\(((kind|len)=)??[\\w\\d]*\\))*\\s*function\\s+([a-z0-9_]+)"},
+    function           => { unitName => 6, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*(real\\s*|integer\\s*|double\\s+precision\\s*|double\\s+complex\\s*|character\\s*|logical\\s*|module\\s*)*\\s*(\\(((kind|len)=)??[\\w\\d]*\\))*\\s*function\\s+([a-z0-9_]+)"},
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
