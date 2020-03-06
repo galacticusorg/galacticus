@@ -384,7 +384,7 @@ sub Tree_Node_Map_TensorR2D3 {
     my $build = shift();
     my $function =
     {
-	type        => "type(tensorRank2Dimension3Symmetric)",
+	type        => "type(tensorRank2Dimension3Symmetric) => tensorResult",
 	name        => "treeNodeMapTensorR2D3",
 	description => "Map a rank-2, dimension-3 tensor function over components of the node.",
 	modules     =>
@@ -446,7 +446,7 @@ sub Tree_Node_Map_TensorR2D3 {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$firstOptimization ? "" : "else "}if (present(optimizeFor).and.optimizeFor == optimizeFor{ucfirst($boundFunction->{'name'}).ucfirst($reduction)}) then
     if (reduction /= reduction{ucfirst($reduction)}) call Galacticus_Error_Report('reduction mismatch'//\{introspection:location\})
-    treeNodeMapTensorR2D3={$reductionIdentity->{$reduction}}
+    tensorResult={$reductionIdentity->{$reduction}}
 CODE
             # Iterate over classes.
             foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -460,7 +460,7 @@ CODE
 		    ) {	
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%component{ucfirst($class->{'name'})})
-  treeNodeMapTensorR2D3=treeNodeMapTensorR2D3{$reductionOperator->{$reduction}}mapFunction(self%component{ucfirst($class->{'name'})}(i))
+  tensorResult=tensorResult{$reductionOperator->{$reduction}}mapFunction(self%component{ucfirst($class->{'name'})}(i))
 end do
 CODE
 		}
@@ -478,9 +478,9 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 select case (reduction)
 case (reductionSummation)
-  treeNodeMapTensorR2D3=tensorNullR2D3Sym
+  tensorResult=tensorNullR2D3Sym
 case default
-  treeNodeMapTensorR2D3=tensorNullR2D3Sym
+  tensorResult=tensorNullR2D3Sym
   call Galacticus_Error_Report('unknown reduction'//\{introspection:location\})
 end select
 CODE
@@ -492,7 +492,7 @@ do i=1,size(self%component{ucfirst($class->{'name'})})
   componentValue=mapFunction(self%component{ucfirst($class->{'name'})}(i))
   select case (reduction)
   case (reductionSummation)
-    treeNodeMapTensorR2D3=treeNodeMapTensorR2D3+componentValue
+    tensorResult=tensorResult+componentValue
   end select
 end do
 CODE
