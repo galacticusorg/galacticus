@@ -20,12 +20,16 @@ our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precis
 our %unitOpeners = (
     # Find module openings, avoiding module procedures, functions, and subroutines.
     module             => { unitName => 0                , regEx => qr/^\s*module\s+(${label})\s*$/ },
+    # Find submodule openings.
+    submodule          => { unitName => 0                , regEx => qr/^\s*submodule\s+\(\s*[a-zA-Z0-9_:\{\}¦]+\s*\)\s+(${label})\s*$/ },
     # Find program openings.
     program            => { unitName => 0                , regEx => qr/^\s*program\s+(${label})/ },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
     subroutine         => { unitName => 1, arguments => 3, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})\s*(\(\s*(${argumentList})\))*/},
     # Find function openings, allowing for pure, elemental, and recursive functions, and different function types.
     function           => { unitName => 5, arguments => 7, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})\s*(\(\s*(${argumentList})\))*/},
+     # Find submodule module procedure openings.
+    moduleProcedure    => { unitName => 0                , regEx => qr/^\s*module\s+procedure\s+(${label})/},
     # Find interfaces.
     interface          => { unitName => 1                , regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     # Find types.
@@ -35,9 +39,11 @@ our %unitOpeners = (
 # Specify unit closing regexs.
 our %unitClosers = (
     module             => { unitName => 0, regEx => qr/^\s*end\s+module\s+(${label})/ },
+    submodule          => { unitName => 0, regEx => qr/^\s*end\s+submodule\s+(${label})/ },
     program            => { unitName => 0, regEx => qr/^\s*end\s+program\s+(${label})/ },
     subroutine         => { unitName => 0, regEx => qr/^\s*end\s+subroutine\s+(${label})/},
     function           => { unitName => 0, regEx => qr/^\s*end\s+function\s+(${label})/},
+    moduleProcedure    => { unitName => 0, regEx => qr/^\s*end\s+procedure\s+(${label})/},
     interface          => { unitName => 0, regEx => qr/^\s*end\s+interface\s*([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     type               => { unitName => 0, regEx => qr/^\s*end\s+type\s+(${label})/}
     );

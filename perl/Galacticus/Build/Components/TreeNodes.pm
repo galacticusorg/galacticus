@@ -261,7 +261,7 @@ sub Build_Tree_Node_Class {
 	     variables  => [ "hostTree" ]
 	 }
 	);
-    foreach ( @{$build->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassListActive'}} ) {
 	push(
 	    @dataContent,
 	    {

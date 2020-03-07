@@ -127,7 +127,7 @@ contains
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sort                            , only : Sort_Index_Do
-    use               :: String_Handling                 , only : operator(//)
+    use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
     use               :: System_Command                  , only : System_Command_Do
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
     use               :: Tables                          , only : table                       , table1DGeneric
@@ -183,9 +183,9 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=descriptor%serializeToString()// &
-         &      "_sourceDigest:"              // &
-         &      cambSourceDigest
+    uniqueLabel=descriptor%serializeToString()       // &
+         &      "_sourceDigest:"                     // &
+         &      String_C_To_Fortran(cambSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(galacticusPath(pathTypeDataDynamic))                       // &

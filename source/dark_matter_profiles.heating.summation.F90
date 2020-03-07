@@ -108,7 +108,7 @@ contains
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
     type            (heatSourceList                   ), pointer       :: heatSource
 
@@ -154,7 +154,7 @@ contains
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    class(darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
     type (heatSourceList                   ), pointer       :: heatSource
 
     summationSpecificEnergyIsEverywhereZero =  .true.

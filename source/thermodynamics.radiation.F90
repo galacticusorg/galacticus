@@ -21,7 +21,7 @@ module Thermodynamics_Radiation
   !% Implements calculations of thermal radiation.
   implicit none
   private
-  public :: Blackbody_Emission
+  public :: Blackbody_Emission, Blackbody_Radiance
 
   ! Define labels that specify if the computed radiance is per unit wavelength or per unit frequency.
   integer, parameter, public :: radianceTypeWavelength=0
@@ -70,5 +70,19 @@ contains
     end if
     return
   end function Blackbody_Emission
+
+  double precision function Blackbody_Radiance(temperature)
+    !% Compute the Planck blackbody spectral radiance integrated over all frequencies (in units of J s$^{-1}$ m$^{-2}$
+    !% sr$^{-1}$). Input temperature is in Kelvin.
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : stefanBoltzmannConstant
+    implicit none
+    double precision, intent(in   ) :: temperature
+
+    Blackbody_Radiance=+stefanBoltzmannConstant    &
+         &             *temperature            **4 &
+         &             /Pi
+    return
+  end function Blackbody_Radiance
 
 end module Thermodynamics_Radiation

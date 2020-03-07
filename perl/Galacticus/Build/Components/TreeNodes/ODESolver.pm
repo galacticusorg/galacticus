@@ -115,6 +115,8 @@ treeNodeSerializeCount=0
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -175,6 +177,8 @@ offset=1
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -237,6 +241,8 @@ offset=1
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -488,6 +494,8 @@ count =index
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -544,6 +552,8 @@ countSubset=0
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})

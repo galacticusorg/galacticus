@@ -23,7 +23,7 @@ module Atomic_Data
   !% Provides various atomic data.
   implicit none
   private
-  public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
+  public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Number, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
 
   type atomicData
      !% Data type for storing atomic data.
@@ -80,6 +80,29 @@ contains
     Atomic_Short_Label=atoms(iAtom)%shortLabel
     return
   end function Atomic_Short_Label
+
+  integer function Atomic_Number(atomIndex,shortLabel,name)
+    !% Returns the atomic number of an element specified by name or short label.
+    implicit none
+    integer         , intent(in   ), optional :: atomIndex
+    character(len=*), intent(in   ), optional :: name     , shortLabel
+    integer                                   :: iAtom
+
+    ! Ensure the module is initialized.
+    call Atomic_Data_Initialize
+
+    ! Look up the index of this atom in the array if necessary.
+    if (present(atomIndex)) then
+       iAtom=atomIndex
+    else
+       iAtom=Atom_Lookup(shortLabel=shortLabel,name=name)
+    end if
+
+    ! Return the atomic number.
+    Atomic_Number=atoms(iAtom)%atomicNumber
+
+    return
+  end function Atomic_Number
 
   double precision function Atomic_Mass(atomIndex,atomicNumber,shortLabel,name)
     !% Returns the atomic mass of an element specified by atomic number, name or short label.

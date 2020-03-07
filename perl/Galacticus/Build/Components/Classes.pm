@@ -49,6 +49,17 @@ sub Gather_Classes {
     }
     # Construct a list of component class names.
     @{$build->{'componentClassList'}} = &List::ExtraUtils::sortedKeys($build->{'componentClasses'});
+    # Build a list of active classes. By default this is all available classes, but if the GALACTICUS_ACTIVE_COMPONENTS
+    # environment variable is set, then use it as a list of active components.
+    if ( exists($ENV{'GALACTICUS_ACTIVE_COMPONENTS'}) ) {
+	my @activeClasses = split(" ",$ENV{'GALACTICUS_ACTIVE_COMPONENTS'});
+	foreach my $className ( @{$build->{'componentClassList'}} ) {
+	    push(@{$build->{'componentClassListActive'}},$className)
+		if ( grep {$className eq $_} @activeClasses );
+	}
+    } else {
+	@{$build->{'componentClassListActive'}} = @{$build->{'componentClassList'}};
+    }    
     # Output report if sufficiently verbose.
     if ( $verbosityLevel > 0 ) {
 	print "         --> Found the following component classes and implementations:\n";

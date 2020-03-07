@@ -257,7 +257,8 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
     use :: Accretion_Halos , only : accretionModeTotal
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloVerySimple, propertyTypeInactive, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimple, propertyTypeInactive, treeNode, &
+         &                          defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -270,6 +271,8 @@ contains
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)
@@ -297,7 +300,8 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure, only : unitAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode, &
+         &                              defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     double precision                      , parameter              :: scaleMassRelative=1.0d-2
@@ -305,6 +309,8 @@ contains
     class           (nodeComponentBasic  )               , pointer :: basic
     double precision                                               :: massVirial
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of the very simple class.
@@ -494,7 +500,7 @@ contains
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
     use :: Abundances_Structure, only : abundances        , operator(*)         , zeroAbundances
     use :: Accretion_Halos     , only : accretionModeHot  , accretionModeTotal
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode, defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: nodeParent
@@ -506,6 +512,8 @@ contains
     double precision                                               :: massAccreted        , massUnaccreted        , &
          &                                                            fractionAccreted    , massReaccreted
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)

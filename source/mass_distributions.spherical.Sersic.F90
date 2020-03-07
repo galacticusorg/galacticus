@@ -62,6 +62,7 @@
      procedure :: density                 => sersicDensity
      procedure :: densityRadialMoment     => sersicDensityRadialMoment
      procedure :: massEnclosedBySphere    => sersicMassEnclosedBySphere
+     procedure :: massTotal               => sersicMassTotal
      procedure :: potential               => sersicPotential
      procedure :: radiusHalfMass          => sersicRadiusHalfMass
      procedure :: radiusHalfMassProjected => sersicRadiusHalfMassProjected
@@ -271,6 +272,15 @@ contains
     return
   end function sersicDensityRadialMoment
 
+  double precision function sersicMassTotal(self)
+    !% Computes the total mass for S\'ersic mass distributions.
+    implicit none
+    class(massDistributionSersic), intent(inout) :: self
+
+    sersicMassTotal=self%mass
+    return
+  end function sersicMassTotal
+  
   double precision function sersicMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
     use :: Numerical_Interpolation, only : Interpolate

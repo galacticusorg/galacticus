@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils;
 use Galacticus::Build::Components::DataTypes;
+use Data::Dumper;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -68,10 +69,10 @@ sub Tree_Node_Creation {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Ensure pointers are nullified.
 {join("",map {"nullify (self%".$_.")\n"} ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" ))}
-{join("",map {"allocate(self%component".$_->{'name'}."(1))\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+{join("",map {"allocate(self%component".$_."(1))\n"} @{$build->{'componentClassListActive'}})}
 select type (self)
 type is (treeNode)
-{join("",map {"   self%component".$_->{'name'}."(1)%hostNode => self\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+{join("",map {"   self%component".$_."(1)%hostNode => self\n"} @{$build->{'componentClassListActive'}})}
 end select
 ! Assign a host tree if supplied.
 if (present(hostTree)) then
@@ -163,6 +164,8 @@ type is (treeNode)
    !$omp critical (FoX_DOM_Access)
 CODE
     foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::component->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     componentList => getChildNodes(nodeDefinition)
     componentCount=0
@@ -183,6 +186,8 @@ CODE
    do i=0,componentCount-1
 CODE
     foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::component->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
      !$omp critical (FoX_DOM_Access)
      componentDefinition => item(componentList,i)
@@ -244,7 +249,7 @@ sub Tree_Node_Finalization {
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Destroy all components.
-{join(" ",map {"call self%".$_->{'name'}."Destroy()\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+{join(" ",map {"call self%".$_."Destroy()\n"} @{$build->{'componentClassListActive'}})}
 ! Remove any events attached to the node, along with their paired event in other nodes.
 thisEvent => self%event
 do while (associated(thisEvent))
@@ -295,6 +300,8 @@ sub Tree_Node_Class_Creation {
     # Generate a function to create component classes.
     my $build    = shift();
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -372,6 +379,8 @@ sub Tree_Node_Class_Destruction {
     # Generate a function to destroy component classes.
     my $build    = shift();
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",

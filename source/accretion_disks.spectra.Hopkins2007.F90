@@ -176,7 +176,7 @@ contains
              if (frequencyLogarithmic <  0.0d0     ) cycle
              j=j-1
              wavelength(j)=speedLight/10.0d0**frequencyLogarithmic*angstromsPerMeter
-             SED(j,i)=10.0d0**spectrumLogarithmic/10.0**frequencyLogarithmic
+             SED(j,i)=10.0d0**spectrumLogarithmic/10.0d0**frequencyLogarithmic
           end do
           close(sedUnit)
        end do

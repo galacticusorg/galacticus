@@ -39,14 +39,18 @@ sub Class_State {
 	     type       => $classTypeName                                           ,
 	     attributes => [ "public", "allocatable" ]                              ,
 	     variables  => [ "default".ucfirst($code::class->{'name'})."Component" ]
-	 },
+	 });
+    push
+	(
+	 @{$build->{'variables'}},
 	 # Object used to allocate component.
 	 {
 	     intrinsic  => "type"                                                   ,
 	     type       => $classTypeName                                           ,
 	     variables  => [ $code::class->{'name'}."Class" ]
 	 }
-	);
+	)
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 }
 
 sub Class_Size_Of {

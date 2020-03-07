@@ -78,9 +78,14 @@ while ( my $fileName = readdir($sourceDirectory) ) {
          }
         read_file($fileFullName, chomp => 1);
     # Output the dependencies.
-    (my $objectFileName = $fileName)  =~ s/\.[^\.]+$/.o/;
-    print $makeFile $ENV{'BUILDPATH'}."/".$objectFileName.": ".join(" ",sort(map {$ENV{'BUILDPATH'}."/".$_->{'fileName'}} @includedFiles))."\n\n"
-	if ( scalar(@includedFiles) > 0 );
+    if ( scalar(@includedFiles) > 0 ) {
+	(my $objectFileName = $fileName)  =~ s/\.[^\.]+$/.o/;
+	print $makeFile $ENV{'BUILDPATH'}."/".$objectFileName.": ".join(" ",sort(map {$ENV{'BUILDPATH'}."/".$_->{'fileName'}} @includedFiles))."\n\n";
+	if ( $fileName =~ m/\.F90$/ ) {
+	    (my $preprocessedFileName = $fileName)  =~ s/\.F90$/.p.F90/;
+	    print $makeFile $ENV{'BUILDPATH'}."/".$preprocessedFileName.": ".join(" ",sort(map {$ENV{'BUILDPATH'}."/".$_->{'fileName'}} @includedFiles))."\n\n";
+	}
+    }
     # Generate a list of include files on which Makefile_Use_Dependencies will depend. This is the unpreprocessed include file in the
     # source directory if such exists, or the raw include file in the build directory otherwise.
     foreach my $includedFile ( @includedFiles ) {

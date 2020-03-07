@@ -561,12 +561,14 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
     !% Do processing of the node required after evolution.
     use :: FGSL            , only : FGSL_Failure
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
     implicit none
     type   (treeNode            ), intent(inout), pointer :: node
     integer                      , intent(inout)          :: status
     class  (nodeComponentHotHalo)               , pointer :: hotHalo
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Limit hot gas mass, and outer radius to be non-negative.
     hotHalo => node%hotHalo()
     select type (hotHalo)
@@ -977,11 +979,13 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Hot_Halo_Standard_Pre_Evolve(node)
     !% Ensure the standard hot halo has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Get the spheroid component.
     hotHalo => node%hotHalo()
     ! Check if a standard hot halo component exists.
@@ -1336,7 +1340,8 @@ contains
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure         , only : unitAbundances
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
-    use :: Galacticus_Nodes             , only : nodeComponentBasic    , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Galacticus_Nodes             , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, &
+         &                                       defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -1344,6 +1349,8 @@ contains
     double precision                                               :: massVirial    , radiusVirial, &
          &                                                            velocityVirial
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of the standard class.
@@ -1441,14 +1448,14 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Standard_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use :: Abundances_Structure                 , only : abundances                          , operator(*)         , zeroAbundances
+    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances
     use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)         , zeroChemicalAbundances
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances
     use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic    , radiusLarge
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentSpin, &
-          &                                              treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites    , starveSatellitesOutflowed
+    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
+    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
+          &                                              treeNode                            , defaultHotHaloComponent
+    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: nodeParent
@@ -1467,6 +1474,8 @@ contains
          &                                                            massChemicalsReaccreted
     !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of unspecified class.

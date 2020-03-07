@@ -30,12 +30,12 @@
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateHydrogenNetwork
      !% A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
      private
-     class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_ => null()
-     class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_ => null()
+     class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_   => null()
+     class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_  => null()
      class           (atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_ => null()
      logical                                                           :: fast
-     integer                                                           :: atomicHydrogenAnionIndex          , atomicHydrogenCationIndex, &
-          &                                                               atomicHydrogenIndex               , electronIndex
+     integer                                                           :: atomicHydrogenAnionIndex                    , atomicHydrogenCationIndex, &
+          &                                                               atomicHydrogenIndex                         , electronIndex
      double precision                                                  :: densityAtomicHydrogenAnion
    contains
      !@ <objectMethods>

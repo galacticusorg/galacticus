@@ -298,11 +298,13 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode, defaultDiskComponent
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
 
+    ! Check if we are the default method.
+    if (.not.defaultDiskComponent%verySimpleIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if an exponential disk component exists.
@@ -348,7 +350,7 @@ contains
     use :: Abundances_Structure          , only : abs                       , zeroAbundances
     use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskVerySimple, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskVerySimple, treeNode    , defaultDiskComponent
     use :: ISO_Varying_String            , only : varying_string            , assignment(=)              , operator(//)
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -362,6 +364,8 @@ contains
     type            (varying_string    ), save                   :: message
     !$omp threadprivate(message)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultDiskComponent%verySimpleIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if a very simple disk component exists.
@@ -452,7 +456,7 @@ contains
     !% Compute the very simple disk node mass rate of change.
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : interruptTask       , nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentHotHalo, &
-          &                                       propertyTypeInactive, treeNode
+          &                                       propertyTypeInactive, treeNode         , defaultDiskComponent
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
@@ -477,6 +481,8 @@ contains
     if (propertyType == propertyTypeInactive) return
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
+    ! Return immediately if this class is not in use.
+    if (.not.defaultDiskComponent%verySimpleIsActive()) return
     ! Get the disk and check that it is of our class.
     disk => node%disk()
     select type (disk)
@@ -794,7 +800,7 @@ contains
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure          , only : abs              , abundances                 , max                , unitAbundances         , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode           , defaultDiskComponent
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : abs              , max                        , stellarLuminosities, unitStellarLuminosities
     implicit none
@@ -806,6 +812,8 @@ contains
     type            (abundances         )                         :: abundancesTotal
     type            (stellarLuminosities)                         :: stellarLuminositiesScale
 
+    ! Check if we are the default method.
+    if (.not.defaultDiskComponent%verySimpleIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if a very simple disk component exists.

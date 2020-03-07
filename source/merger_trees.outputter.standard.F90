@@ -34,6 +34,9 @@
   end type outputGroup
 
   ! Parameters controlling the size of output data.
+  !# <scoping>
+  !#  <module variables="standardNameLengthMax, standardCommentLengthMax, standardBufferSizeIncrement"/>
+  !# </scoping>
   integer, parameter :: standardOutputGroupsIncrement=  10, standardNameLengthMax   =256, &
        &                standardBufferSizeIncrement  =1024, standardCommentLengthMax=256
 

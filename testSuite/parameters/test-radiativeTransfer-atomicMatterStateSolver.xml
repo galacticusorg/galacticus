@@ -1,0 +1,6 @@
+<parameters>
+  <!-- Radiative transfer atomic state solver -->
+
+  <elementsToTrack value="O C Si Fe"/>
+
+</parameters>

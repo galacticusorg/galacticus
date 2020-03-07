@@ -20,7 +20,7 @@ sub runRegressions {
     my $fileName = $_;
     chomp($fileName);
 
-    # Test if this is a parameter fil to run.
+    # Test if this is a parameter file to run.
     if ( $fileName =~ m/\.xml$/ ) {
 	print "\n\n:--> Running regression test case: ".$fileName."\n";
 	system("cd ../..; Galacticus.exe testSuite/".$File::Find::dir."/".$fileName);       

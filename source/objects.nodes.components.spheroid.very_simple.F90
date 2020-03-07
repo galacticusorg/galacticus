@@ -260,11 +260,13 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, defaultSpheroidComponent
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
 
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if an exponential spheroid component exists.
@@ -310,7 +312,7 @@ contains
     use :: Abundances_Structure          , only : abs                       , zeroAbundances
     use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidVerySimple, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidVerySimple, treeNode    , defaultSpheroidComponent
     use :: ISO_Varying_String            , only : varying_string            , assignment(=)                  , operator(//)
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -324,6 +326,8 @@ contains
     type            (varying_string        ), save                   :: message
     !$omp threadprivate(message)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if a very simple spheroid component exists.
@@ -538,9 +542,9 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs                  , abundances                     , max                , unitAbundances         , &
+    use :: Abundances_Structure          , only : abs                  , abundances                     , max                , unitAbundances          , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode           , defaultSpheroidComponent
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : abs                  , max                            , stellarLuminosities, unitStellarLuminosities
     implicit none
@@ -552,6 +556,8 @@ contains
     type            (abundances           )                         :: abundancesTotal
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if a very simple spheroid component exists.

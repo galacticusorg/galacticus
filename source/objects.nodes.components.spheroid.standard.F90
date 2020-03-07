@@ -158,6 +158,8 @@ module Node_Component_Spheroid_Standard
   !#  </properties>
   !#  <bindings>
   !#   <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="acceleration"          function="Node_Component_Spheroid_Standard_Acceleration"            bindsTo="component" />
+  !#   <binding method="tidalTensor"           function="Node_Component_Spheroid_Standard_Tidal_Tensor"            bindsTo="component" />
   !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
   !#   <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
   !#   <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
@@ -383,11 +385,13 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode, defaultSpheroidComponent
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
 
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if a standard spheroid component exists.
@@ -435,7 +439,7 @@ contains
     use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidStandard, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidStandard, treeNode      , defaultSpheroidComponent
     use :: ISO_Varying_String            , only : assignment(=)             , operator(//)                 , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -452,6 +456,8 @@ contains
     type            (varying_string       ), save                   :: message
     !$omp threadprivate(message)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if an standard spheroid component exists.
@@ -923,10 +929,11 @@ contains
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
-    use :: Abundances_Structure          , only : abs                    , max                  , operator(*)                  , unitAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk      , nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
-    use :: Histories                     , only : history                , operator(*)
-    use :: Stellar_Luminosities_Structure, only : abs                    , max                  , operator(*)                  , stellarLuminosities, &
+    use :: Abundances_Structure          , only : abs                     , max                  , operator(*)                  , unitAbundances
+    use :: Galacticus_Nodes              , only : nodeComponentDisk       , nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode           , &
+         &                                        defaultSpheroidComponent
+    use :: Histories                     , only : history                 , operator(*)
+    use :: Stellar_Luminosities_Structure, only : abs                     , max                  , operator(*)                  , stellarLuminosities, &
           &                                       unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
@@ -940,6 +947,8 @@ contains
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if a standard spheroid component exists.
@@ -1635,7 +1644,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
-    use            :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use            :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode, defaultSpheroidComponent
     use            :: Histories       , only : history
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
@@ -1647,6 +1656,8 @@ contains
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: historyStarFormation
 
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Output the star formation history if a spheroid exists for this component.
     spheroid => node%spheroid()
     select type (spheroid)

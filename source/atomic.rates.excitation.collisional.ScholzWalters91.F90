@@ -52,8 +52,8 @@ contains
   end function scholzWalters1991ConstructorParameters
 
   double precision function scholzWalters1991CoolingRate(self,atomicNumber,electronNumber,temperature)
-    !% Return collisional excitation cooling rates, in units of J/m$^3$/s, for ion {\normalfont \ttfamily Ion} at temperature {\normalfont \ttfamily T} (in Kelvin)
-    !% using the fitting functions of \cite{scholz_collisional_1991}.
+    !% Return collisional excitation cooling rates, in units of J m$^3$ s$^{-1}$, for ion {\normalfont \ttfamily Ion} at
+    !% temperature {\normalfont \ttfamily T} (in Kelvin) using the fitting functions of \cite{scholz_collisional_1991}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicExcitationRateCollisionalScholzWalters1991), intent(inout) :: self

@@ -108,6 +108,94 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
   return
 end function Node_Component_Disk_Standard_Enclosed_Mass
 
+function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,componentType,massType)
+  !% Computes the gravitational acceleration at a given position for a standard disk.
+  use :: Coordinates                      , only : assignment(=)                  , coordinateCartesian
+  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic, &
+       &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar
+  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Numerical_Constants_Astronomical , only : gigaYear                       , megaParsec
+  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Prefixes     , only : kilo
+  implicit none
+  double precision                                          , dimension(3) :: Node_Component_Disk_Standard_Acceleration
+  class           (nodeComponentDiskStandard), intent(inout)               :: self
+  double precision                           , intent(in   ), dimension(3) :: positionCartesian
+  integer                                    , intent(in   )               :: componentType                            , massType
+  double precision                                                         :: radius                                   , massTotal
+  type            (coordinateCartesian      )                              :: positionScaleFree
+
+  ! Return if the disk component is not selected.
+  Node_Component_Disk_Standard_Acceleration=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
+  ! Determine total mass.
+  select case (massType)
+  case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+     massTotal=self%massGas()+self%massStellar()
+  case (massTypeGaseous)
+     massTotal=self%massGas()
+  case (massTypeStellar)
+     massTotal=               self%massStellar()
+  case default
+     massTotal=0.0d0
+  end select
+  ! Return if no mass.
+  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
+  ! Compute the acceleration.
+  radius           =sqrt(sum(positionCartesian**2))
+  positionScaleFree=positionCartesian/self%radius()
+  Node_Component_Disk_Standard_Acceleration=+kilo                                                    &
+         &                                  *gigaYear                                                &
+         &                                  /megaParsec                                              &
+         &                                  *gravitationalConstantGalacticus                         &
+         &                                  *massTotal                                               &
+         &                                  /self%radius()                                       **2 &
+         &                                  *diskMassDistribution%acceleration(positionScaleFree)
+  return
+end function Node_Component_Disk_Standard_Acceleration
+
+function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
+  !% Computes the gravitational acceleration at a given position for a standard disk.
+  use :: Coordinates                      , only : assignment(=)                  , coordinateCartesian
+  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic, &
+       &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar
+  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Tensors                          , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym  , operator(*)
+  implicit none
+  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Disk_Standard_Tidal_Tensor
+  class           (nodeComponentDiskStandard     ), intent(inout)               :: self
+  double precision                                , intent(in   ), dimension(3) :: positionCartesian
+  integer                                         , intent(in   )               :: componentType                            , massType
+  double precision                                                              :: radius                                   , massTotal
+  type            (coordinateCartesian           )                              :: positionScaleFree
+
+  ! Return if the disk component is not selected.
+  Node_Component_Disk_Standard_Tidal_Tensor=tensorNullR2D3Sym
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
+  ! Determine total mass.
+  select case (massType)
+  case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+     massTotal=self%massGas()+self%massStellar()
+  case (massTypeGaseous)
+     massTotal=self%massGas()
+  case (massTypeStellar)
+     massTotal=               self%massStellar()
+  case default
+     massTotal=0.0d0
+  end select
+  ! Return if no mass.
+  if (massTotal <= 0.0d0) return
+  ! Compute the acceleration.
+  radius           =sqrt(sum(positionCartesian**2))
+  positionScaleFree=positionCartesian/self%radius()
+  Node_Component_Disk_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                        &
+         &                                  *massTotal                                              &
+         &                                  /self%radius()                                      **3 &
+         &                                  *diskMassDistribution%tidalTensor(positionScaleFree)
+  return
+end function Node_Component_Disk_Standard_Tidal_Tensor
+
 double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
   !% Computes the density at a given position for an standard disk.
   use :: Coordinates                      , only : assignment(=)       , coordinateSpherical

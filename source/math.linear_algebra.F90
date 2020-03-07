@@ -29,7 +29,7 @@ module Linear_Algebra
           &           fgsl_matrix_init     , fgsl_permutation          , fgsl_size_t          , fgsl_vector
   implicit none
   private
-  public :: assignment(=), operator(*)
+  public :: assignment(=), operator(*), matrixRotation
 
   type, public :: vector
      !% Vector class.
@@ -50,12 +50,35 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>crossProduct</method>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
+     !@     <description>Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dotProduct</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
+     !@     <description>Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>magnitude</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute the magnitude of a vector.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                vectorDestroy
-     procedure :: subtract    => vectorSubtract
-     procedure :: add         => vectorAdd
-     generic   :: operator(-) => subtract
-     generic   :: operator(+) => add
+     final     ::                      vectorDestroy
+     procedure :: subtract          => vectorSubtract
+     procedure :: add               => vectorAdd
+     procedure :: crossProduct      => vectorCrossProduct
+     procedure :: dotProduct        => vectorDotProduct
+     procedure :: magnitude         => vectorMagnitude
+     generic   :: operator(-)       => subtract
+     generic   :: operator(+)       => add
+     generic   :: operator(.cross.) => crossProduct
+     generic   :: operator(.dot.  ) => dotProduct
   end type vector
 
   type, public :: matrix
@@ -198,6 +221,15 @@ contains
     return
   end subroutine vectorDestroy
 
+  double precision function vectorMagnitude(self)
+    !% Return the magnitude of a vector.
+    implicit none
+    class(vector), intent(in   ) :: self
+
+    vectorMagnitude=sqrt(sum(self%elements**2))
+    return
+  end function vectorMagnitude
+
   function vectorSubtract(vector1,vector2)
     !% Subtract one vector from another.
     implicit none
@@ -219,6 +251,33 @@ contains
     vectorAdd%elements=vector1%elements+vector2%elements
     return
   end function vectorAdd
+
+  double precision function vectorDotProduct(vector1,vector2)
+    !% Compute the dot product of two vectors.
+    implicit none
+    class(vector), intent(in   ) :: vector1, vector2
+
+    vectorDotProduct=sum(vector1%elements*vector2%elements)
+    return
+  end function vectorDotProduct
+
+  function vectorCrossProduct(vector1,vector2)
+    !% Compute the cross product of two vectors.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type (vector)                :: vectorCrossProduct
+    class(vector), intent(in   ) :: vector1           , vector2
+
+    if (size(vector1%elements) /= 3 .or. size(vector2%elements) /= 3) &
+         & call Galacticus_Error_Report('vector cross product only defined for 3D vectors'//{introspection:location})
+    allocate(vectorCrossProduct%elements(3))
+    vectorCrossProduct%elements=[                                                                                 &
+         &                       vector1%elements(2)*vector2%elements(3)-vector1%elements(3)*vector2%elements(2), &
+         &                       vector1%elements(3)*vector2%elements(1)-vector1%elements(1)*vector2%elements(3), &
+         &                       vector1%elements(1)*vector2%elements(2)-vector1%elements(2)*vector2%elements(1)  &
+         &                      ]
+    return
+  end function vectorCrossProduct
 
   subroutine arrayToMatrixAssign(self,array)
     !% Assign an array to a matrix.
@@ -515,5 +574,42 @@ contains
     call FGSL_Matrix_Free(selfMatrix)
     return
   end subroutine matrixCholeskyDecompose
+
+  function matrixRotation(points,pointsRotated,translation)
+    !% Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
+    !% corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must
+    !% be the same---currently this is not checked. The method used is that of \cite[][their ``More information, easier
+    !% computation'' solution]{robjohn2012}
+    implicit none
+    type            (matrix)                                :: matrixRotation
+    type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
+    type            (vector), intent(  out), optional       :: translation
+    type            (vector)                                :: point4           , pointRotated4 , &
+         &                                                     point21          , point31       , &
+         &                                                     pointRotated21   , pointRotated31
+    type            (matrix)                                :: P                , Q
+    double precision                       , dimension(3,3) :: matrixComponents
+
+    point21       =points       (2)-points       (1)
+    pointRotated21=pointsRotated(2)-pointsRotated(1)
+    point31       =points       (3)-points       (1)
+    pointRotated31=pointsRotated(3)-pointsRotated(1)
+    point4        =points       (1)+point21       .cross.point31
+    pointRotated4 =pointsRotated(1)+pointRotated21.cross.pointRotated31
+    matrixComponents(:,1)=point21
+    matrixComponents(:,2)=point31
+    matrixComponents(:,3)=point4       -points       (1)
+    P                    =matrixComponents
+    matrixComponents(:,1)=pointRotated21
+    matrixComponents(:,2)=pointRotated31
+    matrixComponents(:,3)=pointRotated4-pointsRotated(1)
+    Q                    =matrixComponents
+    matrixRotation       =Q*P%invert()
+    if (present(translation)) &
+         & translation   = pointsRotated (1) &
+         &                -matrixRotation    &
+         &                *points        (1)
+   return
+  end function matrixRotation
 
 end module Linear_Algebra

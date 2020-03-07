@@ -31,7 +31,7 @@ module Galactic_Structure_Potentials
   ! Module scope variables used in mapping over components.
   integer                          :: componentTypeShared, massTypeShared, statusShared
   double precision                 :: radiusShared
-  !$omp threadprivate(massTypeShared,componentTypeShared,radiusShared)
+  !$omp threadprivate(massTypeShared,componentTypeShared,radiusShared,statusShared)
 
   ! Precomputed values.
   integer         (kind=kind_int8) :: lastUniqueID           =-1_kind_int8

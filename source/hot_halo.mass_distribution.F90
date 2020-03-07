@@ -23,8 +23,9 @@ module Hot_Halo_Mass_Distributions
   !% Provides an object which provides a hot halo mass distribution class.
   use :: Galacticus_Nodes, only : treeNode
   private
-  public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve        , &
-       &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient
+  public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve          , &
+       &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient  , &
+       &    hotHaloMassDistributionAcceleration, hotHaloMassDistributionAccelerationTidalTensor
 
   !# <functionClass>
   !#  <name>hotHaloMassDistribution</name>
@@ -102,6 +103,69 @@ contains
     return
   end function hotHaloMassDistributionEnclosedMass
 
+  !# <accelerationTask>
+  !#  <unitName>hotHaloMassDistributionAcceleration</unitName>
+  !# </accelerationTask>
+  function hotHaloMassDistributionAcceleration(node,positionCartesian,componentType,massType)
+    !% Computes the acceleration due to a dark matter profile.
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                         , dimension(3) :: hotHaloMassDistributionAcceleration
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                      , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                        :: radius
+
+    radius                             =+sqrt(sum(positionCartesian**2))
+    hotHaloMassDistributionAcceleration=-kilo                                                                                                 &
+         &                              *gigaYear                                                                                             &
+         &                              /megaParsec                                                                                           &
+         &                              *gravitationalConstantGalacticus                                                                      &
+         &                              *hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull) &
+         &                              *positionCartesian                                                                                    &
+         &                              /radius**3
+    return
+  end function hotHaloMassDistributionAcceleration
+
+  !# <tidalTensorTask>
+  !#  <unitName>hotHaloMassDistributionAccelerationTidalTensor</unitName>
+  !# </tidalTensorTask>
+  function hotHaloMassDistributionAccelerationTidalTensor(node,positionCartesian,componentType,massType)
+    !% Computes the tidalTensor due to the cold mode halo.
+    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galacticus_Nodes            , only : treeNode
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
+    use :: Vectors                     , only : Vector_Outer_Product
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                              :: hotHaloMassDistributionAccelerationTidalTensor
+    type            (treeNode                      ), intent(inout)               :: node
+    integer                                         , intent(in   )               :: componentType                        , massType
+    double precision                                , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                               , dimension(3) :: positionSpherical
+    double precision                                                              :: radius                               , massEnclosed, &
+         &                                                                           density
+    type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
+    
+    radius           =sqrt(sum(positionCartesian**2))
+    positionSpherical=[radius,0.0d0,0.0d0]
+    massEnclosed     =hotHaloMassDistributionEnclosedMass(node,radius           ,componentType,massType,weightByMass,weightIndexNull)
+    density          =hotHaloMassDistributionDensity     (node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    positionTensor   =Vector_Outer_Product               (     positionCartesian,symmetrize=.true.                                  )
+    hotHaloMassDistributionAccelerationTidalTensor=+gravitationalConstantGalacticus                           &
+         &                                         *(                                                         &
+         &                                           -(massEnclosed         /radius**3)*tensorIdentityR2D3Sym &
+         &                                           +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
+         &                                           -(density     *4.0d0*Pi/radius**2)*positionTensor        &
+         &                                          )
+    return
+  end function hotHaloMassDistributionAccelerationTidalTensor
+  
   !# <rotationCurveTask>
   !#  <unitName>hotHaloMassDistributionRotationCurve</unitName>
   !# </rotationCurveTask>

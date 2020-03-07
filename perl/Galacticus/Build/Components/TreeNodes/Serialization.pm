@@ -81,6 +81,8 @@ call Galacticus_Display_Unindent('done')
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -159,6 +161,8 @@ write (fileHandle,'(a)') '  </pointer>'
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -214,7 +218,9 @@ write (fileHandle) self%isPhysicallyPlausible
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle) allocated(self%component{ucfirst($class->{'name'})})
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   select type (component => self%component{ucfirst($class->{'name'})}(1))
@@ -277,6 +283,8 @@ read (fileHandle) self%isPhysicallyPlausible
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 read (fileHandle) isAllocated
 if (isAllocated) then

@@ -34,10 +34,20 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusEnclosingMass</method>
+     !@     <description>Returns the radius enclosing the given mass.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ mass\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass
+     procedure :: acceleration         => sphericalAcceleration
+     procedure :: tidalTensor          => sphericalTidalTensor
+     procedure :: radiusEnclosingMass  => sphericalRadiusEnclosingMass
+     procedure :: positionSample       => sphericalPositionSample
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -101,15 +111,16 @@ contains
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
-  double precision function sphericalRadiusHalfMass(self)
-    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+  double precision function sphericalRadiusEnclosingMass(self,mass)
+    !% Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
     use :: FGSL       , only : FGSL_Root_fSolver_Brent
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (massDistributionSpherical), intent(inout) :: self
-    type            (rootFinder               ), save          :: finder
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: mass
+    type            (rootFinder               ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                           , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                           , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(                                                             &
@@ -130,9 +141,18 @@ contains
             &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
             &                  )
     end if
-    sphericalMassTarget    =+0.5d0            &
-         &                  *self%massTotal()
-    sphericalRadiusHalfMass=finder%find(rootGuess=1.0d0)
+    sphericalActive              => self
+    sphericalMassTarget          =  mass
+    sphericalRadiusEnclosingMass =  finder%find(rootGuess=1.0d0)
+    return
+  end function sphericalRadiusEnclosingMass
+
+  double precision function sphericalRadiusHalfMass(self)
+    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    implicit none
+    class(massDistributionSpherical), intent(inout) :: self
+
+    sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
 
@@ -145,3 +165,102 @@ contains
          &            -sphericalMassTarget
     return
   end function sphericalMassRoot
+  
+  function sphericalAcceleration(self,coordinates)
+    !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    !% distributions.
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    implicit none
+    double precision                           , dimension(3)  :: sphericalAcceleration
+    class           (massDistributionSpherical), intent(inout) :: self
+    class           (coordinate               ), intent(in   ) :: coordinates
+    type            (coordinateSpherical      )                :: coordinatesSpherical
+    type            (coordinateCartesian      )                :: coordinatesCartesian
+    double precision                                           :: radius
+    double precision                           , dimension(3)  :: positionCartesian
+
+    ! Get position in spherical and Cartesian coordinate systems.
+    coordinatesSpherical=coordinates
+    coordinatesCartesian=coordinates
+    ! Compute the density at this position.
+    positionCartesian    = coordinatesCartesian
+    radius               =+coordinatesSpherical%r                   (                 )
+    sphericalAcceleration=-self                %massEnclosedBySphere(radius           )    &
+         &                *                                          positionCartesian     &
+         &                /                                          radius            **3
+    if (.not.self%isDimensionless())                              &
+         & sphericalAcceleration=+sphericalAcceleration           &
+         &                       *kilo                            &
+         &                       *gigaYear                        &
+         &                       /megaParsec                      &
+         &                       *gravitationalConstantGalacticus
+    return
+  end function sphericalAcceleration
+
+  function sphericalTidalTensor(self,coordinates)
+    !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    !% distributions.
+    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Tensors                     , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Vectors                     , only : Vector_Outer_Product
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
+    class           (massDistributionSpherical     ), intent(inout) :: self
+    class           (coordinate                    ), intent(in   ) :: coordinates
+    type            (coordinateSpherical           )                :: coordinatesSpherical
+    type            (coordinateCartesian           )                :: coordinatesCartesian
+    double precision                                                :: radius              , massEnclosed, &
+         &                                                             density
+    double precision                                , dimension(3)  :: positionCartesian
+    type            (tensorRank2Dimension3Symmetric)                :: positionTensor
+
+    ! Get position in spherical and Cartesian coordinate systems.
+    coordinatesSpherical=coordinates
+    coordinatesCartesian=coordinates
+    ! Compute the enclosed mass and density at this position.
+    positionCartesian= coordinatesCartesian
+    radius           =+coordinatesSpherical%r                   (           )
+    massEnclosed     =+self                %massEnclosedBySphere(radius     ) 
+    density          =+self                %density             (coordinates) 
+    positionTensor   =Vector_Outer_Product(positionCartesian,symmetrize=.true.)
+    ! Find the gravitational tidal tensor.
+    sphericalTidalTensor=-(massEnclosed         /radius**3)*tensorIdentityR2D3Sym &
+         &               +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
+         &               -(density     *4.0d0*Pi/radius**2)*positionTensor
+    ! For dimensionful profiles, add the appropriate normalization.
+    if (.not.self%isDimensionless())                              &
+         & sphericalTidalTensor=+sphericalTidalTensor             &
+         &                       *gravitationalConstantGalacticus
+    return
+  end function sphericalTidalTensor
+  
+  function sphericalPositionSample(self,randomNumberGenerator_)
+    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision                            , dimension(3)  :: sphericalPositionSample
+    class           (massDistributionSpherical ), intent(inout) :: self
+    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
+    double precision                                            :: mass                   , radius, &
+         &                                                         theta                  , phi
+
+    ! Choose an enclosed mass and find the radius enclosing that mass. Choose angular
+    ! coordinates at random and finally convert to Cartesian.
+    mass  =+              self                  %massTotal          (    )        &
+         & *              randomNumberGenerator_%uniformSample      (    )
+    radius=+              self                  %radiusEnclosingMass(mass)
+    phi   =+     2.0d0*Pi*randomNumberGenerator_%uniformSample      (    )
+    theta =+acos(2.0d0   *randomNumberGenerator_%uniformSample      (    )-1.0d0)
+    sphericalPositionSample=+radius                &
+         &                  *[                     &
+         &                    sin(theta)*cos(phi), &
+         &                    sin(theta)*sin(phi), &
+         &                    cos(theta)           &       
+         &                   ]
+    return
+  end function sphericalPositionSample
