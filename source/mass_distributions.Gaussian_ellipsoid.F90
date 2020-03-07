@@ -340,6 +340,7 @@ contains
   
   function gaussianEllipsoidAccelerationInterpolate(self,positionCartesian)
     !% Interpolate gravitational acceleration in the tabulated solutions for a Gaussian ellipsoid.
+    use :: Trigonometric_Functions, only : hypotenuse
     implicit none
     double precision                                   , dimension(    3)                :: gaussianEllipsoidAccelerationInterpolate
     class           (massDistributionGaussianEllipsoid)                  , intent(inout) :: self
@@ -355,9 +356,13 @@ contains
     ! Find interpolating factors.
     if (any(abs(positionCartesian) > self%accelerationX(size(self%accelerationX)))) then
        ! Use spherical approximation.
-       radiusSpherical                         =+sqrt(sum(positionCartesian**2))
-       gaussianEllipsoidAccelerationInterpolate=-         positionCartesian      &
-            &                                   /         radiusSpherical  **3
+       radiusSpherical=hypotenuse(positionCartesian)
+       if (3*exponent(radiusSpherical) >= maxexponent(0.0d0)) then
+          gaussianEllipsoidAccelerationInterpolate=+0.0d0
+       else
+          gaussianEllipsoidAccelerationInterpolate=-positionCartesian    &
+               &                                   /radiusSpherical  **3
+       end if
     else
        ! Interpolate in tabulated solution.
        !! Find interpolating factors in position.
