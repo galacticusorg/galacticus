@@ -58,7 +58,7 @@ contains
   subroutine emissionLineDatabaseInitialize()
     !% Initialize a database of emission line properties.
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object    , hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     type   (hdf5Object) :: file   , lines, &
@@ -68,7 +68,7 @@ contains
     if (.not.databaseInitialized) then
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
-          !$omp critical (HDF5_Access)
+          !$ call hdf5Access%lock()
           call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
@@ -79,7 +79,7 @@ contains
           end do
           call lines%close()
           call file %close()
-          !$omp end critical (HDF5_Access)
+          !$ call hdf5Access%unlock()
           databaseInitialized=.true.
        end if
        !$omp end critical(emissionLineDatabaseInitialize)
