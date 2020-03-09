@@ -1006,6 +1006,19 @@ module Galacticus_Nodes
     return
   end function Node_Component_Acceleration_Null
 
+  function Node_Component_Chandrasekhar_Integral_Null(self,positionCartesian,velocityCartesian,componentType,massType)
+    !% A null implementation of the acceleration due to a component. Always returns zero.
+    implicit none
+    double precision               , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
+    class           (nodeComponent)              , intent(inout) :: self
+    integer                                      , intent(in   ) :: componentType                             , massType
+    double precision               , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
+    !GCC$ attributes unused :: self, positionCartesian, velocityCartesian, componentType, massType
+
+    Node_Component_Chandrasekhar_Integral_Null=0.0d0
+    return
+  end function Node_Component_Chandrasekhar_Integral_Null
+
   function Node_Component_Tidal_Tensor_Null(self,positionCartesian,componentType,massType)
     !% A null implementation of the tidal tensor due to a component. Always returns zero.
     implicit none

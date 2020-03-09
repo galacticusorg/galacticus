@@ -22,8 +22,8 @@
 module Dark_Matter_Profile_Structure_Tasks
   !% Implements structure tasks related to the dark matter halo density profile.
   private
-  public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task, &
-       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task, Dark_Matter_Profile_Tidal_Tensor_Task
+  public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task             , &
+       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task, Dark_Matter_Profile_Tidal_Tensor_Task  , Dark_Matter_Profile_Chandrasekhar_Integral_Task
 
 contains
 
@@ -94,6 +94,49 @@ contains
          &                                /radius**3
     return
   end function Dark_Matter_Profile_Acceleration_Task
+
+  !# <chandrasekharIntegralTask>
+  !#  <unitName>Dark_Matter_Profile_Chandrasekhar_Integral_Task</unitName>
+  !# </chandrasekharIntegralTask>
+  function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,positionCartesian,velocityCartesian,componentType,massType)
+    !% Computes the Chandrasekhar integral due to a dark matter profile.
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
+    use :: Galactic_Structure_Options, only : weightByMass     , weightIndexNull
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Numerical_Constants_Math  , only : Pi
+    implicit none
+    double precision                                       , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
+    type            (treeNode              ), intent(inout)               :: node
+    integer                                 , intent(in   )               :: componentType                                         , massType
+    double precision                        , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
+    double precision                                       , dimension(3) :: positionSpherical
+    class           (darkMatterProfileClass), pointer                     :: darkMatterProfile_
+    double precision                        , parameter                   :: XvMaximum                                      =10.0d0
+    double precision                                                      :: radius                                                , velocity         , &
+         &                                                                   density                                               , xV
+
+    darkMatterProfile_                              => darkMatterProfile()
+    radius                                          =  sqrt(sum(positionCartesian**2))
+    velocity                                        =  sqrt(sum(velocityCartesian**2))
+    positionSpherical                               =  [radius,0.0d0,0.0d0]
+    density                                         =  Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    xV                                              = +                         velocity                        &
+         &                                            /darkMatterProfile_%radialVelocityDispersion(node,radius) &
+         &                                            /sqrt(2.0d0)
+    Dark_Matter_Profile_Chandrasekhar_Integral_Task = -density              &
+         &                                            *velocityCartesian    &
+         &                                            /velocity         **3
+    if (Xv <= XvMaximum)                                                                                    &
+         & Dark_Matter_Profile_Chandrasekhar_Integral_Task=+Dark_Matter_Profile_Chandrasekhar_Integral_Task &
+         &                                                 *(                                               &
+         &                                                   +erf ( xV   )                                  &
+         &                                                   -2.0d0                                         &
+         &                                                   *      xV                                      &
+         &                                                   *exp (-xV**2)                                  &
+         &                                                   /sqrt( Pi   )                                  &
+         &                                                 )
+    return
+  end function Dark_Matter_Profile_Chandrasekhar_Integral_Task
 
   !# <tidalTensorTask>
   !#  <unitName>Dark_Matter_Profile_Tidal_Tensor_Task</unitName>

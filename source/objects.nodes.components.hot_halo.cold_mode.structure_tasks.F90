@@ -27,7 +27,8 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
        &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task       , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task           , Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
+       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task           , Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task  , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
 
   type (massDistributionBetaProfile  ), public          :: coldModeMassDistribution
   class(hotHaloColdModeCoreRadiiClass), public, pointer :: hotHaloColdModeCoreRadii_
@@ -233,5 +234,48 @@ contains
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=coldModeMassDistribution%density(position)
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Density_Task
+
+  !# <chandrasekharIntegralTask>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
+  !# </chandrasekharIntegralTask>
+  function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,componentType,massType)
+    !% Computes the Chandrasekhar integral due to a dark matter profile.
+    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale, darkMatterHaloScaleClass
+    use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Numerical_Constants_Math  , only : Pi
+    implicit none
+    double precision                                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
+    type            (treeNode                ), intent(inout)               :: node
+    integer                                   , intent(in   )               :: componentType                                                  , massType
+    double precision                          , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
+    double precision                                         , dimension(3) :: positionSpherical
+    class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_
+    double precision                          , parameter                   :: XvMaximum                                               =10.0d0
+    double precision                                                        :: radius                                                         , velocity         , &
+         &                                                                     density                                                        , xV
+    
+    darkMatterHaloScale_                                     => darkMatterHaloScale()
+    radius                                                   =  sqrt(sum(positionCartesian**2))
+    velocity                                                 =  sqrt(sum(velocityCartesian**2))
+    positionSpherical                                        =  [radius,0.0d0,0.0d0]
+    density                                                  =  Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    xV                                                       = +                           velocity       &
+         &                                                     /darkMatterHaloScale_%virialVelocity(node) &
+         &                                                     /sqrt(2.0d0)
+    Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral = -density              &
+         &                                                     *velocityCartesian    &
+         &                                                     /velocity         **3
+    if (Xv <= XvMaximum)                                                                                    &
+         & Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral=+Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral &
+         &                                                          *(                                                        &
+         &                                                            +erf ( xV   )                                           &
+         &                                                            -2.0d0                                                  &
+         &                                                            *      xV                                               &
+         &                                                            *exp (-xV**2)                                           &
+         &                                                            /sqrt( Pi   )                                           &
+         &                                                          )
+    return
+  end function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
 
 end module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks

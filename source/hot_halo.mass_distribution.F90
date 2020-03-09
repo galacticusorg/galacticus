@@ -23,9 +23,10 @@ module Hot_Halo_Mass_Distributions
   !% Provides an object which provides a hot halo mass distribution class.
   use :: Galacticus_Nodes, only : treeNode
   private
-  public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve          , &
-       &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient  , &
-       &    hotHaloMassDistributionAcceleration, hotHaloMassDistributionAccelerationTidalTensor
+  public :: hotHaloMassDistributionDensity              , hotHaloMassDistributionRotationCurve          , &
+       &    hotHaloMassDistributionEnclosedMass         , hotHaloMassDistributionRotationCurveGradient  , &
+       &    hotHaloMassDistributionAcceleration         , hotHaloMassDistributionAccelerationTidalTensor, &
+       &    hotHaloMassDistributionChandrasekharIntegral
 
   !# <functionClass>
   !#  <name>hotHaloMassDistribution</name>
@@ -165,6 +166,51 @@ contains
          &                                          )
     return
   end function hotHaloMassDistributionAccelerationTidalTensor
+
+  !# <chandrasekharIntegralTask>
+  !#  <unitName>hotHaloMassDistributionChandrasekharIntegral</unitName>
+  !# </chandrasekharIntegralTask>
+  function hotHaloMassDistributionChandrasekharIntegral(node,positionCartesian,velocityCartesian,componentType,massType)
+    !% Computes the Chandrasekhar integral due to the hot halo.
+    use :: Galactic_Structure_Options   , only : weightByMass                  , weightIndexNull
+    use :: Galacticus_Nodes             , only : treeNode
+    use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass, hotHaloTemperatureProfile
+    use :: Ideal_Gases_Thermodynamics   , only : Ideal_Gas_Sound_Speed
+    use :: Numerical_Constants_Math     , only : Pi
+    implicit none
+    double precision                                               , dimension(3) :: hotHaloMassDistributionChandrasekharIntegral
+    type            (treeNode                      ), intent(inout)               :: node
+    integer                                         , intent(in   )               :: componentType                                       , massType
+    double precision                                , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
+    double precision                                               , dimension(3) :: positionSpherical
+    class           (hotHaloTemperatureProfileClass), pointer                     ::hotHaloTemperatureProfile_
+    double precision                                , parameter                   :: XvMaximum                                    =10.0d0
+    double precision                                                              :: radius                                              , velocity         , &
+         &                                                                           density                                             , xV
+    
+
+    hotHaloTemperatureProfile_                 => hotHaloTemperatureProfile()
+    radius                                       =  sqrt(sum(positionCartesian**2))
+    velocity                                     =  sqrt(sum(velocityCartesian**2))
+    positionSpherical                            =  [radius,0.0d0,0.0d0]
+    density                                      =  hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    xV                                           = +velocity                                                                   &
+         &                                         /Ideal_Gas_Sound_Speed(hotHaloTemperatureProfile_%temperature(node,radius)) &
+         &                                         /sqrt(2.0d0)
+    hotHaloMassDistributionChandrasekharIntegral = -density              &
+         &                                         *velocityCartesian    &
+         &                                         /velocity         **3
+    if (Xv <= XvMaximum)                                                                              &
+         & hotHaloMassDistributionChandrasekharIntegral=+hotHaloMassDistributionChandrasekharIntegral &
+         &                                                 *(                                         &
+         &                                                   +erf ( xV   )                            &
+         &                                                   -2.0d0                                   &
+         &                                                   *      xV                                &
+         &                                                   *exp (-xV**2)                            &
+         &                                                   /sqrt( Pi   )                            &
+         &                                                 )
+    return
+  end function hotHaloMassDistributionChandrasekharIntegral
   
   !# <rotationCurveTask>
   !#  <unitName>hotHaloMassDistributionRotationCurve</unitName>
