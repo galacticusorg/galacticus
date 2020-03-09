@@ -68,7 +68,7 @@ contains
     if (.not.databaseInitialized) then
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
-          !$ call hdf5Access%lock()
+          !$ call hdf5Access%set()
           call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
@@ -79,7 +79,7 @@ contains
           end do
           call lines%close()
           call file %close()
-          !$ call hdf5Access%unlock()
+          !$ call hdf5Access%unset()
           databaseInitialized=.true.
        end if
        !$omp end critical(emissionLineDatabaseInitialize)
