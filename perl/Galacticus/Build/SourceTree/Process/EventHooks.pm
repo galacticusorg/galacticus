@@ -9,6 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use XML::Simple;
 use List::ExtraUtils;
+use List::Util 'max';
 use Fortran::Utils;
 use Galacticus::Build::Directives;
 use Text::Template 'fill_in_string';
@@ -311,6 +312,65 @@ CODE
 	    };
             &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$initializorNode]);
             &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"eventsHooksInitialize","public");
+            # Build a function to output meta-data on event hook lock wait times.
+            $code::hookCount             = scalar(                           @hooks);
+            $code::hookNameLengthMaximum = max   (map {length($_->{'name'})} @hooks);
+            my $waitTimeWriter           = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventsHooksWaitTimes()
+#ifdef OMPPROFILE
+    use :: Galacticus_HDF5   , only : galacticusOutputFile
+    use :: IO_HDF5           , only : hdf5Access          , hdf5Object
+    use :: ISO_Varying_String, only : varying_string      , var_str
+#endif
+    implicit none
+#ifdef OMPPROFILE
+    type            (hdf5Object                  )                          :: waitTimeGroup         , waitTimeDataset        , metaDataGroup
+    character       (len={$hookNameLengthMaximum}), dimension({$hookCount}) :: eventHookNames
+    double precision                              , dimension({$hookCount}) :: eventHookReadWaitTimes, eventHookWriteWaitTimes
+
+CODE
+my $i = 0;
+foreach my $hook ( @hooks ) {
+    ++$i;
+    $waitTimeWriter .= "   eventHookNames         (".$i.")='".$hook->{'name'}."'\n";
+    $waitTimeWriter .= "   eventHookReadWaitTimes (".$i.")=" .$hook->{'name'}."Event%waitTimeRead\n";
+    $waitTimeWriter .= "   eventHookWriteWaitTimes(".$i.")=" .$hook->{'name'}."Event%waitTimeWrite\n";
+}
+$waitTimeWriter .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    ! Open output group.
+    !$ call hdf5Access%set()
+    metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
+    waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
+    ! Write wait time data.
+    call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )
+    call waitTimeGroup%writeDataset(eventHookReadWaitTimes ,"eventHookReadWaitTimes" ,"Total time spent waiting to read-lock event hooks" ,datasetReturned=waitTimeDataset)
+    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%close()
+    call waitTimeGroup%writeDataset(eventHookWriteWaitTimes,"eventHookWriteWaitTimes","Total time spent waiting to write-lock event hooks",datasetReturned=waitTimeDataset)
+    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%close()
+    ! Close output groups.
+    call waitTimeGroup%close()
+    call metaDataGroup%close()
+    !$ call hdf5Access%unset()
+#endif
+   return
+end subroutine eventsHooksWaitTimes
+CODE
+my $waitTimeWriterNode   =
+            {
+		type       => "code",
+		content    => $waitTimeWriter,
+		firstChild => undef(),
+                source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+                line       => 1
+	    };
+            &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$waitTimeWriterNode]);
+            &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"eventsHooksWaitTimes","public");
+
+
+
+
 	}
 	# Handle eventHook directives by creating code to call any hooked functions.
 	if ( $node->{'type'} eq "eventHook" && ! $node->{'directive'}->{'processed'} ) {
