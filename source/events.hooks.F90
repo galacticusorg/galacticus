@@ -216,11 +216,11 @@ contains
     !$ use :: OMP_Lib, only : OMP_Get_WTime
 #endif
     implicit none
-    class  (eventHook), intent(inout)           :: self
-    logical           , intent(in   ), optional :: writeLock
 #ifdef OMPPROFILE
     double precision                            :: ompProfileTimeWaitStart, ompProfileTimeWaitEnd
 #endif
+    class  (eventHook), intent(inout)           :: self
+    logical           , intent(in   ), optional :: writeLock
     !# <optionalArgument name="writeLock" defaultsTo=".true."/>
 
     if (writeLock_) then
