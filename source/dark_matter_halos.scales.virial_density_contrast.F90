@@ -518,16 +518,55 @@ contains
           ! the parent in deep copies of the child object.
           call virialDensityContrastDefinitionDeepCopyAssign(self,destination)
           destination%recursiveSelf     => null()
+       end if       
+       if (associated(self%cosmologyParameters_)) then
+          if (associated(self%cosmologyParameters_%copiedSelf)) then
+             select type(s => self%cosmologyParameters_%copiedSelf)
+                class is (cosmologyParametersClass)
+                destination%cosmologyParameters_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+             call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
+             self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
+             call destination%cosmologyParameters_%autoHook()
+          end if
        end if
-       nullify(destination%cosmologyParameters_)
-       allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
-       !# <deepCopy source="self%cosmologyParameters_" destination="destination%cosmologyParameters_"/>
-       nullify(destination%cosmologyFunctions_)
-       allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
-       !# <deepCopy source="self%cosmologyFunctions_" destination="destination%cosmologyFunctions_"/>
-       nullify(destination%virialDensityContrast_)
-       allocate(destination%virialDensityContrast_,mold=self%virialDensityContrast_)
-       !# <deepCopy source="self%virialDensityContrast_" destination="destination%virialDensityContrast_"/>
+       if (associated(self%cosmologyFunctions_)) then
+          if (associated(self%cosmologyFunctions_%copiedSelf)) then
+             select type(s => self%cosmologyFunctions_%copiedSelf)
+                class is (cosmologyFunctionsClass)
+                destination%cosmologyFunctions_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+             call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
+             self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
+             call destination%cosmologyFunctions_%autoHook()
+          end if
+       end if
+       if (associated(self%virialDensityContrast_)) then
+          if (associated(self%virialDensityContrast_%copiedSelf)) then
+             select type(s => self%virialDensityContrast_%copiedSelf)
+                class is (virialDensityContrastClass)
+                destination%virialDensityContrast_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%virialDensityContrast_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%virialDensityContrast_,mold=self%virialDensityContrast_)
+             call self%virialDensityContrast_%deepCopy(destination%virialDensityContrast_)
+             self%virialDensityContrast_%copiedSelf => destination%virialDensityContrast_
+             call destination%virialDensityContrast_%autoHook()
+          end if
+       end if
        call destination%meanDensityTable%deepCopyActions()
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})

@@ -26,15 +26,17 @@
 
   !# <nbodyOperator name="nbodyOperatorSequence">
   !#  <description>An N-body data operator which applies a sequence of other operators.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
+  !#  </deepCopy>
   !# </nbodyOperator>
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence
      !% An N-body data operator which applies a sequence of other operators.
      private
      type(nbodyOperatorList), pointer :: operators => null()
    contains
-     final     ::             sequenceDestructor
-     procedure :: operate  => sequenceOperate
-     procedure :: deepCopy => sequenceDeepCopy
+     final     ::            sequenceDestructor
+     procedure :: operate => sequenceOperate
   end type nbodyOperatorSequence
 
   interface nbodyOperatorSequence
@@ -117,37 +119,3 @@ contains
     end do
     return
   end subroutine sequenceOperate
-
-  subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} N-body operator class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(nbodyOperatorSequence), intent(inout) :: self
-    class(nbodyOperatorClass   ), intent(inout) :: destination
-    type (nbodyOperatorList    ), pointer       :: operator_   , operatorDestination_, &
-         &                                         operatorNew_
-
-    call self%nbodyOperatorClass%deepCopy(destination)
-    select type (destination)
-    type is (nbodyOperatorSequence)
-       destination%operators => null          ()
-       operatorDestination_  => null          ()
-       operator_             => self%operators
-       do while (associated(operator_))
-          allocate(operatorNew_)
-          if (associated(operatorDestination_)) then
-             operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_
-          else
-             destination          %operators => operatorNew_
-             operatorDestination_            => operatorNew_
-          end if
-          allocate(operatorNew_%operator_,mold=operator_%operator_)
-          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
-          operator_ => operator_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine sequenceDeepCopy

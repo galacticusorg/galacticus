@@ -437,10 +437,13 @@ contains
           allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
+          !$omp critical(stellarPopulationsStandardDeepCopy)
+          !# <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
           !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
           !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
-          call self%stellarFeedback_    %deepCopy(standardStellarFeedback_    )
-          call self%supernovaeTypeIa_   %deepCopy(standardSupernovaeTypeIa_   )
+          !# <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
+          !# <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
           call integrator_%integrandSet(property%integrand                                   )

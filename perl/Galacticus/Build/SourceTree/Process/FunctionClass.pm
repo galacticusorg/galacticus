@@ -804,12 +804,21 @@ CODE
 		$deepCopyModules{'Galacticus_Display'} = 1;
             }
             my $rankMaximum = 0;
-	    my $deepCopyCode;
-	    $deepCopyCode .= "select type (self)\n";
+            my $deepCopyCode;
+            my $deepCopyResetCode;
+            my $linkedListVariables;
+            my $linkedListResetVariables;
+            @{$linkedListVariables     } = ();
+            @{$linkedListResetVariables} = ();
+            $deepCopyResetCode .= "self%copiedSelf => null()\n";
+            $deepCopyResetCode .= "select type (self)\n";
+            $deepCopyCode      .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Search the tree for this class.
 		my $class = $nonAbstractClass;
 		my $assignments;
+		# Add a class guard for resets.
+		$deepCopyResetCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -838,12 +847,26 @@ CODE
 					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 					next
 					    if ( grep {lc($_) eq lc($name)} @ignore );
-					$assignments .= "nullify(destination%".$name.")\n";
-					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$deepCopyResetCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
+					$assignments       .= "nullify(destination%".$name.")\n";
+					$assignments       .= "if (associated(self%".$name.")) then\n";
+					$assignments       .= " if (associated(self%".$name."\%copiedSelf)) then\n";
+					$assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+					$assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+					$assignments       .= "   destination%".$name." => s\n";
+					$assignments       .= "  class default\n";
+					$assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+					$assignments       .= "  end select\n";
+					$assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+					$assignments       .= " else\n";
+					$assignments       .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
+					$assignments       .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
+					$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
+					$assignments       .= "  call destination%".$name."%autoHook()\n";
+					$assignments       .= " end if\n";
+					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
-					$assignments .= "call destination%".$name."%autoHook()\n";
+					$assignments       .= "end if\n";
 				    }
 				};
 				# Deep copy of objects with explicit deep copy actions.
@@ -892,22 +915,42 @@ CODE
 					    foreach ( @{$declaration->{'variables'}} );
 					$assignments .= "!\$ call hdf5Access%unset()\n";
 				}
+				# Handle linked lists.
+				(my $linkedListCode, my $linkedListResetCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables);
+				$assignments       .= $linkedListCode;
+				$deepCopyResetCode .= $linkedListResetCode;
 				# Deep copy of non-(class,pointer) functionClass objects.
 				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
 				    foreach my $object ( @{$declaration->{'variables'}} ) {
 					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments .= "nullify(destination%".$name.")\n";
-						$assignments .= "if (associated(self%".$name.")) then\n";
-						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+						$assignments       .= "nullify(destination%".$name.")\n";
+						$assignments       .= "if (associated(self%".$name.")) then\n";
+						$deepCopyResetCode .= "if (associated(self%".$name.")) then\n";
+						$assignments       .= "if (associated(self%".$name."\%copiedSelf)) then\n";
+						$assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+						$assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+						$assignments       .= "   destination%".$name." => s\n";
+						$assignments       .= "  class default\n";
+						$assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+						$assignments       .= "  end select\n";
+						$assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+						$assignments       .= "else\n";
+						$assignments       .= " allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
-					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
-					    if ( $debugging );
-					    $assignments .= "call destination%".$name."%autoHook()\n";
+					    $deepCopyResetCode .= "call self%".$name."%deepCopyReset()\n";
+					    $assignments       .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments       .= "self%".$name."%copiedSelf => destination%".$name."\n";
+					    $assignments       .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments .= "end if\n";
+						$assignments       .= "end if\n";
+					    }
+					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+						if ( $debugging );
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments       .= "end if\n";
+						$deepCopyResetCode .= "end if\n";
 					    }
 					}
 				    }
@@ -1048,12 +1091,26 @@ CODE
 			) {
 			    foreach my $object ( @{$declaration->{'variables'}} ) {
 				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-				$assignments .= "nullify(destination%".$name.")\n";
-				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
-				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				$deepCopyResetCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
+				$assignments       .= "nullify(destination%".$name.")\n";
+				$assignments       .= "if (associated(self%".$name.")) then\n";
+				$assignments       .= " if (associated(self%".$name."\%copiedSelf)) then\n";
+				$assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+				$assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+				$assignments       .= "   destination%".$name." => s\n";
+				$assignments       .= "  class default\n";
+				$assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+				$assignments       .= "  end select\n";
+				$assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+				$assignments       .= " else\n";
+				$assignments       .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
+				$assignments       .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
+				$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
+				$assignments       .= "  call destination%".$name."%autoHook()\n";
+				$assignments       .= " end if\n";
+				$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				    if ( $debugging );
-			       	$assignments .= "call destination%".$name."%autoHook()\n";
+				$assignments       .= "end if\n";
 			    }
 		    }
 		    # Deep copy of objects with explicit deep copy actions.
@@ -1104,16 +1161,32 @@ CODE
 			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 			    if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
 				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments .= "nullify(destination%".$name.")\n";
-				    $assignments .= "if (associated(self%".$name.")) then\n";
-				    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+				    $assignments       .= "nullify(destination%".$name.")\n";
+				    $assignments       .= "if (associated(self%".$name.")) then\n";
+				    $deepCopyResetCode .= "if (associated(self%".$name.")) then\n";
+				    $assignments       .= "if (associated(self%".$name."\%copiedSelf)) then\n";
+				    $assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+				    $assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+				    $assignments       .= "   destination%".$name." => s\n";
+				    $assignments       .= "  class default\n";
+				    $assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+				    $assignments       .= "  end select\n";
+				    $assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+				    $assignments       .= "else\n";
+				    $assignments       .= " allocate(destination%".$name.",mold=self%".$name.")\n";
 				}
-				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
-				    if ( $debugging );
-				$assignments .= "call destination%".$name."%autoHook()\n";
+				$deepCopyResetCode .= "call self%".$name."%deepCopyReset()\n";
+				$assignments       .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+				$assignments       .= " self%".$name."%copiedSelf => destination%".$name."\n";
+				$assignments       .= "call destination%".$name."%autoHook()\n";
 				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				    $assignments .= "end if\n";
+				}
+				$assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				    if ( $debugging );
+				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				    $assignments       .= "end if\n";
+				    $deepCopyResetCode .= "end if\n";
 				}
 			    }
 			}
@@ -1195,12 +1268,26 @@ CODE
 				{
 				    foreach my $object ( @{$declaration->{'variables'}} ) {
 					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					$assignments .= "nullify(destination%".$name.")\n";
-					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$deepCopyResetCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
+					$assignments       .= "nullify(destination%".$name.")\n";
+					$assignments       .= "if (associated(self%".$name.")) then\n";
+					$assignments       .= " if (associated(self%".$name."\%copiedSelf)) then\n";
+					$assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+					$assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+					$assignments       .= "   destination%".$name." => s\n";
+					$assignments       .= "  class default\n";
+					$assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+					$assignments       .= "  end select\n";
+					$assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+					$assignments       .= " else\n";
+					$assignments       .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
+					$assignments       .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
+					$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
+					$assignments       .= "  call destination%".$name."%autoHook()\n";
+					$assignments       .= " end if\n";
+					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
-					$assignments .= "call destination%".$name."%autoHook()\n";
+					$assignments       .= "end if\n";
 				    }
 				};
 				# Deep copy of HDF5 objects.
@@ -1222,16 +1309,33 @@ CODE
 					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments .= "nullify(destination%".$name.")\n";
-						$assignments .= "if (associated(self%".$name.")) then\n";
-						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+						$assignments       .= "nullify(destination%".$name.")\n";
+						$assignments       .= "if (associated(self%".$name.")) then\n";
+						$deepCopyResetCode .= "if (associated(self%".$name.")) then\n";
+						$assignments       .= "if (associated(self%".$name."\%copiedSelf)) then\n";
+						$assignments       .= "  select type(s => self%".$name."\%copiedSelf)\n";
+						$assignments       .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+						$assignments       .= "   destination%".$name." => s\n";
+						$assignments       .= "  class default\n";
+						$assignments       .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+						$assignments       .= "  end select\n";
+						$assignments       .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+						$assignments       .= "else\n";
+						$assignments       .= " allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
-					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
-					    if ( $debugging );
-				   	    $assignments .= "call destination%".$name."%autoHook()\n";
+					    $deepCopyResetCode .= "call self%".$name."%deepCopyReset()\n";
+					    $assignments       .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments       .= "self%".$name."%copiedSelf => destination%".$name."\n";
+					    $assignments       .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments .= "end if\n";
+						$assignments       .= "end if\n";
+					    }
+					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+						if ( $debugging );
+				   	    $assignments       .= "call destination%".$name."%autoHook()\n";
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments       .= "end if\n";
+						$deepCopyResetCode .= "end if\n";
 					    }
 					}
 				    }
@@ -1323,11 +1427,15 @@ CODE
 		# Specify required modules.
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
-            $deepCopyCode .= "end select\n";
+            $deepCopyCode      .= "end select\n";
+	    $deepCopyResetCode .= "end select\n";
             # Reset the reference count to this newly created object.
             $deepCopyCode .= "call destination%referenceCountReset()\n";
             # Reset the state operation ID if necessary.
             $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n";
+            # Insert variables declarations.
+            $deepCopyCode      = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables     ).$deepCopyCode     ;
+            $deepCopyResetCode = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables).$deepCopyResetCode;
             # Insert any iterator variables needed.
             $deepCopyCode = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
                 if ( $rankMaximum > 0 );
@@ -1340,6 +1448,14 @@ CODE
 		modules     => join(" ",keys(%deepCopyModules)),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
 		code        => $deepCopyCode
+	    };
+	    $methods{'deepCopyReset'} =
+	    {
+		description => "Reset deep copy pointers in this object and any objects that it uses.",
+		type        => "void",
+		recursive   => "yes",
+		pass        => "yes",
+		code        => $deepCopyResetCode
 	    };
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
@@ -2130,6 +2246,7 @@ CODE
             $usesNode->{'moduleUse'}->{'ISO_C_Binding'} = {intrinsic => 1, all => 1}
                 if ( $debugging );
             $modulePreContains->{'content'} .= "    integer(c_size_t) :: stateOperationID=0\n";
+            $modulePreContains->{'content'} .= "    class(".$directive->{'name'}."Class), public, pointer :: copiedSelf => null()\n";
             $usesNode->{'moduleUse'}->{'ISO_C_Binding'} =
                 {
 		    intrinsic => 1,
@@ -3294,6 +3411,85 @@ sub trimlc {
 sub striplc {
     (my $result = lc(shift())) =~ s/\s//g;
     return $result;
+}
+
+sub deepCopyLinkedList {
+    # Create deep-copy instructions for linked list objects.
+    my $nonAbstractClass         = shift();
+    my $linkedListVariables      = shift();
+    my $linkedListResetVariables = shift();
+    return ("","")
+	unless ( exists($nonAbstractClass->{'deepCopy'}->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'deepCopy'}->{'linkedList'};
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_', 'destination_', 'itemNew_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    push(
+	@{$linkedListResetVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
+    # Generate code for the walk through the linked list.
+    $code::variable        =                                            $linkedList->{'variable'       }          ;
+    $code::object          =                                            $linkedList->{'object'         }          ;
+    $code::objectType      =                                            $linkedList->{'objectType'     }          ;
+    $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
+    $code::next            =                                            $linkedList->{'next'           }          ;
+    $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+    my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+destination%{$variable} => null            ()
+destination_            => null            ()
+item_                   => self%{$variable}
+do while (associated(item_))
+   allocate(itemNew_)
+   if (associated(destination_)) then
+      destination_%{$next}             => itemNew_
+      destination_                     => itemNew_
+   else
+      destination         %{$variable} => itemNew_
+      destination_                     => itemNew_
+   end if
+      nullify(itemNew_%{$object})
+      if (associated(item_%{$object})) then
+       if (associated(item_%{$object}%copiedSelf)) then
+        select type(s => item_%{$object}%copiedSelf)
+        {$objectIntrinsic} is ({$objectType})
+         itemNew_%{$object} => s
+        class default
+         call Galacticus_Error_Report('copiedSelf has incorrect type'//{$location})
+        end select
+        call item_%{$object}%copiedSelf%referenceCountIncrement()
+       else
+       allocate(itemNew_%{$object},mold=item_%{$object})
+       call item_%{$object}%deepCopy(itemNew_%{$object})
+        item_%{$object}%copiedSelf => itemNew_%{$object}
+        call itemNew_%{$object}%autoHook()
+       end if
+      end if
+   item_ => item_%{$next}
+end do
+CODE
+    my $deepCopyResetCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%deepCopyReset()
+   item_ => item_%{$next}
+end do
+CODE
+    return ($deepCopyCode,$deepCopyResetCode);
 }
 
 1;

@@ -26,6 +26,9 @@
 
   !# <radiativeTransferSource name="radiativeTransferSourceSummation">
   !#  <description>A photon source class for summation sources.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource" objectType="radiativeTransferSourceClass"/>
+  !#  </deepCopy>
   !# </radiativeTransferSource>
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceSummation
      !% Implementation of a summation source class for radiative transfer calculations.
@@ -37,7 +40,6 @@
      procedure :: initializePhotonPacket => summationInitializePhotonPacket
      procedure :: spectrum               => summationSpectrum
      procedure :: luminosity             => summationLuminosity
-     procedure :: deepCopy               => summationDeepCopy
   end type radiativeTransferSourceSummation
 
   interface radiativeTransferSourceSummation
@@ -167,37 +169,3 @@ contains
     end do
     return
   end function summationSpectrum
-
-  subroutine summationDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily summation} radiative transfer source class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(radiativeTransferSourceSummation), intent(inout) :: self
-    class(radiativeTransferSourceClass    ), intent(inout) :: destination
-    type (radiativeTransferSourceList     ), pointer       :: radiativeTransferSource_   , radiativeTransferSourceDestination_, &
-         &                                                    radiativeTransferSourceNew_
-
-    call self%radiativeTransferSourceClass%deepCopy(destination)
-    select type (destination)
-    type is (radiativeTransferSourceSummation)
-       destination%radiativeTransferSources => null                         ()
-       radiativeTransferSourceDestination_  => null                         ()
-       radiativeTransferSource_             => self%radiativeTransferSources
-       do while (associated(radiativeTransferSource_))
-          allocate(radiativeTransferSourceNew_)
-          if (associated(radiativeTransferSourceDestination_)) then
-             radiativeTransferSourceDestination_%next       => radiativeTransferSourceNew_
-             radiativeTransferSourceDestination_            => radiativeTransferSourceNew_
-          else
-             destination          %radiativeTransferSources => radiativeTransferSourceNew_
-             radiativeTransferSourceDestination_            => radiativeTransferSourceNew_
-          end if
-          allocate(radiativeTransferSourceNew_%radiativeTransferSource,mold=radiativeTransferSource_%radiativeTransferSource)
-          !# <deepCopy source="radiativeTransferSource_%radiativeTransferSource" destination="radiativeTransferSourceNew_%radiativeTransferSource"/>
-          radiativeTransferSource_ => radiativeTransferSource_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine summationDeepCopy

@@ -26,6 +26,9 @@
 
   !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
   !#  <description>A merger tree outputter which combines multiple other outputters.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
+  !#  </deepCopy>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
      !% Implementation of a merger tree outputter which combines multiple other outputters.
@@ -36,7 +39,6 @@
      procedure :: output   => multiOutput
      procedure :: finalize => multiFinalize
      procedure :: reduce   => multiReduce
-     procedure :: deepCopy => multiDeepCopy
   end type mergerTreeOutputterMulti
 
   interface mergerTreeOutputterMulti
@@ -159,37 +161,3 @@ contains
     end select
     return
   end subroutine multiReduce
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(mergerTreeOutputterMulti), intent(inout) :: self
-    class(mergerTreeOutputterClass), intent(inout) :: destination
-    type (multiOutputterList      ), pointer       :: outputter_   , outputterDestination_, &
-         &                                            outputterNew_
-
-    call self%mergerTreeOutputterClass%deepCopy(destination)
-    select type (destination)
-    type is (mergerTreeOutputterMulti)
-       destination%outputters => null          ()
-       outputterDestination_  => null          ()
-       outputter_             => self%outputters
-       do while (associated(outputter_))
-          allocate(outputterNew_)
-          if (associated(outputterDestination_)) then
-             outputterDestination_%next       => outputterNew_
-             outputterDestination_            => outputterNew_
-          else
-             destination          %outputters => outputterNew_
-             outputterDestination_            => outputterNew_
-          end if
-          allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
-          !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
-          outputter_ => outputter_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

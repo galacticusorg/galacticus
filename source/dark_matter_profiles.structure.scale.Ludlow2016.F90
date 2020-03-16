@@ -221,7 +221,10 @@ contains
        end if
        ludlow2016StateCount=ludlow2016StateCount+1
        allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !$omp critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
+       !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       !$omp end critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
        ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor - under the assumption that the scale radius should change only slowly this should be a reasonable guess.

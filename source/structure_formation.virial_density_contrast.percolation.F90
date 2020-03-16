@@ -84,6 +84,7 @@
      procedure :: isMassDependent             => percolationIsMassDepdendent
      procedure :: tabulate                    => percolationTabulate
      procedure :: deepCopy                    => percolationDeepCopy
+     procedure :: deepCopyReset               => percolationDeepCopyReset
      procedure :: restoreTable                => percolationRestoreTable
      procedure :: storeTable                  => percolationStoreTable
   end type virialDensityContrastPercolation
@@ -429,6 +430,18 @@ contains
     return
   end function percolationIsMassDepdendent
 
+  subroutine percolationDeepCopyReset(self)
+    !% Perform a deep copy of the object.
+    use :: Functions_Global, only : percolationObjectsDeepCopyReset_
+    implicit none
+    class(virialDensityContrastPercolation), intent(inout) :: self
+    
+    self%copiedSelf => null()
+    if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyReset()
+    if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyReset_(self%percolationObjects_)
+    return
+  end subroutine percolationDeepCopyReset
+
   subroutine percolationDeepCopy(self,destination)
     !% Perform a deep copy of the object.
     use :: Functions_Global, only : percolationObjectsDeepCopy_
@@ -471,12 +484,27 @@ contains
           call percolationDeepCopyAssign(self,destination)
           destination%recursiveSelf                     => null()
        end if
-       nullify(destination%cosmologyfunctions_)
-       allocate(destination%cosmologyfunctions_,mold=self%cosmologyfunctions_)
-       !# <deepCopy source="self%cosmologyfunctions_" destination="destination%cosmologyfunctions_"/>
+       if (associated(self%cosmologyFunctions_)) then
+          if (associated(self%cosmologyFunctions_%copiedSelf)) then
+             select type(s => self%cosmologyFunctions_%copiedSelf)
+                class is (cosmologyFunctionsClass)
+                destination%cosmologyFunctions_ => s
+             class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+             call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
+             self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
+             call destination%cosmologyFunctions_%autoHook()
+          end if
+       end if
        nullify(destination%percolationobjects_)
-       allocate(destination%percolationobjects_,mold=self%percolationobjects_)
-       if (associated(self%percolationobjects_)) call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
+       if (associated(self%percolationobjects_)) then
+          allocate(destination%percolationobjects_,mold=self%percolationobjects_)
+          call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
+       end if
        call destination%densitycontrasttable%deepCopyActions()
        !$ call OMP_Init_Lock(destination%densitycontrasttablelock)
     class default

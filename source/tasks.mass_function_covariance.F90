@@ -1081,7 +1081,10 @@ contains
           variance=0.0d0
           !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,powerSpectrum,iField)
           allocate(massFunctionCovarianceSelfCopy,mold=self)
+          !$omp critical(massFunctionCovarianceDeepCopy)
+          !# <deepCopyReset variables="self"/>
           !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+          !$omp end critical(massFunctionCovarianceDeepCopy)
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
           call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumI        ,[countFields])

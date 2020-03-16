@@ -169,6 +169,7 @@ contains
           end do
           if (.not.matched) call Galacticus_Error_Report('named parameter "'//modelParameterNames(i)//'" does not appear in active parameters'//{introspection:location})
           allocate(modelParameters__(i)%modelParameter_,mold=modelParameters_(j)%modelParameter_)
+          !# <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>
           !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
        end do
        ! Apply the initializor

@@ -479,7 +479,10 @@ contains
                    loopCount           = 0
                    !$omp parallel private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
+                   !$omp critical(broadBandLuminositiesDeepCopy)
+                   !# <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
                    !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
+                   !$omp end critical(broadBandLuminositiesDeepCopy)
                    !$omp do
                    do iAge=1,self%luminosityTables(populationID)%agesCount
                       standardAge=self%luminosityTables(populationID)%age(iAge)
