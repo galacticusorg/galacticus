@@ -126,7 +126,7 @@ my @benchmarksToRun = (
 # Build all benchmarks.
 my @compileList = map {exists($_->{'compile'}) ? $_->{'compile'} : ()} @benchmarksToRun;
 @compileList = uniq(sort(@compileList));
-my $compileCommand = "rm -rr work/build; rm *.exe;vmake -j16 ".join(" ",@compileList)."\n";
+my $compileCommand = "rm -rf work/build; rm *.exe;make -j16 ".join(" ",@compileList)."\n";
 my %benchmarkBuildJob   =
     (
      launchFile   => "testSuite/benchmark-outputs/compileBenchmarks.pbs",
