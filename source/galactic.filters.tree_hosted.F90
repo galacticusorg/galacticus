@@ -41,7 +41,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterTreeHosted)                :: self
-    type(inputParameters       ), intent(inout) :: parameters
+    type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
     self=galacticFilterTreeHosted()
@@ -52,7 +52,7 @@ contains
     !% Implement a galactic filter which passes only main branch halos.
     implicit none
     class(galacticFilterTreeHosted), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
+    type (treeNode                ), intent(inout) :: node
     !GCC$ attributes unused :: self
 
     treeHostedPasses=associated(node%hostTree)

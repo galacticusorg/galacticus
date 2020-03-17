@@ -268,7 +268,7 @@ contains
              ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
              ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
              ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-             treeWalker=mergerTReeWalkerAllNodes(node%hostTree,spanForest=.false.)
+             treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
              do while (treeWalker%next(nodeWork))
                 ! Get the scale radius - this will initialize the radius if necessary.
                 darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
