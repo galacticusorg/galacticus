@@ -23,7 +23,7 @@ program Tests_Kepler_Orbits
   use :: ISO_Varying_String          , only : varying_string                 , assignment(=)
   use :: Input_Parameters            , only : inputParameters
   use :: Kepler_Orbits               , only : keplerOrbit
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Unit_Tests                  , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                   compareEquals
   implicit none

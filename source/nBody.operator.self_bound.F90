@@ -131,7 +131,7 @@ contains
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: ISO_Varying_String          , only : varying_string
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation

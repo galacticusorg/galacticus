@@ -169,8 +169,8 @@ contains
   double precision function Black_Hole_ISCO_Specific_Energy_Node(thisBlackHole,units,orbit)
     !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
     !% stable circular orbit for the black hole in {\normalfont \ttfamily thisNode}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
     integer                                 , intent(in   ), optional :: orbit        , units
@@ -226,8 +226,8 @@ contains
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units,orbit)
     !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
     !% innermost stable circular orbit for the black hole in {\normalfont \ttfamily thisBlackHole}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nodeComponentBlackHole)           , intent(inout)           :: thisBlackHole
     integer                                            , intent(in   ), optional :: orbit                            , units
@@ -273,9 +273,10 @@ contains
 
   double precision function Black_Hole_Gravitational_Radius(thisBlackHole)
     !% Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily thisBlackHole}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus, speedLight
-    use :: Numerical_Constants_Prefixes, only : milli
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
     class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
 

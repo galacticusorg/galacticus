@@ -131,7 +131,7 @@ contains
     use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
     implicit none

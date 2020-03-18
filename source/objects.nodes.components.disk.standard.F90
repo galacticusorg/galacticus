@@ -1390,7 +1390,7 @@ contains
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     use :: Galacticus_Nodes            , only : nodeComponentDisk              , nodeComponentDiskStandard, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode                                     ), intent(inout)          :: node
     logical                                                        , intent(  out)          :: componentActive

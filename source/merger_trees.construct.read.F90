@@ -2163,7 +2163,7 @@ contains
 
     double precision function spinNormalization()
       !% Normalization for conversion of angular momentum to spin.
-      use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       implicit none
       spinNormalization= sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node))) &
            &            /gravitationalConstantGalacticus                                            &

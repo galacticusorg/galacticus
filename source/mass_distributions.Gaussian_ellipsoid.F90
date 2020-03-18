@@ -297,7 +297,7 @@ contains
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
     use :: Coordinates                 , only : assignment(=)                  , coordinateCartesian
     use :: Linear_Algebra              , only : vector                         , assignment(=)      , operator(*)
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision                                   , dimension(3  ) :: gaussianEllipsoidAcceleration
     class           (massDistributionGaussianEllipsoid), intent(inout)  :: self

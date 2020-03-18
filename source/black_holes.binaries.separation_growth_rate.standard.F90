@@ -105,17 +105,17 @@ contains
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
     use :: Galactic_Structure_Densities               , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options                 , only : componentTypeDarkHalo                     , componentTypeSpheroid     , coordinateSystemCylindrical, massTypeDark, &
+    use :: Galactic_Structure_Options                 , only : componentTypeDarkHalo                     , componentTypeSpheroid          , coordinateSystemCylindrical, massTypeDark, &
           &                                                    massTypeGalactic                          , massTypeStellar
     use :: Galactic_Structure_Rotation_Curve_Gradients, only : Galactic_Structure_Rotation_Curve_Gradient
     use :: Galactic_Structure_Rotation_Curves         , only : Galactic_Structure_Rotation_Curve
     use :: Galactic_Structure_Velocity_Dispersions    , only : Galactic_Structure_Velocity_Dispersion
-    use :: Galacticus_Display                         , only : Galacticus_Display_Indent                 , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Galacticus_Display                         , only : Galacticus_Display_Indent                 , Galacticus_Display_Message     , Galacticus_Display_Unindent
     use :: Galacticus_Error                           , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                           , only : nodeComponentBlackHole                    , nodeComponentSpheroid     , treeNode
-    use :: Numerical_Constants_Astronomical           , only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes                           , only : nodeComponentBlackHole                    , nodeComponentSpheroid          , treeNode
+    use :: Numerical_Constants_Astronomical           , only : Mpc_per_km_per_s_To_Gyr                   , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math                   , only : Pi
-    use :: Numerical_Constants_Physical               , only : gravitationalConstantGalacticus           , speedLight
+    use :: Numerical_Constants_Physical               , only : speedLight
     use :: Numerical_Constants_Prefixes               , only : milli
     implicit none
     class           (blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self

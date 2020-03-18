@@ -987,7 +987,7 @@ contains
 
   double precision function Kepler_Orbits_Energy(orbit)
     !% Return the energy for this orbit.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1105,7 +1105,7 @@ contains
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
     !% Return the velocity scale for the orbit.
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1119,7 +1119,7 @@ contains
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
     !% Propagate an orbit along its path.
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius

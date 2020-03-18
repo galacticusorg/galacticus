@@ -77,7 +77,7 @@ end function Node_Component_Black_Hole_Simple_Enclosed_Mass
   !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                             , dimension(3) :: Node_Component_Black_Hole_Simple_Acceleration
@@ -108,7 +108,7 @@ function Node_Component_Black_Hole_Simple_Tidal_Tensor(self,positionCartesian,co
   !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
   use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
        &                                     operator(*)  
   use :: Vectors                     , only : Vector_Outer_Product

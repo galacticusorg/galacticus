@@ -303,7 +303,7 @@ contains
     !% current halo.
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Kepler_Orbits                , only : keplerOrbit
-    use :: Numerical_Constants_Physical , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
     implicit none
     type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
     type            (keplerOrbit), intent(inout)          :: orbit

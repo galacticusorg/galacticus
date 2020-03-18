@@ -274,7 +274,7 @@ contains
           &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     use :: Tensors                           , only : assignment(=)                   , operator(*)
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product

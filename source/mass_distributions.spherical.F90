@@ -169,9 +169,8 @@ contains
   function sphericalAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     !% distributions.
-    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                           , dimension(3)  :: sphericalAcceleration
@@ -203,11 +202,11 @@ contains
   function sphericalTidalTensor(self,coordinates)
     !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     !% distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Tensors                     , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
-    use :: Vectors                     , only : Vector_Outer_Product
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Tensors                         , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
     class           (massDistributionSpherical     ), intent(inout) :: self

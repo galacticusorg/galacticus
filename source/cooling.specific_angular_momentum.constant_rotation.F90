@@ -169,7 +169,7 @@ contains
     !% Return the specific angular momentum of cooling gas in the constantRotation model.
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

@@ -21,16 +21,16 @@
 
 module Numerical_Constants_Astronomical
   !% Contains various useful astronomical constants.
-  use :: FGSL                        , only : FGSL_CONST_MKSA_PARSEC, FGSL_CONST_MKSA_SOLAR_MASS
-  use :: Numerical_Constants_Atomic  , only : atomicMassHelium      , atomicMassHydrogen
+  use :: Numerical_Constants_Atomic  , only : atomicMassHelium     , atomicMassHydrogen
   use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Prefixes, only : giga                  , hecto                     , kilo, mega
+  use :: Numerical_Constants_Physical, only : gravitationalConstant
+  use :: Numerical_Constants_Prefixes, only : giga                 , hecto             , kilo, mega
   use :: Numerical_Constants_Units   , only : ergs
   implicit none
   public
 
   ! Solar mass (in kg).
-  double precision, parameter :: massSolar                 =FGSL_CONST_MKSA_SOLAR_MASS
+  !# <gslConstant variable="massSolar" gslSymbol="GSL_CONST_MKSA_SOLAR_MASS" gslHeader="gsl_const_mksa"/>
 
   ! Solar radius (in m; Allen's Astrophysical Quantities, page 340).
   double precision, parameter :: radiusSolar               =6.95508d8
@@ -50,9 +50,12 @@ module Numerical_Constants_Astronomical
   double precision, parameter :: meanAtomicMassPrimordial  =1.0d0/(2.0d0*hydrogenByMassPrimordial/atomicMassHydrogen+3.0d0*heliumByMassPrimordial/atomicMassHelium)
 
   ! Parsec and related quantities (in m).
-  double precision, parameter :: parsec                    =FGSL_CONST_MKSA_PARSEC
+  !# <gslConstant variable="parsec" gslSymbol="GSL_CONST_MKSA_PARSEC" gslHeader="gsl_const_mksa"/>
   double precision, parameter :: kiloParsec                =kilo*parsec
   double precision, parameter :: megaParsec                =mega*parsec
+
+  ! Newton's gravitational constant (in Galacticus' M_Solar, Mpc, km/s unit system).
+  double precision, parameter :: gravitationalConstantGalacticus=gravitationalConstant*massSolar/(kilo**2)/megaParsec
 
   ! Years and related quantities (in s).
   double precision, parameter :: year                      =31558149.8d0                                                                                            !   Sidereal year.

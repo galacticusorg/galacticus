@@ -103,7 +103,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentSatellite         , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
 

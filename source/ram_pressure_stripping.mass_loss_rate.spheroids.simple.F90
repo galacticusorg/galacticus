@@ -107,7 +107,7 @@ contains
     use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , coordinateSystemSpherical, massTypeAll, massTypeGaseous
     use :: Galacticus_Nodes                  , only : nodeComponentSpheroid           , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     implicit none
     class           (ramPressureStrippingSpheroidsSimple), intent(inout) :: self

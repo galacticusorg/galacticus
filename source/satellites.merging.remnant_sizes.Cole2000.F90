@@ -152,7 +152,7 @@ contains
     use :: Galacticus_Display                , only : Galacticus_Display_Message
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Numerical_Comparison              , only : Values_Agree
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: String_Handling                   , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCole2000), intent(inout) :: self

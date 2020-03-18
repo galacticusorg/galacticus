@@ -336,7 +336,7 @@ contains
 
   double precision function integrandPotential(radius)
     !% Integrand for gravitational potential in a generic dark matter profile.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -353,7 +353,7 @@ contains
   double precision function genericCircularVelocityNumerical(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -375,7 +375,7 @@ contains
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use :: FGSL                        , only : fgsl_function                  , fgsl_integration_workspace
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Integration       , only : Integrate                      , Integrate_Done
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout)            :: self
@@ -553,7 +553,7 @@ contains
     !% Return the energy of a generic dark matter density profile.
     use :: FGSL                        , only : fgsl_function                  , fgsl_integration_workspace
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Integration       , only : Integrate                      , Integrate_Done
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout) :: self

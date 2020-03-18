@@ -378,7 +378,7 @@ contains
 
   double precision function exponentialDiskRotationCurve(self,radius)
     !% Return the mid-plane rotation curve for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -420,7 +420,7 @@ contains
 
   double precision function exponentialDiskRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -451,8 +451,8 @@ contains
 
   double precision function exponentialDiskPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -683,9 +683,8 @@ contains
 
   function exponentialDiskAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=), coordinateCylindrical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec           , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                 , dimension(3  ) :: exponentialDiskAcceleration
@@ -728,8 +727,8 @@ contains
 
   function exponentialDiskTidalTensor(self,coordinates)
     !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (tensorRank2Dimension3Symmetric )                 :: exponentialDiskTidalTensor
     class           (massDistributionExponentialDisk), intent(inout)  :: self

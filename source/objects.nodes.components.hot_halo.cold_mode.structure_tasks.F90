@@ -87,7 +87,7 @@ contains
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
@@ -115,7 +115,7 @@ contains
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
     use :: Vectors                     , only : Vector_Outer_Product
     implicit none
@@ -149,7 +149,7 @@ contains
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
@@ -174,7 +174,7 @@ contains
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode), intent(inout) :: thisNode
     integer                   , intent(in   ) :: componentType   , massType

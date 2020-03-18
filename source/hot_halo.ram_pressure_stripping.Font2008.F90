@@ -212,7 +212,7 @@ contains
     !% Root function used in finding the ram pressure stripping radius.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: massEnclosed  , forceBindingGravitational, &

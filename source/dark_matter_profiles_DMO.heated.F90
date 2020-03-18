@@ -175,7 +175,7 @@ contains
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -251,7 +251,7 @@ contains
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
     use :: Galactic_Structure_Options  , only : radiusLarge
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -368,7 +368,7 @@ contains
 
   double precision function heatedRadiusInitialRoot(radiusInitial)
     !% Root function used in finding initial radii in heated dark matter halo profiles.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
     double precision                :: massEnclosed
@@ -405,7 +405,7 @@ contains
   double precision function heatedCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node

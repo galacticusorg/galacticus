@@ -113,7 +113,7 @@ contains
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: IO_HDF5                     , only : hdf5Object
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout)                 :: simulation

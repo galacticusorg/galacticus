@@ -317,7 +317,7 @@ contains
   double precision function sersicPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Interpolation     , only : Interpolate
     implicit none
     class           (massDistributionSersic), intent(inout) :: self

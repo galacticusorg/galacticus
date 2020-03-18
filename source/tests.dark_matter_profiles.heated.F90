@@ -38,7 +38,7 @@ program Test_Dark_Matter_Profiles_Heated
   use :: ISO_Varying_String          , only : varying_string                 , assignment(=)
   use :: Input_Parameters            , only : inputParameters
   use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Unit_Tests                  , only : Assert                         , Unit_Tests_Begin_Group        , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   double precision                                , parameter    :: time                           =13.8d00

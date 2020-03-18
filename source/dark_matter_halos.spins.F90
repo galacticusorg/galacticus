@@ -73,7 +73,7 @@ contains
     !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentSpin, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type (treeNode                 ), intent(inout) :: node
     class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
@@ -121,7 +121,7 @@ contains
     !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode                 ), intent(inout), pointer :: node
     double precision                           , intent(in   )          :: angularMomentum
