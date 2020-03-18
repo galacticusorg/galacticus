@@ -62,7 +62,7 @@
      !@     <arguments>\doubleone\ positionCartesian\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>initialie</method>
+     !@     <method>initialize</method>
      !@     <description>(Re)initialize the structural properties of the Gaussian ellispoid.</description>
      !@     <type>\void</type>
      !@     <arguments>\doubleone\ scaleLength\argin, \textcolor{red}{\textless type(vector)\textgreater} axes\argin</arguments>
