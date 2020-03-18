@@ -25,7 +25,7 @@
 
 module Interface_GSL
   !% Interfaces with low-level aspects of the GSL library.
-  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr
+  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int
   private
   public :: gslFunction, gslFunctionDestroy, gslFunctionTemplate
 
@@ -36,21 +36,29 @@ module Interface_GSL
      end function gslFunctionTemplate
   end interface
 
-   interface
-      !% Interfaces to C functions.
-      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
-        !% Interface to a C function which establishes a {\normalfont \ttfamily gsl\_function} type.
-        import c_ptr, c_funptr
-        type(c_ptr   )        :: gslFunctionConstructor
-        type(c_funptr), value :: f
-      end function gslFunctionConstructor
+  interface
+     !% Interfaces to C functions.
+     function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
+       !% Interface to a C function which establishes a {\normalfont \ttfamily gsl\_function} type.
+       import c_ptr, c_funptr
+       type(c_ptr   )        :: gslFunctionConstructor
+       type(c_funptr), value :: f
+     end function gslFunctionConstructor
 
-      subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
-        !% Interface to a C function which destroys a {\normalfont \ttfamily gsl\_function} type.
-        import c_funptr
-        type(c_funptr), value :: f
-      end subroutine gslFunctionDestructor
-   end interface
+     subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
+       !% Interface to a C function which destroys a {\normalfont \ttfamily gsl\_function} type.
+       import c_funptr
+       type(c_funptr), value :: f
+     end subroutine gslFunctionDestructor
+  end interface
+
+  type, public, bind(c) :: gsl_sf_result
+     !% Type for GSL special function results.
+     real(c_double) :: val, err
+  end type gsl_sf_result
+
+  ! Error codes.
+  integer(c_int), public, bind(C, name="_gsl_success") :: gsl_success
 
 contains
 
