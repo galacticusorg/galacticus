@@ -39,6 +39,7 @@ CCOMPILER ?= mpicc
 else
 CCOMPILER ?= gcc
 endif
+export CCOMPILER
 
 # C++ compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
