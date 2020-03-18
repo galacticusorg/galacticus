@@ -137,6 +137,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'         }} = ();
     @{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}} = ();
     %{$usesPerFile->{$fileIdentifier}->{'modulesProvided'     }} = ();
+    @{$usesPerFile->{$fileIdentifier}->{'submodules'          }} = ();
     %{$usesPerFile->{$fileIdentifier}->{'libraryDependencies' }} = ();
     # Extract lists of directives from this file which require special handling.
     my $directives;
@@ -263,8 +264,28 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		# Locate explicit dependencies.
 		# Locate any modules provided by this file (we do not need to include an explicit dependence on any modules which
 		# are self-provided).
-		$usesPerFile->{$fileIdentifier}->{'modulesProvided'}->{$1.".mod"} = 1
-		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+) / );
+		if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
+		    my $moduleName = $1;
+		    unless ( $moduleName eq "procedure" ) {
+			$usesPerFile->{$fileIdentifier}->{'modulesProvided'}->{$moduleName.".mod"} = 1;
+			if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
+			    foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
+				foreach my $functionClassFileName ( &List::ExtraUtils::as_array($locations->{$functionClass->{'name'}}->{'file'}) ) {
+				    my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,$functionClass->{'name'});
+				    my @submoduleNames = map {$_->{'name'}."_"} @functionClasses;
+				    push(@{$usesPerFile->{$fileIdentifier}->{'submodules'}},@submoduleNames);
+				}
+			    }
+			}
+		    }
+		}
+		# Locate any submodules provided by this file.
+		if ( $line =~ m/^\s*submodule\s*\(\s*([a-z0-9_]+)(:([a-z0-9_]+))??\s*\)\s*([a-zA-Z0-9_]+)/i ) {
+		    # Construct the names of the module file and object file generated from this source file.
+		    my $moduleFileName = lc($1).".mod";
+		    my $submoduleName  = lc($4);
+		    push(@{$usesPerFile->{$fileIdentifier}->{'submodulesProvided'}},{submoduleName => $submoduleName, moduleFileName => $moduleFileName});
+		}
 		# Locate included files and push them to the stack of files to process.
 		if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
 		    my $preprocessedIncludedFile = $2;
@@ -297,13 +318,32 @@ $usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'} = []
     unless ( exists($usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}) );
 push(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}},@{$usesPerFile->{'eventHooksManager'}->{'modules'}});
 @{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}} = uniq(sort(@{$usesPerFile->{$eventHooksFileIdentifier}->{'modulesUsed'}}));
+# Build a map of submodules associated with each module.
+my %submodules;
+## First include submodules generated from functionClasses.
+foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
+    next
+	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodules'}) && scalar(@{$usesPerFile->{$fileIdentifier}->{'submodules'}}) > 0 );
+    my @modulesProvided = keys(%{$usesPerFile->{$fileIdentifier}->{'modulesProvided'}});
+    die("useDependencies.pl: submodules associated with multiple modules")
+	unless ( scalar(@modulesProvided) == 1 );
+    $submodules{$workDirectoryName.lc($modulesProvided[0])} = $usesPerFile->{$fileIdentifier}->{'submodules'};
+}
+## Next include explictly defined submodules.
+foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
+    next
+	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodulesProvided'}) );
+    foreach my $submodule ( @{$usesPerFile->{$fileIdentifier}->{'submodulesProvided'}} ) {
+	push(@{$submodules{$workDirectoryName.$submodule->{'moduleFileName'}}},$submodule->{'submoduleName'});
+    }
+}
+
 # Iterate over files to generate make rules.
 foreach my $sourceFile ( @sourceFilesToProcess ) {
     # Push the main file onto the scan stack.
     my @fileNamesToProcess = ( $sourceFile->{'fullPathFileName'} );
     (my $fileIdentifier = $sourceFile->{'fullPathFileName'}) =~ s/\//_/g;
     $fileIdentifier =~ s/^\._??//;
-
     # Construct name of associated object and dependency file.
     (my $objectFileName      = $sourceFile->{'fileName'}) =~ s/\.(f|f90|c|cpp)$/.o/i;
     (my $dependencyFileName  = $sourceFile->{'fileName'}) =~ s/\.(f|f90|c|cpp|inc)$/.d/i;
@@ -322,7 +362,14 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	# Sort the list of modules used, and remove any duplicate entries.
 	@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}} = grep {! exists($usesPerFile->{$fileIdentifier}->{'modulesProvided'}->{$_})} uniq(sort(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}}));
 	# Output the dependencies.
-	print $dependenciesFile $workSubDirectoryName.$objectFileName,": ".join(" ",@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})." Makefile\n";
+	my @submodulesUsed;
+	foreach my $moduleUsed ( @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}} ) {
+	    next
+		unless ( exists($submodules{$moduleUsed}) );
+	    (my $moduleName = $moduleUsed) =~ s/\.mod$//;
+	    push(@submodulesUsed,map {$moduleName."\@".lc($_).".smod"} @{$submodules{$moduleUsed}});
+	}
+	print $dependenciesFile $workSubDirectoryName.$objectFileName,": ".join(" ",@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},@submodulesUsed,@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})." Makefile\n";
 	# Generate rules for dependency files - we first append a ".d" to any module file names used.
 	my @dependenciesUsed = map {$_ =~ m/\.mod$/ ? $_.".d" : $_} @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}};	
 	print $dependenciesFile $workSubDirectoryName.$dependencyFileName,": ".join(" ",@dependenciesUsed,map {(my $modifiedName = $_) =~ s/\.o$/.d/; $modifiedName} @{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})."\n";

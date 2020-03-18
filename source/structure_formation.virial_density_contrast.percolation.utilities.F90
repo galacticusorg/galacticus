@@ -30,7 +30,7 @@ module Virial_Density_Contrast_Percolation_Utilities
   use :: Dark_Matter_Profiles_Shape        , only : darkMatterProfileShape        , darkMatterProfileShapeClass
   use :: Galacticus_Nodes                  , only : nodeComponentDarkMatterProfile, treeNode
   private
-  public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy
+  public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy, percolationObjectsDeepCopyReset
 
   ! Container type used to store state.
   type :: solverState
@@ -104,6 +104,31 @@ contains
   end subroutine percolationObjectsDestructor
 
   !# <functionGlobal>
+  !#  <unitName>percolationObjectsDeepCopyReset</unitName>
+  !#  <type>void</type>
+  !#  <arguments>class(*), intent(inout) :: self</arguments>
+  !# </functionGlobal>
+  subroutine percolationObjectsDeepCopyReset(self)
+    !% Perform a deep copy of percolation virial density contrast objects.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*), intent(inout) :: self
+    
+    select type (self)
+    class is (percolationObjects)
+       if (associated(self%darkMatterProfileDMO_          )) call self%darkMatterProfileDMO_          %deepCopyReset()
+       if (associated(self%cosmologyParameters_           )) call self%cosmologyParameters_           %deepCopyReset()
+       if (associated(self%cosmologyFunctions_            )) call self%cosmologyFunctions_            %deepCopyReset()
+       if (associated(self%darkMatterHaloScale_           )) call self%darkMatterHaloScale_           %deepCopyReset()
+       if (associated(self%darkMatterProfileConcentration_)) call self%darkMatterProfileConcentration_%deepCopyReset()
+       if (associated(self%darkMatterProfileShape_        )) call self%darkMatterProfileShape_        %deepCopyReset()
+    class default
+       call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
+    end select
+     return
+   end subroutine percolationObjectsDeepCopyReset
+  
+  !# <functionGlobal>
   !#  <unitName>percolationObjectsDeepCopy</unitName>
   !#  <type>void</type>
   !#  <arguments>class(*), intent(inout) :: self, destination</arguments>
@@ -124,18 +149,100 @@ contains
           nullify(destination%darkMatterHaloScale_           )
           nullify(destination%darkMatterProfileConcentration_)
           nullify(destination%darkMatterProfileShape_        )
-          allocate(destination%darkMatterProfileDMO_          ,mold=self%darkMatterProfileDMO_          )
-          allocate(destination%cosmologyParameters_           ,mold=self%cosmologyParameters_           )
-          allocate(destination%cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
-          allocate(destination%darkMatterHaloScale_           ,mold=self%darkMatterHaloScale_           )
-          allocate(destination%darkMatterProfileConcentration_,mold=self%darkMatterProfileConcentration_)
-          allocate(destination%darkMatterProfileShape_        ,mold=self%darkMatterProfileShape_        )
-          !# <deepCopy source="self%darkMatterProfileDMO_"           destination="destination%darkMatterProfileDMO_"          />
-          !# <deepCopy source="self%cosmologyParameters_"            destination="destination%cosmologyParameters_"           />
-          !# <deepCopy source="self%cosmologyFunctions_"             destination="destination%cosmologyFunctions_"            />
-          !# <deepCopy source="self%darkMatterHaloScale_"            destination="destination%darkMatterHaloScale_"           />
-          !# <deepCopy source="self%darkMatterProfileConcentration_" destination="destination%darkMatterProfileConcentration_"/>
-          !# <deepCopy source="self%darkMatterProfileShape_"         destination="destination%darkMatterProfileShape_"        />
+          if (associated(self%darkMatterProfileDMO_)) then
+             if (associated(self%darkMatterProfileDMO_%copiedSelf)) then
+                select type(s => self%darkMatterProfileDMO_%copiedSelf)
+                   class is (darkMatterProfileDMOClass)
+                   destination%darkMatterProfileDMO_ => s
+                class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%darkMatterProfileDMO_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%darkMatterProfileDMO_,mold=self%darkMatterProfileDMO_)
+                call self%darkMatterProfileDMO_%deepCopy(destination%darkMatterProfileDMO_)
+                self%darkMatterProfileDMO_%copiedSelf => destination%darkMatterProfileDMO_
+                call destination%darkMatterProfileDMO_%autoHook()
+             end if
+          end if
+          if (associated(self%cosmologyParameters_%copiedSelf)) then
+             select type(s => self%cosmologyParameters_%copiedSelf)
+                class is (cosmologyParametersClass)
+                destination%cosmologyParameters_ => s
+             class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+             call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
+             self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
+             call destination%cosmologyParameters_%autoHook()
+          end if
+          if (associated(self%cosmologyFunctions_)) then
+             if (associated(self%cosmologyFunctions_%copiedSelf)) then
+                select type(s => self%cosmologyFunctions_%copiedSelf)
+                class is (cosmologyFunctionsClass)
+                   destination%cosmologyFunctions_ => s
+                   class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+                call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
+                self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
+                call destination%cosmologyFunctions_%autoHook()
+             end if
+          end if
+          if (associated(self%darkMatterHaloScale_)) then
+             if (associated(self%darkMatterHaloScale_%copiedSelf)) then
+                select type(s => self%darkMatterHaloScale_%copiedSelf)
+                class is (darkMatterHaloScaleClass)
+                   destination%darkMatterHaloScale_ => s
+                class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%darkMatterHaloScale_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%darkMatterHaloScale_,mold=self%darkMatterHaloScale_)
+                call self%darkMatterHaloScale_%deepCopy(destination%darkMatterHaloScale_)
+                self%darkMatterHaloScale_%copiedSelf => destination%darkMatterHaloScale_
+                call destination%darkMatterHaloScale_%autoHook()
+             end if
+          end if
+          if (associated(self%darkMatterProfileConcentration_)) then
+             if (associated(self%darkMatterProfileConcentration_%copiedSelf)) then
+                select type(s => self%darkMatterProfileConcentration_%copiedSelf)
+                   class is (darkMatterProfileConcentrationClass)
+                   destination%darkMatterProfileConcentration_ => s
+                   class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%darkMatterProfileConcentration_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%darkMatterProfileConcentration_,mold=self%darkMatterProfileConcentration_)
+                call self%darkMatterProfileConcentration_%deepCopy(destination%darkMatterProfileConcentration_)
+                self%darkMatterProfileConcentration_%copiedSelf => destination%darkMatterProfileConcentration_
+                call destination%darkMatterProfileConcentration_%autoHook()
+             end if
+          end if
+          if (associated(self%darkMatterProfileShape_)) then
+             if (associated(self%darkMatterProfileShape_%copiedSelf)) then
+                select type(s => self%darkMatterProfileShape_%copiedSelf)
+                   class is (darkMatterProfileShapeClass)
+                   destination%darkMatterProfileShape_ => s
+                   class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%darkMatterProfileShape_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%darkMatterProfileShape_,mold=self%darkMatterProfileShape_)
+                call self%darkMatterProfileShape_%deepCopy(destination%darkMatterProfileShape_)
+                self%darkMatterProfileShape_%copiedSelf => destination%darkMatterProfileShape_
+                call destination%darkMatterProfileShape_%autoHook()
+             end if
+          end if
        class default
           call Galacticus_Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
        end select

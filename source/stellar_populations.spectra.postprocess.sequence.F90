@@ -26,16 +26,18 @@
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
   !#  <description>A sequence stellar population spectra postprocessor class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
+  !#  </deepCopy>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
      !% A sequence stellar population spectra postprocessor class.
      private
      type(postprocessorList), pointer :: postprocessors => null()
    contains
-     final     ::                sequenceDestructor
-     procedure :: multiplier  => sequenceMultiplier
-     procedure :: deepCopy    => sequenceDeepCopy
-     procedure :: descriptor  => sequenceDescriptor
+     final     ::               sequenceDestructor
+     procedure :: multiplier => sequenceMultiplier
+     procedure :: descriptor => sequenceDescriptor
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
@@ -121,40 +123,6 @@ contains
     end do
     return
   end function sequenceMultiplier
-
-  subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} stellar population spectra postprocessor class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
-    class(stellarPopulationSpectraPostprocessorClass   ), intent(inout) :: destination
-    type (postprocessorList                            ), pointer       :: postprocessor_   , postprocessorDestination_, &
-         &                                                                 postprocessorNew_
-
-    call self%stellarPopulationSpectraPostprocessorClass%deepCopy(destination)
-    select type (destination)
-    type is (stellarPopulationSpectraPostprocessorSequence)
-       destination%postprocessors => null          ()
-       postprocessorDestination_  => null          ()
-       postprocessor_             => self%postprocessors
-       do while (associated(postprocessor_))
-          allocate(postprocessorNew_)
-          if (associated(postprocessorDestination_)) then
-             postprocessorDestination_%next       => postprocessorNew_
-             postprocessorDestination_            => postprocessorNew_
-          else
-             destination          %postprocessors => postprocessorNew_
-             postprocessorDestination_            => postprocessorNew_
-          end if
-          allocate(postprocessorNew_%postprocessor_,mold=postprocessor_%postprocessor_)
-          !# <deepCopy source="postprocessor_%postprocessor_" destination="postprocessorNew_%postprocessor_"/>
-          postprocessor_ => postprocessor_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine sequenceDeepCopy
 
   subroutine sequenceDescriptor(self,descriptor,includeMethod)
     !% Return an input parameter list descriptor which could be used to recreate this object.

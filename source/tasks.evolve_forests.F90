@@ -429,11 +429,14 @@ contains
     allocate(evolveForestsMergerTreeConstructor_,mold=self%mergerTreeConstructor_)
     allocate(evolveForestsMergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
     allocate(evolveForestsGalacticFilter_       ,mold=self%galacticFilter_       )
+    !$omp critical(evolveForestsDeepCopy)
+    !# <deepCopyReset variables="self%mergerTreeEvolver_ self%mergerTreeOutputter_ self%mergerTreeConstructor_ self%mergerTreeOperator_ self%galacticFilter_"/>
     !# <deepCopy source="self%mergerTreeEvolver_"     destination="evolveForestsMergerTreeEvolver_"    />
     !# <deepCopy source="self%mergerTreeOutputter_"   destination="evolveForestsMergerTreeOutputter_"  />
     !# <deepCopy source="self%mergerTreeConstructor_" destination="evolveForestsMergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="evolveForestsMergerTreeOperator_"   />
     !# <deepCopy source="self%galacticFilter_"        destination="evolveForestsGalacticFilter_"       />
+    !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Allow events to be attached to the universe.

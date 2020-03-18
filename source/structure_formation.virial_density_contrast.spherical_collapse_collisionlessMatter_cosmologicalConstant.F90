@@ -23,10 +23,10 @@
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
   use :: Tables                    , only : table1D
 
-  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt">
+  !# <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
   !# </virialDensityContrast>
-  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
      logical                                                                         :: tableInitialized        =  .false., turnaroundInitialized=.false.
@@ -38,7 +38,7 @@
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt</object>
+     !@   <object>virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -46,26 +46,26 @@
      !@     <description>Tabulate spherical collapse virial density contrast.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
-     procedure :: densityContrast             => sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast
-     procedure :: densityContrastRateOfChange => sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng
-     procedure :: turnAroundOverVirialRadii   => sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd
-     procedure :: retabulate                  => sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
-  end type virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+     final     ::                                sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
+     procedure :: densityContrast             => sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast
+     procedure :: densityContrastRateOfChange => sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng
+     procedure :: turnAroundOverVirialRadii   => sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd
+     procedure :: retabulate                  => sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
+  end type virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
-  interface virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
-     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
-  end interface virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  interface virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+     module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
+     module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
+  end interface virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
 contains
 
-  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class that takes a parameter set as input.
+  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class that takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                :: self
+    type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                :: self
     type   (inputParameters                                                ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass                                        ), pointer       :: cosmologyFunctions_
     logical                                                                                 :: tableStore
@@ -79,16 +79,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(tableStore,cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(tableStore,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
 
-  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal(tableStore,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(tableStore,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
-    type   (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt)                        :: self
+    type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: self
     class  (cosmologyFunctionsClass                                        ), intent(in   ), target :: cosmologyFunctions_
     logical                                                                 , intent(in   )         :: tableStore
     !# <constructorAssign variables="tableStore, *cosmologyFunctions_"/>
@@ -101,12 +101,12 @@ contains
        !# <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_)"/>
     end select
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
 
-  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+  subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
-    type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
 
     if (self%tableInitialized) then
        call self%deltaVirial%destroy()
@@ -119,12 +119,12 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"     />
     !# <objectDestructor name="self%sphericalCollapseSolver_"/>
     return
-  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
+  end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
 
-  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate(self,time)
+  subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
     implicit none
-    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     double precision                                                                 , intent(in   ) :: time
     logical                                                                                          :: remakeTable
 
@@ -141,13 +141,13 @@ contains
        self%tableTimeMaximum=self%deltaVirial%x(-1)
     end if
     return
-  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
+  end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass
     double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
     logical                                                                          , intent(in   ), optional :: collapsing
@@ -177,15 +177,15 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(timeActual)
     ! Interpolate to get the expansion factor.
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast=self%deltaVirial%interpolate(timeActual)
+    sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast=self%deltaVirial%interpolate(timeActual)
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrast
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass
     double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
     logical                                                                          , intent(in   ), optional :: collapsing
@@ -215,15 +215,15 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(timeActual)
     ! Interpolate to get the expansion factor.
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng=self%deltaVirial%interpolateGradient(timeActual)
+    sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng=self%deltaVirial%interpolateGradient(timeActual)
    return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntDensityContrastRtChng
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd(self,mass,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     implicit none
-    class           (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                 , intent(in   )           :: mass
     double precision                                                                 , intent(in   ), optional :: time       , expansionFactor
     logical                                                                          , intent(in   ), optional :: collapsing
@@ -245,6 +245,6 @@ contains
        self%turnaroundTimeMaximum=self%turnaround%x(-1)
     end if
     ! Interpolate to get the ratio.
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd=self%turnaround%interpolate(time_)
+    sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd=self%turnaround%interpolate(time_)
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntTrnrndVrlRd
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd

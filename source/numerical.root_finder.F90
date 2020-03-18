@@ -297,7 +297,7 @@ contains
        currentFinders(currentFinderIndex)%highInitialUsed=.true.
        fLow =self%finderFunction(xLow )
        fHigh=self%finderFunction(xHigh)
-       do while (fLow*fHigh > 0.0d0)
+       do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
           select case (self%rangeExpandDownwardSignExpect)
           case (rangeExpandSignExpectNegative)

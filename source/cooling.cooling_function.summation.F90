@@ -21,6 +21,9 @@
 
   !# <coolingFunction name="coolingFunctionSummation">
   !#  <description>Class providing a cooling function which sums over other cooling functions.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
+  !#  </deepCopy>
   !# </coolingFunction>
 
   type, public :: coolantList
@@ -38,7 +41,6 @@
      procedure :: coolingFunctionTemperatureLogSlope => summationCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => summationCoolingFunctionDensityLogSlope
      procedure :: descriptor                         => summationDescriptor
-     procedure :: deepCopy                           => summationDeepCopy
   end type coolingFunctionSummation
 
   interface coolingFunctionSummation
@@ -261,37 +263,3 @@ contains
     end do
     return
   end subroutine summationDescriptor
-
-  subroutine summationDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily summation} cooling function class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(coolingFunctionSummation), intent(inout) :: self
-    class(coolingFunctionClass    ), intent(inout) :: destination
-    type (coolantList             ), pointer       :: coolant_   , coolantDestination_, &
-         &                                            coolantNew_
-
-    call self%coolingFunctionClass%deepCopy(destination)
-    select type (destination)
-    type is (coolingFunctionSummation)
-       destination%coolants => null          ()
-       coolantDestination_  => null          ()
-       coolant_             => self%coolants
-       do while (associated(coolant_))
-          allocate(coolantNew_)
-          if (associated(coolantDestination_)) then
-             coolantDestination_%next       => coolantNew_
-             coolantDestination_            => coolantNew_
-          else
-             destination          %coolants => coolantNew_
-             coolantDestination_            => coolantNew_
-          end if
-          allocate(coolantNew_%coolingFunction,mold=coolant_%coolingFunction)
-          !# <deepCopy source="coolant_%coolingFunction" destination="coolantNew_%coolingFunction"/>
-          coolant_ => coolant_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine summationDeepCopy

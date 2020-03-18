@@ -412,7 +412,8 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure, only : unitAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode, &
+         &                              defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -422,6 +423,8 @@ contains
     double precision                                               :: massVirial                 , radiusVirial, &
          &                                                            velocityVirial
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of the cold mode class.
@@ -500,12 +503,12 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use :: Abundances_Structure                 , only : abundances                          , operator(*)         , zeroAbundances
+    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances
     use :: Accretion_Halos                      , only : accretionModeCold                   , accretionModeTotal
     use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic    , radiusLarge
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, &
-          &                                              treeNode
+    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
+    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloColdMode, nodeComponentSpin, &
+          &                                              treeNode                            , defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
@@ -522,6 +525,8 @@ contains
          &                                                            massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of cold mode class.

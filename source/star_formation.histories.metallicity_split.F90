@@ -195,7 +195,7 @@ contains
     double precision                                      , intent(in   )                         :: timeStep             , timeStepFine, &
          &                                                                                           timeFine
     integer                                               , intent(in   )              , optional :: countMetallicities
-    class           (outputTimesClass                    ), target                                :: outputTimes_
+    class           (outputTimesClass                    ), intent(in   ), target                 :: outputTimes_
     !# <constructorAssign variables="timeStep, timeStepFine, timeFine, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
 
     if (present(metallicityBoundaries)) then

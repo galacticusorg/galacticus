@@ -437,10 +437,13 @@ contains
           allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
+          !$omp critical(stellarPopulationsStandardDeepCopy)
+          !# <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
           !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
           !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
-          call self%stellarFeedback_    %deepCopy(standardStellarFeedback_    )
-          call self%supernovaeTypeIa_   %deepCopy(standardSupernovaeTypeIa_   )
+          !# <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
+          !# <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
           call integrator_%integrandSet(property%integrand                                   )
@@ -667,12 +670,17 @@ contains
     return
   end function standardYieldInstantaneous
 
-  function standardSpectra(self)
+  !# <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
+  !#  <description>
+  !#   If the function name is used as the result variable, instead of using "result(spectra)", this PR is triggered.
+  !#  </description>
+  !# </workaround>
+  function standardSpectra(self) result(spectra)
     !% Return the stellar spectra associated with this population.
     implicit none
-    class(stellarPopulationSpectraClass), pointer       :: standardSpectra
+    class(stellarPopulationSpectraClass), pointer       :: spectra
     class(stellarPopulationStandard    ), intent(inout) :: self
 
-    standardSpectra => self%stellarPopulationSpectra_
+    spectra => self%stellarPopulationSpectra_
     return
   end function standardSpectra

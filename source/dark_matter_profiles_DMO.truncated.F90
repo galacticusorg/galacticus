@@ -52,7 +52,7 @@
      !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                             truncatedDestructor
+     final     ::                                      truncatedDestructor
      procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset
      procedure :: density                           => truncatedDensity

@@ -12,7 +12,7 @@
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="70.0"/>
   </cosmologyParametersMethod>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrDrkEnrgy">
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrDrkEnrgy">
     <energyFixedAt value="virialization"/>
   </virialDensityContrastMethod>
 </parameters>

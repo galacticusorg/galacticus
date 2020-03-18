@@ -24,9 +24,8 @@
 
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
-  use            :: FGSL         , only : FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, FGSL_Success, fgsl_int, &
-          &                               fgsl_sf_result    , gsl_sf_result
-  use, intrinsic :: ISO_C_Binding, only : c_double          , c_int
+  use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
+  use            :: Interface_GSL, only : gsl_sf_result, gsl_success
   implicit none
   private
   public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
@@ -38,16 +37,33 @@ module Hypergeometric_Functions
 
   interface
      function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
-       !% Template for the GSL hypergeometric 2F1 C function.
+       !% Template for the GSL approximate hypergeometric 2F1 C function.
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_e
        real   (c_double     ), value :: a,b,c,x,tol
        type   (gsl_sf_result)        :: result
      end function gsl_sf_hyperg_2F1_approx_e
+
+     function gsl_sf_hyperg_2F1_e(a,b,c,x,result) bind(c,name='gsl_sf_hyperg_2F1_e')
+       !% Template for the GSL hypergeometric 2F1 C function.
+       import
+       integer(c_int        )        :: gsl_sf_hyperg_2F1_e
+       real   (c_double     ), value :: a                  , b, &
+            &                           c                  , x
+       type   (gsl_sf_result)        :: result
+     end function gsl_sf_hyperg_2F1_e
+
+     function gsl_sf_hyperg_1F1(a,b,x) bind(c,name='gsl_sf_hyperg_1F1')
+       !% Template for the GSL hypergeometric 1F1 C function.
+       import
+       real(c_double)        :: gsl_sf_hyperg_1F1
+       real(c_double), value :: a                , b, &
+            &                   x
+     end function gsl_sf_hyperg_1F1
   end interface
 
   ! Error status.
-  integer(fgsl_int) :: statusActual
+  integer(c_int) :: statusActual
   !$omp threadprivate(statusActual)
 
 contains
@@ -57,7 +73,7 @@ contains
     implicit none
     double precision, intent(in   ) :: a(1), b(1), x
 
-    Hypergeometric_1F1=FGSL_SF_Hyperg_1F1(a(1),b(1),x)
+    Hypergeometric_1F1=GSL_SF_Hyperg_1F1(a(1),b(1),x)
     return
   end function Hypergeometric_1F1
 
@@ -65,26 +81,25 @@ contains
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     implicit none
-    double precision                , intent(in   )           :: a(2)             , b(1), &
-         &                                                       x
-    integer         (fgsl_int      ), intent(  out), optional :: status
-    double precision                , intent(  out), optional :: error
-    double precision                , intent(in   ), optional :: toleranceRelative
-    type            (fgsl_sf_result)                          :: fgslResult
-    type            ( gsl_sf_result)                          ::  gslResult
+    double precision               , intent(in   )           :: a(2)             , b(1), &
+         &                                                      x
+    integer         (c_int        ), intent(  out), optional :: status
+    double precision               , intent(  out), optional :: error
+    double precision               , intent(in   ), optional :: toleranceRelative
+    type            (gsl_sf_result)                          :: gslResult
 
     ! Use our own error handler.
     if (present(status)) then
        call Galacticus_GSL_Error_Handler_Abort_Off()
-       statusActual=FGSL_Success
+       statusActual=GSL_Success
     end if
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
        ! |x|<1 so simply call the GSL function to compute the function.
        if (.not.present(toleranceRelative)) then
-          statusActual=FGSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,fgslResult)
-          Hypergeometric_2F1=fgslResult%val
-          if (present(error)) error=fgslResult%err
+          statusActual=GSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,gslResult)
+          Hypergeometric_2F1=gslResult%val
+          if (present(error)) error=gslResult%err
        else
           statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(1),a(2),b(1),x,toleranceRelative,gslResult)
           Hypergeometric_2F1=gslResult%val
@@ -93,9 +108,9 @@ contains
     else if (x < -1.0d0) then
        ! x<-1 so use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1.
        if (.not.present(toleranceRelative)) then
-          statusActual=FGSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),fgslResult)
-          Hypergeometric_2F1=fgslResult%val/(1.0d0-x)**a(2)
-          if (present(error)) error=fgslResult%err/(1.0d0-x)**a(2)
+          statusActual=GSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),gslResult)
+          Hypergeometric_2F1=gslResult%val/(1.0d0-x)**a(2)
+          if (present(error)) error=gslResult%err/(1.0d0-x)**a(2)
        else
           statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),toleranceRelative,gslResult)
           Hypergeometric_2F1=gslResult%val/(1.0d0-x)**a(2)
@@ -109,7 +124,7 @@ contains
        status=statusActual
        ! Reset error handler.
        call Galacticus_GSL_Error_Handler_Abort_On()
-    else if (statusActual /= FGSL_Success) then
+    else if (statusActual /= GSL_Success) then
        call Galacticus_Error_Report('GSL failed'//{introspection:location})
     end if
     return

@@ -33,7 +33,7 @@ sub Process_GCCAttributes {
 		    (my $variableList = $1) =~ s/\s//g;
 		    my $parent = $node->{'parent'};
 		    die("Process_GCCAttributes(): 'unused' attribute is relevant only in a function or subroutine")
-			unless ( $parent->{'type'} eq "function" || $parent->{'type'} eq "subroutine" );
+			unless ( $parent->{'type'} eq "function" || $parent->{'type'} eq "subroutine" || $parent->{'type'} eq "moduleProcedure");
 		    my $functionToUse = $parent->{'opener'} =~ m/^\s*(elemental|pure)\s/ ? "sizeof" : "loc";
 		    # Find the final node in the function, or a contains node.
 		    my $finalNode = $parent->{'firstChild'};

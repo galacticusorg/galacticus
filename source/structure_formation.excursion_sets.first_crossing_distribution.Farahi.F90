@@ -380,7 +380,10 @@ contains
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
           !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_,barrierTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
+          !$omp critical(excursionSetsSolverFarahiDeepCopy)
+          !# <deepCopyReset variables="self%excursionSetBarrier_"/>
           !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+          !$omp end critical(excursionSetsSolverFarahiDeepCopy)
           call allocateArray(barrierTable,[1+self%varianceTableCount],lowerBounds=[0])
           !$omp do schedule(dynamic)
           do iTime=1,self%timeTableCount
@@ -700,8 +703,11 @@ contains
           ! scales).
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+          !$omp critical(excursionSetsSolverFarahiDeepCopy)
+          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !$omp end critical(excursionSetsSolverFarahiDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
           varianceMinimumRate            =min(                                                                                                                      &
@@ -776,8 +782,11 @@ contains
           !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+          !$omp critical(excursionSetsSolverFarahiDeepCopy)
+          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !$omp end critical(excursionSetsSolverFarahiDeepCopy)
           call allocateArray(barrierTableRateQuad,[self%varianceTableCountRate])
           !$omp do schedule(dynamic)
           do iTime=1,self%timeTableCountRate

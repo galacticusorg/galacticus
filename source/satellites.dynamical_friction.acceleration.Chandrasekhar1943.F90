@@ -106,6 +106,9 @@ contains
     use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
+
+    use :: Galactic_Structure_Chandrasekhar_Integrals, only : Galactic_Structure_Chandrasekhar_Integral
+    
     implicit none
     double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
@@ -117,7 +120,7 @@ contains
          &                                                                          velocityMagnitude            , velocityDispersion, &
          &                                                                          Xv                           , radius
     double precision                                             , parameter     :: XvMaximum=10.0d0
-
+    
     nodeHost                     =>  node     %mergesWith                                    (               )
     satellite                    =>  node     %satellite                                     (               )
     massSatellite                =   satellite%boundMass                                     (               )

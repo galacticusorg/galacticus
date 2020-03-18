@@ -43,9 +43,10 @@
      !@     <description>Load a file of AGN spectra.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::               fileDestructor
-     procedure :: spectrum   => fileSpectrum
-     procedure :: loadFile   => fileLoadFile
+     final     ::                     fileDestructor
+     procedure :: spectrumNode     => fileSpectrumNode
+     procedure :: spectrumMassRate => fileSpectrumMassRate
+     procedure :: loadFile         => fileLoadFile
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
@@ -84,7 +85,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
+    type     (accretionDiskSpectraFile)                :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
 
     ! Ensure that the required methods are supported.
@@ -161,28 +162,44 @@ contains
     return
   end subroutine fileLoadFile
 
-  double precision function fileSpectrum(self,node,wavelength)
+  double precision function fileSpectrumNode(self,node,wavelength)
     !% Return the accretion disk spectrum for tabulated spectra.
-    use            :: Galacticus_Nodes                , only : nodeComponentBlackHole             , treeNode
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : gigaYear                           , luminositySolar   , massSolar
-    use            :: Numerical_Constants_Physical    , only : speedLight
-    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
     type            (treeNode                ), intent(inout)  :: node
     double precision                          , intent(in   )  :: wavelength
     class           (nodeComponentBlackHole  ), pointer        :: blackHole
+
+    blackHole => node%blackHole()
+    fileSpectrumNode=self%spectrum(blackHole%accretionRate(),blackHole%radiativeEfficiency(),wavelength)
+    return
+  end function fileSpectrumNode
+
+  double precision function fileSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength)
+    !% Return the accretion disk spectrum for tabulated spectra.
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Numerical_Constants_Astronomical, only : gigaYear                           , luminositySolar   , massSolar
+    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Numerical_Constants_Physical    , only : speedLight
+    implicit none
+    class           (accretionDiskSpectraFile), intent(inout)  :: self
+    double precision                          , intent(in   )  :: accretionRate       , efficiencyRadiative, &
+         &                                                        wavelength
     double precision                          , dimension(0:1) :: hLuminosity         , hWavelength
-    integer         (c_size_t                )                 :: iLuminosity         , iWavelength, &
+    integer         (c_size_t                )                 :: iLuminosity         , iWavelength        , &
          &                                                        jLuminosity         , jWavelength
     double precision                                           :: luminosityBolometric
 
     ! Initialize to zero spectrum.
-    fileSpectrum=0.0d0
+    fileSpectrumMassRate=0.0d0
     ! Get the bolometric luminosity.
-    blackHole => node%blackHole()
-    luminosityBolometric=blackHole%radiativeEfficiency()*blackHole%accretionRate()*massSolar*speedLight**2/gigaYear/luminositySolar
+    luminosityBolometric=+efficiencyRadiative    &
+         &               *accretionRate          &
+         &               *massSolar              &
+         &               *speedLight         **2 &
+         &               /gigaYear               &
+         &               /luminositySolar
     ! Return on non-positive luminosities.
     if (luminosityBolometric <= 0.0d0) return
     ! Assume zero flux outside of the tabulated wavelength range.
@@ -199,18 +216,17 @@ contains
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1
-          fileSpectrum=                                           &
-               &       +fileSpectrum                              &
-               &       +self        %SED(                         &
-               &                         iWavelength+jWavelength, &
-               &                         iLuminosity+jLuminosity  &
-               &                        )                         &
-               &       *hLuminosity     (            jLuminosity) &
-               &       *hWavelength     (            jWavelength)
+          fileSpectrumMassRate=+fileSpectrumMassRate                      &
+               &               +self        %SED(                         &
+               &                                 iWavelength+jWavelength, &
+               &                                 iLuminosity+jLuminosity  &
+               &                                )                         &
+               &               *hLuminosity     (            jLuminosity) &
+               &               *hWavelength     (            jWavelength)
        end do
     end do
     ! Prevent interpolation from returning negative fluxes.
-    fileSpectrum=max(fileSpectrum,0.0d0)
+    fileSpectrumMassRate=max(fileSpectrumMassRate,0.0d0)
     return
-  end function fileSpectrum
+  end function fileSpectrumMassRate
 

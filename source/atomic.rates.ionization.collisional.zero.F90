@@ -1,0 +1,62 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% An implementation of atomic collisional ionization rates which assumes zero rate.
+
+  !# <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalZero">
+  !#  <description>Atomic collisional ionization rates are assumed to be zero.</description>
+  !# </atomicIonizationRateCollisional>
+  type, extends(atomicIonizationRateCollisionalClass) :: atomicIonizationRateCollisionalZero
+     !% A collisional ionization rate class which assumes a zero rate.
+     private
+   contains
+     procedure :: rate => zeroRate
+  end type atomicIonizationRateCollisionalZero
+
+  interface atomicIonizationRateCollisionalZero
+     !% Constructors for the {\normalfont \ttfamily zero} atomic collisional ionization class.
+     module procedure zeroConstructorParameters
+  end interface atomicIonizationRateCollisionalZero
+
+contains
+  
+  function zeroConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily zero} atomic collisional ionization class which takes a parameter set as
+    !% input.
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(atomicIonizationRateCollisionalZero)                :: self
+    type(inputParameters                    ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=atomicIonizationRateCollisionalZero()
+    return
+  end function zeroConstructorParameters
+
+  double precision function zeroRate(self,atomicNumber,ionizationState,temperature)
+    !% Returns a collisional ionizate rate of zero.
+    implicit none
+    class           (atomicIonizationRateCollisionalZero), intent(inout) :: self
+    integer                                              , intent(in   ) :: atomicNumber, ionizationState
+    double precision                                     , intent(in   ) :: temperature
+    !GCC$ attributes unused :: self, atomicNumber, ionizationState, temperature
+
+    zeroRate=0.0d0
+    return
+  end function zeroRate

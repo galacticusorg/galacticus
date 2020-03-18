@@ -135,7 +135,7 @@ contains
          &                                                                           forestLast
     double precision                                , intent(in   )               :: subvolumeBuffer           , badValue        , &
          &                                                                           treeSampleRate
-    type            (varying_string                )                              :: forestFile
+    type            (varying_string                ), intent(in   )               :: forestFile
     !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*randomNumberGenerator_"/>
 
     self%useForestFile            =self%forestFile /= "none"

@@ -19,7 +19,7 @@
 
 program Tests_Merger_Tree_Branching
   !% Tests of merger tree branching rates.
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
@@ -52,7 +52,7 @@ program Tests_Merger_Tree_Branching
   type            (darkMatterParticleCDM                                        )               :: darkMatterParticleCDM_
   type            (treeNode                                                     )               :: node
   type            (mergerTreeBranchingProbabilityModifierIdentity               )               :: mergerTreeBranchingProbabilityModifierIdentity_
-  type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly             ), dimension(3) :: mergerTreeBranchingProbabilityParkinsonColeHelly_
   type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              ), dimension(3) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_
   double precision                                                                              :: time                                                                              , rootVarianceParent                             , &
@@ -117,7 +117,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       powerSpectrumPrimordialTransferred_    =powerSpectrumPrimordialTransferredSimple_                     , &
        &                                                                                                                       powerSpectrumWindowFunction_           =powerSpectrumWindowFunctionSharpKSpace_                         &
        &                                                                                                                      )
-  criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(                                                                                                        &
+  criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                                        &
        &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                              , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
@@ -133,7 +133,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       hypergeometricTabulate                 =.true.                                                        , &
        &                                                                                                                       cdmAssumptions                         =.true.                                                        , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_  &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
   mergerTreeBranchingProbabilityParkinsonColeHelly_(2)          =mergerTreeBranchingProbabilityParkinsonColeHelly             (                                                                                                        &
        &                                                                                                                       G0                                     =1.0d+0                                                        , &
@@ -144,7 +144,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       hypergeometricTabulate                 =.false.                                                       , &
        &                                                                                                                       cdmAssumptions                         =.true.                                                        , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_  &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
   mergerTreeBranchingProbabilityParkinsonColeHelly_(3)          =mergerTreeBranchingProbabilityParkinsonColeHelly             (                                                                                                        &
        &                                                                                                                       G0                                     =1.0d+0                                                        , &
@@ -155,10 +155,10 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       hypergeometricTabulate                 =.false.                                                       , &
        &                                                                                                                       cdmAssumptions                         =.false.                                                       , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_  &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
   excursionSetBarrierCriticalOverdensity_                       =excursionSetBarrierCriticalOverdensity                       (                                                                                                        &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
        &                                                                                                                      )
   excursionSetFirstCrossingLinearBarrier_                       =excursionSetFirstCrossingLinearBarrier                       (                                                                                                        &
@@ -181,7 +181,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       massMinimum                            =1.0d+0                                                        , &
        &                                                                                                                       smoothAccretion                        =.false.                                                       , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
        &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingLinearBarrier_                       , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                 &
@@ -191,7 +191,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       massMinimum                            =1.0d-1*massResolution                                         , &
        &                                                                                                                       smoothAccretion                        =.false.                                                       , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
        &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingLinearBarrier_                       , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                 &
@@ -201,7 +201,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       massMinimum                            =1.0d-1*massResolution                                         , &
        &                                                                                                                       smoothAccretion                        =.false.                                                       , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
        &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingFarahiMidpoint_                      , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                 &
@@ -214,7 +214,7 @@ program Tests_Merger_Tree_Branching
   do i=1,size(redshift)
      expansionFactor       =+cosmologyFunctionsMatterLambda_                               %expansionFactorFromRedshift(               redshift       (i))
      time                  =+cosmologyFunctionsMatterLambda_                               %cosmicTime                 (               expansionFactor   )
-     criticalOverdensity_  =+criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt_%value                      (               time              ) &
+     criticalOverdensity_  =+criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_%value                      (               time              ) &
           &                 *cosmologicalMassVarianceFilteredPower_                        %rootVariance               (massResolution,timeNow           ) &
           &                 /cosmologicalMassVarianceFilteredPower_                        %rootVariance               (massResolution,time              )
      rootVarianceParent    =+cosmologicalMassVarianceFilteredPower_                        %rootVariance               (massParent    ,time              )

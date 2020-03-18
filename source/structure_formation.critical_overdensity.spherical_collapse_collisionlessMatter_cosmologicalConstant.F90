@@ -24,10 +24,10 @@
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
   use :: Tables                    , only : table1D
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt">
+  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
   !# </criticalOverdensity>
-  type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
      logical                                                                         :: tableInitialized         = .false.
@@ -39,7 +39,7 @@
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt</object>
+     !@   <object>criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
@@ -47,29 +47,29 @@
      !@     <description>Tabulate spherical collapse critical overdensity.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                    sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
-     procedure :: value           => sphericalCollapseCllsnlssMttrCsmlgclCnstntValue
-     procedure :: gradientTime    => sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientTime
-     procedure :: gradientMass    => sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientMass
-     procedure :: retabulate      => sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
-     procedure :: isMassDependent => sphericalCollapseCllsnlssMttrCsmlgclCnstntIsMassDependent
-     procedure :: isNodeDependent => sphericalCollapseCllsnlssMttrCsmlgclCnstntIsNodeDependent
-  end type criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+     final     ::                    sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
+     procedure :: value           => sphericalCollapseClsnlssMttrCsmlgclCnstntValue
+     procedure :: gradientTime    => sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime
+     procedure :: gradientMass    => sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass
+     procedure :: retabulate      => sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
+     procedure :: isMassDependent => sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent
+     procedure :: isNodeDependent => sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent
+  end type criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
 
-  interface criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
-     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
-     module procedure sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
-  end interface criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  interface criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+     module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
+     module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
+  end interface criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
 
 contains
 
-  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} critical overdensity class
+  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class
     !% which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)                :: self
+    type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                :: self
     type            (inputParameters                                              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                                      ), pointer       :: cosmologyFunctions_
     class           (linearGrowthClass                                            ), pointer       :: linearGrowth_
@@ -98,21 +98,21 @@ contains
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
-    self=criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
+    self=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="linearGrowth_"            />
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     !# <objectDestructor name="darkMatterParticle_"      />
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorParameters
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
 
-  function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} critical overdensity class.
+  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
-    type            (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt)                          :: self
+    type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: self
     class           (cosmologyFunctionsClass                                      ), target  , intent(in   ) :: cosmologyFunctions_
     class           (linearGrowthClass                                            ), target  , intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass                                ), target  , intent(in   ) :: cosmologicalMassVariance_
@@ -137,12 +137,12 @@ contains
        call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntConstructorInternal
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
 
-  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseCllsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+  subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
     implicit none
-    type(criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    type(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
 
     !# <objectDestructor name="self%linearGrowth_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"      />
@@ -154,12 +154,12 @@ contains
        deallocate(self%overdensityCritical)
     end if
     return
-  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntDestructor
+  end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
 
-  subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate(self,time)
+  subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate(self,time)
     !% Recompute the look-up tables for critical overdensity for collapse.
     implicit none
-    class           (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                                        :: remakeTable
 
@@ -176,13 +176,13 @@ contains
        self%tableTimeMaximum=self%overdensityCritical%x(-1)
     end if
     return
-  end subroutine sphericalCollapseCllsnlssMttrCsmlgclCnstntRetabulate
+  end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntValue(self,time,expansionFactor,collapsing,mass,node)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntValue(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                               , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                                      mass
     logical                                                                        , intent(in   ), optional :: collapsing
@@ -195,16 +195,16 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the critical overdensity.
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntValue=+self%overdensityCritical%interpolate(time_) &
+    sphericalCollapseClsnlssMttrCsmlgclCnstntValue=+self%overdensityCritical%interpolate(time_) &
          &                                          *self%normalization
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntValue
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntValue
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientTime(self,time,expansionFactor,collapsing,mass,node)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
     !% cosmological constant universe.
     implicit none
-    class           (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                               , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                                      mass
     logical                                                                        , intent(in   ), optional :: collapsing
@@ -217,41 +217,41 @@ contains
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientTime=+self%overdensityCritical%interpolateGradient(time_) &
+    sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime=+self%overdensityCritical%interpolateGradient(time_) &
          &                                                 *self%normalization
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientTime
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime
 
-  double precision function sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientMass(self,time,expansionFactor,collapsing,mass,node)
+  double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     implicit none
-    class           (criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
+    class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                               , intent(in   ), optional :: time      , expansionFactor
     logical                                                                        , intent(in   ), optional :: collapsing
     double precision                                                               , intent(in   ), optional :: mass
     type            (treeNode                                                     ), intent(inout), optional :: node
     !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientMass=0.0d0
+    sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass=0.0d0
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntGradientMass
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass
 
-  logical function sphericalCollapseCllsnlssMttrCsmlgclCnstntIsMassDependent(self)
+  logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent(self)
     !% Return whether the critical overdensity is mass dependent.
     implicit none
-    class(criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    class(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     !GCC$ attributes unused :: self
 
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntIsMassDependent=.false.
+    sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent=.false.
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntIsMassDependent
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent
 
-  logical function sphericalCollapseCllsnlssMttrCsmlgclCnstntIsNodeDependent(self)
+  logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent(self)
     !% Return whether the critical overdensity is node dependent.
     implicit none
-    class(criticalOverdensitySphericalCollapseCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    class(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
     !GCC$ attributes unused :: self
 
-    sphericalCollapseCllsnlssMttrCsmlgclCnstntIsNodeDependent=.false.
+    sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent=.false.
     return
-  end function sphericalCollapseCllsnlssMttrCsmlgclCnstntIsNodeDependent
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent

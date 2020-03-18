@@ -12,47 +12,55 @@ use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
 our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
+our $argumentList = qr/[a-zA-Z0-9_\{\}¦,\s]*/;
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(!\$\s*)??(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
-    # Find module openings, avoiding module procedures.
-    module             => { unitName => 0, regEx => qr/^\s*module\s+(?!procedure\s)(${label})/ },
+    # Find module openings, avoiding module procedures, functions, and subroutines.
+    module             => { unitName => 0                , regEx => qr/^\s*module\s+(${label})\s*$/ },
+    # Find submodule openings.
+    submodule          => { unitName => 0                , regEx => qr/^\s*submodule\s+\(\s*[a-zA-Z0-9_:\{\}¦]+\s*\)\s+(${label})\s*$/ },
     # Find program openings.
-    program            => { unitName => 0, regEx => qr/^\s*program\s+(${label})/ },
+    program            => { unitName => 0                , regEx => qr/^\s*program\s+(${label})/ },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
-    subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})/},
+    subroutine         => { unitName => 1, arguments => 3, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})\s*(\(\s*(${argumentList})\))*/},
     # Find function openings, allowing for pure, elemental, and recursive functions, and different function types.
-    function           => { unitName => 5, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})/},
+    function           => { unitName => 5, arguments => 7, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})\s*(\(\s*(${argumentList})\))*/},
+     # Find submodule module procedure openings.
+    moduleProcedure    => { unitName => 0                , regEx => qr/^\s*module\s+procedure\s+(${label})/},
     # Find interfaces.
-    interface          => { unitName => 1, regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
+    interface          => { unitName => 1                , regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     # Find types.
-    type               => { unitName => 2, regEx => qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(${label}\)\s*)*(::)??\s*(${label})\s*$/}
+    type               => { unitName => 2                , regEx => qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(${label}\)\s*)*(::)??\s*(${label})\s*$/}
     );
 
 # Specify unit closing regexs.
 our %unitClosers = (
     module             => { unitName => 0, regEx => qr/^\s*end\s+module\s+(${label})/ },
+    submodule          => { unitName => 0, regEx => qr/^\s*end\s+submodule\s+(${label})/ },
     program            => { unitName => 0, regEx => qr/^\s*end\s+program\s+(${label})/ },
     subroutine         => { unitName => 0, regEx => qr/^\s*end\s+subroutine\s+(${label})/},
     function           => { unitName => 0, regEx => qr/^\s*end\s+function\s+(${label})/},
+    moduleProcedure    => { unitName => 0, regEx => qr/^\s*end\s+procedure\s+(${label})/},
     interface          => { unitName => 0, regEx => qr/^\s*end\s+interface\s*([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     type               => { unitName => 0, regEx => qr/^\s*end\s+type\s+(${label})/}
     );
 
 # Specify regexs for intrinsic variable declarations.
 our %intrinsicDeclarations = (
-    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    real          => { intrinsic => "real"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    double        => { intrinsic => "double precision", openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    complex       => { intrinsic => "complex"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    doubleComplex => { intrinsic => "double complex"  , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    logical       => { intrinsic => "logical"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    character     => { intrinsic => "character"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*${label}\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
+    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    real          => { intrinsic => "real"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    double        => { intrinsic => "double precision", openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    complex       => { intrinsic => "complex"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    doubleComplex => { intrinsic => "double complex"  , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    logical       => { intrinsic => "logical"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    character     => { intrinsic => "character"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*${label}\s*\))?([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
+    final         => { intrinsic => "final"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)final(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,]+)\s*$/ },
     );
 
 # Hash of files which have been read and processed.
@@ -361,11 +369,12 @@ sub Get_Fortran_Line {
 	    chomp($bufferedComments);
 	}
 	$tmpLine =~ s/^\s*&\s*//;
+	$tmpLine =~ s/^\s*!\$\s+&\s*//;
 	$processedLine .= " " unless ( $processedLine eq "" );
 	$processedLine .= $tmpLine;
 	if ( $processedLine =~ m/&\s*$/ ) {
 	    $processedLine =~ s/\s*&\s*$//;
-	} elsif ( $firstLine == 0 && ( $line =~ m/^\#/ || $line =~ m/^\s*!\$\s+&/ || $line =~ m/^\s*![^\$]/ ) ) {
+	} elsif ( $firstLine == 0 && ( $line =~ m/^\#/ || $line =~ m/^\s*![^\$]/ ) ) {
 	    # This is a preprocessor directive or comment in the middle of continuation lines. Just concatenate it.
 	} else {
 	    $processedFullLine = 1;
@@ -548,7 +557,7 @@ sub Format_Variable_Definitions {
 	# Construct the type definition.
 	my @typeDefinition = ( "", "", "" );
 	@typeDefinition = ( "(", $_->{'type'}, ")" )
-	    if ( exists($_->{'type'}) );
+	    if ( exists($_->{'type'}) && defined($_->{'type'}) );
 	# Add attributes.
 	my @attributeList;
 	if ( exists($_->{'attributes'}) ) {
@@ -749,8 +758,8 @@ sub Extract_Variables {
 	}
     }
     # Remove any definitions or associations.
-    $variableList =~ s/=[^,]*(,|$)//g
-	if ( $options{'keepQualifiers'} == 0 );
+    $variableList =~ s/=[^,]*(,|$)/$1/g
+	if ( $options{'keepQualifiers'} == 0 );   
     # Split variables into an array and store.
     my @variables = split(/\s*,\s*/,$variableList);
     if ( $options{'keepQualifiers'} == 1 ) {

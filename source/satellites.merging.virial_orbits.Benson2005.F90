@@ -21,7 +21,7 @@
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+  use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <virialOrbit name="virialOrbitBenson2005">
   !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
@@ -37,7 +37,7 @@
      private
      class(darkMatterHaloScaleClass                                       ), pointer :: darkMatterHaloScale_   => null()
      class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_    => null()
-     type (virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
+     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                                    benson2005Destructor
      procedure :: orbit                           => benson2005Orbit
@@ -78,7 +78,7 @@ contains
 
   function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily benson2005} virial orbits class.
-    use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt
+    use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
     implicit none
     type (virialOrbitBenson2005   )                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
@@ -86,7 +86,7 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseCllsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
     return
   end function benson2005ConstructorInternal
 

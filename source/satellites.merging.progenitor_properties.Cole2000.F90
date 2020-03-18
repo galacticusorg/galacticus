@@ -119,7 +119,7 @@ contains
   subroutine cole2000Destructor(self)
     !% Destructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
     implicit none
-    type (mergerProgenitorPropertiesCole2000) :: self
+    type(mergerProgenitorPropertiesCole2000), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerMassMovements_"/>
     return

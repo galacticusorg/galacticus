@@ -77,8 +77,9 @@ sub Class_Move {
 		     variables  => [ "overwrite_" ]
 		 }
 		]
-	};    
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+	};
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 overwrite_=.false.
 if (present(overwrite)) overwrite_=overwrite
 instanceCount=self      %{$class->{'name'}}count()
@@ -99,8 +100,8 @@ else
   ! Multiple instances, so remove the specified instance.
   allocate(instancesTemporary(instanceCount+targetCount),source=self%component{ucfirst($class->{'name'})}(1))
 CODE
-	foreach $code::member ( @{$code::class->{'members'}} ) {
-	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	    foreach $code::member ( @{$code::class->{'members'}} ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   select type (from => targetNode%component{ucfirst($class->{'name'})})
   type is (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})})
     select type (to => instancesTemporary)
@@ -109,9 +110,9 @@ CODE
     end select
   end select
 CODE
-	}
-	foreach $code::member ( @{$code::class->{'members'}} ) {
-	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	    }
+	    foreach $code::member ( @{$code::class->{'members'}} ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
    select type (from => self%component{ucfirst($class->{'name'})})
    type is (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})})
      select type (to => instancesTemporary)
@@ -120,8 +121,8 @@ CODE
      end select
    end select
 CODE
-	}
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   call targetNode%{$class->{'name'}}Destroy()
   call self      %{$class->{'name'}}Destroy()
   call Move_Alloc(instancesTemporary,targetNode%component{ucfirst($class->{'name'})})
@@ -131,6 +132,12 @@ do i=1,size(targetNode%component{ucfirst($class->{'name'})})
    targetNode%component{ucfirst($class->{'name'})}(i)%hostNode => targetNode
 end do
 CODE
+	} else {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self, targetNode, overwrite, instanceCount, targetCount, i, instancesTemporary, overwrite_
+call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+CODE
+	}
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
@@ -185,7 +192,8 @@ sub Class_Remove {
 		 }
 		]
 	};    
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 instanceCount=self%{$class->{'name'}}count()
 if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('instance out of range'//\{introspection:location\})
 call self%component{ucfirst($class->{'name'})}(instance)%destroy()
@@ -197,8 +205,8 @@ else
   ! Multiple instances, so remove the specified instance.
   allocate(instancesTemporary(instanceCount-1),source=self%component{ucfirst($class->{'name'})}(1))
 CODE
-	foreach $code::member ( @{$code::class->{'members'}} ) {
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	    foreach $code::member ( @{$code::class->{'members'}} ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   select type (from => self%component{ucfirst($class->{'name'})})
   type is (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})})
     select type (to => instancesTemporary)
@@ -208,12 +216,18 @@ CODE
     end select
   end select
 CODE
-	}
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   deallocate(self%component{ucfirst($class->{'name'})})
   call Move_Alloc(instancesTemporary,self%component{ucfirst($class->{'name'})})
 end if
 CODE
+	} else {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self, instance, instanceCount, instancesTemporary
+call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+CODE
+	}
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},

@@ -193,8 +193,8 @@ contains
     class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
     double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    integer                                                                                :: covarianceBinomialBinsPerDecade
-    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
+    double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     type            (hdf5Object                             )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget

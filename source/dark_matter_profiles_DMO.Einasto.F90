@@ -168,7 +168,7 @@
      !@     <description>Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final                                                      einastoDestructor
+     final     ::                                               einastoDestructor
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment

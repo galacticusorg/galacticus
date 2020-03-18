@@ -301,7 +301,7 @@ contains
     use            :: FGSL                                  , only : FGSL_Integ_Gauss15                       , fgsl_function                        , fgsl_integration_workspace
     use            :: File_Utilities                        , only : File_Exists                              , File_Lock                            , File_Unlock               , lockDescriptor
     use            :: Galacticus_Display                    , only : Galacticus_Display_Counter               , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
-         &                                                          verbosityWorking
+         &                                                           verbosityWorking
     use            :: Galacticus_Error                      , only : Galacticus_Error_Report                  , Galacticus_Warn                      , errorStatusFail           , errorStatusSuccess
     use :: Input_Parameters, only : inputParameters
     use            :: IO_HDF5                               , only : hdf5Access                               , hdf5Object
@@ -314,7 +314,7 @@ contains
     use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
     use            :: String_Handling                       , only : operator(//)
     implicit none
-    class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout) :: self
+    class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
     integer                                                         , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
     double precision                                                , intent(in   ), dimension(:    ) :: redshift
     type            (stellarPopulationSpectraPostprocessorList     ), intent(in   ), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
@@ -479,7 +479,10 @@ contains
                    loopCount           = 0
                    !$omp parallel private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
+                   !$omp critical(broadBandLuminositiesDeepCopy)
+                   !# <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
                    !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
+                   !$omp end critical(broadBandLuminositiesDeepCopy)
                    !$omp do
                    do iAge=1,self%luminosityTables(populationID)%agesCount
                       standardAge=self%luminosityTables(populationID)%age(iAge)

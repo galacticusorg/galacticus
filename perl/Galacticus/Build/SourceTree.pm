@@ -26,6 +26,7 @@ use Galacticus::Build::SourceTree::Process::Generics;
 use Galacticus::Build::SourceTree::Process::SourceDigest;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::ObjectBuilder;
+use Galacticus::Build::SourceTree::Process::DeepCopyReset;
 use Galacticus::Build::SourceTree::Process::DebugHDF5;
 use Galacticus::Build::SourceTree::Process::DebugMPI;
 use Galacticus::Build::SourceTree::Process::ProfileOpenMP;
@@ -84,6 +85,18 @@ sub ParseCode {
     return $tree;
 }
 
+sub Children {
+    # Return an array of children.
+    my $node = shift();
+    my @children;
+    my $child = $node->{'firstChild'};
+    while ( $child ) {
+	push(@children,$child);
+	$child = $child->{'sibling'};
+    }
+    return @children;
+}
+
 sub BuildTree {
     # Get the root of the tree;
     my $tree = shift();
@@ -138,7 +151,7 @@ sub Parse_Unit {
     my $unit = shift();
     # Process any content unless this is a code block.
     if ( exists($unit->{'content'}) && $unit->{'type'} ne "code" ) {
-	my @children = &Build_Children($unit->{'content'},$unit->{'source'},$unit->{'line'});
+	my @children = &Build_Children($unit->{'type'},$unit->{'content'},$unit->{'source'},$unit->{'line'});
 	$unit->{'firstChild'} = $children[0];
 	for(my $i=0;$i<scalar(@children);++$i) {
 	    $children[$i]->{'parent'  } = $unit;
@@ -152,6 +165,7 @@ sub Parse_Unit {
 
 sub Build_Children {
     # Grab the code passed to us.
+    my $type       = shift();
     my $codeText   = shift();
     my $source     = shift();
     my $lineNumber = shift();
@@ -163,6 +177,11 @@ sub Build_Children {
     # Initialize custom openers;
     my %unitOpeners = %Fortran::Utils::unitOpeners;
     $unitOpeners{'contains'} = { unitName => -1, regEx => qr/^\s*contains\s*$/ };
+    # Only parse "module procedure" openers within a "contains" node.
+    ## Within a contains section of a submodule "module procedure" is the opener of a subroutine/function whose interface was declared in the corresponding module.
+    ## Outside of a contains section "module procedure" can appear within an interface. 
+    delete($unitOpeners{'moduleProcedure'})
+	unless ( $type eq "contains" );
     # Connect a file handle to the code text.
     open(my $code,"<",\$codeText);
     # Read lines.
@@ -174,7 +193,7 @@ sub Build_Children {
 	# Check for unit opening.
 	my $unitFound;	
 	foreach my $unitType ( keys(%unitOpeners) ) {
-	    if ( my @matches = ( $processedLine =~ $unitOpeners{$unitType}->{'regEx'} ) ) {
+	    if ( my @matches = ( $processedLine =~ $unitOpeners{$unitType}->{'regEx'} ) ) {		
 		# A match is found, extract the name of the unit, store current line number.
 		my $lineNumberOpener = $lineNumber;
 	     	my $unitName         = $matches[$unitOpeners{$unitType}->{'unitName'}]

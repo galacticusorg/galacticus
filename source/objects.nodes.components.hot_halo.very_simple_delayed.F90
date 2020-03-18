@@ -168,7 +168,8 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
     use :: Abundances_Structure              , only : abundances                   , operator(*)                          , zeroAbundances
-    use :: Galacticus_Nodes                  , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode
+    use :: Galacticus_Nodes                  , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
+         &                                            defaultHotHaloComponent
     use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporation, hotHaloOutflowReincorporationClass
     implicit none
     type            (treeNode                          ), intent(inout), pointer :: node
@@ -185,6 +186,8 @@ contains
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
     ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.
     if (node%isSatellite()) return
     ! Get the hot halo component.
@@ -215,13 +218,16 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Abundances_Structure, only : unitAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, &
+         &                              defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     class           (nodeComponentBasic  )               , pointer :: basic
     double precision                                               :: massVirial
 
+    ! Check if we are the default method.
+    if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of our class.
@@ -371,12 +377,14 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
     use :: Abundances_Structure, only : zeroAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, defaultHotHaloComponent
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHalo, hotHalo
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)

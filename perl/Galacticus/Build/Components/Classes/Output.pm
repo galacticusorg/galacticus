@@ -33,6 +33,8 @@ sub Class_Dump_ASCII {
     # Generate a function to dump component classes.
     my $build    = shift();
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -74,6 +76,8 @@ sub Class_Output_Count {
     # Generate a function to return a count of the number of properties to be output from a generic node component.
     my $build    = shift();   
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -130,6 +134,8 @@ sub Class_Output_Names {
     # Generate a function to return names of properties to be output from a generic node component.
     my $build    = shift();   
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -213,6 +219,8 @@ sub Class_Output {
     # Generate a function to populate output buffers with data from a generic node component.
     my $build    = shift();   
     $code::class = shift();
+    return
+	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",

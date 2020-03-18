@@ -42,6 +42,7 @@ module Atomic_Rates_Recombination_Radiative
   !#  <name>recombinationCase</name>
   !#  <description>Enumeration of radiative recombination cases (A or B).</description>
   !#  <visibility>public</visibility>
+  !#  <indexing>-2</indexing>
   !#  <entry label="a"/>
   !#  <entry label="b"/>
   !# </enumeration>

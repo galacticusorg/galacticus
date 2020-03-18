@@ -17,39 +17,61 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of gamma functions.
+!% Contains a module which implements calculations of Gamma functions.
 
 module Gamma_Functions
-  !% Implements calculations of gamma functions.
+  !% Implements calculations of Gamma functions.
+  use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
-  public :: Gamma_Function_Incomplete,Gamma_Function_Incomplete_Complementary,Gamma_Function_Logarithmic,Gamma_Function&
-       &,Inverse_Gamma_Function_Incomplete,Inverse_Gamma_Function_Incomplete_Complementary
+  public :: Gamma_Function_Incomplete        , Gamma_Function_Incomplete_Complementary        , Gamma_Function_Logarithmic, Gamma_Function, &
+       &    Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
 
+  interface
+     function gsl_sf_gamma_inc_Q(a,x) bind(c,name='gsl_sf_gamma_inc_Q')
+       !% Template for the GSL incomplete Gamma function.
+       import
+       real(c_double)        :: gsl_sf_gamma_inc_Q
+       real(c_double), value :: a                 , x
+     end function gsl_sf_gamma_inc_Q
+
+     function gsl_sf_gamma_inc_P(a,x) bind(c,name='gsl_sf_gamma_inc_P')
+       !% Template for the GSL complementary incomplete Gamma function.
+       import
+       real(c_double)        :: gsl_sf_gamma_inc_P
+       real(c_double), value :: a                 , x
+     end function gsl_sf_gamma_inc_P
+     
+     function gsl_sf_lngamma(x) bind(c,name='gsl_sf_lngamma')
+       !% Template for the GSL log-of-the-Gamma function.
+       import
+       real(c_double)        :: gsl_sf_lngamma
+       real(c_double), value :: x
+     end function gsl_sf_lngamma
+  end interface
+  
 contains
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
-    !% Computes the incomplete gamma function.
-    use :: FGSL, only : FGSL_SF_Gamma_Inc_Q
+    !% Computes the incomplete Gamma function.
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
-    Gamma_Function_Incomplete=FGSL_SF_Gamma_Inc_Q(exponent,argument)
+    Gamma_Function_Incomplete=GSL_SF_Gamma_Inc_Q(exponent,argument)
     return
   end function Gamma_Function_Incomplete
 
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
-    !% Computes the complementary incomplete gamma function.
-    use :: FGSL, only : FGSL_SF_Gamma_Inc_P
+    !% Computes the complementary incomplete Gamma function.
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
-    Gamma_Function_Incomplete_Complementary=FGSL_SF_Gamma_Inc_P(exponent,argument)
+    Gamma_Function_Incomplete_Complementary=GSL_SF_Gamma_Inc_P(exponent,argument)
     return
   end function Gamma_Function_Incomplete_Complementary
 
   double precision function Gamma_Function(argument)
-    !% Computes the gamma function.
+    !% Computes the Gamma function.
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -58,12 +80,11 @@ contains
   end function Gamma_Function
 
   double precision function Gamma_Function_Logarithmic(argument)
-    !% Computes the logarithm of the gamma function.
-    use :: FGSL, only : FGSL_SF_lnGamma
+    !% Computes the logarithm of the Gamma function.
     implicit none
     double precision, intent(in   ) :: argument
 
-    Gamma_Function_Logarithmic=FGSL_SF_lnGamma(argument)
+    Gamma_Function_Logarithmic=GSL_SF_lnGamma(argument)
     return
   end function Gamma_Function_Logarithmic
 

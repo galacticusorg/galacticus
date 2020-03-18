@@ -23,7 +23,7 @@ module Trigonometric_Functions
   !% Implements trigonometric functions.
   implicit none
   private
-  public :: cot, cosec
+  public :: cot, cosec, hypotenuse
 
   interface cot
      module procedure cotDouble
@@ -37,6 +37,17 @@ module Trigonometric_Functions
 
 contains
 
+  double precision function hypotenuse(x)
+    !% Compute the $N$-dimensional hypotenuse, $(\sum_{i=1}^N x_i^2)^{1/2}$ avoiding undue floating point overflow.
+    implicit none
+    double precision, intent(in   ), dimension(:) :: x
+    double precision                              :: xMaximum
+
+    xMaximum  =maxval(abs(x))
+    hypotenuse=xMaximum*sqrt(sum((x/xMaximum)**2))
+    return
+  end function hypotenuse
+  
   double precision function cotDouble(x)
     !% Implements cotangent for double precision {\normalfont \ttfamily x}.
     implicit none

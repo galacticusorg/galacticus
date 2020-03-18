@@ -26,6 +26,9 @@
 
   !# <surveyGeometry name="surveyGeometryCombined">
   !#  <description>Implements a survey geometry which combines multiple other surveys.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
+  !#  </deepCopy>
   !# </surveyGeometry>
   type, extends(surveyGeometryClass) :: surveyGeometryCombined
      private
@@ -38,7 +41,6 @@
      procedure  :: windowFunctions         => combinedWindowFunctions
      procedure  :: angularPower            => combinedAngularPower
      procedure  :: pointIncluded           => combinedPointIncluded
-     procedure  :: deepCopy                => combinedDeepCopy
   end type surveyGeometryCombined
 
   interface surveyGeometryCombined
@@ -187,37 +189,3 @@ contains
     end do
     return
   end function combinedPointIncluded
-
-  subroutine combinedDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily combined} surveyGeometry class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(surveyGeometryCombined), intent(inout) :: self
-    class(surveyGeometryClass   ), intent(inout) :: destination
-    type (surveyGeometryList    ), pointer       :: surveyGeometry_   , surveyGeometryDestination_, &
-         &                                          surveyGeometryNew_
-
-    call self%surveyGeometryClass%deepCopy(destination)
-    select type (destination)
-    type is (surveyGeometryCombined)
-       destination%surveyGeometries => null()
-       surveyGeometryDestination_   => null()
-       surveyGeometry_              => self%surveyGeometries
-       do while (associated(surveyGeometry_))
-          allocate(surveyGeometryNew_)
-          if (associated(surveyGeometryDestination_)) then
-             surveyGeometryDestination_%next             => surveyGeometryNew_
-             surveyGeometryDestination_                  => surveyGeometryNew_
-          else
-             destination               %surveyGeometries => surveyGeometryNew_
-             surveyGeometryDestination_                  => surveyGeometryNew_
-          end if
-          allocate(surveyGeometryNew_%surveyGeometry_,mold=surveyGeometry_%surveyGeometry_)
-          !# <deepCopy source="surveyGeometry_%surveyGeometry_" destination="surveyGeometryNew_%surveyGeometry_"/>
-          surveyGeometry_ => surveyGeometry_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine combinedDeepCopy

@@ -67,8 +67,8 @@ contains
   function concentrationConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``concentration'' output analysis property extractor class.
     implicit none
-    type (nodePropertyExtractorConcentration)         :: self
-    class(virialDensityContrastClass        ), target :: virialDensityContrast_
+    type (nodePropertyExtractorConcentration)                        :: self
+    class(virialDensityContrastClass        ), intent(in   ), target :: virialDensityContrast_
     !# <constructorAssign variables="*virialDensityContrast_"/>
 
     return

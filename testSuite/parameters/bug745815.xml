@@ -49,7 +49,7 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
@@ -179,7 +179,7 @@
   </spheroidMassDistribution>
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialOrbitMethod value="benson2005"/>
 
   <diskMassDistribution value="exponentialDisk">

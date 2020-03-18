@@ -56,13 +56,16 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Preset_Initialize(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, nodeComponentSpinPreset, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic  , nodeComponentSpin, nodeComponentSpinPreset, treeNode, &
+         &                          defaultSpinComponent
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     class           (nodeComponentSpin )               , pointer :: spinParent , spin
     class           (nodeComponentBasic)               , pointer :: basicParent, basic
     double precision                                             :: deltaTime
 
+    ! Check if we are the default method.
+    if (.not.defaultSpinComponent%presetIsActive()) return
     ! Ensure that the spin component is of the preset class.
     spin => node%spin()
     select type (spin)
@@ -154,11 +157,13 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Preset_Scale_Set(node)
     !% Set scales for properties in the preset implementation of the spin component.
-    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinPreset, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinPreset, treeNode, defaultSpinComponent
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentSpin)               , pointer :: spin
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpinComponent%presetIsActive()) return
     ! Get the spin component.
     spin => node%spin()
     ! Ensure that it is of the preset class.

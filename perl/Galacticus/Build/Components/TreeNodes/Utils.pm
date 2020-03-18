@@ -75,6 +75,8 @@ CODE
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	    next
+		unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(targetNode%component{ucfirst($class->{'name'})})) deallocate(targetNode%component{ucfirst($class->{'name'})})
 allocate(targetNode%component{ucfirst($class->{'name'})}(size(self%component{ucfirst($class->{'name'})})),source=self%component{ucfirst($class->{'name'})}(1))
@@ -97,6 +99,8 @@ CODE
 	}
     } else {
 	foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	    next
+		unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	    $function->{'content'} .=
 		join("",map {"targetNode%component".ucfirst($_->{'name'})." = self%component".ucfirst($_->{'name'})."\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}));
 	}
@@ -107,7 +111,9 @@ select type (targetNode)
 type is (treeNode)
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
    do i=1,size(self%component{ucfirst($class->{'name'})})
      targetNode%component{ucfirst($class->{'name'})}(i)%hostNode => targetNode
    end do
@@ -159,6 +165,8 @@ sub Tree_Node_Move {
     };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(targetNode%component{ucfirst($class->{'name'})})) then
   do i=1,size(targetNode%component{ucfirst($class->{'name'})})

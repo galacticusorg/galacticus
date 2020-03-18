@@ -54,6 +54,8 @@ module Node_Component_Black_Hole_Simple
   !#  </properties>
   !#  <bindings>
   !#     <binding method="enclosedMass" function="Node_Component_Black_Hole_Simple_Enclosed_Mass" bindsTo="component" />
+  !#     <binding method="acceleration" function="Node_Component_Black_Hole_Simple_Acceleration"  bindsTo="component" />
+  !#     <binding method="tidalTensor"  function="Node_Component_Black_Hole_Simple_Tidal_Tensor"  bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   !# </component>
@@ -190,12 +192,15 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
+         &                          defaultBlackHoleComponent
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     class(nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
 
+    ! Check if we are the default method.
+    if (.not.defaultBlackHoleComponent%simpleIsActive()) return
     ! Get the black hole component.
     thisBlackHoleComponent => thisNode%blackHole()
     ! Ensure that it is of the standard class.

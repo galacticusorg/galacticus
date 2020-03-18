@@ -267,36 +267,38 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
-    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeGalactic                        , radiusLarge
+    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask                           , nodeComponentBasic   , nodeComponentSatellite, &
           &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : assignment(=)                   , operator(*)                             , tensorIdentityR2D3Sym
-    use :: Vectors                           , only : Vector_Magnitude                , Vector_Outer_Product                    , Vector_Product
+    use :: Tensors                           , only : assignment(=)                   , operator(*)
+    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
-    type            (treeNode                       ), pointer     , intent(inout) :: thisNode
-    logical                                                        , intent(in   ) :: odeConverged
-    logical                                                        , intent(inout) :: interrupt
-    procedure       (interruptTask                  ), pointer     , intent(inout) :: interruptProcedure
-    integer                                                        , intent(in   ) :: propertyType
-    class           (nodeComponentSatellite         ), pointer                     :: satelliteComponent
-    class           (nodeComponentBasic             ), pointer                     :: basicComponent
-    type            (treeNode                       ), pointer                     :: hostNode
-    double precision                                 , dimension(3)                :: position,velocity
-    double precision                                 , parameter                   :: radiusVirialFraction = 1.0d-2
-    double precision                                                               :: radius,halfMassRadiusSatellite
-    double precision                                                               :: halfMassRadiusCentral,orbitalRadiusTest
-    double precision                                                               :: radiusVirial
-    double precision                                                               :: orbitalPeriod
-    double precision                                                               :: parentDensity
-    double precision                                                               :: parentEnclosedMass,satelliteMass,basicMass,massDestruction
-    double precision                                                               :: tidalHeatingNormalized,angularFrequency,radialFrequency
-    type            (tensorRank2Dimension3Symmetric )                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
+    type            (treeNode                      ), pointer     , intent(inout) :: thisNode
+    logical                                                       , intent(in   ) :: odeConverged
+    logical                                                       , intent(inout) :: interrupt
+    procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
+    integer                                                       , intent(in   ) :: propertyType
+    class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
+    class           (nodeComponentBasic            ), pointer                     :: basicComponent
+    type            (treeNode                      ), pointer                     :: hostNode
+    double precision                                , dimension(3)                :: position                     , velocity                 , &
+         &                                                                           parentAccelerationBulk
+    double precision                                , parameter                   :: radiusVirialFraction  =1.0d-2
+    double precision                                                              :: radius                       , halfMassRadiusSatellite  , &
+         &                                                                           halfMassRadiusCentral        , orbitalRadiusTest        , &
+         &                                                                           radiusVirial                 , orbitalPeriod            , &
+         &                                                                           satelliteMass                , basicMass                , &
+         &                                                                           massDestruction              , tidalHeatingNormalized   , &
+         &                                                                           angularFrequency             , radialFrequency          , &
+         &                                                                           parentEnclosedMass
+    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor                  , tidalTensorPathIntegrated
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -306,30 +308,27 @@ contains
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the orbiting class.
     select type (satelliteComponent)
-    class is (nodeComponentSatelliteOrbiting)
-       ! Proceed only for satellites.
+       class is (nodeComponentSatelliteOrbiting)
+          ! Proceed only for satellites.
        if (thisNode%isSatellite()) then
           ! Get all required quantities.
-          hostNode                 => thisNode          %mergesWith               ()
-          position                 =  satelliteComponent%position                 ()
-          velocity                 =  satelliteComponent%velocity                 ()
-          tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated()
-          tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   ()
-          positionTensor           =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
-          radius                   =  Vector_Magnitude                (         position                                            )
+          hostNode                 => thisNode          %mergesWith               (        )
+          position                 =  satelliteComponent%position                 (        )
+          velocity                 =  satelliteComponent%velocity                 (        )
+          tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated(        )
+          tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   (        )
+          radius                   =  Vector_Magnitude                            (position)
           ! Set rate of change of position.
-          call satelliteComponent%positionRate                 (                                                     &
-               &                                                +(kilo*gigaYear/megaParsec)                          &
-               &                                                *satelliteComponent%velocity()                       &
-               &                                               )
+          call satelliteComponent%positionRate(                               &
+               &                               +(kilo*gigaYear/megaParsec)    &
+               &                               *satelliteComponent%velocity() &
+               &                              )
           ! Other rates are only non-zero if the satellite is at non-zero radius.
           if (radius > 0.0d0) then
              ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-             parentDensity         =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
-             parentEnclosedMass    =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
-             tidalTensor           = -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
-                  &                  +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
-                  &                  -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
+             parentEnclosedMass    =Galactic_Structure_Enclosed_Mass(hostNode,radius  )
+             parentAccelerationBulk=Galactic_Structure_Acceleration (hostNode,position)           
+             tidalTensor           =Galactic_Structure_Tidal_Tensor (hostNode,position)             
              ! Compute the orbital period.
              angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
                   &              /radius**2                                           &
@@ -349,11 +348,7 @@ contains
              ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
              ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
              call satelliteComponent%velocityRate                 (                                                     &
-                  &                                                -(kilo*gigaYear/megaParsec)                          &
-                  &                                                *gravitationalConstantGalacticus                     &
-                  &                                                *parentEnclosedMass                                  &
-                  &                                                *position                                            &
-                  &                                                /radius**3                                           &
+                  &                                                +parentAccelerationBulk                              &
                   &                                                *(                                                   &
                   &                                                  +1.0d0                                             &
                   &                                                  +satelliteComponent%boundMass()                    &

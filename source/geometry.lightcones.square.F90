@@ -677,7 +677,7 @@ contains
     integer         (c_size_t               ), intent(in   )                , optional :: instance
     logical                                  , intent(  out)                , optional :: isInLightcone
     double precision                         , intent(in   )                , optional :: radiusBuffer
-    double precision                                        , dimension(3  ), optional :: position
+    double precision                         , intent(  out), dimension(3  ), optional :: position
     double precision                                        , dimension(3  )           :: nodePositionComoving, nodePositionReplicant, &
          &                                                                                origin
     integer                                                 , dimension(3,2)           :: periodicRange

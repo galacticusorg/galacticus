@@ -26,16 +26,17 @@
 
   !# <nodeOperator name="nodeOperatorMulti">
   !#  <description>A multi node operator property process class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
+  !#  </deepCopy>
   !# </nodeOperator>
   type, extends(nodeOperatorClass) :: nodeOperatorMulti
-     !% A multi node operator output process class, which applies multiple node operatores.
-     !% processs.
+     !% A multi node operator output process class, which applies multiple node operators.
      private
-     type(multiProcessList), pointer :: processs => null()
+     type(multiProcessList), pointer :: processes => null()
    contains
      final     ::                multiDestructor
      procedure :: nodePromote => multiNodePromote
-     procedure :: deepCopy    => multiDeepCopy
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
@@ -55,30 +56,30 @@ contains
     type   (multiProcessList ), pointer       :: process_
     integer                                   :: i
 
-    self    %processs => null()
+    self    %processes => null()
     process_          => null()
     do i=1,parameters%copiesCount('nodeOperatorMethod',zeroIfNotPresent=.true.)
        if (associated(process_)) then
           allocate(process_%next)
           process_ => process_%next
        else
-          allocate(self%processs)
-          process_ => self%processs
+          allocate(self%processes)
+          process_ => self%processes
        end if
        !# <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
     end do
     return
   end function multiConstructorParameters
 
-  function multiConstructorInternal(processs) result(self)
+  function multiConstructorInternal(processes) result(self)
     !% Internal constructor for the {\normalfont \ttfamily multi} output process property process class.
     implicit none
     type(nodeOperatorMulti)                         :: self
-    type(multiProcessList ), target , intent(in   ) :: processs
+    type(multiProcessList ), target , intent(in   ) :: processes
     type(multiProcessList ), pointer                :: process_
 
-    self    %processs => processs
-    process_          => processs
+    self    %processes => processes
+    process_          => processes
     do while (associated(process_))
        !# <referenceCountIncrement owner="process_" object="process_"/>
        process_ => process_%next
@@ -92,8 +93,8 @@ contains
     type(nodeOperatorMulti), intent(inout) :: self
     type(multiProcessList ), pointer       :: process_, processNext
 
-    if (associated(self%processs)) then
-       process_ => self%processs
+    if (associated(self%processes)) then
+       process_ => self%processes
        do while (associated(process_))
           processNext => process_%next
           !# <objectDestructor name="process_%process_"/>
@@ -111,45 +112,10 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
-    process_ => self%processs
+    process_ => self%processes
     do while (associated(process_))
        call process_%process_%nodePromote(node)
        process_ => process_%next
     end do
     return
   end subroutine multiNodePromote
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} process class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(nodeOperatorMulti), intent(inout) :: self
-    class(nodeOperatorClass), intent(inout) :: destination
-    type (multiProcessList ), pointer       :: process_   , processDestination_, &
-         &                                     processNew_
-
-    call self%nodeOperatorClass%deepCopy(destination)
-    select type (destination)
-    type is (nodeOperatorMulti)
-       ! Copy list of processs.
-       destination%processs => null         ()
-       processDestination_  => null         ()
-       process_             => self%processs
-       do while (associated(process_))
-          allocate(processNew_)
-          if (associated(processDestination_)) then
-             processDestination_%next     => processNew_
-             processDestination_          => processNew_
-          else
-             destination        %processs => processNew_
-             processDestination_          => processNew_
-          end if
-          allocate(processNew_%process_,mold=process_%process_)
-          !# <deepCopy source="process_%process_" destination="processNew_%process_"/>
-          process_ => process_%next
-       end do
-       class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

@@ -313,8 +313,11 @@ contains
        !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,odeReset,ode2Driver,ode2System,linearGrowthFactorPresent)
        allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
+       !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
+       !# <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
        !# <deepCopy source="self%cosmologyFunctions_"       destination="baryonsDarkMatterCosmologyFunctions_"      />
        !# <deepCopy source="self%intergalacticMediumState_" destination="baryonsDarkMatterIntergalacticMediumState_"/>
+       !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !$omp do
        do j=1,countWavenumbers
           baryonDarkMatterWavenumber=self%growthFactor%y(j)

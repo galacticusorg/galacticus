@@ -151,6 +151,9 @@ module Node_Component_Disk_Standard
   !#  <bindings>
   !#   <binding method="attachPipes" function="Node_Component_Disk_Standard_Attach_Pipes" description="Attach pipes to the standard disk component." returnType="\void" arguments="" bindsTo="component" />
   !#   <binding method="enclosedMass"          function="Node_Component_Disk_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="acceleration"          function="Node_Component_Disk_Standard_Acceleration"            bindsTo="component" />
+  !#   <binding method="tidalTensor"           function="Node_Component_Disk_Standard_Tidal_Tensor"            bindsTo="component" />
+  !#   <binding method="chandrasekharIntegral" function="Node_Component_Disk_Standard_Chandrasekhar_Integral"  bindsTo="component" />
   !#   <binding method="density"               function="Node_Component_Disk_Standard_Density"                 bindsTo="component" />
   !#   <binding method="potential"             function="Node_Component_Disk_Standard_Potential"               bindsTo="component" />
   !#   <binding method="rotationCurve"         function="Node_Component_Disk_Standard_Rotation_Curve"          bindsTo="component" />
@@ -413,11 +416,13 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Disk_Standard_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode, defaultDiskComponent
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
 
+    ! Check if we are the default method.
+    if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if an standard disk component exists.
@@ -469,7 +474,8 @@ contains
     use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode, &
+         &                                        defaultDiskComponent
     use :: ISO_Varying_String            , only : assignment(=)             , operator(//)             , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -486,6 +492,8 @@ contains
     type            (varying_string          ), save                   :: message
     !$omp threadprivate(message)
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if an standard disk component exists.
@@ -1020,11 +1028,12 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs              , abundances               , max                  , operator(*)            , &
+    use :: Abundances_Structure          , only : abs                 , abundances               , max                  , operator(*)            , &
           &                                       unitAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode               , &
+         &                                        defaultDiskComponent
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : abs              , max                      , stellarLuminosities  , unitStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                 , max                      , stellarLuminosities  , unitStellarLuminosities
     implicit none
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentDisk               )               , pointer :: disk
@@ -1038,6 +1047,8 @@ contains
     type            (stellarLuminosities             )                         :: stellarLuminositiesScale
     type            (abundances                      )                         :: abundancesScale
 
+    ! Check if we are the default method.
+    if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if an standard disk component exists.
@@ -1477,7 +1488,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
-    use            :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
+    use            :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode, defaultDiskComponent
     use            :: Histories       , only : history
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
@@ -1489,6 +1500,8 @@ contains
     class  (nodeComponentDisk)               , pointer :: disk
     type   (history          )                         :: historyStarFormation
 
+    ! Check if we are the default method.
+    if (.not.defaultDiskComponent%standardIsActive()) return
     ! Output the star formation history if a disk exists for this component.
     disk => node%disk()
     select type (disk)

@@ -21,16 +21,17 @@
 
   !# <galacticFilter name="galacticFilterAll">
   !#  <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
+  !#  </deepCopy>
   !# </galacticFilter>
-
   type, extends(galacticFilterClass) :: galacticFilterAll
      !% A galactic filter class which is the ``all'' combination of a set of other filters.
      private
      type(filterList), pointer :: filters => null()
   contains
-     final     ::             allDestructor
-     procedure :: passes   => allPasses
-     procedure :: deepCopy => allDeepCopy
+     final     ::           allDestructor
+     procedure :: passes => allPasses
   end type galacticFilterAll
 
   interface galacticFilterAll
@@ -120,37 +121,3 @@ contains
     end do
     return
   end function allPasses
-
-  subroutine allDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily all} galactic filter class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(galacticFilterAll  ), intent(inout) :: self
-    class(galacticFilterClass), intent(inout) :: destination
-    type (filterList         ), pointer       :: filter_    , filterDestination_, &
-         &                                       filterNew_
-
-    call self%galacticFilterClass%deepCopy(destination)
-    select type (destination)
-    type is (galacticFilterAll)
-       destination%filters => null          ()
-       filterDestination_  => null          ()
-       filter_             => self%filters
-       do while (associated(filter_))
-          allocate(filterNew_)
-          if (associated(filterDestination_)) then
-             filterDestination_%next       => filterNew_
-             filterDestination_            => filterNew_
-          else
-             destination          %filters => filterNew_
-             filterDestination_            => filterNew_
-          end if
-          allocate(filterNew_%filter_,mold=filter_%filter_)
-          !# <deepCopy source="filter_%filter_" destination="filterNew_%filter_"/>
-          filter_ => filter_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine allDeepCopy

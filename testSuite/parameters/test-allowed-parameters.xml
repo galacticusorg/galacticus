@@ -63,7 +63,7 @@
 
   <!-- Critical overdensity for halo collapse -->
   <criticalOverdensityMethod value="barkana2001WDM">
-    <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt">
+    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
       <darkMatterParticleMethod value="CDM"/>
     </criticalOverdensityMethod>
   </criticalOverdensityMethod>
@@ -88,7 +88,7 @@
 	  <running value="0.000"/>
 	</powerSpectrumPrimordialMethod>
       </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt">
+      <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
 	<darkMatterParticleMethod value="CDM"/>
       </criticalOverdensityMethod>
       <cosmologyFunctionsMethod value="matterLambda"/>
@@ -127,7 +127,7 @@
   </mergerTreeMassResolutionMethod>
   
   <!-- Structure formation options -->
-  <virialDensityContrastMethod value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
  
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="NFW"/>

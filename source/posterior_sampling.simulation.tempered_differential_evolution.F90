@@ -156,7 +156,7 @@ contains
     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), intent(in   ), target :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
     integer                                                        , intent(in   )         :: temperingLevelCount                      , untemperedStepCount, &
          &                                                                                    stepsPerLevel
-    double precision                                                                       :: temperatureMaximum
+    double precision                                               , intent(in   )         :: temperatureMaximum
     integer                                                                                :: i
 
     self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_ => posteriorSampleDffrntlEvltnPrpslSzTmpExp_

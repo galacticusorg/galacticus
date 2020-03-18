@@ -47,7 +47,7 @@ contains
     workNode => node
     do while (associated(workNode))
        formationNode => workNode
-       basicWork => workNode%basic()
+       basicWork     => workNode%basic()
        if (basicWork%mass() <= formationMassFraction*massNode) exit
        workNode => workNode%firstChild
     end do

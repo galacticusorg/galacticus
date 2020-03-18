@@ -24,7 +24,7 @@ module Events_Hooks
   use :: Locks              , only : ompReadWriteLock
   use :: Regular_Expressions, only : regEx
   private
-  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx
+  public :: hook                 , hookUnspecified, dependencyExact, dependencyRegEx
 
   type :: dependency
      !% Base class for event hook dependencies.
@@ -88,6 +88,9 @@ module Events_Hooks
      !$ type   (ompReadWriteLock)          :: lock_
      !$ logical                            :: initialized_ =  .false.
      class     (hook            ), pointer :: first_       => null()
+#ifdef OMPPROFILE
+     !$ double precision                   :: waitTimeRead = 0.0d0   , waitTimeWrite=0.0d0
+#endif
    contains
      !@ <objectMethods>
      !@   <object>eventHook</object>
@@ -209,15 +212,39 @@ contains
 
   subroutine eventHookLock(self,writeLock)
     !% Lock the event to avoid race conditions between OpenMP threads.
+#ifdef OMPPROFILE
+    !$ use :: OMP_Lib, only : OMP_Get_WTime
+#endif
     implicit none
+#ifdef OMPPROFILE
+    double precision                            :: ompProfileTimeWaitStart, ompProfileTimeWaitEnd
+#endif
     class  (eventHook), intent(inout)           :: self
     logical           , intent(in   ), optional :: writeLock
     !# <optionalArgument name="writeLock" defaultsTo=".true."/>
 
     if (writeLock_) then
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
        !$ call self%lock_%setWrite(haveReadLock=.false.)
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeWrite=self%waitTimeWrite+ompProfileTimeWaitEnd
+#endif
     else
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
        !$ call self%lock_%setRead (                    )
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeRead =self%waitTimeRead +ompProfileTimeWaitEnd
+#endif
     end if
     return
   end subroutine eventHookLock
@@ -519,5 +546,9 @@ contains
     self%regEx_=regEx(label)
     return
   end function dependencyRegExConstructor
+
+  !# <hdfPreCloseTask>
+  !#  <unitName>eventsHooksWaitTimes</unitName>
+  !# </hdfPreCloseTask>
 
 end module Events_Hooks

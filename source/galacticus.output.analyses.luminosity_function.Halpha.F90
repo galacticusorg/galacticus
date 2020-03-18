@@ -215,8 +215,9 @@ contains
     double precision                                         , dimension(:  ), allocatable :: luminosities                       , functionValueTarget              , &
          &                                                                                    functionErrorTarget
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    integer                                                                                :: covarianceBinomialBinsPerDecade    , i
-    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
+    double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    integer                                                                                :: i
     type            (hdf5Object                             )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget

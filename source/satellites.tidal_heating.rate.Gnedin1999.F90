@@ -111,14 +111,14 @@ contains
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                 , coordinateSystemCartesian               , massTypeDark
     use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
+    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentSatellite                  , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : assignment(=)                    , max                                     , operator(*) , tensorIdentityR2D3Sym, &
-          &                                           tensorRank2Dimension3Symmetric
-    use :: Vectors                           , only : Vector_Magnitude                 , Vector_Outer_Product
+    use :: Tensors                           , only : assignment(=)                    , max                                     , operator(*) , tensorRank2Dimension3Symmetric
+    use :: Vectors                           , only : Vector_Magnitude
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -126,27 +126,22 @@ contains
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basic
     double precision                                     , dimension(3)  :: position                 , velocity
-    double precision                                                     :: satelliteMass            , densityParent            , &
-         &                                                                  massEnclosedHost         , velocityCircularSatellite, &
+    double precision                                                     :: satelliteMass            , velocityCircularSatellite, &
          &                                                                  radius                   , speed                    , &
          &                                                                  timescaleShock           , heatingRateNormalized    , &
          &                                                                  orbitalFrequencySatellite, radiusHalfMassSatellite  , &
          &                                                                  satelliteHalfMass        , fractionDarkMatter
-    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated, &
-         &                                                                  positionTensor
-
+    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated
+    
     ! Construct required properties of satellite and host.
-    nodeHost                  => node     %mergesWith               (                                                             )
-    satellite                 => node     %satellite                (                                                             )
-    satelliteMass             =  satellite%boundMass                (                                                             )
-    position                  =  satellite%position                 (                                                             )
-    velocity                  =  satellite%velocity                 (                                                             )
-    tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(                                                             )
-    radius                    =  Vector_Magnitude                   (         position                                            )
-    speed                     =  Vector_Magnitude                   (         velocity                                            )
-    densityParent             =  Galactic_Structure_Density         (nodeHost,position,coordinateSystemCartesian                  )
-    massEnclosedHost          =  Galactic_Structure_Enclosed_Mass   (nodeHost,radius                                              )
-    positionTensor            =  Vector_Outer_Product               (         position                          ,symmetrize=.true.)
+    nodeHost                  => node     %mergesWith               (        )
+    satellite                 => node     %satellite                (        )
+    satelliteMass             =  satellite%boundMass                (        )
+    position                  =  satellite%position                 (        )
+    velocity                  =  satellite%velocity                 (        )
+    tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )
+    radius                    =  Vector_Magnitude                   (position)
+    speed                     =  Vector_Magnitude                   (velocity)
     ! Find the universal dark matter fraction.
     fractionDarkMatter        =  +(                                        &
          &                         +self%cosmologyParameters_%OmegaMatter() &
@@ -154,10 +149,7 @@ contains
          &                        )                                         &
          &                       /  self%cosmologyParameters_%OmegaMatter()
     ! Find the gravitational tidal tensor.
-    tidalTensor=                                                                                        &
-         & -(gravitationalConstantGalacticus*massEnclosedHost         /radius**3)*tensorIdentityR2D3Sym &
-         & +(gravitationalConstantGalacticus*massEnclosedHost*3.0d0   /radius**5)*positionTensor        &
-         & -(gravitationalConstantGalacticus*densityParent   *4.0d0*Pi/radius**2)*positionTensor
+    tidalTensor=Galactic_Structure_Tidal_Tensor         (nodeHost,position)
     ! Find the orbital frequency at the half mass radius of the satellite.
     basic                    => node%basic()
     satelliteHalfMass        =  +0.50d0             &

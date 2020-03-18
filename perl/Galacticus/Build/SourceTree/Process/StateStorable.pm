@@ -346,16 +346,9 @@ CODE
     procedure :: stateStore   => {$className}StateStore
     procedure :: stateRestore => {$className}StateRestore
 CODE
-	my $binding =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => $content,
-		 firstChild => undef(),
-		 sibling    => undef()
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},$binding);
+	my $bindingTree = &Galacticus::Build::SourceTree::ParseCode($content,"Galacticus::Build::SourceTree::Process::StateStorable()");
+	my @bindingNodes = &Galacticus::Build::SourceTree::Children($bindingTree);
+	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},\@bindingNodes);
 	# Record unused variables.
 	push(@outputUnusedVariables,"fgslStateFile"                    )
 	    unless ( $fgslStateFileUsed );
@@ -429,21 +422,10 @@ CODE
 	    }
 	}
 	# Insert code.
-	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($functionCode,'null');
+	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($functionCode,"Galacticus::Build::SourceTree::Process::StateStorable()");
 	&Galacticus::Build::SourceTree::ProcessTree($treeTmp);
-	my $postContains =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => &Galacticus::Build::SourceTree::Serialize($treeTmp),
-		 firstChild => undef(),
-		 sibling    => undef(),
-		 parent     => undef(),
-		 source     => "Galacticus::Build::SourceTree::Process::StateStorable::Process_StateStorable()",
-		 line       => 1
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},$postContains);
+	my @nodesTmp = &Galacticus::Build::SourceTree::Children($treeTmp);
+	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},\@nodesTmp);
     }
 }
 

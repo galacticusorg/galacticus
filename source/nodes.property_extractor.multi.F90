@@ -26,6 +26,9 @@
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMulti">
   !#  <description>A multi output extractor property extractor class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
+  !#  </deepCopy>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
      !% A multi property extractor output extractor class, which concatenates properties from any number of other property
@@ -94,7 +97,6 @@
      procedure :: unitsInSI      => multiUnitsInSI
      procedure :: addInstances   => multiAddInstances
      procedure :: type           => multiType
-     procedure :: deepCopy       => multiDeepCopy
   end type nodePropertyExtractorMulti
 
   interface nodePropertyExtractorMulti
@@ -438,38 +440,3 @@ contains
     multiType=outputAnalysisPropertyTypeLinear
     return
   end function multiType
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} extractor class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(nodePropertyExtractorMulti), intent(inout) :: self
-    class(nodePropertyExtractorClass), intent(inout) :: destination
-    type (multiExtractorList        ), pointer       :: extractor_   , extractorDestination_, &
-         &                                              extractorNew_
-
-    call self%nodePropertyExtractorClass%deepCopy(destination)
-    select type (destination)
-    type is (nodePropertyExtractorMulti)
-       ! Copy list of extractors.
-       destination%extractors => null           ()
-       extractorDestination_  => null           ()
-       extractor_             => self%extractors
-       do while (associated(extractor_))
-          allocate(extractorNew_)
-          if (associated(extractorDestination_)) then
-             extractorDestination_%next       => extractorNew_
-             extractorDestination_            => extractorNew_
-          else
-             destination          %extractors => extractorNew_
-             extractorDestination_            => extractorNew_
-          end if
-          allocate(extractorNew_%extractor_,mold=extractor_%extractor_)
-          !# <deepCopy source="extractor_%extractor_" destination="extractorNew_%extractor_"/>
-          extractor_ => extractor_%next
-       end do
-       class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

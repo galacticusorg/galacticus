@@ -251,15 +251,18 @@ contains
   subroutine regridTimesOperatePreEvolution(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use            :: FGSL                   , only : fgsl_interp_accel
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
-    use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent, &
-          &                                           treeNode                , treeNodeList
+    use            :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Unindent  , Galacticus_Display_Message, verbosityWorking
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report  , Galacticus_Warn
+    use            :: Galacticus_Nodes       , only : mergerTree               , nodeComponentBasic           , nodeComponentSatellite    , nodeEvent       , &
+          &                                           treeNode                 , treeNodeList
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: ISO_Varying_String     , only : var_str
     use            :: Kind_Numbers           , only : kind_int8
-    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
+    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes , mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
     use            :: Numerical_Comparison   , only : Values_Agree
-    use            :: Numerical_Interpolation, only : Interpolate_Done        , Interpolate_Locate
+    use            :: Numerical_Interpolation, only : Interpolate_Done         , Interpolate_Locate
+    use            :: String_Handling        , only : operator(//)
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout), target                :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
@@ -278,7 +281,7 @@ contains
     type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
     logical                                                                               :: interpolationReset
     integer         (c_size_t                     )                                       :: iNow                            , iParent    , &
-         &                                                                                   iTime
+         &                                                                                   iTime                           , countNodes
     integer                                                                               :: allocErr
     double precision                                                                      :: massNow                         , massParent , &
          &                                                                                   timeNow                         , timeParent
@@ -287,6 +290,7 @@ contains
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
+       call Galacticus_Display_Indent(var_str('Regridding tree ')//currentTree%index,verbosityWorking)
        ! Dump the unprocessed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &
@@ -305,11 +309,15 @@ contains
        interpolationReset=.true.
        ! Iterate through to tree to:
        !  a) Find the current maximum node index in the tree, and;
-       !  b) Snap halos to snapshot times if requested.
+       !  b) Snap halos to snapshot times if requested, and;
+       !  c) Count the number of nodes in the tree.
        nodeIndex =0_kind_int8
+       countNodes=0_c_size_t
        treeWalkerAllNodes=mergerTreeWalkerAllNodes(currentTree)
        do while (treeWalkerAllNodes%next(node))
           nodeIndex=max(nodeIndex,node%index())
+          ! Count node.
+          countNodes=countNodes+1_c_size_t
           ! Check for merge targets being set - these are not supported under the regridding transformation, so issue a warning.
           if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
              !$omp critical (mergeTargetWarning)
@@ -375,6 +383,7 @@ contains
           end if
        end do
        firstNewNode=nodeIndex+1
+       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes prior to regridding',verbosityWorking)
        ! Walk the tree, locating branches which intersect grid times.
        treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
        do while (treeWalkerIsolatedNodes%next(node))
@@ -485,6 +494,7 @@ contains
           deallocate(highlightNodes)
        end if
        ! Walk the tree removing nodes not at grid times.
+       countNodes              =0_c_size_t
        treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
        do while (treeWalkerIsolatedNodes%next(node))
           basic => node%basic()
@@ -551,8 +561,11 @@ contains
              call node%destroy()
              deallocate(node)
              call treeWalkerIsolatedNodes%previous(node)
+          else
+             countNodes=countNodes+1_c_size_t
           end if
        end do
+       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityWorking)
        ! Clean up interpolation objects.
        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
        ! Dump the processed tree if required.
@@ -569,6 +582,7 @@ contains
             &                                    scaleNodesByLogMass=.true.  , &
             &                                    edgeLengthsToTimes =.true.    &
             &                                   )
+       call Galacticus_Display_Unindent('Done',verbosityWorking)
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do

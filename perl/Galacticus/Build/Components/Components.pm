@@ -166,6 +166,33 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "acceleration"                                                                                         ,
+	     function    => "Node_Component_Acceleration_Null"                                                                     ,
+	     description => "Compute the gravitational acceleration at a point."                                                   ,
+	     mappable    => "summation"                                                                                            ,
+	     returnType  => "\\doubleone"                                                                                          ,
+	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "chandrasekharIntegral"                                                                                ,
+	     function    => "Node_Component_Chandrasekhar_Integral_Null"                                                           ,
+	     description => "Compute the Chandrasekhar integral for a given position and velocity."                                ,
+	     mappable    => "summation"                                                                                            ,
+	     returnType  => "\\doubleone"                                                                                          ,
+	     arguments   => "\\doubleone\\ position\\argin, \\doubleone\\ velocity\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "tidalTensor"                                                                                          ,
+	     function    => "Node_Component_Tidal_Tensor_Null"                                                                     ,
+	     description => "Compute the gravitational tidal tensor at a point."                                                   ,
+	     mappable    => "summation"                                                                                            ,
+	     returnType  => "\\textcolor{red}{\\textless type(tensorRank2Dimension3Symmetric)\\textgreater}"                       ,
+	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,

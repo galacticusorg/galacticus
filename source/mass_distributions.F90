@@ -21,7 +21,9 @@
 
 module Mass_Distributions
   !% Implements a class that provides mass distributions.
-  use :: Coordinates, only : coordinate
+  use :: Coordinates             , only : coordinate
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  use :: Tensors                 , only : tensorRank2Dimension3Symmetric
   private
 
   !# <functionClass>
@@ -45,6 +47,18 @@ module Mass_Distributions
   !#   <description>Return the total mass of the distribution.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="acceleration" >
+  !#   <description>Return the gravitational acceleration due to the distribution at the given coordinates.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+  !#  </method>
+  !#  <method name="tidalTensor" >
+  !#   <description>Return the gravitational tidal tensor due to the distribution at the given coordinates.</description>
+  !#   <type>type(tensorRank2Dimension3Symmetric)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(coordinate), intent(in   ) :: coordinates</argument>
   !#  </method>
   !#  <method name="density" >
   !#   <description>Return the density of the distribution at the given coordinates.</description>
@@ -79,6 +93,12 @@ module Mass_Distributions
   !#   <argument>double precision, intent(in   )           :: moment</argument>
   !#   <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
   !#   <argument>logical         , intent(  out), optional :: isInfinite</argument>
+  !#  </method>
+  !#  <method name="positionSample" >
+  !#   <description>Return a position sampled from the distribution.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_</argument>
   !#  </method>
   !#  <data>logical :: dimensionless</data>
   !# </functionClass>

@@ -24,6 +24,9 @@
 
   !# <task name="taskMulti">
   !#  <description>A task which performs multiple other tasks.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
+  !#  </deepCopy>
   !# </task>
   type, extends(taskClass) :: taskMulti
      !% Implementation of a task which performs multiple other tasks.
@@ -33,7 +36,6 @@
      final     ::                       multiDestructor
      procedure :: perform            => multiPerform
      procedure :: requiresOutputFile => multiRequiresOutputFile
-     procedure :: deepCopy           => multiDeepCopy
   end type taskMulti
 
   interface taskMulti
@@ -137,37 +139,3 @@ contains
     end do
     return
   end function multiRequiresOutputFile
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} task class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(taskMulti    ), intent(inout) :: self
-    class(taskClass    ), intent(inout) :: destination
-    type (multiTaskList), pointer       :: task_      , taskDestination_, &
-         &                                 taskNew_
-
-    call self%taskClass%deepCopy(destination)
-    select type (destination)
-    type is (taskMulti)
-       destination%tasks => null          ()
-       taskDestination_  => null          ()
-       task_             => self%tasks
-       do while (associated(task_))
-          allocate(taskNew_)
-          if (associated(taskDestination_)) then
-             taskDestination_%next       => taskNew_
-             taskDestination_            => taskNew_
-          else
-             destination          %tasks => taskNew_
-             taskDestination_            => taskNew_
-          end if
-          allocate(taskNew_%task_,mold=task_%task_)
-          !# <deepCopy source="task_%task_" destination="taskNew_%task_"/>
-          task_ => task_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

@@ -741,12 +741,12 @@ my @translations =
 	     },
 		     criticalOverdensityMethod                =>
 	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
 		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
 	     },
 	     virialDensityContrastMethod                      =>
 	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseCllsnlssMttrCsmlgclCnstnt",
+		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
 		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
 	     },
 	     imfSelectionFixed                                =>

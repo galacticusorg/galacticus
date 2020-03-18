@@ -100,7 +100,7 @@ contains
     !% Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
     implicit none
     type            (mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorInternal
-    type            (varying_string                  )                :: path
+    type            (varying_string                  ), intent(in   ) :: path
     double precision                                  , intent(in   ) :: massMinimum                      , massMaximum
 
     dumpToGraphVizConstructorInternal%path       =path

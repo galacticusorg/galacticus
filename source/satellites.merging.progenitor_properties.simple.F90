@@ -109,7 +109,7 @@ contains
   subroutine simpleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
     implicit none
-    type (mergerProgenitorPropertiesSimple) :: self
+    type(mergerProgenitorPropertiesSimple), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerMassMovements_"/>
     return

@@ -188,7 +188,10 @@ contains
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
           !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
+          !$omp critical(analysesGravitationalLensingDeepCopy)
+          !# <deepCopyReset variables="self%gravitationalLensing_"/>
           !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
+          !$omp end critical(analysesGravitationalLensingDeepCopy)
           !$omp do schedule(dynamic)
           do l=1,size(propertyValueMinimum)
              do i=1,2
