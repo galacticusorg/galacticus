@@ -328,7 +328,7 @@ contains
     use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
+    type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satellite
     type (treeNodeLinkedList    )               , pointer :: nodeStack, nodeNext, &
          &                                                   nodeNew

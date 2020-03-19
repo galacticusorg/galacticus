@@ -202,12 +202,12 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: thisOrbit
+    type            (treeNode              ), intent(inout) :: thisNode
+    type            (treeNode              ), pointer       :: hostNode
+    class           (nodeComponentSatellite), pointer       :: satelliteComponent
+    logical                                                 :: isNewSatellite
+    double precision                                        :: mergeTime
+    type            (keplerOrbit           )                :: thisOrbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
