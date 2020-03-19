@@ -151,11 +151,10 @@ contains
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
     use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive   , rootFinder
     use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
