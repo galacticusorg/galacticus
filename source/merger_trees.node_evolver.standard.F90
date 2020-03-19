@@ -538,9 +538,9 @@ contains
              call Galacticus_Display_Unindent('done')
           end if
           ! Assign module global pointer to this node.
-          standardSelf => self
-          self%activeTreeIndex=  tree%index
-          self%activeNode     => node
+          standardSelf         => self
+          self%activeTreeIndex =  tree%index
+          self%activeNode      => node
           ! Reset interrupt variables.
           self%interruptFirstFound    =  .false.
           self%timeInterruptFirst     =  0.0d0
@@ -955,6 +955,7 @@ contains
     !#  <functionArgs>node,odeConverged,interrupt,functionInterrupt,propertyType</functionArgs>
     include 'objects.node.component.derivatives.inc'
     !# </include>
+    call standardSelf%nodeOperator_%differentialEvolution(node,odeConverged,interrupt,functionInterrupt,propertyType)
     ! Return the procedure pointer.
     functionInterruptReturn => functionInterrupt
     return
