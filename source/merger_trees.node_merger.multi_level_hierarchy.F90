@@ -17,49 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Provides a node merger class implementing a single level hierarchy.
+  !% Provides a node merger class implementing a multi level hierarchy.
 
-  !# <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
-  !#  <description>A node merger class implementing a single level hierarchy.</description>
+  !# <mergerTreeNodeMerger name="mergerTreeNodeMergerMultiLevelHierarchy">
+  !#  <description>A node merger class implementing a multi level hierarchy.</description>
   !# </mergerTreeNodeMerger>
-  type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
-     !% Implementation of the standars merger tree evolver.
+  type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerMultiLevelHierarchy
+     !% Implementation of the multi-level hierarchy node merger class.
      private
    contains
-     procedure :: process  => singleLevelHierarchyProcess
-  end type mergerTreeNodeMergerSingleLevelHierarchy
+     procedure :: process  => multiLevelHierarchyProcess
+  end type mergerTreeNodeMergerMultiLevelHierarchy
 
-  interface mergerTreeNodeMergerSingleLevelHierarchy
-     !% Constructors for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver.
-     module procedure singleLevelHierarchyConstructorParameters
-  end interface mergerTreeNodeMergerSingleLevelHierarchy
+  interface mergerTreeNodeMergerMultiLevelHierarchy
+     !% Constructors for the {\normalfont \ttfamily multiLevelHierarchy} node merger class.
+     module procedure multiLevelHierarchyConstructorParameters
+  end interface mergerTreeNodeMergerMultiLevelHierarchy
 
 contains
 
-  function singleLevelHierarchyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
+  function multiLevelHierarchyConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily multiLevelHierarchy} node merger class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
-    type(inputParameters                         ), intent(inout) :: parameters
+    type(mergerTreeNodeMergerMultiLevelHierarchy)                :: self
+    type(inputParameters                        ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    self=mergerTreeNodeMergerSingleLevelHierarchy()
+    self=mergerTreeNodeMergerMultiLevelHierarchy()
     return
-  end function singleLevelHierarchyConstructorParameters
+  end function multiLevelHierarchyConstructorParameters
 
-  subroutine singleLevelHierarchyProcess(self,node)
-    !% Processes a node merging event, utilizing a single level substructure hierarchy.
+  subroutine multiLevelHierarchyProcess(self,node)
+    !% Processes a node merging event, utilizing a multi level substructure hierarchy.
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : treeNode
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     use :: String_Handling    , only : operator(//)
     implicit none
-    class(mergerTreeNodeMergerSingleLevelHierarchy), intent(inout)          :: self
-    type (treeNode                                ), intent(inout), pointer :: node
-    type (treeNode                                )               , pointer :: nodeChild    , nodeParent, &
-         &                                                                     nodeSatellite
-    type (varying_string                          )                         :: message
+    class(mergerTreeNodeMergerMultiLevelHierarchy), intent(inout)          :: self
+    type (treeNode                               ), intent(inout), pointer :: node
+    type (treeNode                               )               , pointer :: nodeChild    , nodeParent, &
+         &                                                                    nodeSatellite
+    type (varying_string                         )                         :: message
     !GCC$ attributes unused :: self
 
     ! Get the parent node.
@@ -87,11 +87,5 @@ contains
     else
        nodeParent   %firstSatellite => node
     end if
-    ! Move any of its own satellites to become satellites of the parent and set their parent node pointers appropriately.
-    do while (associated(node%firstSatellite))
-       ! Move the satellite to the new parent.
-       nodeSatellite => node%firstSatellite
-       call Satellite_Move_To_New_Host(nodeSatellite,nodeParent)
-    end do
     return
-  end subroutine singleLevelHierarchyProcess
+  end subroutine multiLevelHierarchyProcess

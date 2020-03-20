@@ -337,44 +337,49 @@ contains
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
-    type (treeNode                      ),                pointer :: satelliteNode
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent   , mergingStatistics, &
-         &                                                           mergingStatisticsSatellite
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent      , basic
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent
+    class(nodeComponentBasic            )               , pointer :: parentBasicComponent   , basic
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-
+    ! Record the merger time if this is a major merger.
     basic                   => node       %basic            ()
     parentBasicComponent    => node%parent%basic            ()
-    mergingStatistics       => node       %mergingStatistics()
     mergingStatisticsParent => node%parent%mergingStatistics()
-    ! Record the merger time if this is a major merger.
     if (basic%mass() >= nodeMajorMergerFraction*parentBasicComponent%mass()) &
          &  call mergingStatisticsParent%nodeMajorMergerTimeSet(basic%time())
     ! Increment the hierarchy level of the merging node.
     call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
-    call mergingStatistics%nodeHierarchyLevelSet       (    mergingStatistics%nodeHierarchyLevel       ()+1)
-    call mergingStatistics%nodeHierarchyLevelMaximumSet(                                                      &
-         &                                              max(                                                  &
-         &                                                  mergingStatistics%nodeHierarchyLevel       ()   , &
-         &                                                  mergingStatistics%nodeHierarchyLevelMaximum()     &
-         &                                                 )                                                  &
-         &                                             )
-    ! Increment the hierarchy level of the satellite nodes in the merging node.
-    satelliteNode => node%firstSatellite
-    do while (associated(satelliteNode))
-       mergingStatisticsSatellite => satelliteNode%mergingStatistics()
-       call mergingStatisticsSatellite%nodeHierarchyLevelSet       (    mergingStatisticsSatellite%nodeHierarchyLevel       ()+1)
-       call mergingStatisticsSatellite%nodeHierarchyLevelMaximumSet(                                                               &
-            &                                                       max(                                                           &
-            &                                                           mergingStatisticsSatellite%nodeHierarchyLevel       ()   , &
-            &                                                           mergingStatisticsSatellite%nodeHierarchyLevelMaximum()     &
-            &                                                          )                                                           &
-            &                                                      )
-       satelliteNode => satelliteNode%sibling
-    end do
+    call hierarchyLevelIncrement(node)
     return
+    
+  contains
+
+    recursive subroutine hierarchyLevelIncrement(node)
+      !% Increment the hierarchy level of the given node, and then call our self on any satellite nodes.
+      implicit none
+      type (treeNode                      ), intent(inout), target  :: node
+      type (treeNode                      ),                pointer :: satelliteNode
+      class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+
+      ! Increment the hierarchy level.
+      mergingStatistics => node%mergingStatistics()
+      call mergingStatistics%nodeHierarchyLevelSet       (    mergingStatistics%nodeHierarchyLevel       ()+1)
+      call mergingStatistics%nodeHierarchyLevelMaximumSet(                                                      &
+           &                                              max(                                                  &
+           &                                                  mergingStatistics%nodeHierarchyLevel       ()   , &
+           &                                                  mergingStatistics%nodeHierarchyLevelMaximum()     &
+           &                                                 )                                                  &
+           &                                             )
+      ! Increment the hierarchy level of any satellites.
+      satelliteNode => node%firstSatellite
+      do while (associated(satelliteNode))
+         call hierarchyLevelIncrement(satelliteNode)
+         satelliteNode => satelliteNode%sibling
+      end do
+      return
+    end subroutine hierarchyLevelIncrement
+    
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Merger
 
   !# <satelliteHostChangeTask>
