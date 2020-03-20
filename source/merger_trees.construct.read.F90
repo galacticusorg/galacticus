@@ -967,7 +967,7 @@ contains
   function readConstruct(self,treeNumber) result(tree)
     !% Construct a merger tree by reading its definition from file.
     use    :: Array_Utilities           , only : operator(.intersection.)
-    use    :: Arrays_Search             , only : Search_Array_For_Closest
+    use    :: Arrays_Search             , only : searchArrayClosest
     use    :: Functions_Global          , only : Galacticus_State_Retrieve_       , Galacticus_State_Store_
     use    :: Galacticus_Error          , only : Galacticus_Component_List        , Galacticus_Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
@@ -1114,7 +1114,7 @@ contains
              ! Loop over all nodes.
              do iNode=1,size(nodes)
                 ! Find closest output time to the node time.
-                iOutput=Search_Array_For_Closest(self%outputTimes,nodes(iNode)%nodeTime)
+                iOutput=searchArrayClosest(self%outputTimes,nodes(iNode)%nodeTime)
                 ! Test if this time is sufficiently close that we should snap the node time to it.
                 if (Values_Agree(nodes(iNode)%nodeTime,self%outputTimes(iOutput),relTol=self%outputTimeSnapTolerance)) &
                      & nodes(iNode)%nodeTime=self%outputTimes(iOutput)
@@ -1434,14 +1434,14 @@ contains
 
   function readNodeLocation(self,nodeIndex)
     !% Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readNodeLocation
     class  (mergerTreeConstructorRead), intent(inout) :: self
     integer(kind_int8                ), intent(in   ) :: nodeIndex
     integer(c_size_t                 )                :: iNode
 
-    iNode=Search_Array(self%nodeIndicesSorted,nodeIndex)
+    iNode=searchArray(self%nodeIndicesSorted,nodeIndex)
     if (iNode < 1 .or. iNode > size(self%nodeIndicesSorted)) then
        readNodeLocation=1
     else
@@ -1452,13 +1452,13 @@ contains
 
   function readDescendentNodeSortIndex(self,descendentIndex)
     !% Return the sort index of the given {\normalfont \ttfamily descendentIndex}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readDescendentNodeSortIndex
     class  (mergerTreeConstructorRead), intent(inout) :: self
     integer(kind_int8                ), intent(in   ) :: descendentIndex
 
-    readDescendentNodeSortIndex=Search_Array(self%descendentIndicesSorted,descendentIndex)
+    readDescendentNodeSortIndex=searchArray(self%descendentIndicesSorted,descendentIndex)
     return
   end function readDescendentNodeSortIndex
 

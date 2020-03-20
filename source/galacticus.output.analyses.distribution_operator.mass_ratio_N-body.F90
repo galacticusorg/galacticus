@@ -112,7 +112,7 @@ contains
 
   function massRatioNBodyOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an N-body mass ratio output analysis distribution operator.
-    use :: Arrays_Search          , only : Search_Array
+    use :: Arrays_Search          , only : searchArray
     use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic
@@ -170,7 +170,7 @@ contains
        ! Zero uncertainties - add the full weight to the bin if the progenitor and parent are within range.
        massRatioNBodyOperateScalar=0.0d0
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
-       binIndex=Search_Array(propertyValueMinimum,propertyValue)
+       binIndex=searchArray(propertyValueMinimum,propertyValue)
        if (binIndex   <= 0                      .or. binIndex   >  size(     propertyValueMinimum)) return
        if     (                                                 &
             &   propertyValue >= propertyValueMinimum(binIndex) &

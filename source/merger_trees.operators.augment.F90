@@ -476,7 +476,7 @@ contains
   end subroutine augmentOperatePreEvolution
 
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
-    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report , errorStatusSuccess
     use            :: Galacticus_Nodes    , only : mergerTree              , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -533,7 +533,7 @@ contains
           ! Only one snapshot time is given, use the earliest time.
           timeEarliest =  timeEarliestIn
        else
-          timeIndex=Search_Array_For_Closest(self%timeSnapshots,basic%time(),tolerance=1.0d-4,status=status)
+          timeIndex=searchArrayClosest(self%timeSnapshots,basic%time(),tolerance=1.0d-4,status=status)
           if (status /= errorStatusSuccess) then
              write (label,'(f8.5)') basic%time()
              message='Failed to find matching snapshot time for time '//trim(label)//' Gyr.'//char(10)

@@ -378,7 +378,7 @@ contains
 
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
-     use            :: Arrays_Search           , only : Search_Array_For_Closest
+     use            :: Arrays_Search           , only : searchArrayClosest
      use            :: FODEIV2                 , only : fodeiv2_system           , fodeiv2_driver
      use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
@@ -424,7 +424,7 @@ contains
         message = "Evolving IGM properties to time "//trim(label)//" Gyr"
         call Galacticus_Display_Indent(message)
         ! Find the current timestep.
-        iNow = Search_Array_For_Closest(self%time,event%time)
+        iNow = searchArrayClosest(self%time,event%time)
         ! Evolve the properties up to this timestep.
         if (iNow > 1) then
            ! Get required objects.

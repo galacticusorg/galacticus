@@ -265,7 +265,7 @@ contains
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
-    use :: Arrays_Search       , only : Search_Array
+    use :: Arrays_Search       , only : searchArray
     use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
@@ -282,13 +282,13 @@ contains
     timeNode     =       basic               %time ()
     historyCount =  size(historyStarFormation%time   )
     ! Find the point in the table at which to accumulate the star formation rate.
-    iHistory=Search_Array(historyStarFormation%time,timeNode)+1
+    iHistory=searchArray(historyStarFormation%time,timeNode)+1
     ! Find the metallicity bin to accumulate to.
     fuelMetallicity=abundancesFuel%metallicity(metallicityType=metallicityTypeLinearByMassSolar)
     if (fuelMetallicity < self%metallicityTable(1) .or. self%countMetallicities == 0) then
        iMetallicity=                                                   +1
     else
-       iMetallicity=Search_Array(self%metallicityTable,fuelMetallicity)+1
+       iMetallicity=searchArray(self%metallicityTable,fuelMetallicity)+1
     end if
     ! Accumulate to the appropriate time.
     historyStarFormation%data(iHistory,iMetallicity)=rateStarFormation

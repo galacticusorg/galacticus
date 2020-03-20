@@ -210,7 +210,7 @@ contains
 
   subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
-    use            :: Arrays_Search     , only : Search_Indexed
+    use            :: Arrays_Search     , only : searchIndexed
     use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
           &                                      verbosityWorking
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -415,7 +415,7 @@ contains
     call Galacticus_Display_Indent ('Assigning descendant indices',verbosityWorking)
     do i=1,size(mergerTreeHaloIndices)
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(size(mergerTreeHaloIndices))),i==1,verbosityWorking)
-       iHalo=Search_Indexed(nodeSelfIndices,nodeIndexRanks,mergerTreeHaloIndices(i))
+       iHalo=searchIndexed(nodeSelfIndices,nodeIndexRanks,mergerTreeHaloIndices(i))
        if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Galacticus_Error_Report('mismatch in halo ID lookup'//{introspection:location})
        if (mergerTreeDescendentIndices(i) < 0) then
           self%nodes(iHalo)%descendentIndex=-1
@@ -431,7 +431,7 @@ contains
     do i=1,nodeCountTrees
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(nodeCountTrees)),i==1,verbosityWorking)
        if (self%nodes(i)%descendentIndex > 0) then
-          iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendentIndex)
+          iProgenitor=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendentIndex)
           nodeDescendentLocations(i)=iProgenitor
           if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Galacticus_Error_Report('mismatch in descendant ID lookup'//{introspection:location})
        else

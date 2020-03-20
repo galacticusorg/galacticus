@@ -406,7 +406,7 @@ contains
 
   function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
-    use            :: Arrays_Search   , only : Search_Array_For_Closest
+    use            :: Arrays_Search   , only : searchArrayClosest
     use            :: Galacticus_Nodes, only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -419,14 +419,14 @@ contains
 
     basic    => node%basic   ()
     position => node%position()
-    output=Search_Array_For_Closest(self%outputTimes,basic%time())
+    output=searchArrayClosest(self%outputTimes,basic%time())
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
-    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
           &                                        nodeComponentSatellite   , treeNode
@@ -475,7 +475,7 @@ contains
             &      )
     end if
     ! Determine to which output this galaxy corresponds.
-    outputMinimum=Search_Array_For_Closest(self%outputTimes,basic%time())
+    outputMinimum=searchArrayClosest(self%outputTimes,basic%time())
     if (atPresentEpoch_) then
        ! We want to check only the current time for this node. Check that the node exists precisely at a lightcone snapshot time,
        ! and then set the maximum output to check to equal to minimum, such that we test only the current time.
@@ -537,7 +537,7 @@ contains
           else
              timeFinal   =  basic      %time ()
           end if
-          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeFinal)
+          outputMaximum=searchArrayClosest(self%outputTimes,timeFinal)
           ! Ensure maximum output is before the final time.
           if (self%outputTimes(outputMaximum) > timeFinal) then
              if (outputMaximum > 1) then
@@ -558,7 +558,7 @@ contains
           satellite => node     %satellite    ()
           timeMerge =  satellite%timeOfMerging()
           if (timeMerge < basic%time()) call Galacticus_Error_Report('can not determine if satellite is in lightcone without knowledge of its time of merging'//{introspection:location})
-          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeMerge)
+          outputMaximum=searchArrayClosest(self%outputTimes,timeMerge)
           ! Ensure maximum output is before the parent time.
           if (self%outputTimes(outputMaximum) > timeMerge) then
              if (outputMaximum > 1) then
@@ -606,7 +606,7 @@ contains
 
   function squarePosition(self,node,instance)
     !% Return the position of the node in lightcone coordinates.
-    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -629,7 +629,7 @@ contains
     basic    => node%basic   ()
     position => node%position()
     ! Determine to which output this node corresponds.
-    output=Search_Array_For_Closest(self%outputTimes,basic%time())
+    output=searchArrayClosest(self%outputTimes,basic%time())
     if (.not.Values_Agree(self%outputTimes(output),basic%time(),relTol=timeTolerance)) then
        message=         'failed to find matching time in lightcone'                       //char(10)
        write (label,'(f6.3)') basic%time()

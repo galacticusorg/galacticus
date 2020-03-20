@@ -164,7 +164,7 @@ contains
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
-    use :: Arrays_Search   , only : Search_Array
+    use :: Arrays_Search   , only : searchArray
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
@@ -181,7 +181,7 @@ contains
     basic                                 =>              node                %basic()
     timeNode                              =               basic               %time ()
     historyCount                          =          size(historyStarFormation%time            )
-    iHistory                              =  Search_Array(historyStarFormation%time   ,timeNode)+1
+    iHistory                              =  searchArray(historyStarFormation%time   ,timeNode)+1
     historyStarFormation%data(iHistory,:) =  rateStarFormation
     return
   end subroutine inSituRate

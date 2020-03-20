@@ -278,7 +278,7 @@ contains
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
     use            :: Array_Utilities                 , only : Array_Reverse
-    use            :: Arrays_Search                   , only : Search_Array               , Search_Indexed
+    use            :: Arrays_Search                   , only : searchArray               , searchIndexed
     use            :: File_Utilities                  , only : Count_Lines_in_File        , File_Exists
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                                                    Galacticus_Display_Unindent, verbosityWorking
@@ -805,7 +805,7 @@ contains
          end do
        end if
        ! Locate this node in the list of nodes in our subvolume.
-       iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+       iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
        if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
           ! This line represents a node in the tree.
           i                 =i+1
@@ -872,7 +872,7 @@ contains
           read (line,*) nodeIndex,progenitorCount
        end if
        ! Locate this node in the list of nodes in our subvolume.
-       iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+       iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
        nodeIsActive=(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex)
        if (nodeIsActive) then
           ! This line represents a node in the tree.
@@ -888,7 +888,7 @@ contains
           end if
           if (nodeIsActive) then
              ! This line represents a progenitor. Locate the progenitor in the list of halos.
-             iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
+             iProgenitor=searchIndexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
              ! Does this progenitor exist within our subvolume?
              if (iProgenitor <= 0 .or. iProgenitor > nodeCountTrees .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
                 nodeIncomplete(i)=.true.
@@ -902,16 +902,16 @@ contains
                 end if
                 nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
                 ! Find the progenitor node in the list of halos in the subvolume.
-                iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+                iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
                 if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
                    ! Find hosted halos.
                    hostHalo=hostsInSubvolume(iNode)
                    if (hostHalo /= nodeIndex) then
                       ! Check if the host halo is in the subvolume.
-                      jNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
+                      jNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
                       if (jNode > 0 .and. jNode <= nodeCountSubvolume .and. nodesInSubvolume(jNode) == hostHalo) then
                          ! Check if the host halo is in the trees.
-                         jNode=Search_Indexed(nodeSelfIndices,nodeIndexRanks,hostHalo)
+                         jNode=searchIndexed(nodeSelfIndices,nodeIndexRanks,hostHalo)
                          if (.not.(jNode > 0 .and. jNode <= nodeCountTrees .and. nodeSelfIndices(nodeIndexRanks(jNode)) == hostHalo)) then
                             ! Host halo is in subvolume, but not in trees. Add it to the trees now.
                             message='host halo ['
@@ -1194,10 +1194,10 @@ contains
                 end do
              end if
              ! Locate this node in the list of nodes in our subvolume.
-             iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
+             iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),ID)
              if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
                 ! Locate this node in the node list.
-                l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
+                l=searchIndexed(nodeSelfIndices,nodeIndexRanks,ID)
                 l=nodeIndexRanks(l)
                 if (ID /= nodeSelfIndices(l)) then
                    if (self%fatalNonTreeNode) then
@@ -1219,7 +1219,7 @@ contains
                 else
                    self%nodes(l)%hostIndex         =hostHalo
                    ! Check that the host halo is in the subvolume.
-                   iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
+                   iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
                    if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
                 end if
                 self   %nodes(l)%particleCount     =npart

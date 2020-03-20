@@ -226,7 +226,7 @@ contains
 
   subroutine spectrumPhotonPacketEscapes(self,photonPacket)
     !% Process an escaping photon packet.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (radiativeTransferOutputterSpectrum), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
@@ -242,12 +242,12 @@ contains
        if (photonPacket%wavelength() > self%wavelengthsMinimum(self%countWavelengths)) then
           iWavelength=self%countWavelengths
        else
-          iWavelength                              =Search_Array(self%wavelengthsMinimum,photonPacket%wavelength())
+          iWavelength                              =searchArray(self%wavelengthsMinimum,photonPacket%wavelength())
        end if
        if (photonTheta               > self%thetasMinimum      (self%countThetas    )) then
           iTheta     =self%countThetas
        else
-          iTheta                                   =Search_Array(self%thetasMinimum     ,photonTheta              )
+          iTheta                                   =searchArray(self%thetasMinimum     ,photonTheta              )
        end if
        self%spectrumEmergent(iWavelength,iTheta)=+self        %spectrumEmergent(iWavelength,iTheta) &
             &                                    +photonPacket%luminosity      (                  )

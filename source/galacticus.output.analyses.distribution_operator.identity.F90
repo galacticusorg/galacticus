@@ -51,7 +51,7 @@ contains
 
   function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
     double precision                                            , intent(in   )                                        :: propertyValue
@@ -66,7 +66,7 @@ contains
     ! Initialize distribution to zero.
     identityOperateScalar=0.0d0
     ! Find the corresponding bin in the array.
-    binIndex=Search_Array(propertyValueMinimum,propertyValue)
+    binIndex=searchArray(propertyValueMinimum,propertyValue)
     ! Check if value lies within range.
     if (binIndex <= 0) return
     ! Add weight to distribution if within the bin.

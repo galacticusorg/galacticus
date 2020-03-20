@@ -166,7 +166,7 @@ contains
 
   function listIndex(self,time,findClosest)
     !% Returns the index of the output given the corresponding time.
-    use :: Arrays_Search       , only : Search_Array           , Search_Array_For_Closest
+    use :: Arrays_Search       , only : searchArray           , searchArrayClosest
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -176,9 +176,9 @@ contains
     logical                          , intent(in   ), optional :: findClosest
 
     if (present(findClosest).and.findClosest) then
-       listIndex=Search_Array_For_Closest(self%times,time)
+       listIndex=searchArrayClosest(self%times,time)
     else
-       listIndex=Search_Array            (self%times,time)
+       listIndex=searchArray            (self%times,time)
        if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) &
             & call Galacticus_Error_Report('time does not correspond to an output'//{introspection:location})
     end if
@@ -187,7 +187,7 @@ contains
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
     !% Returns the time of the next output after {\normalfont \ttfamily currentTime}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout)           :: self
     double precision                 , intent(in   )           :: timeCurrent
@@ -202,7 +202,7 @@ contains
        listTimeNext=self%times(1)
        if (present(indexOutput)) indexOutput=+1
     else
-       i=min(Search_Array(self%times,timeCurrent)+1,size(self%times))
+       i=min(searchArray(self%times,timeCurrent)+1,size(self%times))
        listTimeNext=self%times(i)
        if (present(indexOutput)) indexOutput=i
     end if
@@ -211,7 +211,7 @@ contains
 
   double precision function listTimePrevious(self,timeCurrent)
     !% Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout) :: self
     double precision                 , intent(in   ) :: timeCurrent
@@ -223,7 +223,7 @@ contains
        ! If the current time preceeds the first output, return an unphysical value.
        listTimePrevious=-1.0d0
     else
-       listTimePrevious=self%times(Search_Array(self%times,timeCurrent))
+       listTimePrevious=self%times(searchArray(self%times,timeCurrent))
     end if
     return
   end function listTimePrevious

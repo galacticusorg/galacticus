@@ -885,7 +885,7 @@ contains
   subroutine History_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
-    use            :: Arrays_Search    , only : Search_Array
+    use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
@@ -903,7 +903,7 @@ contains
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
     ! Find where to trim and number of trimmed points.
-    trimAt   =Search_Array(self%time,time)+1
+    trimAt   =searchArray(self%time,time)+1
     trimCount=size(self%time)-trimAt+1
     ! Transfer data to a temporary history.
     call Move_Alloc(self%time,temporaryHistory%time)
@@ -996,7 +996,7 @@ contains
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
-    use            :: Arrays_Search    , only : Search_Array
+    use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
@@ -1014,7 +1014,7 @@ contains
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
     ! Find where to trim and number of trimmed points.
-    trimAt   =Search_Array(self%time,time)+1
+    trimAt   =searchArray(self%time,time)+1
     trimCount=size(self%time)-trimAt+1
     ! Transfer data to a temporary history.
     call Move_Alloc(self%time,temporaryHistory%time)
@@ -1245,7 +1245,7 @@ contains
      !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
      !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
-     use            :: Arrays_Search   , only : Search_Array
+     use            :: Arrays_Search   , only : searchArray
      use            :: Galacticus_Error, only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
      use            :: Numerical_Ranges, only : rangeTypeUndefined
@@ -1309,9 +1309,9 @@ contains
               ! Reuse the end index from the previous loop iteration if available.
               timeBeginIndex=timeEndIndex
            else
-              timeBeginIndex=Search_Array(thisHistory%time,addHistory%time(iPoint-1))
+              timeBeginIndex=searchArray(thisHistory%time,addHistory%time(iPoint-1))
            end if
-           timeEndIndex=min(Search_Array(thisHistory%time,addHistory%time(iPoint))+1,size(thisHistory%time))
+           timeEndIndex=min(searchArray(thisHistory%time,addHistory%time(iPoint))+1,size(thisHistory%time))
            ! Loop over all points in thisHistory to which we need to add this contribution.
            do jPoint=timeBeginIndex,timeEndIndex
               if (jPoint == 1) then
