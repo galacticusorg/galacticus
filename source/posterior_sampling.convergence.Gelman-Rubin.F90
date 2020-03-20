@@ -192,12 +192,12 @@ contains
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !% Return whether the simulation is converged.
-    use :: FGSL                    , only : FGSL_CDF_tDist_Qinv
     use :: Galacticus_Display      , only : Galacticus_Display_Message
     use :: ISO_Varying_String      , only : varying_string
-    use :: MPI_Utilities           , only : mpiBarrier                , mpiSelf
+    use :: MPI_Utilities           , only : mpiBarrier                    , mpiSelf
     use :: Memory_Management       , only : allocateArray
     use :: Posterior_Sampling_State, only : posteriorSampleStateClass
+    use :: Statistics_Distributions, only : distributionFunction1DStudentT
     use :: String_Handling         , only : operator(//)
     implicit none
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout)               :: self
@@ -220,6 +220,7 @@ contains
          &                                                                                  i                            , deviationMaximumChain
     double precision                                                                     :: grubbsCriticalValue          , tStatisticCriticalValue, &
          &                                                                                  logLikelihoodMaximum         , deviationMaximum
+    type            (distributionFunction1DStudentT       )                              :: studentT
     type            (varying_string                       )                              :: message
     character       (len=16                               )                              :: label
 
@@ -274,16 +275,15 @@ contains
        chainDeviationIndex  =mpiSelf%maxloc(chainDeviation,self%chainMask)+1
        deallocate(chainDeviation)
        ! Evaluate the critical value for outlier rejection.
-       tStatisticCriticalValue=                                 &
-            &   FGSL_CDF_tDist_Qinv(                            &
-            &                       (                           &
-            &                        +1.0d0                     &
-            &                        -self%outlierSignificance  &
-            &                       )                           &
-            &                       /2.0d0                      &
-            &                       /dble(activeChainCount  ) , &
-            &                        dble(activeChainCount-2)   &
-            &                      )
+       studentT               =distributionFunction1DStudentT( dble(activeChainCount-2))
+       tStatisticCriticalValue=studentT%inverseUpper         (                            &
+            &                                                 +(                          &
+            &                                                   +1.0d0                    &
+            &                                                   -self%outlierSignificance &
+            &                                                  )                          &
+            &                                                 /2.0d0                      &
+            &                                                 /dble(activeChainCount  )   &
+            &                                                )
        grubbsCriticalValue= dble(                              &
             &                         activeChainCount-1       &
             &                   )                              &
