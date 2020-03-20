@@ -262,7 +262,7 @@ contains
     use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi                     , e
-    use :: Sort                    , only : Sort_Do
+    use :: Sorting                 , only : sort
     use :: String_Handling         , only : operator(//)
     use :: Vectors                 , only : Vector_Magnitude
     implicit none
@@ -286,7 +286,7 @@ contains
     !# <constructorAssign variables="origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,*cosmologyFunctions_"/>
 
     ! Ensures times are sorted.
-    call Sort_Do(squareConstructorInternal%outputTimes)
+    call sort(squareConstructorInternal%outputTimes)
     ! Find the minimum and maximum distance associated with each output time.
     call allocateArray(squareConstructorInternal%distanceMinimum,shape(squareConstructorInternal%outputTimes))
     call allocateArray(squareConstructorInternal%distanceMaximum,shape(squareConstructorInternal%outputTimes))

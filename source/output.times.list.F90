@@ -50,7 +50,7 @@ contains
     use :: Array_Utilities  , only : Array_Reverse
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Do
+    use :: Sorting          , only : sort
     implicit none
     type            (outputTimesList        )                            :: self
     type            (inputParameters        ), intent(inout)             :: parameters
@@ -76,7 +76,7 @@ contains
        !#   <source>parameters</source>
        !#   <type>real</type>
        !# </inputParameter>
-       call Sort_Do(times)
+       call sort(times)
     else
        !# <inputParameter>
        !#   <name>redshifts</name>
@@ -88,7 +88,7 @@ contains
        !#   <source>parameters</source>
        !#   <group>output</group>
        !# </inputParameter>
-       call Sort_Do(times)
+       call sort(times)
        times=Array_Reverse(times)
        do i=1,outputCount
           times(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(times(i)))

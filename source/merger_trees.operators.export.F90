@@ -142,7 +142,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Interpolation         , only : Interpolate_Done             , Interpolate_Locate
-    use :: Sort                            , only : Sort_Do
+    use :: Sorting                         , only : sort
     implicit none
     class           (mergerTreeOperatorExport     ), intent(inout), target         :: self
     type            (mergerTree                   ), intent(inout), target         :: tree
@@ -230,7 +230,7 @@ contains
                 snapshotTime(snapshotCount)=basic%time()
              end if
           end do
-          call Sort_Do(snapshotTime(1:snapshotCount))
+          call sort(snapshotTime(1:snapshotCount))
        else
           snapshotCount=0
        end if

@@ -1271,7 +1271,7 @@ contains
   function mpiMedianArray(self,array,mask)
     !% Find the median of an array over all processes, returning it to all processes.
 #ifdef USEMPI
-    use :: Sort            , only : Sort_Do
+    use :: Sorting         , only : sort
 #else
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1310,7 +1310,7 @@ contains
           end where
        end if
        ! Sort over processes.
-       call Sort_Do(allArray(i,:))
+       call sort(allArray(i,:))
        ! Compute the median.
        mpiMedianArray(i)=(allArray(i,indexMedian(1))+allArray(i,indexMedian(2)))/2
     end do

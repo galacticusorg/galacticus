@@ -172,7 +172,7 @@ contains
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
     use :: Memory_Management             , only : allocateArray
     use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
-    use :: Sort                          , only : Sort_Do
+    use :: Sorting                       , only : sort
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -219,7 +219,7 @@ contains
        indexStart                                           =+self%treeCount(i) &
             &                                                +indexStart
     end do
-    call Sort_Do(mass)
+    call sort(mass)
     indexStart=1
     do i=1,size(self%treeCount)
        massMinimum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)/sqrt(1.0d0+self%massIntervalFractional)

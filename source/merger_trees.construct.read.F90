@@ -977,7 +977,7 @@ contains
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
-    use    :: Sort                      , only : Sort_Do
+    use    :: Sorting                   , only : sort
     use    :: String_Handling           , only : operator(//)
     use    :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
@@ -1071,7 +1071,7 @@ contains
           self%splitForestNextTree=self%splitForestNextTree+1
           allocate(nodeSubset(self%splitForestTreeSize(self%splitForestNextTree)))
           nodeSubset=self%splitForestMapIndex(self%splitForestTreeStart(self%splitForestNextTree):self%splitForestTreeStart(self%splitForestNextTree)+self%splitForestTreeSize(self%splitForestNextTree)-1)
-          call Sort_Do(nodeSubset)
+          call sort(nodeSubset)
        else
           allocate(nodeSubset(1))
           nodeSubset=[-1_c_size_t]
@@ -1403,7 +1403,7 @@ contains
     use :: Galacticus_Error          , only : Galacticus_Warn
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
-    use :: Sort                      , only : Sort_Index_Do
+    use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                :: self
@@ -1416,8 +1416,8 @@ contains
     call allocateArray(self%nodeIndicesSorted      ,shape(nodes))
     call allocateArray(self%descendentLocations    ,shape(nodes))
     call allocateArray(self%descendentIndicesSorted,shape(nodes))
-    self%nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
-    self%descendentLocations=Sort_Index_Do(nodes%descendentIndex)
+    self%nodeLocations      =sortIndex(nodes%nodeIndex      )
+    self%descendentLocations=sortIndex(nodes%descendentIndex)
     forall (iNode=1:size(nodes))
        self%nodeIndicesSorted      (iNode)=nodes(self%nodeLocations      (iNode))%nodeIndex
        self%descendentIndicesSorted(iNode)=nodes(self%descendentLocations(iNode))%descendentIndex
@@ -3496,7 +3496,7 @@ contains
     use :: ISO_Varying_String        , only : varying_string           , assignment(=)             , operator(//)
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
-    use :: Sort                      , only : Sort_Index_Do
+    use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (mergerTreeConstructorRead)                        , intent(inout) :: self
@@ -3564,7 +3564,7 @@ contains
     end do
     ! Get a sorted index into the root node affinities.
     call allocateArray(self%splitForestMapIndex,shape(nodes))
-    self%splitForestMapIndex=Sort_Index_Do(rootaffinity)
+    self%splitForestMapIndex=sortIndex(rootaffinity)
     ! Count trees in the forest.
     treeCount        = 0
     treeIndexPrevious=-1

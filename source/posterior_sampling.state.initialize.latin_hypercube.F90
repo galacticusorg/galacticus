@@ -91,7 +91,7 @@ contains
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
     use            :: Models_Likelihoods_Constants, only : logImpossible
-    use            :: Sort                        , only : Sort_Index_Do
+    use            :: Sorting                     , only : sortIndex
     implicit none
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
@@ -126,7 +126,7 @@ contains
           x(mpiSelf%rank())=self%randomNumberGenerator_%uniformSample()
           y                =mpiSelf%sum(x)
           call mpiBarrier()
-          order            =Sort_Index_Do(y)-1
+          order            =sortIndex(y)-1
           do i=0,mpiSelf%count()-1
              stateGrid(i,j)=(dble(order(i))+0.5d0)/mpiSelf%count()
           end do

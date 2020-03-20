@@ -94,7 +94,7 @@ contains
           &                           Galacticus_Display_Unindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)              , operator(//)                    , operator(==)             , varying_string
-    use :: Sort              , only : Sort_Index_Do
+    use :: Sorting           , only : sortIndex
     use :: String_Handling   , only : String_Split_Words         , operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
@@ -148,7 +148,7 @@ contains
     call Galacticus_Display_Counter_Clear()
     close(fileUnit)
     ! Get a sorted index of polygon solid angles.
-    self%solidAngleIndex=Sort_Index_Do(solidAngle)
+    self%solidAngleIndex=sortIndex(solidAngle)
     deallocate(solidAngle)
     call Galacticus_Display_Unindent('done')
     return

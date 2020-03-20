@@ -217,7 +217,7 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : allocateArray             , deallocateArray
-    use            :: Sort              , only : Sort_Index_Do
+    use            :: Sorting           , only : sortIndex
     use            :: String_Handling   , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussingHDF5), intent(inout)                              :: self
@@ -402,7 +402,7 @@ contains
     call allocateArray(nodeTreeIndices        ,[nodeCountTrees])
     nodeSelfIndices=self%nodes%nodeIndex
     nodeTreeIndices=-1
-    nodeIndexRanks =Sort_Index_Do(nodeSelfIndices)
+    nodeIndexRanks =sortIndex(nodeSelfIndices)
     nodeIncomplete =.false.
     ! Read descendent information.
     call Galacticus_Display_Indent ('Reading merger tree data',verbosityWorking)

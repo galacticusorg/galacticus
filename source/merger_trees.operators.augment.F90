@@ -251,7 +251,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Memory_Management  , only : allocateArray
-    use :: Sort               , only : Sort_Do
+    use :: Sorting            , only : sort
     implicit none
     type            (mergerTreeOperatorAugment)                                        :: self
     double precision                           , intent(in   )                         :: massCutOff                       , toleranceScale           , &
@@ -270,7 +270,7 @@ contains
        allocate(self%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
        call allocateArray(self%timeSnapshots,shape(timeSnapshots))
        self%timeSnapshots=timeSnapshots
-       call Sort_Do(self%timeSnapshots)
+       call sort(self%timeSnapshots)
        self%timeEarliest=min(                                                           &
             &                cosmologyFunctions_%cosmicTime   (expansionFactorDefault), &
             &                self               %timeSnapshots(                     1)  &
@@ -301,7 +301,7 @@ contains
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic        , treeNode                   , treeNodeList
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
-    use            :: Sort               , only : Sort_Index_Do
+    use            :: Sorting            , only : sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
     class           (mergerTreeOperatorAugment    ), intent(inout), target       :: self
@@ -349,7 +349,7 @@ contains
              anchorNodes(i)%node => node
              anchorTimes(i)      =  basic%time    ()
           end do
-          anchorIndex=Sort_Index_Do(anchorTimes)
+          anchorIndex=sortIndex(anchorTimes)
           deallocate(anchorTimes)
           ! Walk the tree.
           i=1

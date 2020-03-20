@@ -427,7 +427,7 @@ contains
     use            :: Memory_Management               , only : allocateArray              , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar                  , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Sort                            , only : Sort_Index_Do
+    use            :: Sorting                         , only : sortIndex
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussing), intent(inout)                 :: self
@@ -661,7 +661,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosityWorking)
     end if
     ! Generate an index into nodes sorted by tree index.
-    self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
+    self%treeIndexRanks=sortIndex(nodeTreeIndices)
     ! Identify trees which contain incomplete nodes.
     call Galacticus_Display_Message('Checking for incomplete trees',verbosityWorking)
     i               =0
@@ -765,7 +765,7 @@ contains
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     ! Generate an index into nodes sorted by tree index.
-    self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
+    self%treeIndexRanks=sortIndex(nodeTreeIndices)
     ! Create a list of tree indices, sizes, and start locations.
     call Galacticus_Display_Message('Generating tree list',verbosityWorking)
     self%treesCount=0

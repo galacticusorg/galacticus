@@ -1636,7 +1636,7 @@ contains
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Sort            , only : Sort_Index_Do
+    use            :: Sorting         , only : sortIndex
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
     double precision                                                  , intent(in   )                              :: a                , b
@@ -1753,7 +1753,7 @@ contains
              listValue(iInterval)           =  maxval(newInterval%error/errorScale,mask=.not.converged)
              newInterval                    =>        newInterval%next
           end do
-          listRank    =  Sort_Index_Do(listValue)
+          listRank    =  sortIndex(listValue)
           head        => list(listRank(intervalCount))%interval_
           newInterval => head
           do iInterval=2_c_size_t,intervalCount
@@ -1963,7 +1963,7 @@ contains
     use            :: Galacticus_Error  , only : Galacticus_Error_Report       , errorStatusFail           , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)                 , operator(//)              , varying_string
-    use            :: Sort              , only : Sort_Index_Do
+    use            :: Sorting           , only : sortIndex
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
     double precision                                                 , intent(in   )                                :: a                                      , b
@@ -2199,7 +2199,7 @@ contains
                 if (.not.converged(i)) listValue(iInterval)=max(listValue(iInterval),list(iInterval)%interval_%error(i)/errorScale(i))
              end do
           end do
-          listRank(1_c_size_t:intervalCount)    =  Sort_Index_Do(listValue(1_c_size_t:intervalCount))
+          listRank(1_c_size_t:intervalCount)    =  sortIndex(listValue(1_c_size_t:intervalCount))
           head        => list(listRank(intervalCount))%interval_
           newInterval => head
           do iInterval=2_c_size_t,intervalCount

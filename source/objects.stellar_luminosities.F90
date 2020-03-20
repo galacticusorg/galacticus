@@ -307,7 +307,7 @@ contains
     use            :: Input_Parameters                      , only : globalParameters                            , inputParameter
     use            :: Instruments_Filters                   , only : Filter_Get_Index
     use            :: Memory_Management                     , only : Memory_Usage_Record                         , allocateArray
-    use            :: Sort                                  , only : Sort_Index_Do                               , sortByIndex
+    use            :: Sorting                               , only : sortIndex                                   , sortByIndex
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
     implicit none
     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
@@ -494,7 +494,7 @@ contains
                 luminosityPostprocessor(iLuminosity)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder_%build(luminosityPostprocessSet(iLuminosity))
              end do
              ! Sort the luminosities such that the latest luminosities are stored first.
-             luminosityTimeIndex=Array_Reverse(Sort_Index_Do(luminosityCosmicTime))
+             luminosityTimeIndex=Array_Reverse(sortIndex(luminosityCosmicTime))
              call sortByIndex             (luminosityFilterIndex   ,luminosityTimeIndex)
              call sortByIndexPostprocessor(luminosityPostprocessor ,luminosityTimeIndex)
              call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)

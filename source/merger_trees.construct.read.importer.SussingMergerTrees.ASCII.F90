@@ -288,7 +288,7 @@ contains
     use            :: Memory_Management               , only : allocateArray              , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : kiloParsec                 , massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Sort                            , only : Sort_Do                    , Sort_Index_Do
+    use            :: Sorting                         , only : sort                       , sortIndex
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussingASCII), intent(inout)                              :: self
@@ -769,7 +769,7 @@ contains
        if (doBinaryConversion) close(snapshotOutUnit)
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
-    call Sort_Do(nodesInSubvolume(1:nodeCountSubvolume),hostsInSubvolume(1:nodeCountSubvolume))
+    call sort(nodesInSubvolume(1:nodeCountSubvolume),hostsInSubvolume(1:nodeCountSubvolume))
     message='Found '
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call Galacticus_Display_Message(message,verbosityWorking)
@@ -834,7 +834,7 @@ contains
     call allocateArray(nodeIncomplete         ,[nodeCountTrees])
     ! Get a sorted index into the list of nodes.
     call Galacticus_Display_Message('Building node index',verbosityWorking)
-    nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
+    nodeIndexRanks=sortIndex(nodeSelfIndices)
     ! Re-open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
     if (mergerTreeFileIsBinary) then
@@ -938,7 +938,7 @@ contains
                             nodeIncomplete         (nodeCountTrees)=.false.
                             ! Recompute the sort index into the node self indices.
                             deallocate(nodeIndexRanks)
-                            nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
+                            nodeIndexRanks=sortIndex(nodeSelfIndices)
                          end if
                       end if
                    end if
