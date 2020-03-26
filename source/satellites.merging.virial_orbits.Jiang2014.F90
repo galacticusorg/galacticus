@@ -447,10 +447,13 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find virial density contrast under Jiang et al. (2014) definition.
-    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
-    ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>    
+    ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast
+    ! definition. We limit the satellite mass to be less than the host mass here. This is necessary because the correction to the
+    ! mass under the definition of Jiang et al. (2014) can sometimes lead to large satellite masses if the satellite is moving to
+    ! a new host (and was therefore last isolated at a much earlier time and so can be much denser than the host).
+    massHost     =             Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
+    massSatellite=min(massHost,Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            ))
     !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
     call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
@@ -676,7 +679,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
