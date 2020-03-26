@@ -198,8 +198,8 @@ contains
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem
     implicit none
-    type   (treeNode                      ), intent(inout) :: node
-    class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
     ! Return immediately if already non-plausible.
     if (.not.(node%isPhysicallyPlausible.and.node%isSolvable)) return
@@ -219,13 +219,13 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes            , only : nodeComponentBasic                         , nodeComponentDarkMatterProfile     , nodeComponentSatellite       , defaultDarkMatterProfileComponent, &
-         &                                   nodeComponentDarkMatterProfileVirialTheorem
-    use Root_Finder                 , only : rootFinder                                 , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Kepler_Orbits               , only : keplerOrbit
-    use Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
-    use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use Beta_Functions              , only : Beta_Function                              , Beta_Function_Incomplete_Normalized
+    use Galacticus_Nodes                , only : nodeComponentBasic                         , nodeComponentDarkMatterProfile     , nodeComponentSatellite       , defaultDarkMatterProfileComponent, &
+         &                                       nodeComponentDarkMatterProfileVirialTheorem
+    use Root_Finder                     , only : rootFinder                                 , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use Kepler_Orbits                   , only : keplerOrbit
+    use Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
+    use Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use Beta_Functions                  , only : Beta_Function                              , Beta_Function_Incomplete_Normalized
     use Hypergeometric_Functions
     implicit none
     type            (treeNode                      ), intent(inout), pointer   :: node
