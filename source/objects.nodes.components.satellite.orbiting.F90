@@ -554,9 +554,9 @@ contains
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Extract current position and velocity.
-    satellite => node%satellite()
-    positionSatellite =  satellite%position()
-    velocitySatellite =  satellite%velocity()
+    satellite        =>  node     %satellite()
+    positionSatellite =  satellite%position ()
+    velocitySatellite =  satellite%velocity ()
     ! Walk up through hosts until the new host is found.
     nodeHost     => node       %parent
     nodeHostNew_ => nodeHostNew
