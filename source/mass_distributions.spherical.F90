@@ -113,8 +113,8 @@ contains
 
   double precision function sphericalRadiusEnclosingMass(self,mass)
     !% Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
-    use :: FGSL       , only : FGSL_Root_fSolver_Brent
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder, &
+         &                     GSL_Root_fSolver_Brent
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
     double precision                           , intent(in   )         :: mass
@@ -131,7 +131,7 @@ contains
             &                                                 toleranceRelative              &
             &                  )
        call finder%type        (                                                             &
-            &                                                 FGSL_Root_fSolver_Brent        &
+            &                                                  GSL_Root_fSolver_Brent        &
             &                  )
        call finder%rangeExpand (                                                             &
             &                   rangeExpandUpward            =2.0d0                        , &

@@ -335,8 +335,7 @@ contains
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use :: FGSL       , only : FGSL_Root_fSolver_Brent
-      use :: Root_Finder, only : rootFinder
+      use :: Root_Finder, only : rootFinder, GSL_Root_fSolver_Brent
       implicit none
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
@@ -366,7 +365,7 @@ contains
                  &                   toleranceRelative                 &
                  &                  )
             call finder%type        (                                  &
-                 &                   FGSL_Root_fSolver_Brent           &
+                 &                   GSL_Root_fSolver_Brent            &
                  &                  )
          end if
          ! Split is not binary - seek the actual mass of the smaller progenitor.
