@@ -31,6 +31,17 @@ gsl_function *gslFunctionConstructor(double (*f) (double x, void * params)) {
   return fGSL;
 }
 
+gsl_function_fdf *gslFunctionFdFConstructor(double (*f) (double x, void * params), double (*df) (double x, void * params), void (*fdf) (double x, void * params, double * f, double * df)) {
+  /* Construct a gsl_function_fdf object. */
+  gsl_function_fdf *fGSL;
+  fGSL           = (gsl_function_fdf *) malloc(sizeof(gsl_function_fdf));
+  fGSL->f      = f;
+  fGSL->df     = df;
+  fGSL->fdf    = fdf;
+  fGSL->params = NULL;
+  return fGSL;
+}
+
 void gslFunctionDestructor(gsl_function *f) {
   /* Destroy a gsl_function object. */
   free(f);
