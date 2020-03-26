@@ -306,7 +306,7 @@ contains
     !% Construct the set of tree masses to be built.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Index_Do
+    use :: Sorting          , only : sortIndex
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast
@@ -317,7 +317,7 @@ contains
        self%treeCount=size(self%treeMass,kind=c_size_t)
        ! Sort halos by mass.
        allocate(self%rankMass(self%treeCount))
-       self%rankMass=Sort_Index_Do(self%treeMass)
+       self%rankMass=sortIndex(self%treeMass)
        ! Compute the weight (number of trees per unit volume) for each tree if weights were not supplied.
        self%computeTreeWeights=.not.allocated(self%treeWeight)
        if (.not.self%computeTreeWeights) then

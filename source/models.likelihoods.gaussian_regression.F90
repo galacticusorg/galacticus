@@ -663,7 +663,7 @@ contains
           &                                    FGSL_Vector_Init               , fgsl_multimin_fdfminimizer         , fgsl_multimin_function_fdf        , fgsl_vector
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_ptr                          , c_size_t
-    use            :: Sort            , only : Sort_Index_Do
+    use            :: Sorting         , only : sortIndex
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
     double precision                                             , intent(in   ), dimension(:) :: separations                , semiVariances
@@ -697,7 +697,7 @@ contains
     self%separationsNormalized    =separations       /self%separationNormalization
     self%semiVariancesNormalized  =semiVariances     /self%semiVarianceNormalization
     ! Get rank ordering by separation.
-    rank=Sort_Index_Do(self%separationsNormalized)
+    rank=sortIndex(self%separationsNormalized)
     ! Compute binned estimates of the mean semi-variances.
     self%binCount=0
     j       =0

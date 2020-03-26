@@ -1112,7 +1112,7 @@ contains
   double precision function particulatePotentialIntegrand(radius)
     !% The integrand used to find the gravitational potential in the smoothed density profile defined by
     !% \cite{barnes_gravitational_2012} to account for gravitational softening.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 

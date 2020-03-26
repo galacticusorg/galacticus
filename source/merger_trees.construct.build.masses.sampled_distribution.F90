@@ -129,7 +129,7 @@ contains
     use            :: Numerical_Integration  , only : Integrate              , Integrate_Done
     use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done
     use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
-    use            :: Sort                   , only : Sort_Do
+    use            :: Sorting                , only : sort
     use            :: Table_Labels           , only : extrapolationTypeFix
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)                            :: self
@@ -208,7 +208,7 @@ contains
          &                                                   /massFunctionSampleProbability(  massFunctionSampleCount)
     ! Generate a set of points in the cumulative distribution, sort them, and find the mass ranges which they occupy.
     call self%sampleCMF(mass)
-    call Sort_Do(mass)
+    call sort(mass)
     do iTree=1,treeCount
         if (iTree == 1       ) then
           massMinimum(iTree)=+0.0d0

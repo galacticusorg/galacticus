@@ -383,13 +383,13 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, &
           &                         treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satellite
-    class           (nodeComponentBasic    )               , pointer :: basic
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: orbit
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: hostNode
+    class           (nodeComponentSatellite), pointer       :: satellite
+    class           (nodeComponentBasic    ), pointer       :: basic
+    logical                                                 :: isNewSatellite
+    double precision                                        :: mergeTime
+    type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return

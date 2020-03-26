@@ -162,7 +162,7 @@ contains
     !% Optionally move a satellite to coincide with the postion of its host.
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
+    type (treeNode             ), intent(inout)          :: node
     type (treeNode             )               , pointer :: nodeHost
     class(nodeComponentPosition)               , pointer :: position, positionHost
 

@@ -151,11 +151,10 @@ contains
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
     use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive   , rootFinder
     use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
@@ -287,7 +286,7 @@ contains
     !% Root function used to find the tidal radius within a subhalo.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     implicit none
     double precision, intent(in   ) :: radius

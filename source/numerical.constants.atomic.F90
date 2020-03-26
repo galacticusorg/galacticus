@@ -21,14 +21,13 @@
 
 module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
-  use :: FGSL                        , only : FGSL_CONST_MKSA_RYDBERG, FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS
-  use :: Numerical_Constants_Physical, only : electronMass           , plancksConstant                    , speedLight
-  use :: Numerical_Constants_Units   , only : angstromsPerMeter
+  use :: Numerical_Constants_Physical, only : electronMass     , plancksConstant, speedLight
+  use :: Numerical_Constants_Units   , only : angstromsPerMeter, rydbergs
   implicit none
   public
 
   ! Atomic mass unit (in kg).
-  double precision, parameter :: atomicMassUnit                    =FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS
+  !# <gslConstant variable="atomicMassUnit" gslSymbol="GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" gslHeader="gsl_const_mksa"/>
 
   ! Atomic masses.
   double precision, parameter :: atomicMassHydrogen                =1.007825d0
@@ -39,14 +38,13 @@ module Numerical_Constants_Atomic
   double precision, parameter :: massHeliumAtom                    =atomicMassHelium  *atomicMassUnit
 
   ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.
-  double precision, parameter :: lymanSeriesLimitWavelengthHydrogen=                          &
-       &                                                              plancksConstant         &
-       &                                                             *speedLight              &
-       &                                                             /FGSL_CONST_MKSA_RYDBERG &
-       &                                                             *angstromsPerMeter       &
-       &                                                             /(                       &
-       &                                                                1.0d0                 &
-       &                                                               -electronMass          &
-       &                                                               /massHydrogenAtom      &
-       &                                                              )
+  double precision, parameter :: lymanSeriesLimitWavelengthHydrogen=+plancksConstant    &
+       &                                                            *speedLight         &
+       &                                                            /rydbergs           &
+       &                                                            *angstromsPerMeter  &
+       &                                                            /(                  &
+       &                                                              +1.0d0            &
+       &                                                              -electronMass     &
+       &                                                              /massHydrogenAtom &
+       &                                                             )
 end module Numerical_Constants_Atomic

@@ -214,7 +214,7 @@ contains
 
   subroutine Delete_{Type¦label}_Scalar_VS(thisHash,key)
     !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
-    use            :: Arrays_Search     , only : Search_Array
+    use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : char
@@ -226,7 +226,7 @@ contains
     integer(c_size_t              )                :: i
 
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
        do i=iKey,thisHash%elementCount-1
           thisHash%hashKeys  (i)        =                 thisHash%hashKeys  (i+1)
           thisHash%hashValues(i)%object {Type¦assignment} thisHash%hashValues(i+1)%object
@@ -309,7 +309,7 @@ contains
 
   function Value_{Type¦label}_Scalar_VS(thisHash,key)
     !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
-    use            :: Arrays_Search     , only : Search_Array
+    use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : char
@@ -320,7 +320,7 @@ contains
     integer         (c_size_t              )                  :: iKey
 
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
        Value_{Type¦label}_Scalar_VS {Type¦assignment} thisHash%hashValues(iKey)%object
     else
        Value_{Type¦label}_Scalar_VS {Type¦assignment} {Type¦null}
@@ -346,7 +346,7 @@ contains
 
   subroutine Set_{Type¦label}_Scalar_VS(thisHash,key,value)
     !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
-    use            :: Arrays_Search     , only : Search_Array
+    use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -365,7 +365,7 @@ contains
        keyExists=.false.
     end if
     if (keyExists) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
        thisHash%hashValues(iKey)%object {Type¦assignment} value
     else
        ! Increase hash size if necessary.
@@ -391,7 +391,7 @@ contains
           end if
        end if
        if (thisHash%elementCount > 0) then
-          iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+          iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
        else
           iKey=1
        end if

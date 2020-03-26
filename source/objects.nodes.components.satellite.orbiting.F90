@@ -34,8 +34,9 @@ module Node_Component_Satellite_Orbiting
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
        &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize    , &
        &    Node_Component_Satellite_Orbiting_Trigger_Merger   , Node_Component_Satellite_Orbiting_Initialize         , &
-       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize
-
+       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Orbiting_Pre_Host_Change
+  
   !# <component>
   !#  <class>satellite</class>
   !#  <name>orbiting</name>
@@ -275,7 +276,7 @@ contains
           &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     use :: Tensors                           , only : assignment(=)                   , operator(*)
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
@@ -537,6 +538,46 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
 
+  !# <satellitePreHostChangeTask>
+  !#  <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
+  !# </satellitePreHostChangeTask>
+  subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change(node,nodeHostNew)
+    !% A satellite is about to move to a new host, adjust its position and velocity appopriately
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
+    implicit none
+    type            (treeNode              ), intent(inout), target :: node             , nodeHostNew
+    type            (treeNode              ), pointer               :: nodeHost         , nodeHostNew_
+    class           (nodeComponentSatellite), pointer               :: satellite        , satelliteHost
+    double precision                        , dimension(3)          :: positionSatellite, velocitySatellite, &
+         &                                                             positionHost     , velocityHost
+
+    ! Return immediately if this method is not active.
+    if (.not.defaultSatelliteComponent%orbitingIsActive()) return
+    ! Extract current position and velocity.
+    satellite => node%satellite()
+    positionSatellite =  satellite%position()
+    velocitySatellite =  satellite%velocity()
+    ! Walk up through hosts until the new host is found.
+    nodeHost     => node       %parent
+    nodeHostNew_ => nodeHostNew
+    do while (associated(nodeHost))
+       ! Extract position and velocity of this host.
+       satelliteHost =>      nodeHost%satellite()
+       positionHost  =  satelliteHost%position ()
+       velocityHost  =  satelliteHost%velocity ()
+       ! Shift the current node position and velocity by those of the host.
+       positionSatellite=positionSatellite+positionHost
+       velocitySatellite=velocitySatellite+velocityHost
+       ! Move to the next host - if we arrive at the new host we are finished.
+       nodeHost => nodeHost%parent
+       if (associated(nodeHost,nodeHostNew_)) exit
+    end do
+    ! Update the position and velocity of the node.
+    call satellite%positionSet(positionSatellite)
+    call satellite%velocitySet(velocitySatellite)
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
+
   subroutine Node_Component_Satellite_Orbiting_Trigger_Merger(thisNode)
     !% Trigger a merger of the satellite by setting the time until merging to zero.
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
@@ -557,7 +598,7 @@ contains
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
     type            (keplerOrbit           ), intent(in   ) :: thisOrbit
-    double precision                        , dimension(3)  :: position , velocity
+    double precision                        , dimension(3)  :: position   , velocity
     type            (keplerOrbit           )                :: virialOrbit
 
     select type (self)

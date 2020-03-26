@@ -21,26 +21,23 @@
 
 module Numerical_Constants_Math
   !% Contains various useful mathematical constants.
-  use :: FGSL        , only : m_e      , m_euler, m_ln10, m_ln2, &
-          &                   m_pi
-  use :: Kind_Numbers, only : kind_quad
+  use :: Kind_Numbers , only : kind_quad
   implicit none
-  public
 
   ! e.
-  double precision                , parameter :: e              =m_e
+  !# <gslConstant variable="e" gslSymbol="M_E" gslHeader="gsl_math"/>
 
   ! Pi.
-  double precision                , parameter :: Pi             =m_pi
-  real            (kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
+  !# <gslConstant variable="Pi" gslSymbol="M_PI" gslHeader="gsl_math"/>
+  real(kind=kind_quad), public, parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
 
-  ! Natural logarithm of 10.
-  double precision                , parameter :: ln10           =m_ln10
+  ! ! Natural logarithm of 10.
+  !# <gslConstant variable="ln10" gslSymbol="M_LN10" gslHeader="gsl_math"/>
 
   ! Natural logarithm of 2.
-  double precision                , parameter :: ln2            =m_ln2
+  !# <gslConstant variable="ln2" gslSymbol="M_LN2" gslHeader="gsl_math"/>
 
   ! Euler's constant.
-  double precision                , parameter :: eulersConstant =m_euler
+  !# <gslConstant variable="eulersConstant" gslSymbol="M_EULER" gslHeader="gsl_math"/>
 
 end module Numerical_Constants_Math

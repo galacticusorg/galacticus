@@ -80,9 +80,9 @@ contains
 
   double precision function enzoHydrostaticTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Physical    , only : boltzmannsConstant      , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self

@@ -294,7 +294,7 @@ contains
 
   subroutine sphericalIndicesFromPosition(self,position,indices)
     !% Determine the indices of the cell containing the given point.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
 
     implicit none
     class           (computationalDomainSpherical), intent(inout)                            :: self
@@ -316,7 +316,7 @@ contains
     if (radius < self%boundariesCells%boundary(1) .or. radius >= self%boundariesCells%boundary(self%countCells+1)) then
        indices=-huge(0_c_size_t)
     else
-       indices(1)=Search_Array(self%boundariesCells%boundary,radius)
+       indices(1)=searchArray(self%boundariesCells%boundary,radius)
     end if
     return
   end subroutine sphericalIndicesFromPosition
@@ -519,7 +519,7 @@ contains
 
   logical function sphericalConverged(self)
     !% Return the convergence state of the computational domain.
-    use :: Arrays_Search                  , only : Search_Array
+    use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
     use :: Galacticus_Display             , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
          &                                         verbosityStandard         , verbosityInfo
@@ -553,7 +553,7 @@ contains
           if (convergenceMeasure > convergenceMeasures(self%countCellsConvergence)) then
              l=self%countCellsConvergence
           else
-             l=Search_Array(convergenceMeasures,convergenceMeasure)
+             l=searchArray(convergenceMeasures,convergenceMeasure)
           end if
           if (l > 1) then
              do m=1,l-1

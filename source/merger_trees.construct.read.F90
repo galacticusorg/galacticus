@@ -967,7 +967,7 @@ contains
   function readConstruct(self,treeNumber) result(tree)
     !% Construct a merger tree by reading its definition from file.
     use    :: Array_Utilities           , only : operator(.intersection.)
-    use    :: Arrays_Search             , only : Search_Array_For_Closest
+    use    :: Arrays_Search             , only : searchArrayClosest
     use    :: Functions_Global          , only : Galacticus_State_Retrieve_       , Galacticus_State_Store_
     use    :: Galacticus_Error          , only : Galacticus_Component_List        , Galacticus_Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
@@ -977,7 +977,7 @@ contains
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
-    use    :: Sort                      , only : Sort_Do
+    use    :: Sorting                   , only : sort
     use    :: String_Handling           , only : operator(//)
     use    :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
@@ -1071,7 +1071,7 @@ contains
           self%splitForestNextTree=self%splitForestNextTree+1
           allocate(nodeSubset(self%splitForestTreeSize(self%splitForestNextTree)))
           nodeSubset=self%splitForestMapIndex(self%splitForestTreeStart(self%splitForestNextTree):self%splitForestTreeStart(self%splitForestNextTree)+self%splitForestTreeSize(self%splitForestNextTree)-1)
-          call Sort_Do(nodeSubset)
+          call sort(nodeSubset)
        else
           allocate(nodeSubset(1))
           nodeSubset=[-1_c_size_t]
@@ -1114,7 +1114,7 @@ contains
              ! Loop over all nodes.
              do iNode=1,size(nodes)
                 ! Find closest output time to the node time.
-                iOutput=Search_Array_For_Closest(self%outputTimes,nodes(iNode)%nodeTime)
+                iOutput=searchArrayClosest(self%outputTimes,nodes(iNode)%nodeTime)
                 ! Test if this time is sufficiently close that we should snap the node time to it.
                 if (Values_Agree(nodes(iNode)%nodeTime,self%outputTimes(iOutput),relTol=self%outputTimeSnapTolerance)) &
                      & nodes(iNode)%nodeTime=self%outputTimes(iOutput)
@@ -1403,7 +1403,7 @@ contains
     use :: Galacticus_Error          , only : Galacticus_Warn
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
-    use :: Sort                      , only : Sort_Index_Do
+    use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                :: self
@@ -1416,8 +1416,8 @@ contains
     call allocateArray(self%nodeIndicesSorted      ,shape(nodes))
     call allocateArray(self%descendentLocations    ,shape(nodes))
     call allocateArray(self%descendentIndicesSorted,shape(nodes))
-    self%nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
-    self%descendentLocations=Sort_Index_Do(nodes%descendentIndex)
+    self%nodeLocations      =sortIndex(nodes%nodeIndex      )
+    self%descendentLocations=sortIndex(nodes%descendentIndex)
     forall (iNode=1:size(nodes))
        self%nodeIndicesSorted      (iNode)=nodes(self%nodeLocations      (iNode))%nodeIndex
        self%descendentIndicesSorted(iNode)=nodes(self%descendentLocations(iNode))%descendentIndex
@@ -1434,14 +1434,14 @@ contains
 
   function readNodeLocation(self,nodeIndex)
     !% Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readNodeLocation
     class  (mergerTreeConstructorRead), intent(inout) :: self
     integer(kind_int8                ), intent(in   ) :: nodeIndex
     integer(c_size_t                 )                :: iNode
 
-    iNode=Search_Array(self%nodeIndicesSorted,nodeIndex)
+    iNode=searchArray(self%nodeIndicesSorted,nodeIndex)
     if (iNode < 1 .or. iNode > size(self%nodeIndicesSorted)) then
        readNodeLocation=1
     else
@@ -1452,13 +1452,13 @@ contains
 
   function readDescendentNodeSortIndex(self,descendentIndex)
     !% Return the sort index of the given {\normalfont \ttfamily descendentIndex}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readDescendentNodeSortIndex
     class  (mergerTreeConstructorRead), intent(inout) :: self
     integer(kind_int8                ), intent(in   ) :: descendentIndex
 
-    readDescendentNodeSortIndex=Search_Array(self%descendentIndicesSorted,descendentIndex)
+    readDescendentNodeSortIndex=searchArray(self%descendentIndicesSorted,descendentIndex)
     return
   end function readDescendentNodeSortIndex
 
@@ -2163,7 +2163,7 @@ contains
 
     double precision function spinNormalization()
       !% Normalization for conversion of angular momentum to spin.
-      use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       implicit none
       spinNormalization= sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node))) &
            &            /gravitationalConstantGalacticus                                            &
@@ -3496,7 +3496,7 @@ contains
     use :: ISO_Varying_String        , only : varying_string           , assignment(=)             , operator(//)
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
-    use :: Sort                      , only : Sort_Index_Do
+    use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (mergerTreeConstructorRead)                        , intent(inout) :: self
@@ -3564,7 +3564,7 @@ contains
     end do
     ! Get a sorted index into the root node affinities.
     call allocateArray(self%splitForestMapIndex,shape(nodes))
-    self%splitForestMapIndex=Sort_Index_Do(rootaffinity)
+    self%splitForestMapIndex=sortIndex(rootaffinity)
     ! Count trees in the forest.
     treeCount        = 0
     treeIndexPrevious=-1

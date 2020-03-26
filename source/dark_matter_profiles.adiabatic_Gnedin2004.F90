@@ -694,7 +694,7 @@ contains
     !% algorithm of \cite{gnedin_response_2004}.
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , optimizeForEnclosedMassSummation, optimizeForRotationCurveGradientSummation, optimizeForRotationCurveSummation, &
           &                                     reductionSummation             , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
     include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve.tasks.modules.inc'

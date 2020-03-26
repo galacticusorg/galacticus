@@ -112,8 +112,8 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
-    class(nodeComponentPosition)               , pointer :: position
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentPosition), pointer       :: position
 
     if (.not.defaultPositionComponent%traceDarkMatterIsActive()) return
     position => node%position()

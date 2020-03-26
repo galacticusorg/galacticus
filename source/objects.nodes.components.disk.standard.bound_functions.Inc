@@ -110,12 +110,11 @@ end function Node_Component_Disk_Standard_Enclosed_Mass
 
 function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,componentType,massType)
   !% Computes the gravitational acceleration at a given position for a standard disk.
-  use :: Coordinates                      , only : assignment(=)                  , coordinateCartesian
-  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic, &
-       &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar
+  use :: Coordinates                      , only : assignment(=)       , coordinateCartesian
+  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll                    , massTypeBaryonic, &
+       &                                           massTypeGalactic    , massTypeGaseous    , massTypeStellar
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Astronomical , only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical , only : gigaYear            , megaParsec         , gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes     , only : kilo
   implicit none
   double precision                                          , dimension(3) :: Node_Component_Disk_Standard_Acceleration
@@ -160,7 +159,7 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic, &
        &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   use :: Tensors                          , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym  , operator(*)
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Disk_Standard_Tidal_Tensor
@@ -202,7 +201,7 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
        &                                      weightIndexNull
   use :: Numerical_Constants_Math    , only : Pi
   use :: Coordinates                 , only : assignment(=)                    , coordinateSpherical, coordinateCartesian, coordinateCylindrical
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Mass_Distributions          , only : massDistributionGaussianEllipsoid
   use :: Linear_Algebra              , only : vector                           , matrix             , assignment(=)
   implicit none
@@ -367,7 +366,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk    , radiusLarge, weightByMass, &
           &                                        weightIndexNull
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard), intent(inout)           :: self
   integer                                    , intent(in   )           :: componentType, massType
@@ -407,7 +406,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard), intent(inout) :: self
   integer                                    , intent(in   ) :: componentType, massType
@@ -442,7 +441,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Physical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard), intent(inout) :: self
   integer                                    , intent(in   ) :: componentType, massType

@@ -161,7 +161,7 @@ contains
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLinear, rangeTypeLogarithmic
-    use :: Sort             , only : Sort_Do
+    use :: Sorting          , only : sort
     implicit none
     type            (mergerTreeOperatorRegridTimes)                                        :: self
     integer                                        , intent(in   )                         :: regridCount
@@ -232,7 +232,7 @@ contains
     case (snapshotSpacingList                  )
        if (.not.present(snapshotTimes)) call Galacticus_Error_Report('"list" grid spacing requires a list of snapshot times be supplied'//{introspection:location})
        self%timeGrid=snapshotTimes
-       call Sort_Do(self%timeGrid)
+       call sort(self%timeGrid)
     end select
     return
   end function regridTimesConstructorInternal

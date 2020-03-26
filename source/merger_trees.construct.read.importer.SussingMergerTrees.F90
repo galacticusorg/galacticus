@@ -418,7 +418,7 @@ contains
 
   subroutine sussingTreeIndicesRead(self)
     !% Read the tree indices.
-    use            :: Arrays_Search                   , only : Search_Indexed
+    use            :: Arrays_Search                   , only : searchIndexed
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                                                    Galacticus_Display_Unindent, Galacticus_Verbosity_Level      , verbosityWorking
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -427,7 +427,7 @@ contains
     use            :: Memory_Management               , only : allocateArray              , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar                  , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Sort                            , only : Sort_Index_Do
+    use            :: Sorting                         , only : sortIndex
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussing), intent(inout)                 :: self
@@ -468,7 +468,7 @@ contains
     call Galacticus_Display_Indent('Resolving hosting loops',verbosityWorking)
     do i=1,nodeCountTrees
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
-          l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
+          l=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
           ! Detect missing host.
           if (l < 1 .or. l > nodeCountTrees) cycle
           l=nodeIndexRanks(l)
@@ -490,7 +490,7 @@ contains
     do i=1,nodeCountTrees
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
           ! Find the host.
-          l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
+          l=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
           ! Detect missing host.
           if (l < 1 .or. l > nodeCountTrees) cycle
           l=nodeIndexRanks(l)
@@ -499,7 +499,7 @@ contains
           hostStepCount=0
           do while (self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
              ! Find the host.
-             j=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+             j=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
              ! Detect missing host.
              if (j < 1 .or. j > nodeCountTrees) exit
              j=nodeIndexRanks(j)
@@ -533,7 +533,7 @@ contains
           hostStepCount=0
           do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
              ! Find the host halo.
-             k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+             k=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
              ! Check for missing hosts.
              if (k < 1 .or. k > nodeCountTrees .or. self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) then
                 ! No host can be found (it must be outside of the buffered subvolume). Assign this node its own index as a tree
@@ -596,7 +596,7 @@ contains
              l=k
              hostStepCount=0
              do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
-                k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+                k=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
                 ! Check for missing hosts.
                 if (self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) exit
                 ! Perform sanity checks.
@@ -661,7 +661,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosityWorking)
     end if
     ! Generate an index into nodes sorted by tree index.
-    self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
+    self%treeIndexRanks=sortIndex(nodeTreeIndices)
     ! Identify trees which contain incomplete nodes.
     call Galacticus_Display_Message('Checking for incomplete trees',verbosityWorking)
     i               =0
@@ -765,7 +765,7 @@ contains
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     ! Generate an index into nodes sorted by tree index.
-    self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
+    self%treeIndexRanks=sortIndex(nodeTreeIndices)
     ! Create a list of tree indices, sizes, and start locations.
     call Galacticus_Display_Message('Generating tree list',verbosityWorking)
     self%treesCount=0

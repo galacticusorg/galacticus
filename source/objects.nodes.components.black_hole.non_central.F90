@@ -134,7 +134,7 @@ contains
     !% Compute the black hole node mass rate of change.
     use :: Galacticus_Nodes            , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
           &                                     treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     logical                                 , intent(inout)          :: interrupt
@@ -343,7 +343,7 @@ contains
   subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBasic    )               , pointer :: basic

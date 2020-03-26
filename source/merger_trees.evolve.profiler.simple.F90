@@ -167,7 +167,7 @@ contains
   subroutine simpleProfile(self,timestep,propertyName)
     !% Profile the differential evolution step.
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Arrays_Search, only : Search_Array
+    use            :: Arrays_Search, only : searchArray
     implicit none
     class           (mergerTreeEvolveProfilerSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: timeStep
@@ -175,7 +175,7 @@ contains
     integer                                                         :: hitCount
     integer         (c_size_t                      )                :: i
 
-    i                    =Search_Array(self%timeStep,timeStep)
+    i                    =searchArray(self%timeStep,timeStep)
     self%timeStepCount(i)=self%timeStepCount(i)+1
     if (self%propertyHits%exists(propertyName)) then
        hitCount=self%propertyHits%value(propertyName)+1

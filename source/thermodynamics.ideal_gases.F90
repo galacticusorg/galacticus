@@ -29,7 +29,7 @@ contains
 
   double precision function Ideal_Gas_Jeans_Length(temperature,density)
     !% Return the Jeans length (in Mpc) for gas of given temperature and density).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: density, temperature
 

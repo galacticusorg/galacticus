@@ -209,7 +209,7 @@ contains
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
     use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node

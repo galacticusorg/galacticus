@@ -378,7 +378,7 @@ contains
   logical function intergalacticBackgroundInternalUpdate(event,universe_) result (success)
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
-    use            :: Arrays_Search               , only : Search_Array_For_Closest
+    use            :: Arrays_Search               , only : searchArrayClosest
     use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
     use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
@@ -443,7 +443,7 @@ contains
        message="Evolving cosmic background radiation to time "//trim(label)//" Gyr"
        call Galacticus_Display_Indent(message)
        ! Find the current timestep.
-       iNow=Search_Array_For_Closest(self%time,event%time)
+       iNow=searchArrayClosest(self%time,event%time)
        ! Iterate over all nodes.
        call Galacticus_Display_Message('Accumulating emissivity')
        treeTimeLatest=0.0d0

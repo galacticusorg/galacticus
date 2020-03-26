@@ -79,7 +79,7 @@ contains
     !% Integrand function used for finding velocity dispersions using Jeans equation.
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 

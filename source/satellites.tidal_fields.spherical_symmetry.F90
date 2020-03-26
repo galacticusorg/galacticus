@@ -77,7 +77,7 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits                     , only : keplerOrbit
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Satellite_Orbits                  , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self

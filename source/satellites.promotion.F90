@@ -36,8 +36,11 @@ contains
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
+    !# <include directive="satellitePreHostChangeTask" type="moduleUse">
+    include 'satellites.structures.pre_host_change.moduleUse.inc'
+    !# </include>
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: newHostNode      , satelliteNode
+    type     (treeNode          ), intent(inout), target  :: satelliteNode    , newHostNode
     type     (treeNode          )               , pointer :: lastSatelliteNode
     class    (nodeComponentBasic), pointer                :: basic
     type     (varying_string    )                         :: message
@@ -51,6 +54,12 @@ contains
        message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//'] at time '//trim(label)//' Gyr'
        call Galacticus_Display_Message(message)
     end if
+
+    ! Allow arbitrary routines to act prior to the host change event.
+    !# <include directive="satellitePreHostChangeTask" type="functionCall" functionType="void">
+    !#  <functionArgs>satelliteNode,newHostNode</functionArgs>
+    include 'satellites.structures.pre_host_change.inc'
+    !# </include>
 
     ! First remove from its current host.
     call satelliteNode%removeFromHost()

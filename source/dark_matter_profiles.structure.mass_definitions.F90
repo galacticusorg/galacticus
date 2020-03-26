@@ -35,7 +35,7 @@ contains
     use :: Math_Exponentiation         , only : cubeRoot
     use :: Numerical_Comparison        , only : Values_Agree
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Virial_Density_Contrast     , only : virialDensityContrast          , virialDensityContrastClass
     implicit none
     double precision                                                      :: massHalo

@@ -107,7 +107,7 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
     use :: Numerical_Constants_Astronomical    , only : gigaYear                          , megaParsec
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes        , only : kilo
     implicit none
     class           (ramPressureStrippingDisksSimple), intent(inout) :: self

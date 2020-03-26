@@ -315,7 +315,7 @@ contains
 
   subroutine cylindricalIndicesFromPosition(self,position,indices)
     !% Determine the indices of the cell containing the given point.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (computationalDomainCylindrical), intent(inout)                            :: self
     double precision                                             , dimension(3), intent(in   ) :: position
@@ -340,8 +340,8 @@ contains
          & ) then
        indices(1:2)=-huge(0_c_size_t)
     else
-       indices(1)=Search_Array(self%boundariesCells(1)%boundary,radius     )
-       indices(2)=Search_Array(self%boundariesCells(2)%boundary,position(3))
+       indices(1)=searchArray(self%boundariesCells(1)%boundary,radius     )
+       indices(2)=searchArray(self%boundariesCells(2)%boundary,position(3))
     end if
     return
   end subroutine cylindricalIndicesFromPosition
@@ -604,7 +604,7 @@ contains
 
   logical function cylindricalConverged(self)
     !% Return the convergence state of the computational domain.
-    use :: Arrays_Search                  , only : Search_Array
+    use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
     use :: Galacticus_Display             , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
          &                                         verbosityStandard         , verbosityInfo
@@ -639,7 +639,7 @@ contains
              if (convergenceMeasure > convergenceMeasures(self%countCellsConvergence)) then
                 l=self%countCellsConvergence
              else
-                l=Search_Array(convergenceMeasures,convergenceMeasure)
+                l=searchArray(convergenceMeasures,convergenceMeasure)
              end if
              if (l > 1) then
                 do m=1,l-1

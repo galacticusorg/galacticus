@@ -164,7 +164,7 @@ contains
     use :: Galacticus_Display          , only : Galacticus_Display_Message     , Galacticus_Verbosity_Level, verbosityWarn
     use :: Galacticus_Error            , only : Galacticus_Error_Report        , Galacticus_Warn
     use :: Numerical_Comparison        , only : Values_Agree
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self

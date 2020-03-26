@@ -522,7 +522,7 @@ contains
   subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
     !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
     use :: Array_Utilities      , only : Array_Reverse
-    use :: Arrays_Search        , only : Search_Array
+    use :: Arrays_Search        , only : searchArray
     use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Linear_Growth        , only : normalizeMatterDominated
@@ -729,7 +729,7 @@ contains
              overdensityNonLinear_=overdensityNonLinear(i)
           else
              ! Find the tabulated in those computed and interpolate.
-             iOverdensityLinear   =int(Search_Array(overdensityLinear,overdensitiesLinear(iOverdensity)))
+             iOverdensityLinear   =int(searchArray(overdensityLinear,overdensitiesLinear(iOverdensity)))
              overdensityNonLinear_=+  overdensityNonLinear(iOverdensityLinear  ) &
                   &                +(                                            &
                   &                  +overdensityNonLinear(iOverdensityLinear+1) &

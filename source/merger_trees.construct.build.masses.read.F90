@@ -54,7 +54,7 @@ contains
   subroutine readConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by reading from a file.
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Do
+    use :: Sorting          , only : sort
     implicit none
     class           (mergerTreeBuildMassesRead), intent(inout)                            :: self
     double precision                           , intent(in   )                            :: time
@@ -65,9 +65,9 @@ contains
 
     call self%read(mass,weight)
     if (allocated(weight)) then
-       call Sort_Do(mass,weight)
+       call sort(mass,weight)
     else
-       call Sort_Do(mass       )
+       call sort(mass       )
        call allocateArray(massMinimum,shape(mass))
        call allocateArray(massMaximum,shape(mass))
        do i=1,size(mass)

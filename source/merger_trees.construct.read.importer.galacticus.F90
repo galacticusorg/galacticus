@@ -656,7 +656,7 @@ contains
     use :: HDF5                            , only : HSIZE_T
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
-    use :: Sort                            , only : Sort_Index_Do
+    use :: Sorting                         , only : sortIndex
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -724,7 +724,7 @@ contains
        end do
        !$ call hdf5Access%unset()
        ! Sort the trees into mass order.
-       sortOrder=Sort_Index_Do(treeMass)
+       sortOrder=sortIndex(treeMass)
        ! Abort if there is only one tree.
        if (size(self%firstNodes) <= 1) call Galacticus_Error_Report('reweighting trees requires there to be at least two forests'//{introspection:location})
        ! Compute the weight for each tree.

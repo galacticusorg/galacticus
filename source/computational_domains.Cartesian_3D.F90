@@ -334,7 +334,7 @@ contains
 
   subroutine cartesian3DIndicesFromPosition(self,position,indices)
     !% Determine the indices of the cell containing the given point.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (computationalDomainCartesian3D), intent(inout)                            :: self
     double precision                                             , dimension(3), intent(in   ) :: position
@@ -356,7 +356,7 @@ contains
           indices=-huge(0_c_size_t)
           exit
        else
-          indices(i)=Search_Array(self%boundariesCells(i)%boundary,position(i))
+          indices(i)=searchArray(self%boundariesCells(i)%boundary,position(i))
        end if
     end do
     return
@@ -553,7 +553,7 @@ contains
 
   logical function cartesian3DConverged(self)
     !% Return the convergence state of the computational domain.
-    use :: Arrays_Search                  , only : Search_Array
+    use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
     use :: Galacticus_Display             , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
          &                                         verbosityStandard         , verbosityInfo
@@ -590,7 +590,7 @@ contains
                 if (convergenceMeasure > convergenceMeasures(self%countCellsConvergence)) then
                    l=self%countCellsConvergence
                 else
-                   l=Search_Array(convergenceMeasures,convergenceMeasure)
+                   l=searchArray(convergenceMeasures,convergenceMeasure)
                 end if
                 if (l > 1) then
                    do m=1,l-1

@@ -510,7 +510,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurve(self,radius)
     !% Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -540,7 +540,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -581,7 +581,7 @@ contains
   double precision function miyamotoNagaiPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
     use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates

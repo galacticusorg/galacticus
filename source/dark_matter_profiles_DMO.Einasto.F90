@@ -514,7 +514,7 @@ contains
   double precision function einastoCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
@@ -654,7 +654,7 @@ contains
     !% units of Mpc).
     use :: Galactic_Structure_Options  , only : structureErrorCodeSuccess
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), target   :: node
@@ -685,7 +685,7 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     use :: Galacticus_Nodes            , only : nodeComponentDarkMatterProfile , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -1418,7 +1418,7 @@ contains
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use            :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     use            :: Numerical_Interpolation         , only : Interpolate                            , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
@@ -1492,7 +1492,7 @@ contains
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use            :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use            :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     use            :: Numerical_Interpolation         , only : Interpolate_Derivative                 , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self

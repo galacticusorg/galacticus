@@ -645,7 +645,7 @@ contains
     use            :: Kind_Numbers      , only : kind_int4
     use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
     use            :: Model_Parameters  , only : modelParameterListLogPrior
-    use            :: Sort              , only : Sort_Index_Do
+    use            :: Sorting           , only : sortIndex
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self
     class           (posteriorSampleStateClass                     ), intent(inout)               :: posteriorSampleState_
@@ -708,13 +708,13 @@ contains
        if (self%loadBalance .and. mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
     else
        ! Distribute tasks across nodes.
-       timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+       timesEvaluateOrder=sortIndex(timesEvaluate)-1
        processToProcess=-1
        allocate(nodeWork     (mpiSelf%nodeCount()))
        allocate(nodeWorkOrder(mpiSelf%nodeCount()))
        nodeWork=0.0d0
        do i=mpiSelf%count()-1,0,-1
-          nodeWorkOrder=Sort_Index_Do(nodeWork)
+          nodeWorkOrder=sortIndex(nodeWork)
           do nodeTrial=1,mpiSelf%nodeCount()
              do processTrial=0,mpiSelf%count()-1
                 if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then

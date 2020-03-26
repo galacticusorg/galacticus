@@ -126,7 +126,7 @@ contains
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
-    use               :: Sort                            , only : Sort_Index_Do
+    use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
     use               :: System_Command                  , only : System_Command_Do
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
@@ -169,7 +169,7 @@ contains
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))
     allocate(redshiftLabels(size(redshifts)))
-    redshiftRanks=Sort_Index_Do(redshifts)
+    redshiftRanks=sortIndex(redshifts)
     do i=1,size(redshifts)
        write (redshiftLabels(i),'(f9.4)') redshifts(redshiftRanks(i))
     end do
@@ -254,7 +254,7 @@ contains
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
        allocate(redshiftLabelsCombined(size(redshiftsCombined)))
-       redshiftRanksCombined=Sort_Index_Do(redshiftsCombined)
+       redshiftRanksCombined=sortIndex(redshiftsCombined)
        do i=1,size(redshiftsCombined)
           write (redshiftLabelsCombined(i),'(f9.4)') redshiftsCombined(redshiftRanksCombined(i))
        end do

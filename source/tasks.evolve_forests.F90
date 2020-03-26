@@ -323,7 +323,7 @@ contains
     use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib                             , only : omp_lock_kind                      , OMP_Init_Lock                      , OMP_Get_Thread_Num         , OMP_Destroy_Lock
-    use               :: Sort                                , only : Sort_Index_Do
+    use               :: Sorting                             , only : sortIndex
     use               :: String_Handling                     , only : operator(//)
     ! Include modules needed for tasks.
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
@@ -599,7 +599,7 @@ contains
                             massBranch(countBranch) =  basic                      %mass ()
                             branchNew               => branchNew                  %next
                          end do
-                         rankBranch=Sort_Index_Do(massBranch)
+                         rankBranch=sortIndex(massBranch)
                          ! Process trees.
                          currentTree => tree
                          if (associated(currentTree%baseNode)) then

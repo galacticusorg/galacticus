@@ -330,7 +330,7 @@ contains
     use :: Hypergeometric_Functions    , only : Hypergeometric_2F1
     use :: Numerical_Comparison        , only : Values_Agree
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionBetaProfile), intent(inout) :: self
     class           (coordinate                 ), intent(in   ) :: coordinates
