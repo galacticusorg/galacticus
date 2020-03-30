@@ -61,9 +61,14 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type (darkMatterProfileConcentrationSchneider2015)                :: self
-    type(inputParameters                             ), intent(inout) :: parameters
-    type(inputParameters                             )                :: referenceParameters
+    type            (darkMatterProfileConcentrationSchneider2015)                :: self
+    type            (inputParameters                            ), intent(inout) :: parameters
+    type            (inputParameters                            )                :: referenceParameters
+    class           (darkMatterProfileConcentrationClass        ), pointer       :: referenceConcentration
+    class           (criticalOverdensityClass                   ), pointer       :: referenceCriticalOverdensity     , criticalOverdensity_
+    class           (cosmologicalMassVarianceClass              ), pointer       :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
+    class           (cosmologyFunctionsClass                    ), pointer       :: referenceCosmologyFunctions      , cosmologyFunctions_
+    double precision                                                             :: massFractionFormation
 
     if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
@@ -71,34 +76,43 @@ contains
     !# <inputParameter>
     !#   <name>massFractionFormation</name>
     !#   <source>parameters</source>
-    !#   <variable>self%massFractionFormation</variable>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileConcentration" name="self%referenceConcentration"             source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="self%referenceCriticalOverdensity"       source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="self%         criticalOverdensity_"      source=         "parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="self%referenceCosmologicalMassVariance"  source="referenceParameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="self%         cosmologicalMassVariance_" source=         "parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="self%referenceCosmologyFunctions"        source="referenceParameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="self%         cosmologyFunctions_"       source=         "parameters"/>
+    !# <objectBuilder class="darkMatterProfileConcentration" name="referenceConcentration"             source="referenceParameters"/>
+    !# <objectBuilder class="criticalOverdensity"            name="referenceCriticalOverdensity"       source="referenceParameters"/>
+    !# <objectBuilder class="criticalOverdensity"            name="         criticalOverdensity_"      source=         "parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"       name="referenceCosmologicalMassVariance"  source="referenceParameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"       name="         cosmologicalMassVariance_" source=         "parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="referenceCosmologyFunctions"        source="referenceParameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="         cosmologyFunctions_"       source=         "parameters"/>
+    self=darkMatterProfileConcentrationSchneider2015(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"         />
     !# <inputParametersValidate source="referenceParameters"/>
+    !# <objectDestructor name="referenceConcentration"           />
+    !# <objectDestructor name="referenceCriticalOverdensity"     />
+    !# <objectDestructor name="criticalOverdensity_"             />
+    !# <objectDestructor name="referenceCosmologicalMassVariance"/>
+    !# <objectDestructor name="cosmologicalMassVariance_"        />
+    !# <objectDestructor name="referenceCosmologyFunctions"      />
+    !# <objectDestructor name="cosmologyFunctions_"              />
     return
   end function schneider2015ConstructorParameters
 
-  function schneider2015ConstructorInternal(referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
+  function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily schneider2015} dark matter halo concentration class.
     implicit none
-    type (darkMatterProfileConcentrationSchneider2015)                        :: self
-    class(darkMatterProfileConcentrationClass        ), intent(in   ), target :: referenceConcentration
-    class(criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity     , criticalOverdensity_
-    class(cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
-    class(cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
-    !# <constructorAssign variables="*referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
+    type            (darkMatterProfileConcentrationSchneider2015)                        :: self
+    class           (darkMatterProfileConcentrationClass        ), intent(in   ), target :: referenceConcentration
+    class           (criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity     , criticalOverdensity_
+    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
+    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
+    double precision                                             , intent(in   )         :: massFractionFormation
+    !# <constructorAssign variables="massFractionFormation, *referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
 
+    self%finder=rootFinder()
     return
   end function schneider2015ConstructorInternal
 
