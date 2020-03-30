@@ -43,6 +43,12 @@ module Root_Finder
   !#  <entry label="none"     />
   !#  <entry label="positive" />
   !# </enumeration>
+  
+  !# <deepCopyActions class="rootFinder">
+  !#  <rootFinder>
+  !#   <setTo variables="initialized" state=".false."/>
+  !#  </rootFinder>
+  !# </deepCopyActions>
 
   ! Solver types.
   type(c_ptr), public, bind(C, name="gsl_root_fsolver_bisection"   ) :: gsl_root_fsolver_bisection
@@ -152,6 +158,11 @@ module Root_Finder
      procedure :: solverTypeIsValid       => rootFinderSolverTypeIsValid
   end type rootFinder
 
+  interface rootFinder
+     !% Interface to constructors for root finders.
+     module procedure rootFinderConstructorInternal
+  end interface rootFinder
+  
   abstract interface
      double precision function rootFunctionTemplate(x)
        double precision, intent(in   ) :: x
@@ -277,7 +288,30 @@ module Root_Finder
   end interface
   
 contains
+  
+  function rootFinderConstructorInternal() result(self)
+    !% Internal constructor for root finders.
+    implicit none
+    type(rootFinder) :: self
 
+    self%gslFunction                  =c_null_ptr
+    self%solver                       =c_null_ptr
+    self%solverType                   =c_null_ptr
+    self%toleranceAbsolute            =1.0d-10
+    self%toleranceRelative            =1.0d-10
+    self%initialized                  =.false.
+    self%functionInitialized          =.false.
+    self%resetRequired                =.false.
+    self%rangeExpandType              =rangeExpandNull
+    self%rangeExpandUpward            =1.0d0
+    self%rangeExpandDownward          =1.0d0
+    self%rangeUpwardLimitSet          =.false.
+    self%rangeDownwardLimitSet        =.false.
+    self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
+    self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+    return
+  end function rootFinderConstructorInternal
+  
   subroutine Root_Finder_Destroy(self)
     !% Destroy a root finder object.
     use :: Interface_GSL, only : gslFunctionDestroy
