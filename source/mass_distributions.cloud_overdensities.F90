@@ -185,56 +185,20 @@ self%neighbors=nearestNeighbors(self%positions)
 
   double precision function cloudOverdensitiesDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
-    use :: Arrays_Search, only : Search_Array
     use :: Coordinates  , only : assignment(=), coordinateCartesian
-
-    ! use mpi_utilities
-
-    
     implicit none
     class           (massDistributionCloudOverdensities), intent(inout) :: self
     class           (coordinate                        ), intent(in   ) :: coordinates
     type            (coordinateCartesian               )                :: position
     double precision                                    , dimension(3)  :: positionComponents
-    double precision                                                    :: separationSquared , densityContrast , &
-         &                                                                 positionXMinimum  , positionXMaximum
-    integer         (c_size_t                          )                :: i                 , iStart
-    logical                                                             :: inCloud
-
-    integer :: neighborCount
-    integer                           , dimension(:), allocatable :: neighborIndex
-    double precision                  , dimension(:), allocatable :: neighborDistance
+    double precision                                                    :: densityContrast
+    integer                                                             :: neighborCount
 
     ! Extract the position.
     position          =coordinates
     positionComponents=position
     ! Determine if this point is within a cloud.
-
-
-
-call self%neighbors%searchFixedRadius(positionComponents,self%radius,0.0d0,neighborCount)
-
-    
-!     inCloud=.false.
-!     positionXMinimum=positionComponents(1)-self%radius
-!     positionXMaximum=positionComponents(1)+self%radius
-!     iStart          =Search_Array(self%positions(:,1),positionXMinimum)    
-!     do i=iStart,self%countClouds
-!        if (                          self%positions(i,1)  > positionXMaximum) exit
-!        if (abs(positionComponents(1)-self%positions(i,1)) > self%radius     ) cycle
-!        if (abs(positionComponents(2)-self%positions(i,2)) > self%radius     ) cycle
-!        if (abs(positionComponents(3)-self%positions(i,3)) > self%radius     ) cycle
-!        separationSquared=sum((positionComponents(:)-self%positions(i,:))**2)
-!        if (separationSquared < self%radiusSquared) then
-!           inCloud=.true.
-!           exit
-!        end if
-!     end do
-
-
-! if (mpiself%ismaster()) write (0,*) incloud,neighborcount
-
-    
+    call self%neighbors%searchFixedRadius(positionComponents,self%radius,0.0d0,neighborCount)    
     ! Determine density contrast.
     if (neighborCount > 0) then
        densityContrast=self%densityContrast*self%densityContrastIntercloud
