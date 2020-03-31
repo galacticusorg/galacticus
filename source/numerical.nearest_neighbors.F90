@@ -198,37 +198,42 @@ contains
 #endif
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
-    class           (nearestNeighbors)                           , intent(inout) :: self
-    double precision                  , dimension(:)             , intent(in   ) :: point
-    double precision                                             , intent(in   ) :: radius
-    double precision                                             , intent(in   ) :: tolerance
-    integer                           , dimension(:), allocatable, intent(inout) :: neighborIndex
-    double precision                  , dimension(:), allocatable, intent(inout) :: neighborDistance
-    integer                                                      , intent(  out) :: neighborCount
+    class           (nearestNeighbors)                           , intent(inout)           :: self
+    double precision                  , dimension(:)             , intent(in   )           :: point
+    double precision                                             , intent(in   )           :: radius
+    double precision                                             , intent(in   )           :: tolerance
+    integer                           , dimension(:), allocatable, intent(inout), optional :: neighborIndex
+    double precision                  , dimension(:), allocatable, intent(inout), optional :: neighborDistance
+    integer                                                      , intent(  out)           :: neighborCount
 #ifdef ANNAVAIL
-    double precision                                                             :: radiusSquared
-    integer                                                                      :: arraySize
+    double precision                                                                       :: radiusSquared
+    integer                           , dimension(0)                                       :: neighborIndex0
+    double precision                  , dimension(0)                                       :: neighborDistance0
+    integer                                                                                :: arraySize
 
     ! Get the squared radius.
     radiusSquared=radius**2
     ! Call once with current array sizes.
-    if (allocated(neighborIndex)) then
-       arraySize=size(neighborIndex)
+    arraySize=0
+    if (present(neighborIndex)) then
+       if (allocated(neighborIndex)) arraySize=size(neighborIndex)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
+       ! Resize arrays if necessary.
+       if (present(neighborIndex)) then
+          if (neighborCount > arraySize) then
+             if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
+             if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
+             call allocateArray(neighborIndex   ,[neighborCount])
+             call allocateArray(neighborDistance,[neighborCount])
+             ! Call again to get all neighbors.
+             neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+          end if
+       end if
     else
-       arraySize=0
-    end if
-    neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
-    ! Resize arrays if necessary.
-    if (neighborCount > arraySize) then
-       if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
-       if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
-       call allocateArray(neighborIndex   ,[neighborCount])
-       call allocateArray(neighborDistance,[neighborCount])
-       ! Call again to get all neighbors.
-       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex0,neighborDistance0,tolerance)
     end if
     ! Adjust indices to Fortran standard.
-    if (neighborCount > 0) neighborIndex=neighborIndex+1
+    if (neighborCount > 0 .and. present(neighborIndex)) neighborIndex=neighborIndex+1
 #else
     !GCC$ attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
     neighborCount=0
