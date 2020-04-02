@@ -46,7 +46,7 @@ contains
     implicit none
     type(posteriorSampleConvergenceNever)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleConvergenceNever()
     return
@@ -58,7 +58,7 @@ contains
     class           (posteriorSampleConvergenceNever), intent(inout)           :: self
     class           (posteriorSampleStateClass      ), intent(inout), optional :: simulationState
     double precision                                 , intent(in   ), optional :: logLikelihood
-    !GCC$ attributes unused :: self, simulationState, logLikelihood
+    !$GLC attributes unused :: self, simulationState, logLikelihood
 
     neverIsConverged=.false.
     return
@@ -68,7 +68,7 @@ contains
     !% Return the step at which the simulation converged.
     implicit none
     class(posteriorSampleConvergenceNever), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     neverConvergedAtStep=-1
     return
@@ -78,7 +78,7 @@ contains
     !% Reset the convergence object.
     implicit none
     class(posteriorSampleConvergenceNever), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine neverReset
@@ -88,7 +88,7 @@ contains
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self
     integer                                 , intent(in   ) :: fileUnit
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     write (fileUnit,*) 'Convergence: unconverged'
     return
@@ -99,7 +99,7 @@ contains
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self
     integer                                 , intent(in   ) :: stateIndex
-    !GCC$ attributes unused :: self, stateIndex
+    !$GLC attributes unused :: self, stateIndex
 
     neverStateIsOutlier=.false.
     return

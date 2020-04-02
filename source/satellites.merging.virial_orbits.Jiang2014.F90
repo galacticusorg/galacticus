@@ -602,7 +602,7 @@ contains
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     jiang2014VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -640,7 +640,7 @@ contains
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     jiang2014AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -706,7 +706,7 @@ contains
     class           (virialOrbitJiang2014), intent(inout) :: self
     double precision                      , intent(in   ) :: massHost, massSatellite
     integer                               , intent(  out) :: i       , j
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if      (              massHost < 10.0d0**12.5d0) then
        i=1

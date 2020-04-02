@@ -49,7 +49,7 @@ contains
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return

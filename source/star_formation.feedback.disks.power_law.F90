@@ -108,7 +108,7 @@ contains
     double precision                                    , intent(in   ) :: rateEnergyInput, rateStarFormation
     class           (nodeComponentDisk                 ), pointer       :: disk
     double precision                                                    :: velocityDisk
-    !GCC$ attributes unused :: rateStarFormation
+    !$GLC attributes unused :: rateStarFormation
 
     ! Get disk circular velocity.
     disk         => node%disk    ()
@@ -134,7 +134,7 @@ contains
     implicit none
     class(starFormationFeedbackDisksPowerLaw), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     powerLawVelocityCharacteristic=self%velocityCharacteristic_
     return

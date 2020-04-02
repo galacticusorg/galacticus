@@ -125,7 +125,7 @@ contains
 #ifdef ANNAVAIL
     nearestNeighborsConstructor%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
 #else
-    !GCC$ attributes unused :: points
+    !$GLC attributes unused :: points
     nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
@@ -143,7 +143,7 @@ contains
 #ifdef ANNAVAIL
     call nearestNeighborsDestructorC(self%ANNkd_tree)
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
@@ -183,7 +183,7 @@ contains
     ! Adjust indices to Fortran standard.
     neighborIndex=neighborIndex+1
 #else
-    !GCC$ attributes unused :: self, point, neighborCount, tolerance
+    !$GLC attributes unused :: self, point, neighborCount, tolerance
     neighborIndex   =0
     neighborDistance=0.0d0
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
@@ -235,7 +235,7 @@ contains
     ! Adjust indices to Fortran standard.
     if (neighborCount > 0 .and. present(neighborIndex)) neighborIndex=neighborIndex+1
 #else
-    !GCC$ attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
+    !$GLC attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
     neighborCount=0
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif

@@ -88,7 +88,7 @@ contains
     double precision                           , intent(in   ) :: age                        , initialMass       , &
          &                                                        metallicity
     double precision                                           :: stellarEffectiveTemperature, stellarLuminosity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)
@@ -121,7 +121,7 @@ contains
      double precision                           , intent(in   ) :: age                        , initialMass       , &
          &                                                         metallicity
     double precision                                            :: stellarEffectiveTemperature, stellarLuminosity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)

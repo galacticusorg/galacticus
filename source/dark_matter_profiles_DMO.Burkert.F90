@@ -428,7 +428,7 @@ contains
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: radiusOverScaleRadius, scaleRadius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfile      =>  node             %darkMatterProfile(autoCreate=.true.)
     scaleRadius            =   darkMatterProfile%scale            (                 )
@@ -744,7 +744,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     burkertAngularMomentumScaleFree=+(                                    &
          &                            +2.0d0*atan(      concentration   ) &
@@ -830,7 +830,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration, radius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     burkertDensityScaleFree=+1.0d0                                &
          &                  /(1.0d0+radius   )                    &
@@ -1129,7 +1129,7 @@ contains
     type            (fgsl_function              )                :: integrandFunction
     type            (fgsl_integration_workspace )                :: integrationWorkspace
     double precision                                             :: radiusEnd           , radiusStart
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusStart=radius
     radiusEnd  =0.0d0
@@ -1382,7 +1382,7 @@ contains
     double precision                                                        :: radiusMinimum              , radiusMaximum
     type            (fgsl_function              )                           :: integrandFunction
     type            (fgsl_integration_workspace )                           :: integrationWorkspace
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusMinimum=max(       radius,radiusTiny )
     radiusMaximum=max(10.0d0*radius,radiusLarge)

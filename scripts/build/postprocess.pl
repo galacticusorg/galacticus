@@ -1,7 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
+use Fortran::Utils;
 my $haveColor = eval
 {
 use Term::ANSIColor;
@@ -31,8 +33,12 @@ my %initializedVariables;
 # Initialize a hash of variables for which "pointer may outlive target" is ignored.
 my %ignoreOutlives;
 
+# Initialize a structure for unused variables.
+my $unusedVariables;
+
 # Open and read the file.
 my $lineNumber = 0;
+my $unitName;
 push(
     @map,
     {
@@ -54,6 +60,12 @@ while ( my $line = <$file> ) {
 	    }
 	    );	 
     }
+    # Detect functions/subroutines/submodule procedure.
+    foreach my $type ( 'subroutine', 'function', 'moduleProcedure' ) {
+	if ( my @matches = ( $line =~ $Fortran::Utils::unitOpeners{$type}->{'regEx'} ) ) {		
+	    $unitName = lc($matches[$Fortran::Utils::unitOpeners{$type}->{'unitName'}]);
+	}
+    }
     # Capture unused function attributes.
     if ( $line =~ m/^\s*!\$GLC\s+function\s+attributes\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
 	(my $functions = $1) =~ s/\s*$//;
@@ -72,6 +84,12 @@ while ( my $line = <$file> ) {
 	$ignoreOutlives{lc($_)} = 1
 	    foreach ( split(/\s*,\s*/,$variables) );
     }
+    # Capture unused variable attributes.
+    if ( $line =~ m/^\s*!\$GLC\s+attributes\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $variables = $1) =~ s/\s*$//;
+	$unusedVariables->{$unitName}->{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$variables) );
+    }
 }
 close($file);
 
@@ -79,6 +97,7 @@ close($file);
 my $buffer;
 my $status = 0;
 my $functionName;
+my $procedureName;
 my $pointerName;
 my %bogusUninitialized;
 while ( my $line = <STDIN> ) {
@@ -128,6 +147,33 @@ while ( my $line = <STDIN> ) {
 	$dropBuffer = 1
 	    if ( exists($unusedFunctions{lc($functionName)}) );
 	undef($functionName);
+    }
+    # Handle unused variable attributes.
+    if ( $line =~ m/^\s*\d+\s*\|\s*(.+)/ ) {
+	my $opener = $1;
+	foreach my $type ( 'subroutine', 'function' ) {
+	    if ( my @matches = ( $opener =~ $Fortran::Utils::unitOpeners{$type}->{'regEx'} ) ) {		
+		$procedureName = lc($matches[$Fortran::Utils::unitOpeners{$type}->{'unitName'}]);
+	    }
+	}
+    }
+    if ( $line =~ m/^<stdin>:\d+:\d+:/ ) {
+	$procedureName = "stdin";
+    }
+    if ( $line =~ m/^Warning: Unused dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
+	my $variableName = $1;
+	$dropBuffer = 1
+	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
+    }
+    if ( $line =~ m/^Warning: Dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) was declared INTENT\(OUT\) but was not set \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
+	my $variableName = $1;
+	$dropBuffer = 1
+	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
+    }
+    if ( $line =~ m/^Warning: Derived-type dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) was declared INTENT\(OUT\) but was not set and does not have a default initializer \[\-Wunused\-dummy\-argument\]/ && defined($procedureName) ) {
+	my $variableName = $1;
+	$dropBuffer = 1
+	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
     }
     # Handle uninitialized variable attributes.
     if ( $line =~ /Warning: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' may be used uninitialized in this function \[\-Wmaybe\-uninitialized\]/ ) {

@@ -43,7 +43,7 @@ contains
     double precision                        , intent(in   )           :: radius
     class           (nodeComponentBasic    )               , pointer  :: basic
     class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
-    !GCC$ attributes unused :: weightIndex
+    !$GLC attributes unused :: weightIndex
 
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -214,7 +214,7 @@ contains
          &                                                               weightBy               , weightIndex
     double precision                        , intent(in   )           :: positionSpherical   (3)
     class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
-    !GCC$ attributes unused :: weightIndex
+    !$GLC attributes unused :: weightIndex
 
     ! Return zero if the component and mass type is not matched.
     Dark_Matter_Profile_Density_Task=0.0d0

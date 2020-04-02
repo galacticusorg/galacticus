@@ -122,7 +122,7 @@ contains
     type            (treeNode                  ), intent(inout), target   :: node
     type            (multiCounter              ), intent(inout), optional :: instance
     double precision                                                      :: numerator, denominator
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     select type (propertyNumerator_   => self%propertyNumerator_  )
     class is (nodePropertyExtractorScalar)
@@ -180,7 +180,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ratioType=outputAnalysisPropertyTypeLinear
     return

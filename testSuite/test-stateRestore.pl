@@ -9,7 +9,7 @@ use PDL::NiceSlice;
 # Andrew Benson (23-Jun-2012)
 
 # Run full store model.
-system("export OMP_NUM_THREADS=12; rm -f outputs/state.state* outputs/state.fgsl.state*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
+system("export OMP_NUM_THREADS=12; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.
@@ -31,8 +31,8 @@ while ( my $fileName = readdir($stateDirectory) ) {
 closedir($stateDirectory);
 if ( defined($finalTreeThread) ) {
     print "Final tree was run by thread ".$finalTreeThread."\n";
-    system("cp -f outputs/state.state:openMP"     .$finalTreeThread." outputs/state.state"     );
-    system("cp -f outputs/state.fgsl.state:openMP".$finalTreeThread." outputs/state.fgsl.state");
+    system("cp -f outputs/state.state:openMP"    .$finalTreeThread." outputs/state.state"    );
+    system("cp -f outputs/state.gsl.state:openMP".$finalTreeThread." outputs/state.gsl.state");
 } else {
     die("FAILED: failed to identify which thread ran final tree");
 }

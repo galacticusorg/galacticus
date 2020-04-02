@@ -86,7 +86,7 @@ contains
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: blackHole, accretionRateMass
+    !$GLC attributes unused :: blackHole, accretionRateMass
 
     eddingtonLimitedEfficiencyRadiative=self%efficiencyRadiation
     return
@@ -135,7 +135,7 @@ contains
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: self, blackHole, accretionRateMass
+    !$GLC attributes unused :: self, blackHole, accretionRateMass
 
     eddingtonLimitedRateSpinUp=0.0d0
     return

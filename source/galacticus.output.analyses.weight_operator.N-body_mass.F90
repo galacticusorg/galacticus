@@ -121,7 +121,7 @@ contains
     integer         (c_size_t                             ), intent(in   ) :: outputIndex
     double precision                                                       :: nbodyMassPropertyValue
     integer                                                                :: nbodyMassPropertyType
-    !GCC$ attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+    !$GLC attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     ! Extract property and operate on it.
     nbodyMassPropertyType   =+self%nodePropertyExtractor_%type           (    )

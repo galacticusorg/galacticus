@@ -150,7 +150,7 @@ contains
     type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
     logical                                                                                              :: integrandReset                       , interpolationReset                       , &
          &                                                                                                  monotonize
-    !GCC$ attributes unused :: weight
+    !$GLC attributes unused :: weight
 
     ! Generate a randomly sampled set of halo masses.
     treeCount=max(2_c_size_t,int(log10(self%massTreeMaximum/self%massTreeMinimum)*self%treesPerDecade,kind=c_size_t))
@@ -280,7 +280,7 @@ contains
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
     double precision                                          , intent(  out), dimension(:) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     call Galacticus_Error_Report('attempt to call function in abstract type'//{introspection:location})
     return

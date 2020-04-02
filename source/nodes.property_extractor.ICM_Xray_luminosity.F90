@@ -113,7 +113,7 @@ contains
     implicit none
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
     double precision                                        , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     icmXRayLuminosityElementCount=2
     return
@@ -139,7 +139,7 @@ contains
     type            (fgsl_integration_workspace             )                             :: integrationWorkspace
     logical                                                                               :: integrationReset
     double precision                                                                      :: luminosity          , temperature
-    !GCC$ attributes unused :: self, time, instance
+    !$GLC attributes unused :: self, time, instance
 
     allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
@@ -260,7 +260,7 @@ contains
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
     double precision                                        , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityNames(2))
     icmXRayLuminosityNames=[var_str('icmXrayLuminosity'),var_str('icmXrayTemperature')]
@@ -273,7 +273,7 @@ contains
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
     double precision                                        , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityDescriptions(2))
     icmXRayLuminosityDescriptions=[var_str('X-ray luminosity of the ICM [ergs/s]'),var_str('X-ray luminosity-weighted temperature of the ICM [keV]')]
@@ -288,7 +288,7 @@ contains
     double precision                                        , allocatable  , dimension(:) :: icmXRayLuminosityUnitsInSI
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)               :: self
     double precision                                        , intent(in   )               :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityUnitsInSI(2))
     icmXRayLuminosityUnitsInSI=[ergs,kilo*electronVolt]
@@ -300,7 +300,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
     return

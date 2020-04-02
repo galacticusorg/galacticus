@@ -86,7 +86,7 @@ contains
     double precision                              , intent(in   ) :: radius
     class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
-    !GCC$ attributes unused :: weightIndex
+    !$GLC attributes unused :: weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
     hotHaloMassDistributionEnclosedMass=0.0d0
@@ -289,7 +289,7 @@ contains
          &                                                                     weightIndex
     double precision                              , intent(in   )           :: positionSpherical(3)
     class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
-    !GCC$ attributes unused :: weightIndex
+    !$GLC attributes unused :: weightIndex
 
     hotHaloMassDistributionDensity=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return

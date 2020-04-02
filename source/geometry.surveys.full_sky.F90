@@ -121,7 +121,7 @@ contains
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     fullSkyDistanceMinimum=self%limitDistanceMinimum
     return
@@ -133,7 +133,7 @@ contains
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, magnitudeAbsolute, field, luminosity
+    !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity
 
     fullSkyDistanceMaximum=self%limitDistanceMaximum
     return
@@ -145,7 +145,7 @@ contains
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
     integer                                , intent(in   ), optional :: field
-    !GCC$ attributes unused :: self, field
+    !$GLC attributes unused :: self, field
 
     fullSkySolidAngle=4.0d0*Pi
     return
@@ -155,7 +155,7 @@ contains
     !% Return true to indicate that survey window function is available.
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fullSkyWindowFunctionAvailable=.true.
     return
@@ -165,7 +165,7 @@ contains
     !% Return true to indicate that survey angular power is available.
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fullSkyAngularPowerAvailable=.true.
     return
@@ -248,7 +248,7 @@ contains
     implicit none
     class  (surveyGeometryFullSky), intent(inout) :: self
     integer                       , intent(in   ) :: i   , j, l
-    !GCC$ attributes unused :: self, i, j
+    !$GLC attributes unused :: self, i, j
 
     if (l == 0) then
        fullSkyAngularPower=4.0d0*Pi
@@ -266,7 +266,7 @@ contains
     double precision                       , intent(in   ), dimension(3) :: point
     double precision                       , intent(in   )               :: mass
     double precision                                                     :: distance
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     distance            =Vector_Magnitude(point)
     fullSkyPointIncluded=(distance >= self%limitDistanceMinimum .and. distance <= self%limitDistanceMaximum)

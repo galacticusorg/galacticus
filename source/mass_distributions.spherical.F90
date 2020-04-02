@@ -61,7 +61,7 @@ contains
     !% Returns symmetry label for mass dsitributions with spherical symmetry.
     implicit none
     class(massDistributionSpherical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalSymmetry=massDistributionSymmetrySpherical
     return

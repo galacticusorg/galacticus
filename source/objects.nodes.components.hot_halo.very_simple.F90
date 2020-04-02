@@ -170,7 +170,7 @@ contains
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     gotCoolingRate=.false.
     return
@@ -218,7 +218,7 @@ contains
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)
@@ -234,7 +234,7 @@ contains
     type     (abundances          ), intent(in   )                    :: rate
     logical                        , intent(inout), optional          :: interrupt
     procedure(                    ), intent(inout), optional, pointer :: interruptProcedure
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Funnel the outflow gas abundances into the hot halo.
     call self%abundancesRate(rate)
@@ -267,7 +267,7 @@ contains
     integer                               , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     double precision                                               :: massAccretionRate   , failedMassAccretionRate
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -392,7 +392,7 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeHost
     class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -432,7 +432,7 @@ contains
     type (treeNode            ), intent(inout), target  :: node
     type (treeNode            )               , pointer :: nodeParent
     class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     hotHalo => node%hotHalo()
     ! Ensure that it is of specified class.
@@ -470,7 +470,7 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeParent
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()

@@ -95,7 +95,7 @@ contains
     double precision                                           , intent(in   ) :: wavelength      , age, &
          &                                                                        vBandAttenuation
     double precision                                                           :: x
-    !GCC$ attributes unused :: age
+    !$GLC attributes unused :: age
 
     x                      =1.0d0/(wavelength/angstromsPerMicron)
     cardelli1989Attenuation=vBandAttenuation*(self%a(x)+self%b(x)/self%Rv) ! Eqn. (1) of Cardelli et al.
@@ -108,7 +108,7 @@ contains
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
     double precision                                                           :: y   , Fa
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cardelli1989A=0.0d0
     if      (x >= 0.3d0 .and. x < 1.1d0) then
@@ -144,7 +144,7 @@ contains
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
     double precision                                                           :: y   , Fb
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cardelli1989B=0.0d0
     if      (x >= 0.3d0 .and. x < 1.1d0) then

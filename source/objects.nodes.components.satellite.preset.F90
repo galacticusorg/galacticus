@@ -110,7 +110,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultSatelliteComponent%presetIsActive()) &
          call nodePromotionEvent%attach(defaultSatelliteComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
@@ -138,7 +138,7 @@ contains
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Move the satellite orbit from the parent node.
     call node%parent%satelliteMove(node,overwrite=.true.)
@@ -390,7 +390,7 @@ contains
     class    (nodeComponentSatellite)               , pointer :: satellite
     type     (history               )                         :: historyBoundMass
     logical                                                   :: exceedsHistoryTime
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
     
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return

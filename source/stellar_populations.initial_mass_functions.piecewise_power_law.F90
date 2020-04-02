@@ -217,7 +217,7 @@ contains
     implicit none
     class(initialMassFunctionPiecewisePowerLaw), intent(inout) :: self
     type (varying_string                      )                :: piecewisePowerLawLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     piecewisePowerLawLabel="PiecewisePowerLaw"
     return

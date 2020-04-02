@@ -194,7 +194,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenA=self%aValue
     return
@@ -205,7 +205,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenP=self%pValue
     return
@@ -216,7 +216,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenNormalization=self%normalizationValue
     return

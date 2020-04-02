@@ -132,7 +132,7 @@ contains
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     projectedDensityElementCount=self%elementCount_
     return
@@ -162,7 +162,7 @@ contains
     type            (fgsl_integration_workspace           )                             :: integrationWorkspace
     integer                                                                             :: i
     double precision                                                                    :: radiusVirial           , radiusOuter
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(projectedDensityExtract(self%elementCount_))
     radiusVirial                                         =  0.0d0
@@ -256,7 +256,7 @@ contains
     class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
     double precision                                     , intent(in   )              :: time
     integer                                                                           :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(projectedDensityNames(self%elementCount_))
     do i=1,size(self%radii)
@@ -274,7 +274,7 @@ contains
     class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
     integer                                                                             :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(projectedDensityDescriptions(self%elementCount_))
     do i=1,size(self%radii)
@@ -293,7 +293,7 @@ contains
     class           (nodePropertyExtractorProjectedDensity), intent(inout)               :: self
     double precision                                       , intent(in   )               :: time
     integer                                                                              :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(projectedDensityUnitsInSI(self%elementCount_))
     do i=1,size(self%radii)
@@ -309,7 +309,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorProjectedDensity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     projectedDensityType=outputAnalysisPropertyTypeLinear
     return

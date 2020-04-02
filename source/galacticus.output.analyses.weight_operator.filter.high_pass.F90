@@ -80,7 +80,7 @@ contains
          &                                                                         weightValue
     integer                                                     , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                                  ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
+    !$GLC attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
 
     if (propertyValue > self%filterThreshold) then
        filterHighPassOperate=weightValue

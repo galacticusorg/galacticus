@@ -181,7 +181,7 @@ contains
     double precision                                           , dimension(0:1) :: hWavelength
     integer         (c_size_t                                 )                 :: iWavelength, jTime, &
          &                                                                         jWavelength
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     intergalacticBackgroundFileFlux=0.0d0
     ! Return if out of range.

@@ -34,7 +34,7 @@ module Geometry_Surveys
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    surveyGeometryFieldCount=1
   !#   </code>
   !#  </method>
@@ -45,7 +45,7 @@ module Geometry_Surveys
   !#   <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
+  !#    !$GLC attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
   !#    surveyGeometryDistanceMinimum=0.0d0
   !#   </code>
   !#  </method>
@@ -100,7 +100,7 @@ module Geometry_Surveys
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    surveyGeometryAngularPowerMaximumDegree=-1
   !#   </code>
   !#  </method>

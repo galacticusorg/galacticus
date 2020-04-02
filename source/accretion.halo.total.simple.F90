@@ -43,7 +43,7 @@ contains
     implicit none
     type(accretionHaloTotalSimple)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalSimple()
     return
@@ -56,7 +56,7 @@ contains
     class(accretionHaloTotalSimple), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
     class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic               => node %basic        ()
     simpleAccretionRate =  basic%accretionRate()
@@ -70,7 +70,7 @@ contains
     class(accretionHaloTotalSimple), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
     class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic              => node %basic()
     simpleAccretedMass =  basic%mass ()

@@ -122,7 +122,7 @@ contains
     double precision                                                          :: fuelMetallicity               , fuelMetalsRateOfChange   , &
          &                                                                       recycledFractionInstantaneous , stellarMetalsRateOfChange, &
          &                                                                       time                          , yieldInstantaneous
-    !GCC$ attributes unused :: history_
+    !$GLC attributes unused :: history_
 
     ! Get the instantaneous recycled fraction and yields for the selected stellar population.
     stellarPopulation_            => self%stellarPopulationSelector_%select                       (rateStarFormation,abundancesFuel,component)
@@ -188,7 +188,7 @@ contains
     double precision                                          , intent(in   ) :: massStellar
     type            (abundances                              ), intent(in   ) :: abundancesStellar
     type            (history                                 ), intent(inout) :: history_
-    !GCC$ attributes unused :: self, history_, massStellar, abundancesStellar
+    !$GLC attributes unused :: self, history_, massStellar, abundancesStellar
 
     return
   end subroutine instantaneousScales
@@ -197,7 +197,7 @@ contains
     !% Returns the number of histories required by the instantaneous stellar populations properties class.
     implicit none
     class(stellarPopulationPropertiesInstantaneous), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     instantaneousHistoryCount=0
     return
@@ -210,7 +210,7 @@ contains
     class(stellarPopulationPropertiesInstantaneous), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
     type (history                                 ), intent(inout) :: history_
-    !GCC$ attributes unused :: self, node, history_
+    !$GLC attributes unused :: self, node, history_
 
     return
   end subroutine instantaneousHistoryCreate

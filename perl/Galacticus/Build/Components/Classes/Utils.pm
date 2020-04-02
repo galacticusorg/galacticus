@@ -134,7 +134,7 @@ end do
 CODE
 	} else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, targetNode, overwrite, instanceCount, targetCount, i, instancesTemporary, overwrite_
+!$GLC attributes unused :: self, targetNode, overwrite, instanceCount, targetCount, i, instancesTemporary, overwrite_
 call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
 	}
@@ -224,7 +224,7 @@ end if
 CODE
 	} else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, instance, instanceCount, instancesTemporary
+!$GLC attributes unused :: self, instance, instanceCount, instancesTemporary
 call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
 	}

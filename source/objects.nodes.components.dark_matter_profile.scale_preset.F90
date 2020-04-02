@@ -61,7 +61,7 @@ contains
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultDarkMatterProfileComponent%scalePresetIsActive()) &
          & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentDarkMatterProfileScalePreset')
@@ -96,7 +96,7 @@ contains
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -164,7 +164,7 @@ contains
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
     class(nodeComponentBasic            )               , pointer :: basicParent            , basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()

@@ -100,7 +100,7 @@ contains
     class           (nodeComponentBasic                       ), pointer       :: basicHost                   , basic
     double precision                                           , parameter     :: timeScaleNormalization=0.2d0        !   C_dyn from Wetzel & White (2010).
     double precision                                                           :: massRatio
-    !GCC$ attributes unused :: self, orbit
+    !$GLC attributes unused :: self, orbit
 
     ! Find the host node.
     nodeHost  =>  node     %parent

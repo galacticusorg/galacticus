@@ -131,7 +131,7 @@ contains
     class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node1 , node2
     class(nodeComponentBasic        ), pointer       :: basic1, basic2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic1 => node1%basic()
     basic2 => node2%basic()

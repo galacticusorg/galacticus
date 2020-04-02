@@ -108,7 +108,7 @@ contains
          &                                                                       volumeData            , volumeModel           , &
          &                                                                       correctionFactor
     integer                                                                      field
-    !GCC$ attributes unused :: outputIndex, propertyValue, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyValue, propertyType, node
 
     ! Compute the correction factor - the assumption here is that the volume density was derived from a 1/Vₘₐₓ type approach. To
     ! correct for the distance in model and data cosmological models, we therefore first multiply the weight by Vₘₐₓ for the model

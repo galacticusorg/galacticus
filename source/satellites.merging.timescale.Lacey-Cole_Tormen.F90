@@ -72,7 +72,7 @@ contains
     double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                   !   Cole et al. (2000).
     double precision                                                               :: log10OrbitalFactor                    , randomDeviate, &
          &                                                                            orbitalFactor
-    !GCC$ attributes unused :: orbit
+    !$GLC attributes unused :: orbit
 
     ! Find the host node.
     hostNode => node%parent

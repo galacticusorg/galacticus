@@ -45,7 +45,7 @@ contains
     implicit none
     type(coolingSpecificAngularMomentumMean)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=coolingSpecificAngularMomentumMean()
     return
@@ -59,7 +59,7 @@ contains
     type            (treeNode                           ), intent(inout) :: node
     double precision                                     , intent(in   ) :: radius
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
-    !GCC$ attributes unused :: self, radius
+    !$GLC attributes unused :: self, radius
 
     ! Compute mean specific angular momentum from the hot halo component.
     hotHalo                     =>  node   %hotHalo        ()

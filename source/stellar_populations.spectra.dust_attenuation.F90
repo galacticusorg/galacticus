@@ -39,7 +39,7 @@ module Stellar_Spectra_Dust_Attenuations
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    stellarSpectraDustAttenuationIsAgeDependent=.false.
   !#   </code>
   !#  </method>
@@ -48,7 +48,7 @@ module Stellar_Spectra_Dust_Attenuations
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    stellarSpectraDustAttenuationIsSeparable=.true.
   !#   </code>
   !#  </method>

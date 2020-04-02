@@ -41,7 +41,7 @@ module Node_Property_Extractors
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    nodePropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
   !#   </code>
   !#  </method>
@@ -52,7 +52,7 @@ module Node_Property_Extractors
   !#   <argument>type(treeNode    ), intent(inout) :: node</argument>
   !#   <argument>type(multiCounter), intent(inout) :: instance</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node, instance
+  !#    !$GLC attributes unused :: self, node, instance
   !#    ! Nothing to do.
   !#   </code>
   !#  </method>

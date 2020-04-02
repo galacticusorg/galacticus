@@ -168,7 +168,7 @@ contains
     !% Return the minimum value of a beta distribution.
     implicit none
     class(distributionFunction1DBeta), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     betaMinimum=0.0d0
     return
@@ -178,7 +178,7 @@ contains
     !% Return the minimum value of a beta distribution.
     implicit none
     class(distributionFunction1DBeta), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     betaMaximum=1.0d0
     return

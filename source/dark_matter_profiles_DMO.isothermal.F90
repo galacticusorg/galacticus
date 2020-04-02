@@ -110,7 +110,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     isothermalDensityLogSlope=-2.0d0
     return
@@ -204,7 +204,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
     return
@@ -228,7 +228,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%virialVelocity(node)/sqrt(2.0d0)
     return
@@ -338,7 +338,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &
          & /Mpc_per_km_per_s_To_Gyr

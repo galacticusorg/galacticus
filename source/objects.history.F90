@@ -483,7 +483,7 @@ contains
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
-    !GCC$ attributes unused :: self, historyDefinition
+    !$GLC attributes unused :: self, historyDefinition
 
     call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
@@ -496,7 +496,7 @@ contains
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
-    !GCC$ attributes unused :: self, historyDefinition
+    !$GLC attributes unused :: self, historyDefinition
 
     call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return

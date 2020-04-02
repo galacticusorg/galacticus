@@ -40,7 +40,7 @@ contains
     implicit none
     type(radiativeTransferOutputterNull)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=radiativeTransferOutputterNull()
     return

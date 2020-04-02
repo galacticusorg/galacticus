@@ -114,7 +114,7 @@ contains
          &                                                                          orbitalCircularity                   , radialScale             , &
          &                                                                          velocityScale                        , expArgument
     integer                                                                      :: errorCode
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the host node.
     nodeHost => node%parent

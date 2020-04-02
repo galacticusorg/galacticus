@@ -414,7 +414,7 @@ contains
     class(nodeComponentSpheroid), pointer       :: spheroid
     class(nodeComponentBasic   ), pointer       :: basic
     type (history              )                :: stellarPropertiesHistory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -574,7 +574,7 @@ contains
     procedure       (interruptTask        ), intent(inout), optional, pointer :: interruptProcedure
     double precision                       , intent(in   )                    :: rate
     double precision                                                          :: gasMass           , stellarMass
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Trap cases where an attempt is made to add gas via this sink function.
     if (rate > 0.0d0) call Galacticus_Error_Report(                                                      &
@@ -613,7 +613,7 @@ contains
     double precision                                                                  :: angularMomentumOutflowRate, gasMass         , &
          &                                                                               massOutflowRate           , spheroidVelocity, &
          &                                                                               stellarMass
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Trap cases where an attempt is made to remove energy via this input function.
     if (rate < 0.0d0) call Galacticus_Error_Report(                                                                 &
@@ -686,7 +686,7 @@ contains
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates)
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -1059,7 +1059,7 @@ contains
     integer                                                :: destinationGasSatellite       , destinationGasHost             , &
          &                                                    destinationStarsHost          , destinationStarsSatellite
     logical                                                :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the spheroid component, creating it if need be.
     spheroid => node%spheroid(autoCreate=.true.)
@@ -1673,46 +1673,44 @@ contains
   !# <galacticusStateStoreTask>
   !#  <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile,stateOperatorID)
+  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperatorID)
     !% Write the tablulation state to file.
-    use            :: FGSL                                 , only : fgsl_file
     use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t                  , c_ptr
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperatorID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperatorID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call Galacticus_Display_Message('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     write (stateFile) spheroidAngularMomentumAtScaleRadius
     write (stateFile) associated(spheroidMassDistribution)
-    if (associated(spheroidMassDistribution)) call spheroidMassDistribution%stateStore(stateFile,fgslStateFile,stateOperatorID)
+    if (associated(spheroidMassDistribution)) call spheroidMassDistribution%stateStore(stateFile,gslStateFile,stateOperatorID)
     return
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,fgslStateFile,stateOperationID)
+  subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
-    use            :: FGSL                                 , only : fgsl_file
     use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
     use            :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t                  , c_ptr
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperationID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    logical                           :: wasAllocated
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    logical                          :: wasAllocated
 
     call Galacticus_Display_Message('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     read (stateFile) spheroidAngularMomentumAtScaleRadius
     read (stateFile) wasAllocated
     if (wasAllocated) then
        if (.not.associated(spheroidMassDistribution)) call Galacticus_Error_Report('spheroidMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call spheroidMassDistribution%stateRestore(stateFile,fgslStateFile,stateOperationID)
+       call spheroidMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_State_Retrieve

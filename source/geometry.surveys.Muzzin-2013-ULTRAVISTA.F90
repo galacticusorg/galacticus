@@ -142,7 +142,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     muzzin2013ULTRAVISTAFieldCount=muzzin2013ULTRAVISTAFields
     return
@@ -154,7 +154,7 @@ contains
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     muzzin2013ULTRAVISTADistanceMinimum=self%binDistanceMinimum
     return
@@ -169,7 +169,7 @@ contains
     double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: redshift, logarithmicMass
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
@@ -223,7 +223,7 @@ contains
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
     return
@@ -234,7 +234,7 @@ contains
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA)                           , intent(inout) :: self
     type (varying_string                    ), allocatable, dimension(:), intent(inout) :: mangleFiles
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(mangleFiles(1))
     mangleFiles=                  &
@@ -248,7 +248,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{muzzin_evolution_2013} survey.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     muzzin2013ULTRAVISTAAngularPowerMaximumDegree=muzzin2013AngularPowerMaximumL
     return

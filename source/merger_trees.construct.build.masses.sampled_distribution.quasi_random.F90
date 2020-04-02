@@ -81,7 +81,7 @@ contains
     type            (fgsl_qrng                                          )                              :: quasiSequenceObject
     logical                                                                                            :: quasiSequenceReset
     integer         (c_size_t                                           )                              :: iTree
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     quasiSequenceReset=.true.
     do iTree=1,size(x)

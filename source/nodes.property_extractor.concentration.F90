@@ -94,7 +94,7 @@ contains
     class           (nodeComponentBasic                ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile    ), pointer                 :: darkMatterProfile
     double precision                                                              :: massHalo         , radiusHalo
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     basic                =>  node%basic            ()
     darkMatterProfile    =>  node%darkMatterProfile()
@@ -113,7 +113,7 @@ contains
     implicit none
     type (varying_string                    )                :: concentrationName
     class(nodePropertyExtractorConcentration), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     concentrationName=var_str('concentration')
     return
@@ -124,7 +124,7 @@ contains
     implicit none
     type (varying_string                    )                :: concentrationDescription
     class(nodePropertyExtractorConcentration), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     concentrationDescription=var_str('The concentration parameter of the dark matter halos.')
     return
@@ -134,7 +134,7 @@ contains
     !% Return the units of the concentration property in the SI system.
     implicit none
     class(nodePropertyExtractorConcentration), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     concentrationUnitsInSI=0.0d0
     return
@@ -145,7 +145,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorConcentration), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     concentrationType=outputAnalysisPropertyTypeLinear
     return

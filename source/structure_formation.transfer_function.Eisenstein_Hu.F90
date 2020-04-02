@@ -526,7 +526,7 @@ contains
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     eisensteinHu1999HalfModeMass=0.0d0
     if (present(status)) then

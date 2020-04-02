@@ -92,7 +92,7 @@ contains
     class           (nodeComponentSatellite          ), pointer                 :: satellite
     double precision                                                            :: outputTimeNext
     logical                                                                     :: foundDescendent
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     satellite       => node%satellite            (    )
     outputTimeNext  =  self%outputTimes_%timeNext(time)
@@ -161,7 +161,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsType=outputAnalysisPropertyTypeLinear
     return
@@ -172,7 +172,7 @@ contains
     implicit none
     type (varying_string                  )                :: descendentsName
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsName=var_str('descendentIndex')
     return
@@ -183,7 +183,7 @@ contains
     implicit none
     type (varying_string                  )                :: descendentsDescription
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
     return

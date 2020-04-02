@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     magnitudeConstructorParameters=outputAnalysisPropertyOperatorMagnitude()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                               ), intent(inout), optional :: node
     integer                                                  , intent(inout), optional :: propertyType
     integer         (c_size_t                               ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, node
+    !$GLC attributes unused :: self, outputIndex, node
 
     if (propertyValue > 0.0d0) then
        magnitudeOperate=-2.5d0*log10(propertyValue)

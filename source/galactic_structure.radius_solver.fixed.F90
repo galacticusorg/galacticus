@@ -179,7 +179,7 @@ contains
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
     integer          , intent(in   )         :: propertyType
-    !GCC$ attributes unused :: propertyType
+    !$GLC attributes unused :: propertyType
 
     select type (self)
     type is (galacticStructureSolverFixed)
@@ -225,7 +225,7 @@ contains
       class           (nodeComponentSpin )               , pointer :: spin
       class           (nodeComponentBasic)               , pointer :: basic
       double precision                                             :: radius                 , velocity
-      !GCC$ attributes unused :: radiusGet, velocityGet, specificAngularMomentum
+      !$GLC attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
@@ -251,7 +251,7 @@ contains
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     return
   end subroutine fixedRevert

@@ -131,7 +131,7 @@ contains
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})
@@ -155,7 +155,7 @@ contains
     double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: distanceMaximumRedshift, distanceMaximumMagnitude
-    !GCC$ attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})

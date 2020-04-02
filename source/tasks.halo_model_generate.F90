@@ -409,7 +409,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskHaloModelGenerate), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloModelGenerateRequiresOutputFile=.false.
     return

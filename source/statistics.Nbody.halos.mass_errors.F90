@@ -47,7 +47,7 @@ module Statistics_NBody_Halo_Mass_Errors
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    nbodyHaloMassErrorErrorZeroAlways=.false.
   !#   </code>
   !#  </method>

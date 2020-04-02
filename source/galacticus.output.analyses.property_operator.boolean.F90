@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisPropertyOperatorBoolean()
     return
@@ -57,7 +57,7 @@ contains
     type            (treeNode                             ), intent(inout), optional :: node
     integer                                                , intent(inout), optional :: propertyType
     integer         (c_size_t                             ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, propertyType, outputIndex, node
+    !$GLC attributes unused :: self, propertyType, outputIndex, node
 
     if (propertyValue == 0.0d0) then
        booleanOperate=     0.0d0

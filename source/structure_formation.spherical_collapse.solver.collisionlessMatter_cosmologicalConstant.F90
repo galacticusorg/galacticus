@@ -813,7 +813,7 @@ contains
     type            (hdf5Object                                      )                             :: file
     double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
     type            (lockDescriptor                                  )                             :: fileLock
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     status=errorStatusFail
     if (.not.tableStore) return
@@ -863,7 +863,7 @@ contains
     logical                                                  , intent(in   ) :: tableStore
     type   (hdf5Object                                      )                :: file
     type   (lockDescriptor                                  )                :: fileLock
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (.not.tableStore) return
     call Directory_Make(char(File_Path(char(fileName))))

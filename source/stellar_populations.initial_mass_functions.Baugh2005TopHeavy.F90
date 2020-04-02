@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBaugh2005TopHeavy()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionBaugh2005TopHeavy), intent(inout) :: self
     type (varying_string                      )                :: baugh2005TopHeavyLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baugh2005TopHeavyLabel="Baugh2005TopHeavy"
     return

@@ -172,7 +172,7 @@ contains
     real                                                                                           :: timeEvaluate_
     double precision                                                                               :: logLikelihoodVariance_, logPriorProposed_
     integer                                                                                        :: i                     , j
-    !GCC$ attributes unused :: forceAcceptance
+    !$GLC attributes unused :: forceAcceptance
 
     allocate(stateVector      (simulationState%dimension()))
     allocate(stateVectorMapped(simulationState%dimension()))

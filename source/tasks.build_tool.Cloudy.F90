@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolCloudy)                :: self
     type(inputParameters    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolCloudy()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
     type   (varying_string     )                          :: cloudyPath, cloudyVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: Cloudy tool build')
     call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolCloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolCloudyRequiresOutputFile=.false.
     return

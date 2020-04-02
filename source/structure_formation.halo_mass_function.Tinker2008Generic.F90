@@ -152,7 +152,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericNormalization=self%normalizationValue
     return
@@ -163,7 +163,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericA=self%aValue
     return
@@ -174,7 +174,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericB=self%bValue
     return
@@ -185,7 +185,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericC=self%cValue
     return

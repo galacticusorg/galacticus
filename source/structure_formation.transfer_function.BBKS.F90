@@ -225,7 +225,7 @@ contains
     implicit none
     class  (transferFunctionBBKS), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bbksHalfModeMass=0.0d0
     if (present(status)) then

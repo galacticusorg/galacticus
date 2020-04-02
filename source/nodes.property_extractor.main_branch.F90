@@ -45,7 +45,7 @@ contains
     implicit none
     type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     mainBranchStatusConstructorParameters=nodePropertyExtractorMainBranchStatus()
     return
@@ -59,7 +59,7 @@ contains
     type            (treeNode                             ), intent(inout), target   :: node
     double precision                                       , intent(in   )           :: time
     type            (multiCounter                         ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     if (node%isOnMainBranch()) then
        mainBranchStatusExtract=1
@@ -74,7 +74,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusType=outputAnalysisPropertyTypeLinear
     return
@@ -85,7 +85,7 @@ contains
     implicit none
     type (varying_string                       )                :: mainBranchStatusName
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusName=var_str('nodeIsOnMainBranch')
     return
@@ -96,7 +96,7 @@ contains
     implicit none
     type (varying_string                       )                :: mainBranchStatusDescription
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusDescription=var_str('Indicates if the node is on the main branch of the merger tree (0|1).')
     return

@@ -134,7 +134,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorInoue2014)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorInoue2014()
     return
@@ -151,7 +151,7 @@ contains
     integer                                                                         :: i
     double precision                                                                :: opticalDepth             , wavelengthObservedLymanContinuum, &
          &                                                                             wavelengthLymanLine      , wavelengthScaled
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Return if this is a zero redshift case.
     inoue2014Multiplier=1.0d0

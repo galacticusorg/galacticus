@@ -97,7 +97,7 @@ contains
     type   (mergerTreeWalkerIsolatedNodes  )                        :: treeWalker
     type   (keplerOrbit                   )                        :: virialOrbitNode         , virialOrbitProgenitor
     logical                                                        :: satelliteProgenitorFound
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over nodes in forest.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)

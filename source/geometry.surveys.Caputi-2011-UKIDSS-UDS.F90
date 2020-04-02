@@ -127,7 +127,7 @@ contains
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
@@ -142,7 +142,7 @@ contains
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     double precision                                                             :: redshift, logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
@@ -193,7 +193,7 @@ contains
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     integer                                            , intent(in   ), optional :: field
     double precision                                   , parameter               :: solidAngleSurvey=1.59233703487973d-4
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})

@@ -40,7 +40,7 @@ contains
     implicit none
     type(universeOperatorIdentity)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=universeOperatorIdentity()
     return
@@ -51,7 +51,7 @@ contains
      implicit none
      class(universeOperatorIdentity), intent(inout), target :: self
      type (universe                ), intent(inout)         :: universe_
-     !GCC$ attributes unused :: self, universe_
+     !$GLC attributes unused :: self, universe_
 
      return
    end subroutine identityOperate

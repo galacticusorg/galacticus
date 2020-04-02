@@ -52,7 +52,7 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionOperatorDiskSizeInclntn()
     return
@@ -195,7 +195,7 @@ contains
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: diskSizeInclinationOperateScalar
     double precision                                                                                                          :: ratioLogarithmicMinimum         , ratioLogarithmicMaximum
     integer                                                                                                                   :: i
-    !GCC$ attributes unused :: outputIndex, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyType, node
 
     do i=1,size(propertyValueMinimum)
        ratioLogarithmicMinimum            =min(0.0d0,propertyValueMinimum(i)-propertyValue)
@@ -217,7 +217,7 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: diskSizeInclinationOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     diskSizeInclinationOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

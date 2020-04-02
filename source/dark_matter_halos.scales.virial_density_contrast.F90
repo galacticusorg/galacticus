@@ -335,7 +335,7 @@ contains
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then

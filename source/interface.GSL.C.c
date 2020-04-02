@@ -20,7 +20,26 @@
 //% Implements Fortran-callable wrappers around GSL functions.
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <gsl/gsl_math.h>
+#include <errno.h>
+
+FILE *gslFileOpenC(const char *fileName, const char *access) {
+  /* Open a file to be used for GSL state. */
+  FILE *stream;
+  stream = fopen(fileName,access);
+  if ( stream == NULL ) {
+    int errnum;
+    errnum = errno;
+    printf("error %d\n",errnum);
+  }  
+  return stream;
+}
+
+int gslFileCloseC(FILE *stream) {
+  /* Close a file used for GSL state. */
+  return fclose(stream);
+}
 
 gsl_function *gslFunctionConstructor(double (*f) (double x, void * params)) {
   /* Construct a gsl_function object. */

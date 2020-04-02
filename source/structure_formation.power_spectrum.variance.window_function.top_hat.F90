@@ -122,7 +122,7 @@ contains
     class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self
     double precision                                   , intent(in   ) :: smoothingMass
     double precision                                   , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
-    !GCC$ attributes unused :: self, smoothingMass
+    !$GLC attributes unused :: self, smoothingMass
 
     topHatWavenumberMaximum=wavenumberLarge
     return

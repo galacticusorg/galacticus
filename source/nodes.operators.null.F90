@@ -41,7 +41,7 @@ contains
     implicit none
     type(nodeOperatorNull)                :: self
     type(inputParameters ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodeOperatorNull()
     return

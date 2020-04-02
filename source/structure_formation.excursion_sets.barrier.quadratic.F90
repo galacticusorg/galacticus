@@ -100,7 +100,7 @@ contains
     double precision                              , intent(in   ) :: variance   , time
     type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute, node
+    !$GLC attributes unused :: time, rateCompute, node
 
     quadraticBarrier=+self%coefficientConstant              &
          &           +self%coefficientLinear   *variance    &
@@ -115,7 +115,7 @@ contains
     double precision                              , intent(in   ) :: variance   , time
     type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute, node
+    !$GLC attributes unused :: variance, time, rateCompute, node
 
     quadraticBarrierGradient=+      self%coefficientLinear             &
          &                   +2.0d0*self%coefficientQuadratic*variance

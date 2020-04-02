@@ -220,7 +220,7 @@ contains
     double precision                                                       :: time                     , diskStarFormationRate, &
          &                                                                    spheroidStarFormationRate
     logical                                                                :: isGeneric
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
@@ -273,7 +273,7 @@ contains
     integer                                            :: destinationGasSatellite, destinationGasHost       , &
          &                                                destinationStarsHost   , destinationStarsSatellite
     logical                                            :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()

@@ -95,7 +95,7 @@ contains
     class           (nodeComponentSpheroid                           ), pointer       :: spheroid
     double precision                                                  , intent(in   ) :: rateEnergyInput , rateStarFormation
     double precision                                                                  :: velocitySpheroid, outflowRateToStarFormationRate
-    !GCC$ attributes unused :: rateStarFormation
+    !$GLC attributes unused :: rateStarFormation
 
     spheroid         => node%spheroid    ()
     velocitySpheroid =  spheroid%velocity()

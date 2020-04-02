@@ -82,7 +82,7 @@ contains
     !% Destructor for the identity transfer function class.
     implicit none
     type(transferFunctionIdentity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return
@@ -93,7 +93,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    !GCC$ attributes unused :: self, wavenumber
+    !$GLC attributes unused :: self, wavenumber
 
     identityValue=1.0d0
     return
@@ -104,7 +104,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    !GCC$ attributes unused :: self, wavenumber
+    !$GLC attributes unused :: self, wavenumber
 
     identityLogarithmicDerivative=0.0d0
     return
@@ -117,7 +117,7 @@ contains
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     integer                          , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     identityHalfModeMass=0.0d0
     if (present(status)) then
@@ -144,7 +144,7 @@ contains
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
     logical                          , intent(in   ), optional :: includeMethod
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
     return

@@ -45,7 +45,7 @@ contains
     implicit none
     type(satelliteTidalStrippingZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteTidalStrippingZero()
     return
@@ -56,7 +56,7 @@ contains
     implicit none
     class(satelliteTidalStrippingZero), intent(inout)         :: self
     type (treeNode                   ), intent(inout), target :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroMassLossRate=0.0d0
     return

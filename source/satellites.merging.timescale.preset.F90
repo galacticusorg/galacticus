@@ -43,7 +43,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesPreset)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesPreset()
     return
@@ -58,7 +58,7 @@ contains
     type (treeNode                        ), intent(inout) :: node
     type (keplerOrbit                     ), intent(inout) :: orbit
     class(nodeComponentSatellite          ), pointer       :: satellite
-    !GCC$ attributes unused :: self, orbit
+    !$GLC attributes unused :: self, orbit
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
     satellite              => node     %satellite()

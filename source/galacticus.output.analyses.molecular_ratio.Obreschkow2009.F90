@@ -200,7 +200,7 @@ contains
     class           (outputAnalysisMolecularRatioObreschkow2009), intent(inout) :: self
     double precision                                            , intent(in   ) :: massISM
     type            (treeNode                                  ), intent(inout) :: node
-    !GCC$ attributes unused :: massISM, node
+    !$GLC attributes unused :: massISM, node
 
     obreschkow2009RatioScatter=self%scatter
     return

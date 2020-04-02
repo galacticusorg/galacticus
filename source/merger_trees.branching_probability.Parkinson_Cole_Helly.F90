@@ -215,7 +215,7 @@ contains
          &                                                                                       halfPowerEta                  , x                     , &
          &                                                                                       massFraction                  , resolutionSigma       , &
          &                                                                                       massFractionResolutionPowerEta
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Simply branch to the relevant function.
     if (self%cdmAssumptions) then
@@ -441,7 +441,7 @@ contains
          &                                                                               massResolution            , time
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma
-    !GCC$ attributes unused :: deltaCritical, time
+    !$GLC attributes unused :: deltaCritical, time
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -474,7 +474,7 @@ contains
     type            (fgsl_function                                   )                        :: integrandFunction
     type            (fgsl_integration_workspace                      )                        :: integrationWorkspace
     double precision                                                                          :: massMaximum         , massMinimum
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Recompute branching probability if necessary.
     if     (                                               &
@@ -590,7 +590,7 @@ contains
     integer         (fgsl_int                                        )                        :: statusLower                                  , statusUpper
     logical                                                                                   :: usingCDMAssumptions
     integer                                                                                   :: iBound
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -794,7 +794,7 @@ contains
     double precision                                                  , parameter             :: sqrtTwoOverPi       =sqrt(2.0d0/Pi)
     double precision                                                                          :: hyperGeometricFactor               , resolutionSigmaOverParentSigma, &
          &                                                                                       resolutionSigma
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     call self%computeCommonFactors(deltaCritical,time,haloMass,node)

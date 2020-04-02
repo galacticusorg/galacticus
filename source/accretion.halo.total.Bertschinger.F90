@@ -43,7 +43,7 @@ contains
     implicit none
     type(accretionHaloTotalBertschinger)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalBertschinger()
     return
@@ -56,7 +56,7 @@ contains
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentBasic            ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                     => node %basic                    ()
     bertschingerAccretionRate =  basic%accretionRateBertschinger()
@@ -70,7 +70,7 @@ contains
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentBasic            ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                    => node %basic           ()
     bertschingerAccretedMass =  basic%massBertschinger()

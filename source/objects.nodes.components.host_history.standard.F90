@@ -82,7 +82,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
     
     if (defaultHostHistoryComponent%standardIsActive()) then
        call nodePromotionEvent%attach(defaultHostHistoryComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHostHistoryStandard')
@@ -113,7 +113,7 @@ contains
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call Node_Component_Host_History_Standard_Update_History(node)
     return
@@ -125,7 +125,7 @@ contains
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call Node_Component_Host_History_Standard_Update_History(node)
     return

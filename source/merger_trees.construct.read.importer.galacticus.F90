@@ -432,7 +432,7 @@ contains
     !% Return true since this format does permit reading of arbitrary subsets of halos from a forest.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     galacticusCanReadSubsets=.true.
     return
@@ -948,7 +948,7 @@ contains
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     class  (nodeData                    ), intent(in   ) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     select type (node)
     type is (nodeDataGalacticus)

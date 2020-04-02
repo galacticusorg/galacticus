@@ -127,7 +127,7 @@ contains
     double precision                      , dimension(3)  :: isotropicVelocityTangentialVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                                 , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector tangential velocity is zero.
     isotropicVelocityTangentialVectorMean=0.0d0
@@ -151,7 +151,7 @@ contains
     double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                              , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector angular momentum is zero.
     isotropicAngularMomentumVectorMean=0.0d0

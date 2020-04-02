@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorIdentity)                :: identityConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     identityConstructorParameters=outputAnalysisPropertyOperatorIdentity()
     return
@@ -57,7 +57,7 @@ contains
     type            (treeNode                              ), intent(inout), optional :: node
     integer                                                 , intent(inout), optional :: propertyType
     integer         (c_size_t                              ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, outputIndex, propertyType, node
 
     identityOperate=propertyValue
     return

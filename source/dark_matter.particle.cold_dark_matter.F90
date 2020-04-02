@@ -42,7 +42,7 @@ contains
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     CDMConstructorParameters=darkMatterParticleCDM()
     return

@@ -140,7 +140,7 @@ contains
     double precision                                            , intent(in   ) :: rateEnergyInput, rateStarFormation
     class           (nodeComponentBasic                        ), pointer       :: basic
     double precision                                                            :: expansionFactor, velocityMaximum
-    !GCC$ attributes unused :: rateStarFormation
+    !$GLC attributes unused :: rateStarFormation
 
     ! Get the basic component.
     basic              => node             %basic()

@@ -165,7 +165,7 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor
     integer                                                                               :: i
-    !GCC$ attributes unused :: time, isLastOutput
+    !$GLC attributes unused :: time, isLastOutput
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()

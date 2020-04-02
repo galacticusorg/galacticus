@@ -29,7 +29,7 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
   class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
   integer                                          , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                                 , intent(in   ) :: radius
-  !GCC$ attributes unused :: weightIndex
+  !$GLC attributes unused :: weightIndex
 
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Spheroid_Very_Simple_Enclosed_Mass=0.0d0

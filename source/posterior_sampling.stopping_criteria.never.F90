@@ -42,7 +42,7 @@ contains
     implicit none
     type(posteriorSampleStoppingCriterionNever)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStoppingCriterionNever()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(posteriorSampleStoppingCriterionNever), intent(inout) :: self
     class(posteriorSampleStateClass            ), intent(inout) :: simulationState
-    !GCC$ attributes unused :: self, simulationState
+    !$GLC attributes unused :: self, simulationState
 
     neverStop=.false.
     return

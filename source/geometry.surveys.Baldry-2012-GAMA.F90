@@ -96,7 +96,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baldry2012GAMAFieldCount=baldry2012GAMAFields
     return
@@ -110,7 +110,7 @@ contains
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -143,7 +143,7 @@ contains
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baldry2012GAMAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
     return
@@ -169,7 +169,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
     return

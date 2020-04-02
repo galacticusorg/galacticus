@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                     ), pointer               :: node      , nodePrevious
     class(nodeComponentBasic           ), pointer               :: basic     , basicPrevious
     type (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over nodes.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree)

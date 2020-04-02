@@ -125,7 +125,7 @@ contains
          &                                                         radiusHost         , massSatellite
     type            (varying_string    )                        :: message
     character       (len=12            )                        :: label
-    !GCC$ attributes unused :: acceptUnboundOrbits
+    !$GLC attributes unused :: acceptUnboundOrbits
 
     ! Reset the orbit.
     call fixedOrbit%reset()
@@ -188,7 +188,7 @@ contains
     class           (nodeComponentBasic), pointer       :: hostBasic
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                            =>  host%basic()
     massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -204,7 +204,7 @@ contains
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
     type            (treeNode        ), intent(inout) :: node                             , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     fixedVelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -242,7 +242,7 @@ contains
     double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
     type            (treeNode        ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     fixedAngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -259,7 +259,7 @@ contains
     class           (nodeComponentBasic), pointer       :: hostBasic
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                         =>  host%basic()
     massHost                          =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)

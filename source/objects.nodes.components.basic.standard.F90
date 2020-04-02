@@ -82,7 +82,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultBasicComponent%standardIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicStandard')
@@ -116,7 +116,7 @@ contains
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basicComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -275,7 +275,7 @@ contains
     class    (nodeComponentBasic), pointer       :: basicParent, basic
     type     (varying_string    )                :: message
     character(len=12            )                :: label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic       => node      %basic ()
     nodeParent  => node      %parent

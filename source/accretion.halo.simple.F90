@@ -363,7 +363,7 @@ contains
     class (accretionHaloSimple), intent(inout) :: self
     type  (treeNode           ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
     simpleAccretionRateMetals=zeroAbundances
@@ -378,7 +378,7 @@ contains
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
     integer                     , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
     simpleAccretedMassMetals=zeroAbundances

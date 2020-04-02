@@ -131,7 +131,7 @@ contains
     real   (kind=c_double), dimension(*), intent(in   ) :: y
     real   (kind=c_double), dimension(*)                :: dydx
     type   (     c_ptr   ), value                       :: parameterPointer
-    !GCC$ attributes unused :: parameterPointer
+    !$GLC attributes unused :: parameterPointer
 
     odesWrapper=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
     return

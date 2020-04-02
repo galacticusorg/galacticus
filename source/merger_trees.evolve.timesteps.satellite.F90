@@ -180,7 +180,7 @@ contains
     integer                , intent(inout)          :: deadlockStatus
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
-    !GCC$ attributes unused :: tree
+    !$GLC attributes unused :: tree
 
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then

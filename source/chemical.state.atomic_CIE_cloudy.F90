@@ -79,7 +79,7 @@ contains
     implicit none
     type(chemicalStateAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
@@ -111,7 +111,7 @@ contains
     !% Destructor for the ``atomic CIE Cloudy'' chemical state class.
     implicit none
     type(chemicalStateAtomicCIECloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return

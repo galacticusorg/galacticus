@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionMillerScalo1979)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionMillerScalo1979()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionMillerScalo1979), intent(inout) :: self
     type (varying_string                    )                :: millerScalo1979Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     millerScalo1979Label="MillerScalo1979"
     return

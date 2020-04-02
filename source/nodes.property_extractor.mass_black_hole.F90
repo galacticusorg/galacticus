@@ -47,7 +47,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     massBlackHoleConstructorParameters=nodePropertyExtractorMassBlackHole()
     return
@@ -61,7 +61,7 @@ contains
     type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
     class(nodeComponentBlackHole            ), pointer                 :: blackHole
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     blackHole            => node     %blackHole()
     massBlackHoleExtract =  blackHole%mass     ()
@@ -73,7 +73,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBlackHoleType=outputAnalysisPropertyTypeLinear
     return
@@ -84,7 +84,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBlackHoleQuantity=outputAnalysisPropertyQuantityMass
     return
@@ -95,7 +95,7 @@ contains
     implicit none
     type (varying_string                    )                :: massBlackHoleName
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBlackHoleName=var_str('massBlackHole')
     return
@@ -106,7 +106,7 @@ contains
     implicit none
     type (varying_string                    )                :: massBlackHoleDescription
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBlackHoleDescription=var_str('The mass of the central black hole in each galaxy.')
     return
@@ -117,7 +117,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBlackHoleUnitsInSI=massSolar
     return

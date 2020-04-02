@@ -55,7 +55,7 @@ contains
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionDiskSpectraHopkins2007()
     return

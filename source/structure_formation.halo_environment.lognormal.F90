@@ -233,7 +233,7 @@ contains
     !% Return the minimum overdensity for which the \gls{pdf} is non-zero.
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     logNormalOverdensityLinearMinimum=-1.0d0
     return
@@ -266,7 +266,7 @@ contains
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (overdensity <= -1.0d0) call Galacticus_Error_Report('δ≤-1 is inconsistent with log-normal density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)

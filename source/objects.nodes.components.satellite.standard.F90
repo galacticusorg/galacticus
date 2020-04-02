@@ -233,7 +233,7 @@ contains
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satellite
     double precision                                                 :: massLossRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%standardIsActive()) return

@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskReport     )                :: self
     type(inputParameters), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskReport()
     return
@@ -56,7 +56,7 @@ contains
     implicit none
     class  (taskReport), intent(inout), target   :: self
     integer            , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: report'                               )
     call Galacticus_Display_Message ('This is Galacticus: '//Galacticus_Version_String())
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskReport), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     reportRequiresOutputFile=.false.
     return

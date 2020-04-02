@@ -138,7 +138,7 @@ contains
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -196,7 +196,7 @@ contains
     integer         (kind=c_size_t                  ), intent(in   )          :: iOutput
     logical                                          , intent(in   )          :: nodePassesFilter
     class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
-    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
 
     ! Check if we are the default method.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return

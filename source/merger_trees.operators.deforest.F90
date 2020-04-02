@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     deforestConstructorParameters=mergerTreeOperatorDeforest()
     return
@@ -59,7 +59,7 @@ contains
     class           (nodeComponentBasic        ), pointer               :: basic
     double precision                                                    :: massRootMaximum
     integer                                                             :: treeIndex      , massRootMaximumIndex
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over trees to find the most massive.
     currentTree          => tree

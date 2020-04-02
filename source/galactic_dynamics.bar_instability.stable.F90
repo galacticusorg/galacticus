@@ -43,7 +43,7 @@ contains
     implicit none
     type(galacticDynamicsBarInstabilityStable)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticDynamicsBarInstabilityStable()
     return
@@ -56,7 +56,7 @@ contains
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(  out) :: externalDrivingSpecificTorque, timescale
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Assume infinite timescale (i.e. no instability).
     timescale                    =-1.0d0

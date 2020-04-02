@@ -81,7 +81,7 @@ contains
     class           (mergerTreeBuildMassDistributionGaussian), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass       , massMaximum, &
          &                                                                         massMinimum, time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     if (mass <= massMinimum .or. mass > massMaximum) then
        gaussianSample=0.0d0

@@ -212,7 +212,7 @@ contains
     class           (nodeComponentBasic)               , pointer :: basic
     integer         (c_size_t          )                         :: indexTime
     double precision                                             :: time
-    !GCC$ attributes unused :: deadlockStatus, tree
+    !$GLC attributes unused :: deadlockStatus, tree
 
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)

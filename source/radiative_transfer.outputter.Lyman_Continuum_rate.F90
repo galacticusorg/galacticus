@@ -47,7 +47,7 @@ contains
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=radiativeTransferOutputterLymanContinuumRate()
     return
@@ -84,7 +84,7 @@ contains
     type            (fgsl_function                               )                :: integrandFunction
     type            (fgsl_integration_workspace                  )                :: integrationWorkspace
     double precision                                                              :: rateLymanContinuum
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     rateLymanContinuum=+Integrate(                                         &
          &                                            1.0d-6*lymanSeriesLimitWavelengthHydrogen   , &

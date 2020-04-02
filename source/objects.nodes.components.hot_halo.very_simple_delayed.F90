@@ -103,7 +103,7 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
@@ -139,7 +139,7 @@ contains
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Funnel the outflowing gas into the outflowed reservoir.
     call self%outflowedMassRate(rate)
@@ -155,7 +155,7 @@ contains
     type     (abundances          ), intent(in   )                    :: rate
     logical                        , intent(inout), optional          :: interrupt
     procedure(                    ), intent(inout), optional, pointer :: interruptProcedure
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Funnel the outflowing gas abundances into the outflowed reservoir.
     call self%outflowedAbundancesRate(rate)
@@ -182,7 +182,7 @@ contains
     type            (abundances                        ), save                   :: abundancesReturnRate
     !$omp threadprivate(abundancesReturnRate)
     double precision                                                             :: outflowReturnRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -280,7 +280,7 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: hostNode
     class(nodeComponentHotHalo), pointer       :: hostHotHalo, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -318,7 +318,7 @@ contains
     type (treeNode            ), intent(inout), target  :: node
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHalo, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     hotHalo       => node      %hotHalo(                 )
     parentNode    => node      %parent
@@ -348,7 +348,7 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: parentNode
     class(nodeComponentHotHalo), pointer       :: parentHotHalo, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()

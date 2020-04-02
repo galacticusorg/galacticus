@@ -92,7 +92,7 @@ sub Implementation_Serialize_ASCII {
     # Handle null components separately.
     if ( $code::member->{'name'} eq "null" ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
     } else {
 	# Serialize the parent type if necessary.
@@ -234,7 +234,7 @@ sub Implementation_Serialize_XML {
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(", ",@unused)}
+!$GLC attributes unused :: {join(", ",@unused)}
 CODE
     }
     # Serialize the parent type if necessary.
@@ -271,7 +271,7 @@ CODE
 do i=1,size(self%{$property->{'name'}}Data)
    write (fileHandle,'(a)') '   <{$property->{'name'}}>'
    write (fileHandle,'(a)') '   </{$property->{'name'}}>'
-end do\n";
+end do
 CODE
 		}
 	    }
@@ -346,7 +346,7 @@ sub Implementation_Serialize_Raw {
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(", ",@unused)}
+!$GLC attributes unused :: {join(", ",@unused)}
 CODE
     }
     # Serialize the parent type if necessary.
@@ -468,7 +468,7 @@ sub Implementation_Deserialize_Raw {
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(", ",@unused)}
+!$GLC attributes unused :: {join(", ",@unused)}
 CODE
     }
     # Deserialize the parent type if necessary.

@@ -404,7 +404,7 @@ contains
     !% Destroy an orbit.
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
-    !GCC$ attributes unused :: orbit
+    !$GLC attributes unused :: orbit
 
     ! Nothing to do.
     return
@@ -423,7 +423,7 @@ contains
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter  )                , intent(in   ) :: outputInstance
-    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
+    !$GLC attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
 
     if (self%isDefined()) then
        doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
@@ -442,7 +442,7 @@ contains
     implicit none
     class           (keplerOrbit), intent(inout) :: self
     double precision             , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     return
   end subroutine Kepler_Orbits_Post_Output
@@ -453,7 +453,7 @@ contains
     class           (keplerOrbit), intent(in   ) :: self
     integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision             , intent(in   ) :: time
-    !GCC$ attributes unused :: self, integerPropertyCount, time
+    !$GLC attributes unused :: self, integerPropertyCount, time
 
     doublePropertyCount=doublePropertyCount+4
     return
@@ -473,7 +473,7 @@ contains
     double precision             , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     character       (len=*      )              , intent(in   ) :: comment                , prefix
     double precision                           , intent(in   ) :: unitsInSI
-    !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
+    !$GLC attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
 
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
@@ -1203,7 +1203,7 @@ contains
     implicit none
     integer(c_size_t   )                :: Kepler_Orbits_Non_Static_Size_Of
     class  (keplerOrbit), intent(in   ) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Kepler_Orbits_Non_Static_Size_Of=0_c_size_t
     return

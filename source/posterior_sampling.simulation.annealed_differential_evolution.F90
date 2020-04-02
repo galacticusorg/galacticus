@@ -199,7 +199,7 @@ contains
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                               :: x
-    !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+    !$GLC attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
     x=self%randomNumberGenerator_%uniformSample()

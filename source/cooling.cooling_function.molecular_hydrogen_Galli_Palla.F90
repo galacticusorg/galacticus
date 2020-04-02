@@ -111,7 +111,7 @@ contains
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: molecularHydrogenGalliPallaConstructorParameters
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     molecularHydrogenGalliPallaConstructorParameters=molecularHydrogenGalliPallaConstructorInternal()
     return
@@ -153,7 +153,7 @@ contains
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass                       ), intent(inout) :: radiation
-    !GCC$ attributes unused :: radiation, gasAbundances
+    !$GLC attributes unused :: radiation, gasAbundances
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
@@ -182,7 +182,7 @@ contains
     double precision                                                            :: coolingFunction               , coolingFunctionLocalThermodynamicEquilibrium  , &
          &                                                                         coolingFunctionLowDensityLimit, numberDensityCriticalOverNumberDensityHydrogen, &
          &                                                                         coolingFunctionCumulative
-    !GCC$ attributes unused :: radiation, gasAbundances
+    !$GLC attributes unused :: radiation, gasAbundances
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
@@ -257,7 +257,7 @@ contains
          &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , logarithmic10Temperature                       , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen                 , temperatureThousand                            , &
          &                                                                         coolingFunctionCumulative
-    !GCC$ attributes unused :: gasAbundances, radiation
+    !$GLC attributes unused :: gasAbundances, radiation
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then

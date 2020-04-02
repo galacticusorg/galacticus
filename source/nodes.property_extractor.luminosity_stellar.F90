@@ -176,7 +176,7 @@ contains
     type   (multiCounter                          ), intent(inout), optional :: instance
     class  (nodeComponentBasic                    ), pointer                 :: basic
     integer(c_size_t                              )                          :: i
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     basic                    =>                                  node %basic()
     i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
@@ -189,7 +189,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarType=outputAnalysisPropertyTypeLinear
     return
@@ -200,7 +200,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarQuantity=outputAnalysisPropertyQuantityLuminosity
     return
@@ -231,7 +231,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarUnitsInSI=luminosityZeroPointAB
     return

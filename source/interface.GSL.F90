@@ -25,10 +25,12 @@
 
 module Interface_GSL
   !% Interfaces with low-level aspects of the GSL library.
-  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int
+  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int, &
+       &                                  c_char
   private
   public :: gslFunction        , gslFunctionFdF        , gslFunctionDestroy, &
-       &    gslFunctionTemplate, gslFunctionFdFTemplate, gslSetErrorHandler
+       &    gslFunctionTemplate, gslFunctionFdFTemplate, gslSetErrorHandler, &
+       &    gslFileOpen        , gslFileClose
 
   abstract interface
      !% Interface for {\normalfont \ttfamily gslFunction} type. We ignore the {\normalfont \ttfamily parameters} argument here as
@@ -60,7 +62,6 @@ module Interface_GSL
 
   interface
      !% Interfaces to C functions.
-
      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
        !% Interface to a C function which establishes a {\normalfont \ttfamily gslFunction} type.
        import c_ptr, c_funptr
@@ -87,6 +88,20 @@ module Interface_GSL
        type(c_funptr)        :: gsl_set_error_handler
        type(c_funptr), value :: new_handler
      end function gsl_set_error_handler
+     
+     function gslFileOpenC(fileName,access) bind(c,name='gslFileOpenC')
+       !% Template for a C function that opens a file for GSL state output.
+       import c_ptr, c_char
+       type     (c_ptr )               :: gslFileOpenC
+       character(c_char), dimension(*) :: fileName    , access
+     end function gslFileOpenC
+     
+     function gslFileCloseC(stream) bind(c,name='gslFileCloseC')
+       !% Template for a C function that opens a file for GSL state output.
+       import c_ptr, c_int
+       integer(c_int)        :: gslFileCloseC
+       type   (c_ptr), value :: stream
+     end function gslFileCloseC
   end interface
 
   interface gslSetErrorHandler
@@ -105,6 +120,27 @@ module Interface_GSL
 
 contains
 
+  function gslFileOpen(fileName,access) result(stream)
+    !% Open a file for output of GSL state.
+    use, intrinsic :: ISO_C_Binding, only : c_null_char
+    implicit none
+    type     (c_ptr)                :: stream
+    character(len=*), intent(in   ) :: fileName   , access
+
+    stream=gslFileOpenC(trim(fileName)//c_null_char,trim(access)//c_null_char)
+    return
+  end function gslFileOpen
+
+  subroutine gslFileClose(stream)
+    !% Close a file used for output of GSL state.
+    implicit none
+    type   (c_ptr), intent(in   ) :: stream
+    integer(c_int)                :: status
+
+    status=gslFileCloseC(stream)
+    return
+  end subroutine gslFileClose
+  
   function gslSetErrorHandlerFunction(newHandler)
     !% Set the GSL error handler to the provided function.
     use, intrinsic :: ISO_C_Binding, only : c_funloc

@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerRemnantSizeNull)                :: self
     type(inputParameters      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerRemnantSizeNull()
     return
@@ -55,7 +55,7 @@ contains
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(  out) :: radius                 , velocityCircular, &
          &                                                    angularMomentumSpecific
-    !GCC$ attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
+    !$GLC attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
 
     return
   end subroutine nullGet

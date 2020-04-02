@@ -322,7 +322,7 @@ contains
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
     double precision                                              , intent(in   ), dimension(:) :: simulationState
     double precision                                              , intent(in   )               :: logLikelihood
-    !GCC$ attributes unused :: simulationState
+    !$GLC attributes unused :: simulationState
 
     ! Detect the sequential state jumping to the next level.
     if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then

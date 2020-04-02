@@ -117,7 +117,12 @@ module Galacticus_Nodes
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('unable to allocate node'//{introspection:location})
-    call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
+    !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+    !#  <description>
+    !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+    !#  </description>
+    !# </workaround>
+    !call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
 
     ! Initialize the node.
     call Tree_Node_Constructor%initialize(index,hostTree)
@@ -130,7 +135,7 @@ module Galacticus_Nodes
     implicit none
     class(treeNode      ), intent(in   ) :: self
     type (varying_string)                :: Tree_Node_Type
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Tree_Node_Type="treeNode"
     return
@@ -775,7 +780,7 @@ module Galacticus_Nodes
     implicit none
     class(nodeComponent ), intent(in   ) :: self
     type (varying_string)                :: Node_Component_Generic_Type
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Node_Component_Generic_Type="nodeComponent"
     return
@@ -785,7 +790,7 @@ module Galacticus_Nodes
     !% Destroy a generic tree node component.
     implicit none
     class(nodeComponent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Do nothing.
     return
@@ -795,7 +800,7 @@ module Galacticus_Nodes
     !% Initialize a generic tree node component for an ODE solver step.
     implicit none
     class(nodeComponent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine Node_Component_ODE_Step_Initialize_Null
@@ -804,7 +809,7 @@ module Galacticus_Nodes
     !% Dump a generic tree node component.
     implicit none
     class(nodeComponent), intent(in   ) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine Node_Component_Dump_Null
@@ -814,7 +819,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
-    !GCC$ attributes unused :: self, fileHandle
+    !$GLC attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Dump_XML_Null
@@ -824,7 +829,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(in   ) :: fileHandle
-    !GCC$ attributes unused :: self, fileHandle
+    !$GLC attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Dump_Raw_Null
@@ -834,7 +839,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
-    !GCC$ attributes unused :: self, fileHandle
+    !$GLC attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Read_Raw_Null
@@ -846,13 +851,12 @@ module Galacticus_Nodes
     integer                        , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision               , intent(in   ) :: time
     integer                        , intent(in   ) :: instance
-    !GCC$ attributes unused :: self, integerPropertyCount, doublePropertyCount, time, instance
+    !$GLC attributes unused :: self, integerPropertyCount, doublePropertyCount, time, instance
 
     return
   end subroutine Node_Component_Output_Count_Null
 
-  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerPropertyNames,integerPropertyComments &
-       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
+  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
     !% Dump a generic tree node component.
     implicit none
     class           (nodeComponent )              , intent(inout) :: self
@@ -862,13 +866,12 @@ module Galacticus_Nodes
          &                                                           integerPropertyComments, integerPropertyNames
     double precision                , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                       , intent(in   ) :: instance
-    !GCC$ attributes unused :: self, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, instance
+    !$GLC attributes unused :: self, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, instance
 
     return
   end subroutine Node_Component_Output_Names_Null
 
-  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
+  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
     !% Dump a generic tree node component.
     use :: Multi_Counters, only : multiCounter
     implicit none
@@ -880,7 +883,7 @@ module Galacticus_Nodes
     double precision                   , intent(inout) :: doubleBuffer     (:,:)
     type            (multiCounter     ), intent(in   ) :: outputInstance
     integer                            , intent(in   ) :: instance
-    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
+    !$GLC attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
 
     return
   end subroutine Node_Component_Output_Null
@@ -890,7 +893,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(in   ) :: propertyType
-    !GCC$ attributes unused :: self, propertyType
+    !$GLC attributes unused :: self, propertyType
 
     Node_Component_Serialize_Count_Zero=0
     return
@@ -902,7 +905,7 @@ module Galacticus_Nodes
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(inout) :: count       , countSubset
     integer               , intent(in   ) :: propertyType
-    !GCC$ attributes unused :: self, count, countSubset, propertyType
+    !$GLC attributes unused :: self, count, countSubset, propertyType
 
     return
   end subroutine Node_Component_Serialization_Offsets
@@ -913,7 +916,7 @@ module Galacticus_Nodes
     class           (nodeComponent)              , intent(in   ) :: self
     double precision               , dimension(:), intent(  out) :: array
     integer                                      , intent(in   ) :: propertyType
-    !GCC$ attributes unused :: self, array, propertyType
+    !$GLC attributes unused :: self, array, propertyType
 
     return
   end subroutine Node_Component_Serialize_Null
@@ -924,7 +927,7 @@ module Galacticus_Nodes
     class           (nodeComponent)              , intent(inout) :: self
     double precision               , dimension(:), intent(in   ) :: array
     integer                                      , intent(in   ) :: propertyType
-    !GCC$ attributes unused :: self, array, propertyType
+    !$GLC attributes unused :: self, array, propertyType
 
     return
   end subroutine Node_Component_Deserialize_Null
@@ -943,7 +946,7 @@ module Galacticus_Nodes
     !% A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
     implicit none
     class(nodeComponent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine Node_Component_Null_Void0_InOut
@@ -952,7 +955,7 @@ module Galacticus_Nodes
     !% A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
     implicit none
     class(nodeComponent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Node_Component_Null_Double0_InOut=0.0d0
     return
@@ -964,7 +967,7 @@ module Galacticus_Nodes
     class           (nodeComponent), intent(inout)         :: self
     integer                        , intent(in   )         :: resultSize
     double precision               , dimension(resultSize) :: Node_Component_Null_Double1_InOut
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Node_Component_Null_Double1_InOut=0.0d0
     return
@@ -975,7 +978,7 @@ module Galacticus_Nodes
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: Node_Component_Null_TensorR2D3_InOut
     class(nodeComponent                 ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Node_Component_Null_TensorR2D3_InOut=tensorNullR2D3Sym
     return
@@ -987,7 +990,7 @@ module Galacticus_Nodes
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType, weightBy, weightIndex
     double precision               , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
+    !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
 
     Node_Component_Enclosed_Mass_Null=0.0d0
     return
@@ -1000,7 +1003,7 @@ module Galacticus_Nodes
     class           (nodeComponent)              , intent(inout) :: self
     integer                                      , intent(in   ) :: componentType                  , massType
     double precision               , dimension(3), intent(in   ) :: positionCartesian
-    !GCC$ attributes unused :: self, positionCartesian, componentType, massType
+    !$GLC attributes unused :: self, positionCartesian, componentType, massType
 
     Node_Component_Acceleration_Null=0.0d0
     return
@@ -1013,7 +1016,7 @@ module Galacticus_Nodes
     class           (nodeComponent)              , intent(inout) :: self
     integer                                      , intent(in   ) :: componentType                             , massType
     double precision               , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
-    !GCC$ attributes unused :: self, positionCartesian, velocityCartesian, componentType, massType
+    !$GLC attributes unused :: self, positionCartesian, velocityCartesian, componentType, massType
 
     Node_Component_Chandrasekhar_Integral_Null=0.0d0
     return
@@ -1026,7 +1029,7 @@ module Galacticus_Nodes
     class           (nodeComponent                 )              , intent(inout) :: self
     integer                                                       , intent(in   ) :: componentType                   , massType
     double precision                                , dimension(3), intent(in   ) :: positionCartesian
-    !GCC$ attributes unused :: self, positionCartesian, componentType, massType
+    !$GLC attributes unused :: self, positionCartesian, componentType, massType
 
     Node_Component_Tidal_Tensor_Null=tensorNullR2D3Sym
     return
@@ -1039,7 +1042,7 @@ module Galacticus_Nodes
     integer                                      , intent(in   ) :: componentType    , massType, weightBy, &
          &                                                          weightIndex
     double precision               , dimension(3), intent(in   ) :: positionSpherical
-    !GCC$ attributes unused :: self, positionSpherical, componentType, massType, weightBy, weightIndex
+    !$GLC attributes unused :: self, positionSpherical, componentType, massType, weightBy, weightIndex
 
     Node_Component_Density_Null=0.0d0
     return
@@ -1052,7 +1055,7 @@ module Galacticus_Nodes
     integer                                      , intent(in   ) :: componentType      , massType   , &
          &                                                          weightBy           , weightIndex
     double precision               , dimension(3), intent(in   ) :: positionCylindrical
-    !GCC$ attributes unused :: self, positionCylindrical, componentType, massType, weightBy, weightIndex
+    !$GLC attributes unused :: self, positionCylindrical, componentType, massType, weightBy, weightIndex
 
     Node_Component_Surface_Density_Null=0.0d0
     return
@@ -1065,7 +1068,7 @@ module Galacticus_Nodes
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     integer                        , intent(inout), optional :: status
-    !GCC$ attributes unused :: self, radius, componentType, massType, status
+    !$GLC attributes unused :: self, radius, componentType, massType, status
 
     Node_Component_Potential_Null=0.0d0
     return
@@ -1077,7 +1080,7 @@ module Galacticus_Nodes
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType
     double precision               , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, radius, componentType, massType
+    !$GLC attributes unused :: self, radius, componentType, massType
 
     Node_Component_Rotation_Curve_Null=0.0d0
     return
@@ -1089,7 +1092,7 @@ module Galacticus_Nodes
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType
     double precision               , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, radius, componentType, massType
+    !$GLC attributes unused :: self, radius, componentType, massType
 
     Node_Component_Rotation_Curve_Gradient_Null=0.0d0
     return

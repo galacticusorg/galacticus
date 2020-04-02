@@ -191,7 +191,7 @@ contains
          &                                                                 radiusHost                  , massHost                                            , &
          &                                                                 radiusHostSelf
     logical                                                     ::         foundOrbit
-    !GCC$ attributes unused :: acceptUnboundOrbits
+    !$GLC attributes unused :: acceptUnboundOrbits
 
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
@@ -294,7 +294,7 @@ contains
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialMagnitudeMean=0.0d0
     call Galacticus_Error_Report('mean tangential velocity is not defined for this class'//{introspection:location})
@@ -308,7 +308,7 @@ contains
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -346,7 +346,7 @@ contains
     double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -359,7 +359,7 @@ contains
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTotalRootMeanSquared=0.0d0
     call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})

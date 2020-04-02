@@ -119,7 +119,7 @@ contains
     !% Return true since attenuation is age-dependent in the \cite{charlot_simple_2000} dust attenuation model.
     implicit none
     class(stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     charlotFall2000IsAgeDependent=.true.
     return

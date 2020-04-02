@@ -45,7 +45,7 @@ contains
     implicit none
     type(darkMatterProfileHeatingTidal), target        :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=darkMatterProfileHeatingTidal()
     return
@@ -61,7 +61,7 @@ contains
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
-    !GCC$ attributes unused :: self, darkMatterProfileDMO_
+    !$GLC attributes unused :: self, darkMatterProfileDMO_
 
     satellite                       =>      node     %satellite             ()
     specificEnergyOverRadiusSquared =  max(                                     &
@@ -83,7 +83,7 @@ contains
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
-    !GCC$ attributes unused :: self, darkMatterProfileDMO_
+    !$GLC attributes unused :: self, darkMatterProfileDMO_
 
     satellite                       =>      node     %satellite             ()
     specificEnergyOverRadiusSquared =  max(                                     &
@@ -104,7 +104,7 @@ contains
     type (treeNode                     ), intent(inout) :: node
     class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentSatellite       ), pointer       :: satellite
-    !GCC$ attributes unused :: self, darkMatterProfileDMO_
+    !$GLC attributes unused :: self, darkMatterProfileDMO_
 
     satellite                           => node     %satellite             ()
     tidalSpecificEnergyIsEverywhereZero =  satellite%tidalHeatingNormalized() <= 0.0d0

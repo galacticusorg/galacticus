@@ -42,7 +42,7 @@ contains
     implicit none
     type(satelliteDynamicalFrictionZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteDynamicalFrictionZero()
     return
@@ -54,7 +54,7 @@ contains
     double precision                                , dimension(3)  :: zeroAcceleration
     class           (satelliteDynamicalFrictionZero), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroAcceleration=[0.0d0,0.0d0,0.0d0]
     return

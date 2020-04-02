@@ -82,7 +82,7 @@ contains
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     massProfileElementCount=self%elementCount_
     return
@@ -99,7 +99,7 @@ contains
     double precision                                  , intent(in   )              :: time
     type            (multiCounter                    ), intent(inout), optional    :: instance
     integer                                                                        :: i
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(massProfileExtract(self%elementCount_))
     do i=1,self%elementCount_
@@ -116,7 +116,7 @@ contains
     double precision                                  , intent(in   )              :: time
     integer                                                                        :: i
     character       (len=22                          )                             :: name
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(massProfileNames(self%elementCount_))
     do i=1,self%elementCount_
@@ -134,7 +134,7 @@ contains
     double precision                                  , intent(in   )              :: time
     integer                                                                        :: i
     character       (len=64                          )                             :: description
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(massProfileDescriptions(self%elementCount_))
     do i=1,self%elementCount_
@@ -152,7 +152,7 @@ contains
     class           (nodePropertyExtractorMassProfile), intent(inout)               :: self
     double precision                                  , intent(in   )               :: time
     integer                                                                         :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(massProfileUnitsInSI(self%elementCount_))
     do i=1,self%elementCount_
@@ -166,7 +166,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassProfile), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massProfileType=outputAnalysisPropertyTypeLinear
     return

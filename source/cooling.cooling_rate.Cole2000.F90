@@ -95,7 +95,7 @@ contains
     class           (nodeComponentHotHalo), pointer       :: hotHaloFormation
     double precision                                      :: densityInfall            , radiusInfall, &
          &                                                   radiusInfallGrowthRate   , radiusOuter
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get formation node components.
     basicFormation   => node%formationNode%basic  ()

@@ -53,7 +53,7 @@ module Virial_Density_Contrast
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
+  !#    !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
   !#    virialDensityContrastTurnaroundOverVirialRadii=0.0d0
   !#    call Galacticus_Error_Report('ratio is undefined for the "'//char(self%objectType())//'" density contrast class'//{introspection:location})
   !#   </code>
@@ -63,7 +63,7 @@ module Virial_Density_Contrast
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    virialDensityContrastIsMassDependent=.false.
   !#   </code>
   !#  </method>

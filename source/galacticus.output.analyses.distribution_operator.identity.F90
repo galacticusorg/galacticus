@@ -43,7 +43,7 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorIdentity)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionOperatorIdentity()
     return
@@ -61,7 +61,7 @@ contains
     type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateScalar
     integer         (c_size_t                                  )                                                       :: binIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, outputIndex, propertyType, node
 
     ! Initialize distribution to zero.
     identityOperateScalar=0.0d0
@@ -89,7 +89,7 @@ contains
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
     type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateDistribution
-    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     identityOperateDistribution=distribution
     return

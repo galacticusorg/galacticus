@@ -46,7 +46,7 @@ module Root_Finder
   
   !# <deepCopyActions class="rootFinder">
   !#  <rootFinder>
-  !#   <setTo variables="initialized" state=".false."/>
+  !#   <setTo variables="functionInitialized" state=".false."/>
   !#  </rootFinder>
   !# </deepCopyActions>
 
@@ -318,7 +318,7 @@ contains
     implicit none
     class(rootFinder), intent(inout) :: self
 
-    if (self%initialized) then
+    if (self%functionInitialized) then
        if (self%useDerivative) then
           call GSL_Root_FdFSolver_Free(self%solver)
        else
@@ -350,12 +350,12 @@ contains
 
   recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
- use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
-    use :: Interface_GSL     , only : GSL_Success,gslFunction,gslFunctionFdF,gslSetErrorHandler
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
-   use, intrinsic :: ISO_C_Binding, only : c_funptr
-   implicit none
+    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
+    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use, intrinsic :: ISO_C_Binding     , only : c_funptr
+    implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
@@ -645,7 +645,7 @@ contains
       use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
       type   (c_ptr     ), value :: file       , reason
       integer(kind=c_int), value :: errorNumber, line
-      !GCC$ attributes unused :: reason, file, line
+      !$GLC attributes unused :: reason, file, line
 
       statusActual=errorNumber
       return
@@ -822,7 +822,7 @@ contains
     real(c_double), intent(in   ), value :: x
     real(c_double), intent(  out)        :: f         , df
     type(c_ptr   ), intent(in   ), value :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     call currentFinders(currentFinderIndex)%finder%finderFunctionBoth(x,f,df)
     return

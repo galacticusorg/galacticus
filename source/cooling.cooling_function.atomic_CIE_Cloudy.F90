@@ -80,7 +80,7 @@ contains
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
@@ -106,7 +106,7 @@ contains
     !% Destructor for the ``atomic CIE Cloudy'' cooling function class.
     implicit none
     type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return

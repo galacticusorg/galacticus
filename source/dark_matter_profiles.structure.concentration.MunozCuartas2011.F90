@@ -120,7 +120,7 @@ contains
     double precision                                                                         :: a                                  , b                             , &
          &                                                                                      concentrationLogarithmic           , haloMassLogarithmic           , &
          &                                                                                      redshift
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get required objects.
     basic => node%basic()

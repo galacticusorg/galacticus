@@ -106,7 +106,7 @@ contains
          &                                                                                           i1                   , i2                      , &
          &                                                                                           k
     double precision                                                                              :: separationMinimum    , separationMinimumMaximum
-    !GCC$ attributes unused :: modelLikelihood
+    !$GLC attributes unused :: modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0

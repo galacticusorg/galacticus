@@ -46,7 +46,7 @@ contains
     implicit none
     type(hotHaloMassDistributionNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=hotHaloMassDistributionNull()
     return
@@ -58,7 +58,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullDensity=0.0d0
     return
@@ -70,7 +70,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullDensityLogSlope=0.0d0
     return
@@ -82,7 +82,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)         :: self
     type            (treeNode                   ), intent(inout), target :: node
     double precision                             , intent(in   )         :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullEnclosedMass=0.0d0
     return
@@ -94,7 +94,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: moment, radius
-    !GCC$ attributes unused :: self, node, radius, moment
+    !$GLC attributes unused :: self, node, radius, moment
 
     nullRadialMoment=0.0d0
     return
@@ -107,7 +107,7 @@ contains
     implicit none
     class(hotHaloMassDistributionNull), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     nullRotationNormalization=0.0d0
   return

@@ -466,7 +466,7 @@ sub Implementation_Output_Common_Tasks {
 	uniq(sort(@typesRequired))
 	); 
     # Add record of unused arguments.
-    $function->{'content'} .= "!GCC\$ attributes unused :: ".join(",",nestedmap {($NestedMap::stack[0] eq "integer" || $NestedMap::stack[0] eq "double") ? nestedmap {$NestedMap::stack[1].$NestedMap::stack[0]} @typeSuffixes : $NestedMap::stack[0]} grep {! $argumentsUsed{$_}} keys(%argumentsUsed))."\n"
+    $function->{'content'} .= "!\$GLC attributes unused :: ".join(",",nestedmap {($NestedMap::stack[0] eq "integer" || $NestedMap::stack[0] eq "double") ? nestedmap {$NestedMap::stack[1].$NestedMap::stack[0]} @typeSuffixes : $NestedMap::stack[0]} grep {! $argumentsUsed{$_}} keys(%argumentsUsed))."\n"
 	if ( grep {! $argumentsUsed{$_}} keys(%argumentsUsed) );
 }
 

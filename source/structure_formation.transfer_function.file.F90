@@ -341,7 +341,7 @@ contains
     implicit none
     class  (transferFunctionFile), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fileHalfModeMass=0.0d0
     if (present(status)) then

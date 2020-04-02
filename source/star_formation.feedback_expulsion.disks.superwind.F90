@@ -95,7 +95,7 @@ contains
     class           (nodeComponentDisk                           ), pointer       :: disk
     double precision                                              , intent(in   ) :: rateEnergyInput, rateStarFormation
     double precision                                                              :: velocityDisk   , outflowRateToStarFormationRate
-    !GCC$ attributes unused :: rateStarFormation
+    !$GLC attributes unused :: rateStarFormation
 
     disk         => node%disk    ()
     velocityDisk =  disk%velocity()

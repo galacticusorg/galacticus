@@ -456,7 +456,7 @@ contains
     implicit none
     type(atomicIonizationRateCollisionalVerner1996)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicIonizationRateCollisionalVerner1996()
     return
@@ -476,7 +476,7 @@ contains
     double precision                                           , intent(in   ) :: temperature
     integer                                                                    :: electronNumber
     double precision                                                           :: energyScaled  , temperatureScaled
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Set a default rate coefficient of zero.
     verner1996Rate=0.0d0

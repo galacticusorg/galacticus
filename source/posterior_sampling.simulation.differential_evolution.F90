@@ -631,7 +631,7 @@ contains
     !% Specifies whether or not the current state should be logged to file during differential evolution.
     implicit none
     class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     differentialEvolutionLogging=.true.
     return
@@ -845,7 +845,7 @@ contains
     double precision                                                , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                             logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                                :: x
-    !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
+    !$GLC attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
     x=self%randomNumberGenerator_%uniformSample()
@@ -859,7 +859,7 @@ contains
     !% Return the temperature.
     implicit none
     class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     differentialEvolutionTemperature=1.0d0
     return

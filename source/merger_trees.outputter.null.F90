@@ -43,7 +43,7 @@ contains
     implicit none
     type(mergerTreeOutputterNull)                :: self
     type(inputParameters        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeOutputterNull()
     return
@@ -57,7 +57,7 @@ contains
     integer         (c_size_t               ), intent(in   )           :: indexOutput
     double precision                         , intent(in   )           :: time
     logical                                  , intent(in   ), optional :: isLastOutput
-    !GCC$ attributes unused :: self, tree, indexOutput, time, isLastOutput
+    !$GLC attributes unused :: self, tree, indexOutput, time, isLastOutput
 
     return
   end subroutine nullOutput
@@ -66,7 +66,7 @@ contains
     !% Finalize merger tree output.
     implicit none
     class(mergerTreeOutputterNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine nullFinalize

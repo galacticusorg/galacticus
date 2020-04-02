@@ -273,7 +273,7 @@ contains
     implicit none
     type (varying_string            )                :: icmSZDescription
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZDescription=var_str('Mean thermal Sunyaev-Zeldovich Compton y-parameter of the ICM within the virial radius.')
     return
@@ -283,7 +283,7 @@ contains
     !% Return the units of the last isolated redshift property in the SI system.
     implicit none
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZUnitsInSI=0.0d0
     return
@@ -294,7 +294,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZType=outputAnalysisPropertyTypeLinear
     return

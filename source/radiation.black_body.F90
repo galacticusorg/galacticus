@@ -88,7 +88,7 @@ contains
     class           (radiationFieldBlackBody), intent(inout) :: self
     double precision                         , intent(in   ) :: wavelength
     type            (treeNode               ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     blackBodyFlux=+centi**2                                                               &
          &        /ergs                                                                   &

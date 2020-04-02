@@ -178,7 +178,7 @@ contains
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time, variance
     type            (treeNode                              ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, node
+    !$GLC attributes unused :: self, time, variance, node
 
     linearBarrierRateNonCrossing=0.0d0
     return

@@ -48,7 +48,7 @@ contains
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
@@ -73,7 +73,7 @@ contains
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply return unit rate.
     haloFormationTimeAvailableIncreaseRate=1.0d0
@@ -89,7 +89,7 @@ contains
     type (treeNode                          ), intent(inout) :: node
     class(nodeComponentBasic                ), pointer       :: basic
     class(nodeComponentFormationTime        ), pointer       :: formationTime
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     basic                      =>  node         %basic        ()
     formationTime              =>  node         %formationTime()

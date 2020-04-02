@@ -153,7 +153,7 @@ contains
     double precision                                                       :: diskStarFormationRate, spheroidStarFormationRate, &
          &                                                                    timeCurrent          , timeOutputNext           , &
          &                                                                    timeOutputPrevious
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -195,7 +195,7 @@ contains
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: interOutput
-    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
     
     ! Check if we are the default method.
     if (.not.defaultInterOutputComponent%standardIsActive()) return
@@ -222,7 +222,7 @@ contains
     integer                                          :: destinationGasSatellite, destinationGasHost       , &
          &                                              destinationStarsHost   , destinationStarsSatellite
     logical                                          :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the inter-output component.
     interOutput => node%interOutput()

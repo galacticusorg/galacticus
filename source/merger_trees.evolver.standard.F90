@@ -976,7 +976,7 @@ contains
     class           (nodeComponentBasic)               , pointer :: basic
     double precision                                             :: timeNode      , timeEventEarliest
     logical                                                      :: mergerTreeEvolverDone
-    !GCC$ attributes unused :: self, tree
+    !$GLC attributes unused :: self, tree
 
     ! Get the current time.
     basic    => node %basic()

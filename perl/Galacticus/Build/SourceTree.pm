@@ -31,7 +31,6 @@ use Galacticus::Build::SourceTree::Process::DebugHDF5;
 use Galacticus::Build::SourceTree::Process::DebugMPI;
 use Galacticus::Build::SourceTree::Process::ProfileOpenMP;
 use Galacticus::Build::SourceTree::Process::GSLConstants;
-use Galacticus::Build::SourceTree::Process::GCCAttributes;
 use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;

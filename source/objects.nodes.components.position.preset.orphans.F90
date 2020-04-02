@@ -92,7 +92,7 @@ contains
     implicit none
     type(inputParameters                   ), intent(inout) :: parameters_
     type(nodeComponentPositionPresetOrphans)                :: position
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then

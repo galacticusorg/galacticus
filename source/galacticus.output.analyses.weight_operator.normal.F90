@@ -136,7 +136,7 @@ contains
     double precision                                    , intent(in   ) :: propertyValue, propertyValueIntrinsic
     integer                                             , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                          ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+    !$GLC attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     normalRootVariance=self%rootVariance_
     return
@@ -156,7 +156,7 @@ contains
     integer         (c_size_t                          ), intent(in   ) :: outputIndex
     double precision                                                    :: normalPropertyValue, rootVariance
     integer                                                             :: normalPropertyType
-    !GCC$ attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
+    !$GLC attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
 
     ! Extract property and operate on it.
     normalPropertyType    =self%nodePropertyExtractor_          %type   (                                                       )

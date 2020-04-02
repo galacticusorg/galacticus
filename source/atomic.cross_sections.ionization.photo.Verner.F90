@@ -1943,7 +1943,7 @@ contains
     implicit none
     type(atomicCrossSectionIonizationPhotoVerner)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicCrossSectionIonizationPhotoVerner()
     return
@@ -1972,7 +1972,7 @@ contains
     integer                                                                  :: electronNumber, innerShellNumber, outerShellNumber
     double precision                                                         :: coefficient   , energy          , energyFactor    , energyModified   , &
          &                                                                      energyScaled  , exponent1       , exponent2       , innerShellEnergy
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Set a default cross section of zero.
     vernerCrossSection=0.0d0

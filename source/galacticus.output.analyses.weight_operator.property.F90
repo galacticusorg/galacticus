@@ -104,7 +104,7 @@ contains
     integer         (c_size_t                            ), intent(in   ) :: outputIndex
     double precision                                                      :: weightPropertyValue
     integer                                                               :: weightPropertyType
-    !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
+    !$GLC attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
 
     select type (extractor_ => self%extractor_)
     class is (nodePropertyExtractorScalar)

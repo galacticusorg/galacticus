@@ -43,7 +43,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorIdentity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorIdentity()
     return
@@ -54,7 +54,7 @@ contains
     implicit none
     class           (stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
     double precision                                               , intent(in   ) :: age , redshift, wavelength
-    !GCC$ attributes unused :: self, age, redshift, wavelength
+    !$GLC attributes unused :: self, age, redshift, wavelength
 
     identityMultiplier=1.0d0
     return

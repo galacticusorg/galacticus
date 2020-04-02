@@ -485,7 +485,7 @@ contains
     double precision              , intent(in   ) :: a
     double precision, dimension(:), intent(in   ) :: t
     double precision, dimension(:), intent(  out) :: dtda
-    !GCC$ attributes unused :: t
+    !$GLC attributes unused :: t
 
     ! Compare the rate of change of time with expansion factor. For this ODE system we are always interested in the expanding
     ! phase of the Universe, so we use the absolute value of the expansion rate in case the universe is defined during a
@@ -700,7 +700,7 @@ contains
     double precision                                , intent(in   ), optional :: expansionFactor      , time
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
-    !GCC$ attributes unused :: collapsingPhase
+    !$GLC attributes unused :: collapsingPhase
 
     ! Determine the actual expansion factor to use.
     if (present(time)) then
@@ -1048,7 +1048,7 @@ contains
     double precision              , intent(in   ) :: t
     double precision, dimension(:), intent(in   ) :: a
     double precision, dimension(:), intent(  out) :: dadt
-    !GCC$ attributes unused :: t
+    !$GLC attributes unused :: t
 
     ! For this ODE system we are always interested in the expanding phase of the Universe, so we use the absolute value of the
     ! expansion rate in case the universe is defined during a collapsing phase.
@@ -1332,7 +1332,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     matterLambdaEquationOfStateDarkEnergy=-1.0d0
     return
@@ -1343,7 +1343,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     matterLambdaExponentDarkEnergy=0.0d0
     return

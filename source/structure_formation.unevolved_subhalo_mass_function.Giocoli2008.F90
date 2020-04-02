@@ -92,7 +92,7 @@ contains
     double precision                                         , intent(in   ) :: time    , mass, &
          &                                                                      massHost
     double precision                                                         :: x
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     x                      =+mass                        &
          &                  /massHost                    &
@@ -115,7 +115,7 @@ contains
     double precision                                         , intent(in   ) :: time    , massLow , &
          &                                                                      massHigh, massHost
     double precision                                                         :: xLow    , xHigh
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     xLow                 =+massLow                                                       &
          &                /massHost                                                      &

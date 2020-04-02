@@ -126,7 +126,7 @@ contains
     logical                                     , intent(in   )                         :: isConverged
     logical                                     , intent(in   ), dimension(:), optional :: outlierMask
     integer                                                                             :: i
-    !GCC$ attributes unused :: isConverged, outlierMask
+    !$GLC attributes unused :: isConverged, outlierMask
 
     if (logState) then
        i=mod(self%stepCount,size(self%accepted))+1

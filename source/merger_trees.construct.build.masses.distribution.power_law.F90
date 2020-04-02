@@ -75,7 +75,7 @@ contains
     class           (mergerTreeBuildMassDistributionPowerLaw), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass       , massMaximum, &
          &                                                                         massMinimum, time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     ! Sampling rate is simply a power-law in the logarithm of halo mass.
     if (mass <= massMinimum .or. mass > massMaximum) then

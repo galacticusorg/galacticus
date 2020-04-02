@@ -415,7 +415,7 @@ contains
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply record that reversion should be performed on the next call to the solver.
     equilibriumRevertStructure=.true.

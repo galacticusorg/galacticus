@@ -44,7 +44,7 @@ contains
     implicit none
     type(blackHoleBinaryRecoilZero)                :: self
     type(inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryRecoilZero()
     return
@@ -55,7 +55,7 @@ contains
     implicit none
     class(blackHoleBinaryRecoilZero), intent(inout) :: self
     class(nodeComponentBlackHole   ), intent(inout) :: blackHole1, blackHole2
-    !GCC$ attributes unused :: self, blackHole1, blackHole2
+    !$GLC attributes unused :: self, blackHole1, blackHole2
 
     zeroVelocity=0.0d0
     return

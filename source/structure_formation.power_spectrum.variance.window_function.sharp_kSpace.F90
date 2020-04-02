@@ -162,7 +162,7 @@ contains
     !% Indicate the the sharp $k$-space power spectrum window function has constant amplitude below the maximum wavenumber.
     implicit none
     class(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sharpKSpaceAmplitudeIsMassIndependent=.true.
     return

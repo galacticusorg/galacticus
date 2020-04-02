@@ -359,7 +359,7 @@ contains
     real   (kind=c_double), dimension(*), intent(in   ) :: y
     real   (kind=c_double), dimension(*)                :: dydx
     type   (     c_ptr   ), value                       :: parameterPointer
-    !GCC$ attributes unused :: parameterPointer
+    !$GLC attributes unused :: parameterPointer
 
     odesWrapperIV2=currentODEs(currentODEsIndex)%ODes(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dydx(1:currentODEs(currentODEsIndex)%ODENumber))
     return
@@ -374,7 +374,7 @@ contains
     real   (kind=c_double), dimension(*), intent(in   ) :: y
     real   (kind=c_double), dimension(*)                :: dfdy              , dfdx
     type   (     c_ptr   ), value                       :: parameterPointer
-    !GCC$ attributes unused :: parameterPointer
+    !$GLC attributes unused :: parameterPointer
 
     jacobianWrapperIV2=currentODEs(currentODEsIndex)%jacobian(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dfdy(1:currentODEs(currentODEsIndex)%ODENumber**2),dfdx(1:currentODEs(currentODEsIndex)%ODENumber))
     return

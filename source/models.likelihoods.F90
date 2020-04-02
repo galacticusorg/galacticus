@@ -51,7 +51,7 @@ module Models_Likelihoods
   !#   <argument>class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence</argument>
   !#   <argument>double precision                                 , intent(in   )               :: temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed
+  !#    !$GLC attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed
   !#    posteriorSampleLikelihoodWillEvaluate=.true.
   !#   </code>
   !#  </method>
@@ -67,7 +67,7 @@ module Models_Likelihoods
   !#   <argument>double precision, intent(in   ), dimension(:) :: simulationState</argument>
   !#   <argument>double precision, intent(in   )               :: logLikelihood</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, simulationState, logLikelihood
+  !#    !$GLC attributes unused :: self, simulationState, logLikelihood
   !#   </code>
   !#  </method>
   !# </functionClass>

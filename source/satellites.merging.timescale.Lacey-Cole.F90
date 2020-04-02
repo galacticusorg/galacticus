@@ -134,7 +134,7 @@ contains
     class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
     double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                         :: massRatio
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the host node.
     nodeHost => node%parent

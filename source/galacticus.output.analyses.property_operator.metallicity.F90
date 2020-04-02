@@ -82,7 +82,7 @@ contains
     integer                                                           , intent(inout), optional :: propertyType
     integer         (c_size_t                                        ), intent(in   ), optional :: outputIndex
     double precision                                                                            :: ratioByNumber
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     ratioByNumber=+propertyValue      &
             &     *atomicMassHydrogen &

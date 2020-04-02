@@ -1155,7 +1155,7 @@ contains
     double precision                                 , dimension(rangeNumber) :: rangeValues
     integer                                                                   :: iRange
     double precision                                                          :: fractionRange, integrandExponent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     do iRange=1,rangeNumber
        fractionRange    =dble(iRange-1)/dble(rangeNumber-1)

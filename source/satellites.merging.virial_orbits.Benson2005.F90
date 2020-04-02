@@ -201,7 +201,7 @@ contains
     double precision                       , parameter     :: velocityTangentialMean=0.748205d0
     double precision                                       :: massHost                         , radiusHost, &
          &                                                    velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                                 =>  host%basic()
     massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -217,7 +217,7 @@ contains
     double precision                       , dimension(3)  :: benson2005VelocityTangentialVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     benson2005VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -255,7 +255,7 @@ contains
     double precision                       , dimension(3)  :: benson2005AngularMomentumVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     benson2005AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -274,7 +274,7 @@ contains
     double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
     double precision                                       :: massHost                              , radiusHost, &
          &                                                    velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                              =>  host%basic()
     massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)

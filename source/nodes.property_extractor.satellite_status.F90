@@ -129,7 +129,7 @@ contains
     class           (nodeComponentSatellite              ), pointer                 :: satellite
     class           (nodeComponentPosition               ), pointer                 :: position
     type            (history                             )                          :: discriminatorHistory
-    !GCC$ attributes unused :: instance, time
+    !$GLC attributes unused :: instance, time
 
     if (node%isSatellite()) then
        basic => node%basic()
@@ -165,7 +165,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusType=outputAnalysisPropertyTypeLinear
     return
@@ -176,7 +176,7 @@ contains
     implicit none
     type (varying_string                      )                :: satelliteStatusName
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusName=var_str('satelliteStatus')
     return
@@ -187,7 +187,7 @@ contains
     implicit none
     type (varying_string                      )                :: satelliteStatusDescription
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusDescription=var_str('Satellite status flag (0=not a satellite; 1=satellite with halo; 2=orphaned satellite).')
     return

@@ -276,7 +276,7 @@ contains
     double precision                                           , allocatable  , dimension(:) :: stateVector           , stateVectorPacked
     double precision                                                                         :: kernelScale           , weight
     integer                                                                                  :: i
-    !GCC$ attributes unused :: forceAcceptance
+    !$GLC attributes unused :: forceAcceptance
 
     ! Initialize.
     call self%initialize(modelParametersActive_)
@@ -317,7 +317,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine posteriorAsPriorFunctionChanged

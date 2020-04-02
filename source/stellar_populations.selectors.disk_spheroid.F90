@@ -88,7 +88,7 @@ contains
     double precision                                       , intent(in   ) :: rateStarFormation
     type            (abundances                           ), intent(in   ) :: abundances_
     class           (nodeComponent                        ), intent(in   ) :: component
-    !GCC$ attributes unused :: rateStarFormation, abundances_
+    !$GLC attributes unused :: rateStarFormation, abundances_
 
     select type (component)
     class is (nodeComponentDisk    )
@@ -105,7 +105,7 @@ contains
     !% Return false indicating that stellar population selection is not dependent on star formation rate.
     implicit none
     class(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     diskSpheroidIsStarFormationRateDependent=.false.
     return

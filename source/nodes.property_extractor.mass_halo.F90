@@ -91,7 +91,7 @@ contains
     type (treeNode                     ), intent(inout), target   :: node
     type (multiCounter                 ), intent(inout), optional :: instance
     class(nodeComponentBasic           ), pointer                 :: basic
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     basic           => node%basic()
     massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))
@@ -103,7 +103,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHaloType=outputAnalysisPropertyTypeLinear
     return
@@ -114,7 +114,7 @@ contains
     implicit none
     type (varying_string               )                :: massHaloName
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHaloName=var_str('massHaloEnclosedCurrent')
     return
@@ -125,7 +125,7 @@ contains
     implicit none
     type (varying_string               )                :: massHaloDescription
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHaloDescription=var_str('The current mass of the dark-matter-only halo within a radius enclosing a specified density contrast.')
     return
@@ -136,7 +136,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHaloUnitsInSI=massSolar
     return

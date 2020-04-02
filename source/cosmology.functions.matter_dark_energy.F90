@@ -199,7 +199,7 @@ contains
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual
-    !GCC$ attributes unused :: collapsingPhase
+    !$GLC attributes unused :: collapsingPhase
 
     call self%epochValidate(                                          &
          &                  timeIn            =time                 , &
@@ -649,7 +649,7 @@ contains
     double precision              , intent(in   ) :: t
     double precision, dimension(:), intent(in   ) :: a
     double precision, dimension(:), intent(  out) :: dadt
-    !GCC$ attributes unused :: t
+    !$GLC attributes unused :: t
 
     if (a(1) <= 0.0d0) then
        dadt(1)=0.0d0
@@ -665,7 +665,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: comovingDistance
-    !GCC$ attributes unused :: self, comovingDistance
+    !$GLC attributes unused :: self, comovingDistance
 
     matterDarkEnergyTimeAtDistanceComoving=0.0d0
     call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
@@ -678,7 +678,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     matterDarkEnergyDistanceComoving=0.0d0
     call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
@@ -693,7 +693,7 @@ contains
     integer                                             , intent(in   )           :: output
     double precision                                    , intent(in   ), optional :: distanceModulus, distanceModulusKCorrected, &
          &                                                                           redshift       , distanceLuminosity
-    !GCC$ attributes unused :: self, output, distanceModulus, distanceModulusKCorrected, redshift, distanceLuminosity
+    !$GLC attributes unused :: self, output, distanceModulus, distanceModulusKCorrected, redshift, distanceLuminosity
 
     matterDarkEnergyDistanceComovingConvert=0.0d0
     call Galacticus_Error_Report('functionality not implemented'//{introspection:location})

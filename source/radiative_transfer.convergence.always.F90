@@ -40,7 +40,7 @@ contains
     implicit none
     type(radiativeTransferConvergenceAlways)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=radiativeTransferConvergenceAlways()
     return
@@ -54,7 +54,7 @@ contains
     class    (radiativeTransferPropertiesMatter      ), intent(inout) :: properties
     integer                                           , intent(in   ) :: statusCell
     logical                                           , intent(  out) :: converged
-    !GCC$ attributes unused :: self, radiativeTransferMatter_, properties, statusCell
+    !$GLC attributes unused :: self, radiativeTransferMatter_, properties, statusCell
     
     converged=.true.
     return

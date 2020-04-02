@@ -221,7 +221,7 @@ contains
          &                                                                               densitySurfaceMetalsDisk                           , densitySurfaceMetalsSpheroid, &
          &                                                                               depthOpticalDiffuseDisk                            , depthOpticalDiffuseSpheroid , &
          &                                                                               depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     ! Extract luminosities and metallicities of disk and spheroid.
     basic                          =>                         node               %basic              (                             )
@@ -322,7 +322,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyStllrChrltFll2000Type=outputAnalysisPropertyTypeLinear
     return
@@ -333,7 +333,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyStllrChrltFll2000Quantity=outputAnalysisPropertyQuantityLuminosity
     return
@@ -364,7 +364,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyStllrCF2000UnitsInSI=luminosityZeroPointAB
     return

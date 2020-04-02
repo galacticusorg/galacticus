@@ -75,7 +75,7 @@ contains
     class(posteriorSampleDffrntlEvltnProposalSizeFixed), intent(inout) :: self
     class(posteriorSampleStateClass                   ), intent(inout) :: simulationState
     class(posteriorSampleConvergenceClass             ), intent(inout) :: simulationConvergence
-    !GCC$ attributes unused :: simulationState, simulationConvergence
+    !$GLC attributes unused :: simulationState, simulationConvergence
 
     fixedGamma=self%proposalSize
     return

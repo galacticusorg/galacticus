@@ -360,7 +360,7 @@ contains
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basic
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -434,7 +434,7 @@ contains
     type (treeNode          ), intent(inout) :: node
     type (treeNode          ), pointer       :: nodeParent
     class(nodeComponentBasic), pointer       :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     basic       => node      %basic ()
     nodeParent  => node      %parent

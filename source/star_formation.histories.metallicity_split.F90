@@ -368,7 +368,7 @@ contains
     double precision                                      , parameter                   :: massStellarMinimum  =1.0d0
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
-    !GCC$ attributes unused :: abundancesStellar
+    !$GLC attributes unused :: abundancesStellar
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)

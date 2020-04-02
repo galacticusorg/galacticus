@@ -98,34 +98,28 @@ sub Process_StateStorable {
 	my $classIdentifier = -1;
 	my %classIdentifiers;
 	my $outputCodeOpener = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine {$className}StateStore(self,stateFile,fgslStateFile,storeIdentifier)
+subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  !% Store the state of this object to file.
- use, intrinsic :: ISO_C_Binding
- use            :: FGSL              , only : fgsl_file
+ use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
  use            :: Galacticus_Display
  implicit none
  class    ({$className}), intent(inout)              :: self
  integer                , intent(in   )              :: stateFile
- type     (fgsl_file   ), intent(in   )              :: fgslStateFile
+ type     (c_ptr       ), intent(in   )              :: gslStateFile
  logical                , intent(in   ), optional    :: storeIdentifier
  character(len=16      )                             :: label
- integer  (kind=1      ), dimension(:) , allocatable :: transferred
- integer  (c_size_t    )                             :: transferredSize
 CODE
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine {$className}StateRestore(self,stateFile,fgslStateFile)
+subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  !% Store the state of this object to file.
- use, intrinsic :: ISO_C_Binding
- use            :: FGSL              , only : fgsl_file
+ use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
  use            :: Galacticus_Display
  implicit none
  class  ({$className}), intent(inout)               :: self
  integer              , intent(in   )               :: stateFile
- type   (fgsl_file   ), intent(in   )               :: fgslStateFile
+ type   (c_ptr       ), intent(in   )               :: gslStateFile
  integer(c_size_t    ), allocatable  , dimension(:) :: storedShape
  logical                                            :: wasAllocated
- integer(kind=1      ), dimension(:) , allocatable  :: transferred
- integer(c_size_t    )                              :: transferredSize
 CODE
 	# Close function.
 	my $outputCodeCloser = fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -150,9 +144,9 @@ CODE
 CODE
 	my @outputUnusedVariables;
 	my @inputUnusedVariables;
-	my $fgslStateFileUsed = 0;
-	my $labelUsed         = 0;
-	my $transferUsed      = 0;
+	my $gslStateFileUsed = 0;
+	my $labelUsed        = 0;
+	my $transferUsed     = 0;
 	# Scan all known classes, finding all which derive from the base class.
 	foreach my $className ( sort(keys(%classes)) ) {
 	    my $matches = 0;
@@ -213,8 +207,8 @@ CODE
 						$inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
 						$classFunctionsRequired = 1;
 					    }
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
+					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile)\n";
+					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
 					}
 				    } elsif (
 					$declaration->{'intrinsic'} eq "type"
@@ -333,13 +327,13 @@ CODE
     !@   <objectMethod>
     !@     <method>stateStore</method>
     !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type((fgsl\_file))\textgreater\} fgslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
+    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type(gsl\_file)\textgreater\} gslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
     !@     <description>Store the state of this object to file.</description>
     !@   </objectMethod>
     !@   <objectMethod>
     !@     <method>stateRestore</method>
     !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type((fgsl\_file))\textgreater\} fgslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
+    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type(gsl\_file)\textgreater\} gslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
     !@     <description>Restore the state of this object from file.</description>
     !@   </objectMethod>
     !@  </objectMethods>
@@ -350,25 +344,31 @@ CODE
 	my @bindingNodes = &Galacticus::Build::SourceTree::Children($bindingTree);
 	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},\@bindingNodes);
 	# Record unused variables.
-	push(@outputUnusedVariables,"fgslStateFile"                    )
-	    unless ( $fgslStateFileUsed );
-	push(@inputUnusedVariables ,"fgslStateFile"                    )
-	    unless ( $fgslStateFileUsed );
-	push(@outputUnusedVariables,"label"                            )
-	    unless ( $labelUsed         );
-	push(@outputUnusedVariables,"transferred"  , "transferredSize" )
-	    unless ( $transferUsed      );
-	push(@inputUnusedVariables ,"transferred"  , "transferredSize" )
-	    unless ( $transferUsed      );
+	push(@outputUnusedVariables,"gslStateFile"                    )
+	    unless ( $gslStateFileUsed );
+	push(@inputUnusedVariables ,"gslStateFile"                    )
+	    unless ( $gslStateFileUsed );
+	push(@outputUnusedVariables,"label"                           )
+	    unless ( $labelUsed        );
+	if ( $transferUsed     ) {
+	    $outputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ integer  (kind=1      ), dimension(:) , allocatable :: transferred
+ integer  (c_size_t    )                             :: transferredSize
+CODE
+	    $inputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ integer  (kind=1      ), dimension(:) , allocatable :: transferred
+ integer  (c_size_t    )                             :: transferredSize
+CODE
+	}
 	# Join code fragments.
 	my $functionCode = 
 	    $outputCodeOpener.
-	    (@outputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
+	    (@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
 	    $outputCode      .
 	    $outputCodeCloser.
 	    "\n"             .
 	    $inputCodeOpener .
-	    (@inputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@inputUnusedVariables )."\n" : "").
+	    (@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables )."\n" : "").
 	    $inputCode       .
 	    $inputCodeCloser .
 	    "\n"             ;

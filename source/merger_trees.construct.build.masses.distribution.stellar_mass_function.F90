@@ -172,7 +172,7 @@ contains
          &                                                                           massHalo
     type            (fgsl_function                               )                :: integrandFunction
     type            (fgsl_integration_workspace                  )                :: integrationWorkspace
-    !GCC$ attributes unused :: massMinimum, massMaximum
+    !$GLC attributes unused :: massMinimum, massMaximum
 
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
     haloMassFunctionDifferential=+                                         mass  &

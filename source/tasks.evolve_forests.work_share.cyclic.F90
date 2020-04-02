@@ -48,7 +48,7 @@ contains
     implicit none
     type(evolveForestsWorkShareCyclic)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=evolveForestsWorkShareCyclic()
     return

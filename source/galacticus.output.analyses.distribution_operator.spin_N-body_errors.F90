@@ -117,7 +117,7 @@ contains
          &                                                                                                                       spinMeasuredRangeMinimum    , spinMeasuredRangeMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                       )                                                       :: integrationWorkspace
-    !GCC$ attributes unused :: outputIndex, propertyValue
+    !$GLC attributes unused :: outputIndex, propertyValue
 
     select case (propertyType)
     case (outputAnalysisPropertyTypeLinear)
@@ -196,7 +196,7 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     spinNBodyErrorsOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

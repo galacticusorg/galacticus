@@ -42,7 +42,7 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationZero)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarSpectraDustAttenuationZero()
    return
@@ -54,7 +54,7 @@ contains
     class           (stellarSpectraDustAttenuationZero), intent(inout) :: self
     double precision                                   , intent(in   ) :: wavelength      , age, &
          &                                                                vBandAttenuation
-    !GCC$ attributes unused :: self, wavelength, age, vBandAttenuation
+    !$GLC attributes unused :: self, wavelength, age, vBandAttenuation
 
     zeroAttenuation=0.0d0
     return

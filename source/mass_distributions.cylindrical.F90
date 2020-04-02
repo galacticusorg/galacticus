@@ -113,7 +113,7 @@ contains
     !% Returns symmetry label for mass dsitributions with cylindrical symmetry.
     implicit none
     class(massDistributionCylindrical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cylindricalSymmetry=massDistributionSymmetryCylindrical
     return

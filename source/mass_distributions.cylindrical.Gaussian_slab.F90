@@ -144,7 +144,7 @@ contains
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, radius
+    !$GLC attributes unused :: self, radius
     
     gaussianSlabRotationCurve=0.0d0
     return
@@ -155,7 +155,7 @@ contains
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, radius
+    !$GLC attributes unused :: self, radius
     
     gaussianSlabRotationCurveGradient=0.0d0
     return
@@ -168,7 +168,7 @@ contains
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     class           (coordinate                  ), intent(in   ) :: coordinates
-    !GCC$ attributes unused :: coordinates
+    !$GLC attributes unused :: coordinates
 
     gaussianSlabSurfaceDensity=+sqrt(2.0d0*Pi)      &
          &                     *self%scaleHeight    &
@@ -184,7 +184,7 @@ contains
     double precision                              , intent(in   )           :: moment
     double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                       , intent(  out), optional :: isInfinite
-    !GCC$ attributes unused :: self, moment, radiusMinimum, radiusMaximum
+    !$GLC attributes unused :: self, moment, radiusMinimum, radiusMaximum
     
     ! All moments are infinite.
     gaussianSlabSurfaceDensityRadialMoment=huge(0.0d0)
@@ -201,7 +201,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(massDistributionGaussianSlab), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     gaussianSlabRadiusHalfMass=0.0d0
     call Galacticus_Error_Report('half mass radius is undefined'//{introspection:location})

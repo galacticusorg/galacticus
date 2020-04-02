@@ -109,7 +109,7 @@ contains
          &                                                                           baseExpansionFactor        , baseMass, &
          &                                                                           redshift                   , aTilde  , &
          &                                                                           bTilde
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get properties of the base node.
     baseBasicComponent => node%basic()

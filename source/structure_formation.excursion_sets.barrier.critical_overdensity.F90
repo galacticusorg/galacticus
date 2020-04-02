@@ -91,7 +91,7 @@ contains
     type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
     double precision                                                        :: mass
-    !GCC$ attributes unused :: rateCompute
+    !$GLC attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
@@ -113,7 +113,7 @@ contains
     type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
     double precision                                                        :: alpha      , mass
-    !GCC$ attributes unused :: rateCompute
+    !$GLC attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return zero critical overdensity gradient at this time for infinite mass.

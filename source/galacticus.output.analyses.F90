@@ -44,7 +44,7 @@ module Output_Analyses
   !#   <argument>type   (mergerTree), intent(inout) :: tree</argument>
   !#   <argument>integer(c_size_t  ), intent(in   ) :: iOutput</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, tree, iOutput
+  !#    !$GLC attributes unused :: self, tree, iOutput
   !#   </code>
   !#  </method>
   !#  <method name="finalize" >
@@ -58,7 +58,7 @@ module Output_Analyses
   !#   <pass>yes</pass>
   !#   <argument>class(outputAnalysisClass), intent(inout) :: reduced</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, reduced
+  !#    !$GLC attributes unused :: self, reduced
   !#   </code>
   !#  </method>
   !#  <method name="logLikelihood" >

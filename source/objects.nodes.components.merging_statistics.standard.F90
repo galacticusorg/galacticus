@@ -422,7 +422,7 @@ contains
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
     class(nodeComponentBasic            )               , pointer :: basicParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     mergingStatistics       => node       %mergingStatistics()
     mergingStatisticsParent => node%parent%mergingStatistics()
@@ -443,7 +443,7 @@ contains
     type (treeNode                      ), intent(inout), pointer :: node             , nodePromotion
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
     class(nodeComponentBasic            )               , pointer :: basicParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mergingStatistics => node         %mergingStatistics()
     basicParent       => nodePromotion%basic            ()
@@ -457,7 +457,7 @@ contains
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     return
@@ -491,7 +491,7 @@ contains
     integer                                                :: destinationGasSatellite, destinationGasHost       , &
          &                                                    destinationStarsHost   , destinationStarsSatellite
     logical                                                :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Record the time of this merger if it is a major merger.
     call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)

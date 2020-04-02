@@ -92,7 +92,7 @@ contains
     class           (nodeComponentBasic         )               , pointer  :: basic
     type            (mergerTree                 )               , pointer  :: treeCurrent
     type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
-    !GCC$ attributes unused :: isLastOutput
+    !$GLC attributes unused :: isLastOutput
 
     ! Iterate over trees.
     treeCurrent => tree

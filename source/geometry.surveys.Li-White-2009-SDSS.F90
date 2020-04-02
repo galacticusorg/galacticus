@@ -124,7 +124,7 @@ contains
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
@@ -139,7 +139,7 @@ contains
     double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
     double precision                                                         :: redshift, logarithmicMass
-    !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
@@ -185,7 +185,7 @@ contains
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     integer                                        , intent(in   ), optional :: field
     double precision                               , parameter               :: solidAngleSurvey=2.1901993d0 ! From Percival et al. (2010; MNRAS; 401; 2148)
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})

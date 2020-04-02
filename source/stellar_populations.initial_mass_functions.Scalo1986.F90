@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionScalo1986)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionScalo1986()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionScalo1986), intent(inout) :: self
     type (varying_string              )                :: scalo1986Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     scalo1986Label="Scalo1986"
     return

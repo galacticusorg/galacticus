@@ -448,7 +448,7 @@ contains
     class(nodeComponentDisk ), pointer       :: disk
     class(nodeComponentBasic), pointer       :: basic
     type (history           )                :: stellarPropertiesHistory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the disk component.
     disk => node%disk()
@@ -757,7 +757,7 @@ contains
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
     logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -1146,7 +1146,7 @@ contains
     integer                                                :: destinationGasSatellite, destinationGasHost       , &
          &                                                    destinationStarsHost   , destinationStarsSatellite
     logical                                                :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check that the disk is of the standard class.
     disk => node%disk()
@@ -1516,46 +1516,44 @@ contains
   !# <galacticusStateStoreTask>
   !#  <unitName>Node_Component_Disk_Standard_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine Node_Component_Disk_Standard_State_Store(stateFile,fgslStateFile,stateOperationID)
+  subroutine Node_Component_Disk_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !% Write the tablulation state to file.
-    use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t                  , c_ptr
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperationID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call Galacticus_Display_Message('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     write (stateFile) associated(diskMassDistribution)
-    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,fgslStateFile,stateOperationID)
+    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine Node_Component_Disk_Standard_State_Store
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Node_Component_Disk_Standard_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,fgslStateFile,stateOperationID)
+  subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
-    use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Display               , only : Galacticus_Display_Message, verbosityInfo
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                    , only : c_size_t
+    use, intrinsic :: ISO_C_Binding                    , only : c_size_t                  , c_ptr
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperationID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    logical                           :: wasAllocated
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    logical                          :: wasAllocated
 
     call Galacticus_Display_Message('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     read (stateFile) wasAllocated
     if (wasAllocated) then
        if (.not.associated(diskMassDistribution)) call Galacticus_Error_Report('diskMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call diskMassDistribution%stateRestore(stateFile,fgslStateFile,stateOperationID)
+       call diskMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
     end if
     return
   end subroutine Node_Component_Disk_Standard_State_Retrieve

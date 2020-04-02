@@ -46,7 +46,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesRandom)                  :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesRandom()
     return
@@ -63,7 +63,7 @@ contains
     type            (treeNode                        ), pointer       :: nodeParent
     class           (nodeComponentBasic              ), pointer       :: basicParent, basic
     double precision                                                  :: time       , timeParent
-    !GCC$ attributes unused :: self, orbit
+    !$GLC attributes unused :: self, orbit
 
     ! Get the parent (a.k.a descendant) node.
     nodeParent             =>  node       %parent

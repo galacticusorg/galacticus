@@ -76,7 +76,7 @@ contains
     class           (outputAnalysisDistributionOperatorRandomErrorFixed), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: propertyValue, node
+    !$GLC attributes unused :: propertyValue, node
 
     randomErrorFixedRootVariance=self%rootVariance_
     return

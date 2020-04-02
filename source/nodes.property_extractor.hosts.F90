@@ -81,7 +81,7 @@ contains
     double precision                                  , intent(in   )           :: time
     type            (multiCounter                    ), intent(inout), optional :: instance
     type            (treeNode                        ), pointer                 :: nodeHost
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     if (node%isSatellite()) then
        nodeHost => node%parent
@@ -102,7 +102,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostType=outputAnalysisPropertyTypeLinear
     return
@@ -113,7 +113,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesHostName
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostName=var_str('hostIndex')
     return
@@ -124,7 +124,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesHostDescription
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return

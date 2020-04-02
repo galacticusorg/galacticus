@@ -133,7 +133,7 @@ contains
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
     integer          , intent(in   )         :: propertyType
-    !GCC$ attributes unused :: propertyType
+    !$GLC attributes unused :: propertyType
 
     select type (self)
     type is (galacticStructureSolverSimple)
@@ -195,7 +195,7 @@ contains
       procedure       (solverGet), intent(in   ), pointer :: radiusGet              , velocityGet
       procedure       (solverSet), intent(in   ), pointer :: radiusSet              , velocitySet
       double precision                                    :: radius                 , velocity
-      !GCC$ attributes unused :: radiusGet, velocityGet
+      !$GLC attributes unused :: radiusGet, velocityGet
 
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return
@@ -216,7 +216,7 @@ contains
     implicit none
     class(galacticStructureSolverSimple), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     return
   end subroutine simpleRevert

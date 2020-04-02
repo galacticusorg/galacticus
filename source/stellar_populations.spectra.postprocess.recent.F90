@@ -74,7 +74,7 @@ contains
     class           (stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
     double precision                                             , intent(in   ) :: age       , redshift, &
          &                                                                          wavelength
-    !GCC$ attributes unused :: redshift, wavelength
+    !$GLC attributes unused :: redshift, wavelength
 
     if (age > self%timeLimit) then
        recentMultiplier=0.0d0

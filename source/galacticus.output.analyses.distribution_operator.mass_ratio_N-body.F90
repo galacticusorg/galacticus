@@ -140,7 +140,7 @@ contains
     integer         (c_size_t                                        )                                                       :: binIndex
     type            (fgsl_function                                   )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                      )                                                       :: integrationWorkspace
-    !GCC$ attributes unused :: outputIndex
+    !$GLC attributes unused :: outputIndex
 
     ! Get the parent halo mass.
     nodeParent => node%parent
@@ -317,7 +317,7 @@ contains
     integer         (c_size_t                                        ), intent(in   )                                        :: outputIndex
     type            (treeNode                                        ), intent(inout)                                        :: node
     double precision                                                                 , dimension(size(propertyValueMinimum)) :: massRatioNBodyOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     massRatioNBodyOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

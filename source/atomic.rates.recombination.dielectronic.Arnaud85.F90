@@ -220,7 +220,7 @@ contains
     implicit none
     type(atomicRecombinationRateDielectronicArnaud1985)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateDielectronicArnaud1985()
     return
@@ -236,7 +236,7 @@ contains
     class           (atomicRecombinationRateDielectronicArnaud1985), intent(inout) :: self
     double precision                                               , intent(in   ) :: temperature
     integer                                                        , intent(in   ) :: atomicNumber, electronNumber
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Set zero rate by default.
     arnaud1985Rate=0.0d0

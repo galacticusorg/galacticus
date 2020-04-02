@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionSalpeter1955)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionSalpeter1955()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionSalpeter1955), intent(inout) :: self
     type (varying_string                 )                :: salpeter1955Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     salpeter1955Label="Salpeter1955"
     return

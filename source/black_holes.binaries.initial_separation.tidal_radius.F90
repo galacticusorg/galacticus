@@ -50,7 +50,7 @@ contains
     implicit none
     type(blackHoleBinaryInitialSeparationTidalRadius)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryInitialSeparationTidalRadius()
     return
@@ -68,7 +68,7 @@ contains
     class(nodeComponentBlackHole                     ), pointer               :: blackHole
     type (rootFinder                                 ), save                  :: finder
     !$omp threadprivate(finder)
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Assume zero separation by default.
     tidalRadiusSeparationInitial=0.0d0

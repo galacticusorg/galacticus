@@ -169,7 +169,7 @@ contains
     double precision                                              , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                           ), pointer       :: disk
     double precision                                                              :: massDisk
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the disk.
     disk => node%disk()

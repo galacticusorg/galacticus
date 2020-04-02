@@ -424,7 +424,7 @@ contains
     !% Specify that the {\normalfont \ttfamily percolation} virial density contrast class is mass-dependent.
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     percolationIsMassDepdendent=.true.
     return

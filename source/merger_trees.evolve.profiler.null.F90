@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeEvolveProfilerNull)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=mergerTreeEvolveProfilerNull()
     return
@@ -54,7 +54,7 @@ contains
     class           (mergerTreeEvolveProfilerNull), intent(inout) :: self
     double precision                              , intent(in   ) :: timeStep
     type            (varying_string              ), intent(in   ) :: propertyName
-    !GCC$ attributes unused :: self, timeStep, propertyName
+    !$GLC attributes unused :: self, timeStep, propertyName
 
     return
   end subroutine nullProfile

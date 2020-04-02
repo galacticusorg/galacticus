@@ -145,7 +145,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     tomczak2014ZFOURGEFieldCount=tomczak2014ZFOURGEFields
     return
@@ -157,7 +157,7 @@ contains
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     tomczak2014ZFOURGEDistanceMinimum=self%binDistanceMinimum
     return
@@ -172,7 +172,7 @@ contains
     double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: redshift, logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -227,7 +227,7 @@ contains
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
     return
@@ -255,7 +255,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{tomczak_galaxy_2014} survey.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     tomczak2014ZFOURGEAngularPowerMaximumDegree=tomczak2014AngularPowerMaximumL
     return

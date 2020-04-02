@@ -47,7 +47,7 @@ contains
     implicit none
     type(evolveForestsWorkShareFCFS)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=evolveForestsWorkShareFCFS()
     return
@@ -57,7 +57,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
     implicit none
     type(evolveForestsWorkShareFCFS) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fcfsForestCounter=mpiCounter()
     return
@@ -69,7 +69,7 @@ contains
     integer(c_size_t                  )                :: fcfsForestNumber
     class  (evolveForestsWorkShareFCFS), intent(inout) :: self
     logical                            , intent(in   ) :: utilizeOpenMPThreads
-    !GCC$ attributes unused :: self, utilizeOpenMPThreads
+    !$GLC attributes unused :: self, utilizeOpenMPThreads
 
     fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
     return

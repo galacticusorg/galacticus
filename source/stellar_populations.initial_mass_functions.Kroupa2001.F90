@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionKroupa2001)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKroupa2001()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionKroupa2001), intent(inout) :: self
     type (varying_string               )                :: kroupa2001Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kroupa2001Label="Kroupa2001"
     return
