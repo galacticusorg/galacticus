@@ -380,7 +380,6 @@ sub SubmitJobs {
 		my $mpi = (exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes") || (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes");
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
 		print $scriptFile ($mpi ? "mpirun --bynode -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
-		print $scriptFile (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes" ? "mpirun -np ".($ppn*$nodes)." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
