@@ -104,7 +104,7 @@ contains
     double precision                                 , parameter               :: massNormalization               =2.356d5
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
-    !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
@@ -132,7 +132,7 @@ contains
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     integer                                          , intent(in   ), optional :: field
     double precision                                 , parameter               :: solidAngleSurvey=0.79415674617213461d0 ! Computed from survey bounds in Martin et al. (2010; ApJ; 723; 1359)
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})

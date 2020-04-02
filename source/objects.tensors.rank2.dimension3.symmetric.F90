@@ -54,7 +54,7 @@ contains
   module procedure Tensor_R2_D3_Sym_Destroy
     !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
     implicit none
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end procedure Tensor_R2_D3_Sym_Destroy
@@ -482,7 +482,7 @@ contains
     !% Return the size of any non-static components of the object.
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Tensor_R2_D3_Sym_Non_Static_Size_Of=0_c_size_t
     return

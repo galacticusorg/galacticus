@@ -42,7 +42,7 @@ contains
     implicit none
     type(galacticFilterMainBranch)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticFilterMainBranch()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(galacticFilterMainBranch), intent(inout)         :: self
     type (treeNode                ), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchPasses=node%isOnMainBranch()
     return

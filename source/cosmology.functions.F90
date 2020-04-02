@@ -186,7 +186,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    cosmologyFunctionsRedshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0
   !#   </code>
   !#  </method>
@@ -196,7 +196,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: redshift</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)
   !#   </code>
   !#  </method>

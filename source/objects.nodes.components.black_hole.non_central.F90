@@ -148,7 +148,7 @@ contains
     double precision                                                 :: binaryRadius      , radialMigrationRate, &
          &                                                              radiusHardBinary
     logical                                                          :: binaryRadiusFound
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

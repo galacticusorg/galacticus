@@ -42,7 +42,7 @@ contains
     implicit none
     type(galacticFilterHaloIsolated)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticFilterHaloIsolated()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(galacticFilterHaloIsolated), intent(inout)         :: self
     type (treeNode                  ), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloIsolatedPasses=.not.node%isSatellite()
     return

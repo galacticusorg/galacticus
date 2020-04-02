@@ -79,7 +79,7 @@ contains
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     kelvin2014GAMAnearDistanceMinimum=self%distanceMinimumSurvey
     return
@@ -93,7 +93,7 @@ contains
     double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})

@@ -413,7 +413,7 @@ contains
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: alpha            , radiusOverScaleRadius      , &
          &                                                             scaleRadius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get components.
     basic             => node%basic            (                 )
@@ -1137,7 +1137,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha, concentration, radius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     einastoEnclosedMassScaleFree=+Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
          &                       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
@@ -1153,7 +1153,7 @@ contains
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha               , concentration, radius
     double precision                                             :: densityNormalization
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
@@ -1174,7 +1174,7 @@ contains
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alpha , concentration, &
          &                                                          radius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (radius <= 0.0d0) then
        einastoPotentialScaleFree=-((2.0d0/alpha)**(1.0d0/alpha))                                                          &
@@ -1751,7 +1751,7 @@ contains
     double precision                                                        :: radiusMinimum              , radiusMaximum
     type            (fgsl_function              )                           :: integrandFunction
     type            (fgsl_integration_workspace )                           :: integrationWorkspace
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusMinimum=max(       radius,radiusTiny )
     radiusMaximum=max(10.0d0*radius,radiusLarge)

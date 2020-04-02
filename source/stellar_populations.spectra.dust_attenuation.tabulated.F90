@@ -54,7 +54,7 @@ contains
          &                                                                     vBandAttenuation
     double precision                                        , parameter     :: xV=1.0d0/(5504.61227375652d0/angstromsPerMicron)
     double precision                                                        :: x
-    !GCC$ attributes unused :: age
+    !$GLC attributes unused :: age
 
     x=1.0d0/(wavelength/angstromsPerMicron)
     tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)/self%attenuationTable%interpolate(xV)

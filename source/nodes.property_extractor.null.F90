@@ -42,7 +42,7 @@ contains
     implicit none
     type(nodePropertyExtractorNull)                :: nullConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     nullConstructorParameters=nodePropertyExtractorNull()
     return
@@ -53,7 +53,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeUnknown
     implicit none
     class(nodePropertyExtractorNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nullType=outputAnalysisPropertyTypeUnknown
     return

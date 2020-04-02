@@ -116,7 +116,7 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     normalOperate=+(                                                                               &
          &          +Error_Function((self% rangeUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance) &

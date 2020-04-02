@@ -130,7 +130,7 @@ contains
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     negativeBinomialCumulative=0.0d0
     call Galacticus_Error_Report('cumulative distribution function is not implemented'//{introspection:location})
@@ -143,7 +143,7 @@ contains
     implicit none
     class           (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     double precision                                                , intent(in   ) :: p
-    !GCC$ attributes unused :: self, p
+    !$GLC attributes unused :: self, p
 
     negativeBinomialInverse=0
     call Galacticus_Error_Report('inverse function is not implemented'//{introspection:location})
@@ -154,7 +154,7 @@ contains
     !% Return the minimum possible value in a negative binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     negativeBinomialMinimum=0
     return
@@ -164,7 +164,7 @@ contains
     !% Return the maximum possible value in a negative binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     negativeBinomialMaximum=huge(0)
     return

@@ -229,7 +229,7 @@ contains
     character       (len=26                                         )                        :: label
     type            (rootFinder                                     ), save                  :: finder
     !$omp threadprivate(finder)
-    !GCC$ attributes unused :: randomNumberGenerator_
+    !$GLC attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in sigma.
     call self%excursionSetTest(node)
@@ -316,7 +316,7 @@ contains
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
     double precision                                                 , intent(in   ) :: deltaCritical , haloMass, &
          &                                                                              massResolution, time
-    !GCC$ attributes unused :: deltaCritical, haloMass, massResolution, time
+    !$GLC attributes unused :: deltaCritical, haloMass, massResolution, time
 
     generalizedPressSchechterStepMaximum=self%deltaStepMaximum
     return
@@ -332,7 +332,7 @@ contains
          &                                                                                     massResolution, time
     integer                                                         , intent(in   )         :: bound
     type            (treeNode                                      ), intent(inout), target :: node
-    !GCC$ attributes unused :: bound
+    !$GLC attributes unused :: bound
 
     generalizedPressSchechterProbabilityBound=self%probability(haloMass,deltaCritical,time,massResolution,node)
     return

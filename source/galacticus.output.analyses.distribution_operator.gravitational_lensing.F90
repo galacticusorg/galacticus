@@ -151,7 +151,7 @@ contains
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: distributionNew
-    !GCC$ attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
+    !$GLC attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
 
     distributionNew=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})
@@ -177,7 +177,7 @@ contains
     type            (fgsl_function                                )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                   )                                                       :: integrationWorkspace
     logical                                                                                                               :: integrationReset
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
     !$ call self%tabulateLock(outputIndex)%setRead()

@@ -77,7 +77,7 @@ contains
     implicit none
     class(starFormationTimescaleDisksFixed), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     fixedTimescale=self%timescaleValue
     return

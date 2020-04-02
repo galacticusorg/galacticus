@@ -47,7 +47,7 @@ contains
     implicit none
     type(nodePropertyExtractorNodeIndices)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorNodeIndices()
     return
@@ -58,7 +58,7 @@ contains
     implicit none
     class           (nodePropertyExtractorNodeIndices), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     nodeIndicesElementCount=5
     return
@@ -72,7 +72,7 @@ contains
     type            (treeNode                        ), intent(inout)              :: node
     double precision                                  , intent(in   )              :: time
     type            (multiCounter                    ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: self, time, instance
+    !$GLC attributes unused :: self, time, instance
 
     allocate(nodeIndicesExtract(5))
     nodeIndicesExtract   (1:4)=[                             &
@@ -96,7 +96,7 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesNames
     class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(nodeIndicesNames(5))
     nodeIndicesNames=[                           &
@@ -115,7 +115,7 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesDescriptions
     class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(nodeIndicesDescriptions(5))
     nodeIndicesDescriptions=[                                          &
@@ -134,7 +134,7 @@ contains
     double precision                                  , allocatable  , dimension(:) :: nodeIndicesUnitsInSI
     class           (nodePropertyExtractorNodeIndices), intent(inout)               :: self
     double precision                                  , intent(in   )               :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(nodeIndicesUnitsInSI(5))
     nodeIndicesUnitsInSI=0.0d0
@@ -146,7 +146,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorNodeIndices), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nodeIndicesType=outputAnalysisPropertyTypeLinear
     return

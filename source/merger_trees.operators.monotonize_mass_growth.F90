@@ -46,7 +46,7 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
     return
@@ -65,7 +65,7 @@ contains
     type            (mergerTreeWalkerIsolatedNodes         )                        :: treeWalker
     logical                                                                         :: didModifyTree
     double precision                                                                :: massProgenitor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over trees.
     treeCurrent => tree

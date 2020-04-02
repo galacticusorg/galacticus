@@ -249,39 +249,37 @@ contains
     return
   end subroutine evolveForestsAutoHook
 
-  subroutine evolveForestsStateStore(self,stateFile,fgslStateFile,stateOperationID)
+  subroutine evolveForestsStateStore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the internal state of this object.
-    use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
     class  (taskEvolveForests), intent(inout) :: self
     integer                   , intent(in   ) :: stateFile
-    type   (fgsl_file        ), intent(in   ) :: fgslStateFile
+    type   (c_ptr            ), intent(in   ) :: gslStateFile
     integer(c_size_t         ), intent(in   ) :: stateOperationID
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeConstructor_%stateStore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateStore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeEvolver_    %stateStore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOutputter_  %stateStore(stateFile,fgslStateFile,stateOperationID)
+    call evolveForestsMergerTreeConstructor_%stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeEvolver_    %stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOutputter_  %stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateStore
 
-  subroutine evolveForestsStateRestore(self,stateFile,fgslStateFile,stateOperationID)
+  subroutine evolveForestsStateRestore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the internal state of this object.
-    use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
     class  (taskEvolveForests), intent(inout) :: self
     integer                   , intent(in   ) :: stateFile
-    type   (fgsl_file        ), intent(in   ) :: fgslStateFile
+    type   (c_ptr            ), intent(in   ) :: gslStateFile
     integer(c_size_t         ), intent(in   ) :: stateOperationID
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeConstructor_%stateRestore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeEvolver_    %stateRestore(stateFile,fgslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOutputter_  %stateRestore(stateFile,fgslStateFile,stateOperationID)
+    call evolveForestsMergerTreeConstructor_%stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeEvolver_    %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOutputter_  %stateRestore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateRestore
 

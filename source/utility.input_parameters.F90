@@ -1123,7 +1123,7 @@ contains
     implicit none
     class    (inputParameters), intent(in   ) :: self
     character(len=*          ), intent(in   ) :: parameterName
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (trim(parameterName) == "value") call Galacticus_Error_Report('"value" is not a valid parameter name'//{introspection:location})
     return

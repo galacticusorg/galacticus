@@ -287,7 +287,7 @@ contains
     type            (fgsl_function             )                                        :: integrandFunction
     type            (fgsl_integration_workspace)                                        :: integrationWorkspace
     logical                                                                             :: integrationReset                                , useRapidEvaluation
-    !GCC$ attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -667,7 +667,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine sedFitFunctionChanged

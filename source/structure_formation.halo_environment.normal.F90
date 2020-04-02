@@ -336,7 +336,7 @@ contains
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)

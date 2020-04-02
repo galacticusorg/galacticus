@@ -475,7 +475,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_     , wavenumber_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -509,7 +509,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -538,7 +538,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -562,7 +562,7 @@ contains
     implicit none
     class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     integer                               , intent(in   ), optional :: component
-    !GCC$ attributes unused :: self, component
+    !$GLC attributes unused :: self, component
 
     baryonsDarkMatterIsWavenumberDependent=.true.
     return

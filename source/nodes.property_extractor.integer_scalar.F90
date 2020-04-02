@@ -90,7 +90,7 @@ contains
     !% Interface for integerScalar property units.
     implicit none
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     integerScalarUnitsInSI=0.0d0
     return

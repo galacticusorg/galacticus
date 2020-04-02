@@ -162,7 +162,7 @@ contains
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

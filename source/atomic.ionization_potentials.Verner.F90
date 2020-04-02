@@ -522,7 +522,7 @@ contains
     implicit none
     type(atomicIonizationPotentialVerner)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicIonizationPotentialVerner()
     return
@@ -535,7 +535,7 @@ contains
     implicit none
     class  (atomicIonizationPotentialVerner), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     vernerPotential=vernerPotentialIonization(atomicNumber,electronNumber)
     return

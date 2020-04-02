@@ -61,7 +61,7 @@ contains
     double precision                           , intent(  out), allocatable, dimension(:) :: mass        , weight     , &
          &                                                                                   massMinimum , massMaximum
     integer                                                                               :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     call self%read(mass,weight)
     if (allocated(weight)) then

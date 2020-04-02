@@ -1213,7 +1213,10 @@ contains
     taskCount  =0
     !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrationReset,integrandFunction,integrationWorkspace)
     allocate(massFunctionCovarianceSelfCopy,mold=self)
+    !$omp critical(massFunctionCovarianceDeepCopy)
+    !# <deepCopyReset variables="self"/>
     !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+    !$omp end critical(massFunctionCovarianceDeepCopy)
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumI        ,[countFields])
@@ -1293,7 +1296,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskMassFunctionCovariance), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massFunctionCovarianceRequiresOutputFile=.false.
     return

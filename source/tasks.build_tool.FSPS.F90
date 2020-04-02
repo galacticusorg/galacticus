@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolFSPS)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolFSPS()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: fspsPath, fspsVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: FSPS tool build')
     call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolFSPS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolFSPSRequiresOutputFile=.false.
     return

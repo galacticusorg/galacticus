@@ -82,7 +82,7 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     virialTemperature=self%darkMatterHaloScale_%virialTemperature(node)
     return
@@ -95,7 +95,7 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     virialTemperatureLogSlope=0.0d0
     return

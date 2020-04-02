@@ -143,7 +143,7 @@ contains
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     densityContrastsElementCount=self%elementCount_
     return
@@ -165,7 +165,7 @@ contains
     !$omp threadprivate(finder)
     integer                                                                              :: i
     double precision                                                                     :: enclosedMass                 , radius
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(densityContrastsExtract(self%elementCount_))
     ! Initialize our root finder.
@@ -206,7 +206,7 @@ contains
     double precision                                       , intent(in   )              :: time
     integer                                                                             :: i
     character       (len=32                               )                             :: name
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityContrastsNames(self%elementCount_))
     do i=1,self%countDensityContrasts
@@ -226,7 +226,7 @@ contains
     double precision                                       , intent(in   )              :: time
     integer                                                                             :: i
     character       (len=64                               )                             :: description
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityContrastsDescriptions(self%elementCount_))
     do i=1,self%countDensityContrasts
@@ -246,7 +246,7 @@ contains
     class           (nodePropertyExtractorDensityContrasts), intent(inout)               :: self
     double precision                                       , intent(in   )               :: time
     integer                                                                              :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityContrastsUnitsInSI(self%elementCount_))
     do i=1,self%countDensityContrasts
@@ -260,7 +260,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDensityContrasts), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     densityContrastsType=outputAnalysisPropertyTypeLinear
     return

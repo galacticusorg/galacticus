@@ -128,7 +128,7 @@ contains
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     rotationCurveElementCount=self%elementCount_
     return
@@ -154,7 +154,7 @@ contains
     class           (nodeComponentDarkMatterProfile     ), pointer                    :: darkMatterProfile
     integer                                                                           :: i
     double precision                                                                  :: radius                , radiusVirial
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(rotationCurveExtract(self%elementCount_))
     radiusVirial                                         =  0.0d0
@@ -211,7 +211,7 @@ contains
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
     double precision                                    , intent(in   )              :: time
     integer                                                                          :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(rotationCurveNames(self%elementCount_))
     do i=1,size(self%radii)
@@ -229,7 +229,7 @@ contains
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
     double precision                                    , intent(in   )              :: time
     integer                                                                          :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(rotationCurveDescriptions(self%elementCount_))
     do i=1,size(self%radii)
@@ -249,7 +249,7 @@ contains
     class           (nodePropertyExtractorRotationCurve), intent(inout)               :: self
     double precision                                    , intent(in   )               :: time
     integer                                                                           :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(rotationCurveUnitsInSI(self%elementCount_))
     do i=1,size(self%radii)
@@ -265,7 +265,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRotationCurve), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rotationCurveType=outputAnalysisPropertyTypeLinear
     return

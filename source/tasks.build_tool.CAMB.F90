@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolCAMB)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolCAMB()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: CAMB tool build')
     call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolCAMB), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolCAMBRequiresOutputFile=.false.
     return

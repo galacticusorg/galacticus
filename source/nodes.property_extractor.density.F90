@@ -128,7 +128,7 @@ contains
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
     double precision                                     , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     densityProfileElementCount=self%elementCount_
     return
@@ -154,7 +154,7 @@ contains
     class           (nodeComponentDarkMatterProfile     ), pointer                    :: darkMatterProfile
     integer                                                                           :: i
     double precision                                                                  :: radius                , radiusVirial
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(densityProfileExtract(self%elementCount_))
     radiusVirial                                         =  0.0d0
@@ -215,7 +215,7 @@ contains
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
     double precision                                     , intent(in   )              :: time
     integer                                                                           :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityProfileNames(self%elementCount_))
     do i=1,size(self%radii)
@@ -233,7 +233,7 @@ contains
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
     double precision                                     , intent(in   )              :: time
     integer                                                                           :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityProfileDescriptions(self%elementCount_))
     do i=1,size(self%radii)
@@ -252,7 +252,7 @@ contains
     class           (nodePropertyExtractorDensityProfile), intent(inout)               :: self
     double precision                                     , intent(in   )               :: time
     integer                                                                            :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(densityProfileUnitsInSI(self%elementCount_))
     do i=1,size(self%radii)
@@ -268,7 +268,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDensityProfile), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     densityProfileType=outputAnalysisPropertyTypeLinear
     return

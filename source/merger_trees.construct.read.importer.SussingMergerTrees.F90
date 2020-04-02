@@ -288,7 +288,7 @@ contains
     !% Close a {\normalfont \ttfamily sussing} format merger tree file.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine sussingClose
@@ -297,7 +297,7 @@ contains
     !% Return false since this format does not permit reading of arbitrary subsets of halos from a forest.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingCanReadSubsets=.false.
     return
@@ -308,7 +308,7 @@ contains
     use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingTreesHaveSubhalos=booleanTrue
     return
@@ -319,7 +319,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingMassesIncludeSubhalos=.true.
     return
@@ -330,7 +330,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingAngularMomentaIncludeSubhalos=.true.
     return
@@ -341,7 +341,7 @@ contains
     use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingTreesAreSelfContained=booleanTrue
     return
@@ -352,7 +352,7 @@ contains
     use :: Numerical_Constants_Boolean, only : booleanFalse
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingVelocitiesIncludeHubbleFlow=booleanFalse
     return
@@ -363,7 +363,7 @@ contains
     use :: Numerical_Constants_Boolean, only : booleanTrue
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingPositionsArePeriodic=booleanTrue
     return
@@ -822,7 +822,7 @@ contains
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
-    !GCC$ attributes unused :: i
+    !$GLC attributes unused :: i
 
     ! Compute the inverse of the cube volume.
     sussingTreeWeight   =  1.0d0/self%cubeLength(self%cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
@@ -834,7 +834,7 @@ contains
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     logical                           , intent(in   ) :: positions, velocities
-    !GCC$ attributes unused :: self, positions, velocities
+    !$GLC attributes unused :: self, positions, velocities
 
     sussingPositionsAvailable=.true.
     return
@@ -854,7 +854,7 @@ contains
     !% Return true if particle counts are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingParticleCountAvailable=.false.
     return
@@ -864,7 +864,7 @@ contains
     !% Return true if halo rotation curve velocity maxima are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingVelocityMaximumAvailable=.true.
     return
@@ -874,7 +874,7 @@ contains
     !% Return true if halo velocity dispersions are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingVelocityDispersionAvailable=.true.
     return
@@ -884,7 +884,7 @@ contains
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingAngularMomentaAvailable=.false.
     return
@@ -894,7 +894,7 @@ contains
     !% Return true if angular momenta vectors are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sussingAngularMomenta3DAvailable=.false.
     return
@@ -928,7 +928,7 @@ contains
     class           (nodeData                 ), intent(in   )                 :: node
     double precision                           , intent(  out), dimension(:  ) :: time
     double precision                           , intent(  out), dimension(:,:) :: position, velocity
-    !GCC$ attributes unused :: self, node, time, position, velocity
+    !$GLC attributes unused :: self, node, time, position, velocity
 
     call Galacticus_Error_Report('subhalo traces are not available'//{introspection:location})
     return
@@ -940,7 +940,7 @@ contains
     integer(c_size_t                 )                :: sussingSubhaloTraceCount
     class  (mergerTreeImporterSussing), intent(inout) :: self
     class  (nodeData                 ), intent(in   ) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! No particle data is available.
     sussingSubhaloTraceCount=0
@@ -962,7 +962,7 @@ contains
          &                                                                                   requireSpin3D
     type            (varying_string           ), intent(in   ), optional   , dimension(:) :: requireNamedReals         , requireNamedIntegers
     integer         (c_size_t                 )                                           :: j
-    !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireSpin, requireSpin3D, requireNamedReals, requireNamedIntegers
+    !$GLC attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireSpin, requireSpin3D, requireNamedReals, requireNamedIntegers
 
     ! Decide if this tree should be included.
     if (self%randomNumberGenerator_%uniformSample() <= self%treeSampleRate) then
@@ -1074,7 +1074,7 @@ contains
     logical                           , intent(  out)                            :: treeIndicesAssigned, branchJumpCheckRequired
     type   (importerUnits            ), intent(  out)                            :: massUnits          , lengthUnits            , &
          &                                                                          velocityUnits
-    !GCC$ attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
+    !$GLC attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
 
     call Galacticus_Error_Report('this function should not be accessed'//{introspection:location})
     return

@@ -42,7 +42,7 @@ contains
     implicit none
     type(haloModelPowerSpectrumModifierIdentity)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=haloModelPowerSpectrumModifierIdentity()
     return
@@ -57,7 +57,7 @@ contains
     double precision                                        , intent(inout), dimension(:  )           :: powerSpectrum
     double precision                                        , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                        , intent(in   )                , optional :: mass
-    !GCC$ attributes unused :: self, wavenumber, term, powerSpectrum, mass
+    !$GLC attributes unused :: self, wavenumber, term, powerSpectrum, mass
 
     ! Do nothing, except to set covariance to zero.
     if (present(powerSpectrumCovariance)) powerSpectrumCovariance=0.0d0

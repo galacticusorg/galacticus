@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorAntiLog10)                :: antiLog10ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     antiLog10ConstructorParameters=outputAnalysisPropertyOperatorAntiLog10()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                               ), intent(inout), optional :: node
     integer                                                  , intent(inout), optional :: propertyType
     integer         (c_size_t                               ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, node
+    !$GLC attributes unused :: self, outputIndex, node
 
     antiLog10Operate=10.0d0**propertyValue
     ! Change the property type.

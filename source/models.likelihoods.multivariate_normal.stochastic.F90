@@ -140,7 +140,7 @@ contains
          &                                                                                               realizationCount
     double precision                                                                                  :: temperatureEffective  , likelihoodEffective     , &
          &                                                                                               logDeterminant
-    !GCC$ attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
     ! estimate.
@@ -208,7 +208,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine multivariateNormalStochasticFunctionChanged

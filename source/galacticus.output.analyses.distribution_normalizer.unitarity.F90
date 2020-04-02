@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerUnitarity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerUnitarity()
     return
@@ -56,7 +56,7 @@ contains
     double precision                                               , intent(inout), dimension(:,:) :: covariance
     double precision                                               , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
     double precision                                                                               :: distributionSum
-    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum
+    !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum
 
 
     distributionSum=+sum(distribution   )

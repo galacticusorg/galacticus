@@ -361,7 +361,7 @@ contains
     integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                     , rateCoefficient
-    !GCC$ attributes unused :: self, radiation
+    !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -412,7 +412,7 @@ contains
     integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                     , rateCoefficient
-    !GCC$ attributes unused :: self, radiation
+    !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -463,7 +463,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -544,7 +544,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenChemicalIndex           , electronChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -637,7 +637,7 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient                    , &
          &                                                                  temperatureElectronVolts
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -697,7 +697,7 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                     , parameter     :: rateCoefficient                    =6.4d-10
     double precision                                                     :: rate
-    !GCC$ attributes unused :: radiation, temperature
+    !$GLC attributes unused :: radiation, temperature
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -756,7 +756,7 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: logNaturalTemperatureElectronVolts         , rate                                 , &
          &                                                                  rateCoefficient                            , temperatureElectronVolts
-    !GCC$ attributes unused :: self, radiation
+    !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -829,7 +829,7 @@ contains
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                               , rateCoefficient
-    !GCC$ attributes unused :: self, radiation
+    !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -883,7 +883,7 @@ contains
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: log10Temperature                   , rate                                 , &
          &                                                                  rateCoefficient                    , temperatureElectronVolts
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -940,7 +940,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1023,7 +1023,7 @@ contains
          &                                                                  electronChemicalIndex
     double precision                                                     :: logNaturalTemperatureElectronVolts        , rate                               , &
          &                                                                  rateCoefficient                           , temperatureElectronVolts
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1094,7 +1094,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
          &                                                                  atomicHydrogenChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1159,7 +1159,7 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient                          , &
          &                                                                  temperatureElectronVolts
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1228,7 +1228,7 @@ contains
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                               , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1284,7 +1284,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
@@ -1350,7 +1350,7 @@ contains
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                            , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1439,7 +1439,7 @@ contains
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1533,7 +1533,7 @@ contains
     ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Angstroms).
     double precision                                     , parameter     :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
     double precision                                                     :: rate                                                                                                   , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1587,7 +1587,7 @@ contains
     integer                                              , save          :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1677,7 +1677,7 @@ contains
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                              , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1764,7 +1764,7 @@ contains
     double precision                                     , parameter     :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
     integer                                              , save          :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                                                                                        , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
@@ -1865,7 +1865,7 @@ contains
     integer                                              , save                     :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                             electronChemicalIndex
     double precision                                                                :: rate                                                                                                             , rateCoefficient
-    !GCC$ attributes unused :: self, temperature
+    !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then

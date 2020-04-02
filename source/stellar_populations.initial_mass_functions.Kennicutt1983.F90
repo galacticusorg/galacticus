@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionKennicutt1983)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKennicutt1983()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionKennicutt1983), intent(inout) :: self
     type (varying_string                  )                :: kennicutt1983Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kennicutt1983Label="Kennicutt1983"
     return

@@ -42,7 +42,7 @@ contains
     implicit none
     type(galacticFilterTreeHosted)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticFilterTreeHosted()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(galacticFilterTreeHosted), intent(inout)         :: self
     type (treeNode                ), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeHostedPasses=associated(node%hostTree)
     return

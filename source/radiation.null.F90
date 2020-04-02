@@ -42,7 +42,7 @@ contains
     implicit none
     type(radiationFieldNull)                :: self
     type(inputParameters   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=radiationFieldNull()
     return
@@ -54,7 +54,7 @@ contains
     class           (radiationFieldNull), intent(inout) :: self
     double precision                    , intent(in   ) :: wavelength
     type            (treeNode          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, wavelength, node
+    !$GLC attributes unused :: self, wavelength, node
 
     nullFlux=0.0d0
     return

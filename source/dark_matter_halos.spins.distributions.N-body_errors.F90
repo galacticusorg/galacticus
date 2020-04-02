@@ -790,7 +790,7 @@ contains
     implicit none
     class(haloSpinDistributionNbodyErrors), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     nbodyErrorsSample=0.0d0
     call Galacticus_Error_Report('sampling from distribution is not implemented'//{introspection:location})

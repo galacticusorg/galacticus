@@ -41,7 +41,7 @@ module Tasks
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    taskRequiresOutputFile=.true.
   !#   </code>
   !#  </method>

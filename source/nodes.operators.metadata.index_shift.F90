@@ -42,7 +42,7 @@ contains
     implicit none
     type(nodeOperatorIndexShift)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=nodeOperatorIndexShift()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(nodeOperatorIndexShift), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Shift the index from our node to the parent node.
     call node%parent%indexSet(node%index())

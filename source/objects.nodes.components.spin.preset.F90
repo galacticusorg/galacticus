@@ -100,7 +100,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
     
     if (defaultSpinComponent%presetIsActive()) &
          & call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinPreset')
@@ -135,7 +135,7 @@ contains
     procedure(                 ), intent(inout), pointer :: interruptProcedure
     integer                     , intent(in   )          :: propertyType
     class    (nodeComponentSpin)               , pointer :: spin
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -186,7 +186,7 @@ contains
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentSpin )               , pointer :: spinParent , spin
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spin        => node      %spin  ()
     nodeParent  => node      %parent

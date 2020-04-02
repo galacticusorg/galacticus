@@ -47,7 +47,7 @@ contains
     implicit none
     type(blackHoleBinaryRecoilCampanelli2007)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryRecoilCampanelli2007()
     return
@@ -69,7 +69,7 @@ contains
     double precision                                                     :: alpha1Orthogonal      , alpha1Parallel        , alpha2Orthogonal        , &
          &                                                                  alpha2Parallel
     double precision                                                     :: phi                   , theta
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! If either black hole has non-positive mass, recoil velocity must be zero.
     if (blackHole1%mass() <= 0.0d0 .or. blackHole2%mass() <= 0.0d0) then

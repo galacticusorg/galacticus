@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskLocalGroupDatabase)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskLocalGroupDatabase()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskLocalGroupDatabase), intent(inout), target   :: self
     integer                        , intent(  out), optional :: status
     type   (localGroupDB          )                          :: database
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: localGroupDatabase')
     database=localGroupDB()
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskLocalGroupDatabase), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupDatabaseRequiresOutputFile=.false.
     return

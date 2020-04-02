@@ -108,7 +108,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: mass, node, time, expansionFactor, collapsing
+    !$GLC attributes unused :: mass, node, time, expansionFactor, collapsing
 
     fixedValue=+self%criticalOverdensity_
     return
@@ -122,7 +122,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, mass, node, time, expansionFactor, collapsing
+    !$GLC attributes unused :: self, mass, node, time, expansionFactor, collapsing
 
     fixedGradientTime=0.0d0
     return
@@ -136,7 +136,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     fixedGradientMass=0.0d0
     return
@@ -146,7 +146,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fixedIsMassDependent=.false.
     return
@@ -156,7 +156,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fixedIsNodeDependent=.false.
     return

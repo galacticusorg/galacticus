@@ -76,7 +76,7 @@ contains
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionUniform), intent(inout)               :: self
     double precision                                                 , intent(  out), dimension(:) :: x
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     x=Make_Range(0.0d0,1.0d0,size(x),rangeType=rangeTypeLinear,rangeBinned=.true.)
     return

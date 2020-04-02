@@ -558,7 +558,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(vector3D), intent(in   ) :: self, other
-    !GCC$ attributes unused :: self, other
+    !$GLC attributes unused :: self, other
 
     vector3DComparisonUnimplemented=.false.
     call Galacticus_Error_Report('comparison operator is unimplemented'//{introspection:location})

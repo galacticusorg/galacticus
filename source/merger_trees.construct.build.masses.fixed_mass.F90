@@ -182,7 +182,7 @@ contains
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
     integer                                                                                    :: indexStart , i
-    !GCC$ attributes unused :: weight
+    !$GLC attributes unused :: weight
 
     node  => treeNode      (                 )
     basic => node    %basic(autoCreate=.true.)

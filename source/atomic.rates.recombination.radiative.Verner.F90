@@ -543,7 +543,7 @@ contains
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateRadiativeVerner1996()
     return
@@ -584,7 +584,7 @@ contains
     integer                                                                               :: electronNumber
     double precision                                                                      :: temperatureScaled, fitFactor       , &
          &                                                                                   logTemperature
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     !# <optionalArgument name="level" defaultsTo="recombinationCaseA" />
 
     ! Set zero rate by default.

@@ -243,7 +243,7 @@ contains
          &                                                                energyInputRate                               , heatingRate          , &
          &                                                                massAccretionRate                             , restMassAccretionRate, &
          &                                                                x
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -318,7 +318,7 @@ contains
     type            (treeNode              ), pointer       :: nodeHost
     class           (nodeComponentBlackHole), pointer       :: blackHoleHost   , blackHole
     double precision                                        :: massBlackHoleNew, spinBlackHoleNew
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Find the node to merge with.
     nodeHost      => node    %mergesWith(                 )
@@ -369,7 +369,7 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    !$GLC attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
 
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
@@ -395,7 +395,7 @@ contains
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                   , parameter              :: extraPropertyCount =1
-    !GCC$ attributes unused :: time, integerPropertyCount
+    !$GLC attributes unused :: time, integerPropertyCount
 
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
@@ -408,8 +408,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentSpheroid, treeNode
     use :: Kind_Numbers    , only : kind_int8
@@ -425,7 +424,7 @@ contains
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
     double precision                                                 :: restMassAccretionRate
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
+    !$GLC attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
 
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then

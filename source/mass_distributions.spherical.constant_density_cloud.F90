@@ -107,7 +107,7 @@ contains
     class  (massDistributionConstantDensityCloud), intent(inout)           :: self
     class  (coordinate                          ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
-    !GCC$ attributes unused :: self, coordinates, logarithmic
+    !$GLC attributes unused :: self, coordinates, logarithmic
     
     constantDensityCloudDensityGradientRadial=0.0d0
     return

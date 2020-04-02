@@ -984,7 +984,7 @@ contains
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter  )                , intent(in   ) :: outputInstance
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, outputInstance
+    !$GLC attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, outputInstance
 
     doubleProperty=doubleProperty+1
     doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue
@@ -1000,7 +1000,7 @@ contains
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision            , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     return
   end subroutine Abundances_Post_Output
@@ -1011,7 +1011,7 @@ contains
     class           (abundances), intent(in   ) :: self
     integer                     , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision            , intent(in   ) :: time
-    !GCC$ attributes unused :: self, integerPropertyCount, time
+    !$GLC attributes unused :: self, integerPropertyCount, time
 
     doublePropertyCount=doublePropertyCount+propertyCount
     return
@@ -1030,7 +1030,7 @@ contains
     character       (len=*            )              , intent(in   ) :: comment                , prefix
     double precision                                 , intent(in   ) :: unitsInSI
     integer                                                          :: iElement
-    !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    !$GLC attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
 
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'Metals'

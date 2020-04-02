@@ -141,7 +141,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakBackgroundMinimum=0.0d0
     call Galacticus_Error_Report('no minimum exists'//{introspection:location})
@@ -153,7 +153,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakBackgroundMaximum=0.0d0
     call Galacticus_Error_Report('no maximum exists'//{introspection:location})

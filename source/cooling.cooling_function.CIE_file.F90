@@ -269,7 +269,7 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-    !GCC$ attributes unused :: chemicalDensities, radiation
+    !$GLC attributes unused :: chemicalDensities, radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -443,7 +443,7 @@ contains
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass   ), intent(inout) :: radiation
-    !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
+    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
 
     ! Logarithmic slope is always 2 for a CIE cooling function.
     cieFileCoolingFunctionDensityLogSlope=2.0d0

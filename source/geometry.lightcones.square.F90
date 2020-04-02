@@ -652,7 +652,7 @@ contains
     integer         (c_size_t               ), intent(in   ) :: instance
     class           (nodeComponentPosition  ), pointer       :: position
     integer                                                  :: i
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     ! Get the position component.
     position => node%position()

@@ -146,7 +146,7 @@ contains
     class           (nodeComponentDynamicsStatistics)               , pointer      :: dynamicsStatistics
     double precision                                 , allocatable  , dimension(:) :: timeRecord
     double precision                                                               :: time
-    !GCC$ attributes unused :: odeConverged, propertyType
+    !$GLC attributes unused :: odeConverged, propertyType
 
     ! Do not compute rates if this component is not active.
     if (.not.defaultDynamicsStatisticsComponent%barsIsActive().or..not.node%isSatellite()) return
@@ -244,7 +244,7 @@ contains
     type            (hdf5Object                     )                              :: outputs                  , output              , &
          &                                                                            dynamics                 , tree                , &
          &                                                                            dataset
-    !GCC$ attributes unused :: nodePassesFilter
+    !$GLC attributes unused :: nodePassesFilter
 
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then

@@ -45,7 +45,7 @@ contains
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
@@ -71,7 +71,7 @@ contains
     type (treeNode                         ), intent(inout) :: node
     class(nodeComponentBasic               ), pointer       :: basic
     class(nodeComponentFormationTime       ), pointer       :: formationTime
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                      =>  node         %basic        ()
     formationTime              =>  node         %formationTime()
@@ -86,7 +86,7 @@ contains
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply return unit rate.
     formationTimeTimeAvailableIncreaseRate=1.0d0

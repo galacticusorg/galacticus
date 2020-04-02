@@ -21,7 +21,7 @@
 
 module Numerical_Random_Numbers
   !% Provides a class that implements random number generators.
-  use :: FGSL, only : FGSL_Long
+  use, intrinsic :: ISO_C_Binding, only : c_long
   private
 
   !# <functionClass>
@@ -54,8 +54,8 @@ module Numerical_Random_Numbers
   !#   <description>Reset the seed for this random number generator.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer(FGSL_Long), intent(in   ) :: seed</argument>
-  !#   <argument>logical           , intent(in   ) :: offset</argument>
+  !#   <argument>integer(c_long), intent(in   ) :: seed</argument>
+  !#   <argument>logical        , intent(in   ) :: offset</argument>
   !#  </method>
   !# </functionClass>
   

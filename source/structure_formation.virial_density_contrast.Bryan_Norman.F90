@@ -113,7 +113,7 @@ contains
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     double precision                                                                :: x
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
@@ -138,7 +138,7 @@ contains
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     double precision                                                                :: x
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
@@ -175,7 +175,7 @@ contains
     double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
 
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)

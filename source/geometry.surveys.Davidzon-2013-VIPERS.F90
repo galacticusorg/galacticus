@@ -131,7 +131,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     davidzon2013VIPERSFieldCount=davidzon2013VIPERSFields
     return
@@ -143,7 +143,7 @@ contains
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
@@ -157,7 +157,7 @@ contains
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
@@ -206,7 +206,7 @@ contains
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
     return
@@ -232,7 +232,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{davidzon_vimos_2013} survey.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     davidzon2013VIPERSAngularPowerMaximumDegree=davidzon2013AngularPowerMaximumL
     return

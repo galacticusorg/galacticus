@@ -51,7 +51,7 @@ contains
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Build the object.
     self=surveyGeometryBernardi2013SDSS()
@@ -71,7 +71,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bernardi2013SDSSFieldCount=1
     return
@@ -85,7 +85,7 @@ contains
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                         , intent(in   ), optional :: field
     double precision                                                          :: logarithmicMass
-    !GCC$ attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
@@ -111,7 +111,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bernardi2013SDSSAngularPowerMaximumDegree=bernardi2013SDSSAngularPowerMaximumL
     return
@@ -123,7 +123,7 @@ contains
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
     return

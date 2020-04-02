@@ -50,7 +50,7 @@ module Merger_Tree_Outputters
   !#   <pass>yes</pass>
   !#   <argument>class(mergerTreeOutputterClass), intent(inout) :: reduced</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, reduced
+  !#    !$GLC attributes unused :: self, reduced
   !#   </code>
   !#  </method>
   !# </functionClass>

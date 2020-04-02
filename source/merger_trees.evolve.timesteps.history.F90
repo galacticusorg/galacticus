@@ -223,7 +223,7 @@ contains
     integer         (c_size_t             )                         :: timeIndex
     double precision                                                :: rateStarFormationDisk    , massHotGas, &
          &                                                             rateStarFormationSpheroid, time
-    !GCC$ attributes unused :: deadlockStatus
+    !$GLC attributes unused :: deadlockStatus
 
     select type (self)
     class is (mergerTreeEvolveTimestepHistory)

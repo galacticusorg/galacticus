@@ -47,7 +47,7 @@ contains
     implicit none
     type(operatorUnaryLogarithm)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=operatorUnaryLogarithm()
     return
@@ -58,7 +58,7 @@ contains
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
     double precision                        , intent(in   ) :: x
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     logarithmOperate=log(x)
     return
@@ -69,7 +69,7 @@ contains
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
     double precision                        , intent(in   ) :: f
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (f < expArgumentHuge) then
        logarithmUnoperate=exp (f)

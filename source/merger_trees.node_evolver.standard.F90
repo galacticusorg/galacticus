@@ -728,7 +728,7 @@ contains
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
     ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
     ! revisited.
-    !GCC$ attributes unused :: evaluate
+    !$GLC attributes unused :: evaluate
 
     ! Set state to indicate that rate calculations are for inactive variables.
     rateComputeState=standardSelf%propertyTypeIntegrator
@@ -1110,7 +1110,7 @@ contains
     type (treeNode                     )               , pointer :: parentNode, satelliteNode, &
          &                                                          mergeeNode, hostNode
     type (varying_string               )                         :: message
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get pointer to parent node.
     parentNode => node%parent
@@ -1218,7 +1218,7 @@ contains
     implicit none
     class(*       ), intent(inout)          :: self
     type (treeNode), intent(inout), pointer :: node, nodePromotion
-    !GCC$ attributes unused :: nodePromotion
+    !$GLC attributes unused :: nodePromotion
     
     select type (self)
     class is (mergerTreeNodeEvolverStandard)

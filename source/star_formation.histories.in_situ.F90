@@ -176,7 +176,7 @@ contains
     integer                                                     :: historyCount
     integer         (c_size_t                  )                :: iHistory
     double precision                                            :: timeNode
-    !GCC$ attributes unused :: self, historyStarFormation, abundancesFuel
+    !$GLC attributes unused :: self, historyStarFormation, abundancesFuel
 
     basic                                 =>              node                %basic()
     timeNode                              =               basic               %time ()
@@ -259,7 +259,7 @@ contains
     double precision                            , allocatable  , dimension(:) :: timeSteps
     double precision                            , parameter                   :: massStellarMinimum  =1.0d0
     integer                                                                   :: i
-    !GCC$ attributes unused :: self, abundancesStellar
+    !$GLC attributes unused :: self, abundancesStellar
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)

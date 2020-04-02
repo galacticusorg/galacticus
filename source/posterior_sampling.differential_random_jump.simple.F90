@@ -45,7 +45,7 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpSimple)                 :: self
     type(inputParameters                            ), intent(inout)  :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpSimple()
     return
@@ -59,7 +59,7 @@ contains
     class           (posteriorSampleStateClass                  )                                   , intent(inout) :: simulationState
     double precision                                             , dimension(size(modelParameters_))                :: simpleSample
     integer                                                                                                         :: i
-    !GCC$ attributes unused :: self, simulationState
+    !$GLC attributes unused :: self, simulationState
 
     simpleSample=0.0d0
     do i=1,size(modelParameters_)

@@ -42,7 +42,7 @@ contains
     implicit none
     type(coolingRateZero)                :: self
     type(inputParameters), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=coolingRateZero()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class           (coolingRateZero), intent(inout) :: self
     type            (treeNode       ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroRate=0.0d0
     return

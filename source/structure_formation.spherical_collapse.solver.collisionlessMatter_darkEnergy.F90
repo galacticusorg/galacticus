@@ -473,7 +473,7 @@ contains
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
     class           (table2DLinLinLin                             ), intent(inout) :: linearNonlinearMap_
-    !GCC$ attributes unused :: self, time, linearNonlinearMap_
+    !$GLC attributes unused :: self, time, linearNonlinearMap_
 
     call Galacticus_Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
     return

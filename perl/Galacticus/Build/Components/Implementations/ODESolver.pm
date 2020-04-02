@@ -92,7 +92,7 @@ sub Implementation_ODE_Name_From_Index {
     $function->{'content'}  = "";
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@unused)}
+!$GLC attributes unused :: {join(",",@unused)}
 CODE
     }
     # If this component is an extension, first call on the extended type.
@@ -209,7 +209,7 @@ sub Implementation_ODE_Serialize_Count {
     $function->{'content'}  = "";
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@unused)}
+!$GLC attributes unused :: {join(",",@unused)}
 CODE
     }
     # If this component is an extension, first call on the extended type.
@@ -336,7 +336,7 @@ sub Implementation_ODE_Serialize_Values {
     $function->{'content'} = "";
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@unused)}
+!$GLC attributes unused :: {join(",",@unused)}
 CODE
     }
     # Initialize offset if required.
@@ -467,7 +467,7 @@ sub Implementation_ODE_Deserialize_Values {
     $function->{'content'} = "";
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@unused)}
+!$GLC attributes unused :: {join(",",@unused)}
 CODE
     }
     # Initialize offset if required.
@@ -557,10 +557,6 @@ sub Implementation_ODE_Offsets {
 		 intrinsic  => "integer",
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "propertyType" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "propertySize" ]
 	     }
 	    ]
     };
@@ -580,8 +576,8 @@ sub Implementation_ODE_Offsets {
 	 ||
 	 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers           ($code::member)
 	);
-    push(@code::unused,"propertySize")
-	unless 
+    push(@{$function->{'variables'}},{intrinsic => "integer", variables => [ "propertySize"] })
+	if 
 	(
 	 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers           ($code::member)
 	);
@@ -589,7 +585,7 @@ sub Implementation_ODE_Offsets {
     $function->{'content'} = "";
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@unused)}
+!$GLC attributes unused :: {join(",",@unused)}
 CODE
     }
     # If this component is an extension, compute offsets of the extended type.

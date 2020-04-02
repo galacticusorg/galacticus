@@ -76,7 +76,7 @@ contains
     class           (galacticDynamicsBarInstabilityFixedTimescale), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(  out) :: externalDrivingSpecificTorque, timescale
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     timescale                    =self%timescale_
     externalDrivingSpecificTorque=0.0d0

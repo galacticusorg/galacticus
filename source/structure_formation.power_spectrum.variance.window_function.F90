@@ -48,7 +48,7 @@ module Power_Spectrum_Window_Functions
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#     !GCC$ attributes unused :: self
+  !#     !$GLC attributes unused :: self
   !#     powerSpectrumWindowFunctionAmplitudeIsMassIndependent=.false.
   !#   </code>
   !#  </method>

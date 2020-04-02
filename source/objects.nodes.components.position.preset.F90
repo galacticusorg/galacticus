@@ -99,7 +99,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultPositionComponent%presetIsActive()) &
          call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPreset')
@@ -130,7 +130,7 @@ contains
     class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
          &                                                  satellitePosition
     type (treeNode             )               , pointer :: satelliteNode
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     thisPositionComponent   => thisNode       %position()
     parentPositionComponent => thisNode%parent%position()

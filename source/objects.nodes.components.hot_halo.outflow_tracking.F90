@@ -113,7 +113,7 @@ contains
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
     double precision                                                       :: massReturnRate
     type            (abundances                  )                         :: abundancesReturnRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

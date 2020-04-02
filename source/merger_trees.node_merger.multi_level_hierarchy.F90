@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeNodeMergerMultiLevelHierarchy)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeNodeMergerMultiLevelHierarchy()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                               )               , pointer :: nodeChild    , nodeParent, &
          &                                                                    nodeSatellite
     type (varying_string                         )                         :: message
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the parent node.
     nodeParent => node      %parent

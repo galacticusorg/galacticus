@@ -38,7 +38,7 @@ module Star_Formation_Rate_Surface_Density_Disks
   !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
   !#   <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#    allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))
   !#    starFormationRateSurfaceDensityDisksIntervals=reshape([radiusInner,radiusOuter],[2,1])
   !#   </code>
@@ -49,7 +49,7 @@ module Star_Formation_Rate_Surface_Density_Disks
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#    starFormationRateSurfaceDensityDisksUnchanged=.false.
   !#   </code>
   !#  </method>

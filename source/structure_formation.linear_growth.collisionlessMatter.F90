@@ -269,7 +269,7 @@ contains
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
-    !GCC$ attributes unused :: component, wavenumber
+    !$GLC attributes unused :: component, wavenumber
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -295,7 +295,7 @@ contains
     integer                                          , intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_     , expansionFactor_
-    !GCC$ attributes unused :: component, wavenumber
+    !$GLC attributes unused :: component, wavenumber
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -316,7 +316,7 @@ contains
     logical                                          , intent(in   ), optional :: collapsing
     integer                                          , intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
 
     ! No dependence on wavenumber.
     collisionlessMatterLogarithmicDerivativeWavenumber=0.0d0
@@ -328,7 +328,7 @@ contains
     implicit none
     class  (linearGrowthCollisionlessMatter), intent(inout)           :: self
     integer                                 , intent(in   ), optional :: component
-    !GCC$ attributes unused :: self, component
+    !$GLC attributes unused :: self, component
 
     collisionlessMatterIsWavenumberDependent=.false.
     return

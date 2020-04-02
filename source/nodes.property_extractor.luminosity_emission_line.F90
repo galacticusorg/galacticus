@@ -307,7 +307,7 @@ contains
          &                                                                                i                                                       , j                              , &
          &                                                                                k                                                       , l                              , &
          &                                                                                m                                                       , line
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     ! Retrieve components.
     basic    => node%basic   ()
@@ -539,7 +539,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineType=outputAnalysisPropertyTypeLinear
     return
@@ -550,7 +550,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineQuantity=outputAnalysisPropertyQuantityLuminosity
     return
@@ -581,7 +581,7 @@ contains
     use :: Numerical_Constants_Units, only : ergs
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineUnitsInSI=ergs
     return

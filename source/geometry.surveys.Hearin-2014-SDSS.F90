@@ -106,7 +106,7 @@ contains
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
@@ -118,7 +118,7 @@ contains
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     if (mass /= self%massPrevious)                                                                                 &
          & self%distanceMaximumPrevious=min(                                                                       &

@@ -215,7 +215,7 @@ contains
          &                                                                                       halfPowerEta                  , x                     , &
          &                                                                                       massFraction                  , resolutionSigma       , &
          &                                                                                       massFractionResolutionPowerEta
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Simply branch to the relevant function.
     if (self%cdmAssumptions) then
@@ -335,8 +335,7 @@ contains
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use :: FGSL       , only : FGSL_Root_fSolver_Brent
-      use :: Root_Finder, only : rootFinder
+      use :: Root_Finder, only : rootFinder, GSL_Root_fSolver_Brent
       implicit none
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
@@ -366,7 +365,7 @@ contains
                  &                   toleranceRelative                 &
                  &                  )
             call finder%type        (                                  &
-                 &                   FGSL_Root_fSolver_Brent           &
+                 &                   GSL_Root_fSolver_Brent            &
                  &                  )
          end if
          ! Split is not binary - seek the actual mass of the smaller progenitor.
@@ -442,7 +441,7 @@ contains
          &                                                                               massResolution            , time
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma
-    !GCC$ attributes unused :: deltaCritical, time
+    !$GLC attributes unused :: deltaCritical, time
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -475,7 +474,7 @@ contains
     type            (fgsl_function                                   )                        :: integrandFunction
     type            (fgsl_integration_workspace                      )                        :: integrationWorkspace
     double precision                                                                          :: massMaximum         , massMinimum
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Recompute branching probability if necessary.
     if     (                                               &
@@ -591,7 +590,7 @@ contains
     integer         (fgsl_int                                        )                        :: statusLower                                  , statusUpper
     logical                                                                                   :: usingCDMAssumptions
     integer                                                                                   :: iBound
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -795,7 +794,7 @@ contains
     double precision                                                  , parameter             :: sqrtTwoOverPi       =sqrt(2.0d0/Pi)
     double precision                                                                          :: hyperGeometricFactor               , resolutionSigmaOverParentSigma, &
          &                                                                                       resolutionSigma
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     call self%computeCommonFactors(deltaCritical,time,haloMass,node)

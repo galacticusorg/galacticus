@@ -326,7 +326,7 @@ contains
     class(nodeComponentDisk ), pointer       :: disk
     class(nodeComponentBasic), pointer       :: basic
     type (history           )                :: stellarPropertiesHistory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the disk component.
     disk => node%disk()
@@ -475,7 +475,7 @@ contains
          &                                                            abundancesOutflowRate
     type            (stellarLuminosities ), save                   :: luminositiesStellarRates
     !$omp threadprivate(fuelAbundancesRate,stellarAbundancesRate,abundancesOutflowRate,luminositiesStellarRates)
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -860,7 +860,7 @@ contains
     integer                                       :: destinationGasSatellite, destinationGasHost       , &
          &                                           destinationStarsHost   , destinationStarsSatellite
     logical                                       :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check that the disk is of the verySimple class.
     disk => node%disk()

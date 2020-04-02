@@ -23,7 +23,7 @@ double precision function SpinRandomSpinGrowthRate(self)
   !% Return the {\normalfont \ttfamily spinGrowthRate} property of the {\normalfont \ttfamily SpinRandom} component.
   implicit none
   class(nodeComponentSpinRandom), intent(inout) :: self
-  !GCC$ attributes unused :: self
+  !$GLC attributes unused :: self
 
   SpinRandomSpinGrowthRate=0.0d0
   return

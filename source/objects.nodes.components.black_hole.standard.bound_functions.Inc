@@ -26,7 +26,7 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   logical                                         , save          :: functionInitialized=.false.
   double precision                                , save          :: blackHoleSeedMass
-  !GCC$ attributes unused :: self
+  !$GLC attributes unused :: self
 
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Standard_Seed_Mass)
@@ -55,7 +55,7 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
   !% Return the seed spin for standard black holes.
   implicit none
   class(nodeComponentBlackHoleStandard), intent(inout) :: self
-  !GCC$ attributes unused :: Self
+  !$GLC attributes unused :: Self
 
   Node_Component_Black_Hole_Standard_Seed_Spin=1.0d-3
   return
@@ -81,7 +81,7 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   integer                                         , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                                , intent(in   ) :: radius
-  !GCC$ attributes unused :: weightIndex
+  !$GLC attributes unused :: weightIndex
 
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0

@@ -25,7 +25,7 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   implicit none
   class(nodeComponentDiskStandard), intent(in   ) :: self
   type (nodeComponentHotHalo     )                :: hotHalo
-  !GCC$ attributes unused :: self
+  !$GLC attributes unused :: self
 
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
        call Galacticus_Error_Report('expected to find unclaimed hot halo mass cooling pipe'//{introspection:location})
@@ -374,7 +374,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   integer                                    , intent(inout), optional :: status
   double precision                                                     :: componentMass
   type            (coordinateCylindrical    )                          :: position
-  !GCC$ attributes unused :: status
+  !$GLC attributes unused :: status
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Potential=0.0d0

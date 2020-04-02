@@ -43,7 +43,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesZero()
     return
@@ -55,7 +55,7 @@ contains
     class(satelliteMergingTimescalesZero), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     type (keplerOrbit                   ), intent(inout) :: orbit
-    !GCC$ attributes unused :: self, node, orbit
+    !$GLC attributes unused :: self, node, orbit
 
     zeroTimeUntilMerging=0.0d0
     return

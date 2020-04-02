@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisWeightOperatorIdentity)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Construct the object.
     self=outputAnalysisWeightOperatorIdentity()
@@ -59,7 +59,7 @@ contains
          &                                                                   weightValue
     integer                                               , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                            ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: self, node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+    !$GLC attributes unused :: self, node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     identityOperate=weightValue
     return

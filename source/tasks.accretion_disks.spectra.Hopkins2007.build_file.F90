@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskAGNSpectraHopkins2008BuildFile)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskAGNSpectraHopkins2008BuildFile()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
     type   (accretionDiskSpectraHopkins2007   )                          :: accretionDiskSpectra_
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: hopkins2007 AGN spectra file build')
     accretionDiskSpectra_=accretionDiskSpectraHopkins2007()
@@ -69,7 +69,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     agnSpectraHopkins2008BuildFileRequiresOutputFile=.false.
     return

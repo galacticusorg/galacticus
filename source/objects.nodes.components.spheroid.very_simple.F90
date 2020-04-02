@@ -288,7 +288,7 @@ contains
     class(nodeComponentSpheroid), pointer       :: spheroid
     class(nodeComponentBasic   ), pointer       :: basic
     type (history              )                :: stellarPropertiesHistory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -436,7 +436,7 @@ contains
          &                                                             abundancesOutflowRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -607,7 +607,7 @@ contains
     integer                                       :: destinationGasSatellite, destinationGasHost       , &
          &                                           destinationStarsHost   , destinationStarsSatellite
     logical                                       :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the spheroid component, creating it if need be.
     spheroid => node%spheroid(autoCreate=.true.)

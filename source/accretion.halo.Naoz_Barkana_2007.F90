@@ -275,7 +275,7 @@ contains
     implicit none
     double precision                               , intent(in   ) :: massHalo, massFiltering
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     naozBarkana2007FilteredFractionCompute=+1.0d0                     &
          &                                 /(                         &

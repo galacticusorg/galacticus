@@ -92,7 +92,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalFieldCount=localGroupClassicalFields
     return
@@ -104,7 +104,7 @@ contains
     class           (surveyGeometryLocalGroupClassical), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! For galaxies above the mass threshold, assume they can be detected out to the maximum specified distance. Galaxies below the
     ! threshold are never detected.
@@ -122,7 +122,7 @@ contains
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     type (varying_string                   )                :: localGroupClassicalMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/localGroupClassical/"
     return
@@ -146,7 +146,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the Local Group Classical galaxies survey.
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalAngularPowerMaximumDegree=localGroupClassicalAngularPowerMaximumL
     return

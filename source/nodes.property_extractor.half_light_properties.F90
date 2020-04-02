@@ -47,7 +47,7 @@ contains
     implicit none
     type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorRadiiHalfLightProperties()
     return
@@ -59,7 +59,7 @@ contains
     implicit none
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiiHalfLightPropertiesElementCount=2*unitStellarLuminosities%luminosityOutputCount(time)
     return
@@ -78,7 +78,7 @@ contains
     type            (multiCounter                                 ), intent(inout), optional    :: instance
     integer                                                                                     :: i                              , j
     double precision                                                                            :: halfLightRadius                , massEnclosed
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     allocate(radiiHalfLightPropertiesExtract(2*unitStellarLuminosities%luminosityOutputCount(time)))
     j=-1
@@ -101,7 +101,7 @@ contains
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
     double precision                                               , intent(in   )              :: time
     integer                                                                                     :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesNames(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
@@ -121,7 +121,7 @@ contains
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
     double precision                                               , intent(in   )              :: time
     integer                                                                                     :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesDescriptions(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
@@ -142,7 +142,7 @@ contains
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)               :: self
     double precision                                               , intent(in   )               :: time
     integer                                                                                      :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesUnitsInSI(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
@@ -156,7 +156,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiiHalfLightPropertiesType=outputAnalysisPropertyTypeLinear
     return

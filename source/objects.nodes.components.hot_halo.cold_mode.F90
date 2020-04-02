@@ -262,7 +262,7 @@ contains
          &                                                                massAccretionRate           , massLossRate         , &
          &                                                                outerRadius                 , outerRadiusGrowthRate, &
          &                                                                gasMass                     , infallRate
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -647,7 +647,7 @@ contains
     type (treeNode            ), pointer       :: nodeHost
     class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
     class(nodeComponentSpin   ), pointer       :: spinHost
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -699,7 +699,7 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeParent
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     hotHalo       => node      %hotHalo(                 )
     nodeParent    => node      %parent

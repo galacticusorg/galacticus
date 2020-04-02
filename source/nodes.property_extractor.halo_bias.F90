@@ -86,7 +86,7 @@ contains
     type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     )               , pointer  :: nodeIsolated
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     nodeIsolated => node
     do while (nodeIsolated%isSatellite())
@@ -101,7 +101,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasType=outputAnalysisPropertyTypeLinear
     return
@@ -112,7 +112,7 @@ contains
     implicit none
     type (varying_string               )                :: haloBiasName
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasName=var_str('nodeBias')
     return
@@ -123,7 +123,7 @@ contains
     implicit none
     type (varying_string               )                :: haloBiasDescription
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasDescription=var_str('The linear bias for this node.')
     return
@@ -133,7 +133,7 @@ contains
     !% Return the units of the {\normalfont \ttfamily haloBias} property in the SI system.
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasUnitsInSI=0.0d0
     return

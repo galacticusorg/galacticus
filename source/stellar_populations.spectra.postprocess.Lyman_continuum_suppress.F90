@@ -43,7 +43,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorLycSuppress)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorLycSuppress()
     return
@@ -55,7 +55,7 @@ contains
     implicit none
     class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age , redshift, wavelength
-    !GCC$ attributes unused :: self, age, redshift
+    !$GLC attributes unused :: self, age, redshift
 
     if (wavelength < lymanSeriesLimitWavelengthHydrogen) then
        lycSuppressMultiplier=0.0d0

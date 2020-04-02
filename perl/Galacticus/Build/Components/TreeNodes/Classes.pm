@@ -69,7 +69,7 @@ end select
 CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 treeNode{ucfirst($class->{'name'})}Count=0
 call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
@@ -148,7 +148,7 @@ component => self%component{ucfirst($class->{'name'})}(instanceActual)
 CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, instance, autoCreate, instanceActual, autoCreateActual
+!$GLC attributes unused :: self, instance, autoCreate, instanceActual, autoCreateActual
 component => null()
 call Galacticus_Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
 CODE

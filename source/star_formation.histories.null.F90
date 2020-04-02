@@ -45,7 +45,7 @@ contains
     implicit none
     type(starFormationHistoryNull)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=starFormationHistoryNull()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                ), intent(inout) :: node
     type            (history                 ), intent(inout) :: historyStarFormation
     double precision                          , intent(in   ) :: timeBegin
-    !GCC$ attributes unused :: self, node, historyStarFormation, timeBegin
+    !$GLC attributes unused :: self, node, historyStarFormation, timeBegin
 
     ! Do nothing.
     return
@@ -72,7 +72,7 @@ contains
     type            (history                 ), intent(inout) :: historyStarFormation
     type            (abundances              ), intent(in   ) :: abundancesFuel
     double precision                          , intent(in   ) :: rateStarFormation
-    !GCC$ attributes unused :: self, node, historyStarFormation, abundancesFuel, rateStarFormation
+    !$GLC attributes unused :: self, node, historyStarFormation, abundancesFuel, rateStarFormation
 
     ! Ensure the history does not exist.
     call historyStarFormation%destroy()
@@ -89,7 +89,7 @@ contains
     integer  (c_size_t                ), intent(in   )         :: indexOutput
     integer  (kind=kind_int8          ), intent(in   )         :: indexTree
     character(len=*                   ), intent(in   )         :: labelComponent
-    !GCC$ attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, labelComponent
+    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, labelComponent
 
     ! Do nothing.
     return
@@ -102,7 +102,7 @@ contains
     double precision                          , intent(in   ) :: massStellar
     type            (abundances              ), intent(in   ) :: abundancesStellar
     type            (history                 ), intent(inout) :: historyStarFormation
-    !GCC$ attributes unused :: self, historyStarFormation, massStellar, abundancesStellar
+    !$GLC attributes unused :: self, historyStarFormation, massStellar, abundancesStellar
 
     ! Do nothing.
     return

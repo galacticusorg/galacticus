@@ -44,7 +44,7 @@ contains
     implicit none
     type(accretionDisksShakuraSunyaev)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionDisksShakuraSunyaev()
     return
@@ -57,7 +57,7 @@ contains
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
     double precision                              , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: self, accretionRateMass
+    !$GLC attributes unused :: self, accretionRateMass
 
     shakuraSunyaevEfficiencyRadiative=+1.0d0                                                                                   &
          &                            -Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsGravitational,orbit=orbitPrograde)
@@ -82,7 +82,7 @@ contains
     double precision                              , parameter     :: meierMassNormalization        =1.0d9
     double precision                                              :: accretionRateDimensionless                                                   , massBlackHoleDimensionless, &
          &                                                           spinBlackHole
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Return immediately for non-positive accretion rates.
     if (accretionRateMass <= 0.0d0) then
@@ -134,7 +134,7 @@ contains
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
     double precision                              , intent(in   ) :: accretionRateMass
     double precision                                              :: spinToMassRateOfChangeRatio
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinToMassRateOfChangeRatio=+Black_Hole_ISCO_Specific_Angular_Momentum(blackHole       ,units=unitsGravitational,orbit=orbitPrograde) &
          &                      -2.0d0                                                                                                    &

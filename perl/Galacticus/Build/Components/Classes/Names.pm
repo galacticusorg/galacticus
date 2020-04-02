@@ -49,7 +49,7 @@ sub Class_Type {
 	    ]
     };    
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 name='nodeComponent:{$class->{'name'}}'
 CODE
     # Insert a type-binding for this function into the treeNode type.

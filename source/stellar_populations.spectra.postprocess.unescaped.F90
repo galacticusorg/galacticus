@@ -74,7 +74,7 @@ contains
     class           (stellarPopulationSpectraPostprocessorUnescaped), intent(inout) :: self
     double precision                                                , intent(in   ) :: age       , redshift, &
          &                                                                             wavelength
-    !GCC$ attributes unused :: redshift, wavelength
+    !$GLC attributes unused :: redshift, wavelength
 
     unescapedMultiplier=exp(-age/self%timescale)
     return

@@ -129,7 +129,7 @@ contains
     double precision                                        , parameter              :: concentrationMinimum =4.00d0
     double precision                                        , parameter              :: formationMassFraction=0.04d0
     double precision                                                                 :: timeFormation               , timeNode
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the basic component.
     basic => node%basic()

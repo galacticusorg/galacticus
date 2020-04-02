@@ -88,7 +88,7 @@ contains
     double precision                                     , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
     type            (abundances                         )                              :: abundancesDisk  , abundancesSpheroid
     integer                                                                            :: countElements
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     disk               => node    %disk         ()
     spheroid           => node    %spheroid     ()
@@ -119,7 +119,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMType=outputAnalysisPropertyTypeLinear
     return
@@ -131,7 +131,7 @@ contains
     implicit none
     type (varying_string                     )                :: metallicityISMName
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMName=var_str('metallicityISM')//Abundances_Names(self%indexElement)
     return
@@ -143,7 +143,7 @@ contains
     implicit none
     type (varying_string                     )                :: metallicityISMDescription
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMDescription=var_str('The metallicity ')//Abundances_Names(self%indexElement)//'/H (by mass) of the interstellar medium.'
     return
@@ -153,7 +153,7 @@ contains
     !% Return the units of the metallicityISM property in the SI system.
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMUnitsInSI=0.0d0
     return

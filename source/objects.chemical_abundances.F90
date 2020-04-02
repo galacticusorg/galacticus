@@ -515,7 +515,7 @@ contains
     implicit none
     class(chemicalAbundances), intent(inout) :: self
     type (node              ), pointer       :: chemicalsDefinition
-    !GCC$ attributes unused :: self, chemicalsDefinition
+    !$GLC attributes unused :: self, chemicalsDefinition
 
     call Galacticus_Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
     return

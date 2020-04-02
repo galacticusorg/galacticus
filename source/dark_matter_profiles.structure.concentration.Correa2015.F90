@@ -235,7 +235,7 @@ contains
     implicit none
     class(virialDensityContrastClass              ), pointer       :: correa2015DensityContrastDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
    correa2015DensityContrastDefinition => self%virialDensityContrastDefinition_
     return

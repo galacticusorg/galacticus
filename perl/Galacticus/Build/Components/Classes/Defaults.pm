@@ -145,7 +145,7 @@ sub Class_Property_Default {
 	    foreach ( &List::ExtraUtils::sortedKeys($requiredComponents->{'all'}) );
 	# Generate the function code.
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
 	# Iterate over class members which provide a class default for this property.
 	foreach $code::member ( @{$code::property->{'members'}} ) {
@@ -246,7 +246,7 @@ sub Class_Property_Rate_Default {
 	};
 	# Generate the function code.
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
 	# Insert code to return zero values.
 	if ( $code::property->{'property'}->{'data'}->{'rank'} == 0 ) {

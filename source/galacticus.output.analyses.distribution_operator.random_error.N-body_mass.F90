@@ -82,7 +82,7 @@ contains
     class           (outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: propertyValue
+    !$GLC attributes unused :: propertyValue
 
     ! Return the fractional error in halo mass, divided by log(10) to convert from natural to base-10 logarithm.
     randomErrorNbodyMassRootVariance=+self%nbodyHaloMassError_%errorFractional(node  ) &

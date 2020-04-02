@@ -198,7 +198,7 @@ contains
     double precision                                   , parameter               :: massScaleFreeLarge  =+100.0d0
     double precision                                                             :: exponentialFit               , massScaleFree   , &
          &                                                                          powerLawFit                  , smoothTransition
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
@@ -281,7 +281,7 @@ contains
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
     type            (treeNode                         ), intent(inout), optional :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     barkana2001WDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
          &                     *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
@@ -305,7 +305,7 @@ contains
          &                                                                          massScaleFree           , powerLawFit           , &
          &                                                                          powerLawFitGradient     , smoothTransition      , &
          &                                                                          smoothTransitionGradient
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
@@ -411,7 +411,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     barkana2001WDMIsMassDependent=.true.
     return
@@ -421,7 +421,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     barkana2001WDMIsNodeDependent=.false.
     return

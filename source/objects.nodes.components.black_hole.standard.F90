@@ -359,7 +359,7 @@ contains
          &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                windFraction                                                                                                                                      , hotModeFraction
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -527,7 +527,7 @@ contains
          &                                                     massBlackHole1      , massBlackHole2    , &
          &                                                     radiusInitial       , recoilVelocity    , &
          &                                                     spinBlackHole1      , spinBlackHole2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Find the node to merge with.
     hostNode => node%mergesWith()
@@ -811,7 +811,7 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        integerProperty=integerProperty+1
@@ -848,7 +848,7 @@ contains
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                   , parameter              :: extraPropertyCount =3
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        integerPropertyCount=integerPropertyCount+1
@@ -861,8 +861,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Output</unitName>
   !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     use :: Kind_Numbers    , only : kind_int8
@@ -877,7 +876,7 @@ contains
     type            (multiCounter          ), intent(inout)          :: instance
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     double precision                                                 :: accretionRateHotHalo       , accretionRateSpheroid, restMassAccretionRate
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        ! Store the properties.

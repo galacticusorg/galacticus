@@ -35,7 +35,7 @@ module Nodes_Operators
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
   !#  <method name="galaxiesMerge" >
@@ -44,7 +44,7 @@ module Nodes_Operators
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
   !#  <method name="differentialEvolution" >
@@ -57,7 +57,7 @@ module Nodes_Operators
   !#   <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>
   !#   <argument>integer                 , intent(in   )          :: propertyType     </argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node, odeConverged, interrupt, functionInterrupt, propertyType
+  !#    !$GLC attributes unused :: self, node, odeConverged, interrupt, functionInterrupt, propertyType
   !#   </code>
   !#  </method>
   !#  <method name="differentialEvolutionPost" >
@@ -66,7 +66,7 @@ module Nodes_Operators
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
   !# </functionClass>

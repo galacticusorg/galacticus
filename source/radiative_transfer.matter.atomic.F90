@@ -301,7 +301,7 @@ contains
     implicit none
     class(radiativeTransferMatterAtomic    ), intent(inout)              :: self
     class(radiativeTransferPropertiesMatter), intent(inout), allocatable :: properties
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     allocate(radiativeTransferPropertiesMatterAtomic :: properties)
     return
@@ -377,7 +377,7 @@ contains
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                   , intent(in   ) :: sendFromProcess
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
@@ -491,7 +491,7 @@ contains
          &                                                                 k                          , n                          , &
          &                                                                 l                          , m                          , &
          &                                                                 countElectrons
-    !GCC$ attributes unused :: absorptionCoefficient
+    !$GLC attributes unused :: absorptionCoefficient
 
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
@@ -563,7 +563,7 @@ contains
     class(radiativeTransferMatterAtomic     ), intent(inout) :: self
     class(radiativeTransferPropertiesMatter ), intent(inout) :: properties
     class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
-    !GCC$ attributes unused :: self, properties, photonPacket
+    !$GLC attributes unused :: self, properties, photonPacket
     
     atomicInteractWithPhotonPacket=.false.
     return
@@ -1116,7 +1116,7 @@ contains
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer                                                   :: i         , j
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
@@ -1188,7 +1188,7 @@ contains
     implicit none
     integer(c_size_t                     )                :: atomicCountOutputs
     class  (radiativeTransferMatterAtomic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     atomicCountOutputs=self%countOutputs_
     return

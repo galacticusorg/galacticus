@@ -68,7 +68,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultBasicComponent%nonEvolvingIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicNonEvolving')
@@ -103,7 +103,7 @@ contains
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basicComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
 
     ! Return immediately if inactive variables are requested.
@@ -153,7 +153,7 @@ contains
     type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic       => node      %basic ()
     nodeParent  => node      %parent

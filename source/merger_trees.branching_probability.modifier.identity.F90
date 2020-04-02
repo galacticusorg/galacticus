@@ -43,7 +43,7 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeBranchingProbabilityModifierIdentity()
     return
@@ -57,7 +57,7 @@ contains
     type            (treeNode                                      ), intent(inout) :: nodeParent
     double precision                                                , intent(in   ) :: sigmaChild , timeParent, &
          &                                                                             sigmaParent, massParent
-    !GCC$ attributes unused :: self, nodeParent, massParent, sigmaParent, sigmaChild, timeParent
+    !$GLC attributes unused :: self, nodeParent, massParent, sigmaParent, sigmaChild, timeParent
 
     identityRateModifier=1.0d0
     return

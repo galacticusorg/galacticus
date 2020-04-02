@@ -315,7 +315,7 @@ contains
     logical                                                                                        :: likelihoodIsSimulated
     character       (len=8                                      )                                  :: label
     type            (varying_string                             )                                  :: message                            , fileName
-    !GCC$ attributes unused :: forceAcceptance
+    !$GLC attributes unused :: forceAcceptance
 
     ! Report on emulation efficiency.
     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -777,7 +777,7 @@ contains
     real   (FGSL_double), pointer, dimension(:) :: xx
     type   (FGSL_vector)                        :: vec
     integer(FGSL_int   )                        :: status
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     call FGSL_obj_c_ptr(vec,x)
     status=FGSL_vector_align(xx,vec)
@@ -800,7 +800,7 @@ contains
     real   (c_double   ), pointer, dimension(:) :: xx    , ddf
     type   (FGSL_vector)                        :: vec   , grad
     integer(FGSL_int   )                        :: status
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     call FGSL_obj_c_ptr(vec ,x )
     call FGSL_obj_c_ptr(grad,df)
@@ -982,7 +982,7 @@ contains
     double precision                                             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
          &                                                                                        logPriorCurrent      , logPriorProposed
     double precision                                                                           :: likelihoodEmulated   , likelihoodEmulatedError
-    !GCC$ attributes unused :: modelParameters_
+    !$GLC attributes unused :: modelParameters_
 
     if (logPriorProposed <= logImpossible) then
        ! Prior is impossible, no need to evaluate.

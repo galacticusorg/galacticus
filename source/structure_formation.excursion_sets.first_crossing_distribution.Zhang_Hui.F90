@@ -269,7 +269,7 @@ contains
     double precision                                   , intent(in   ) :: variance, varianceProgenitor, &
          &                                                                time
     type            (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, varianceProgenitor, node
+    !$GLC attributes unused :: self, time, variance, varianceProgenitor, node
 
     zhangHuiRate=0.0d0
     call Galacticus_Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
@@ -283,7 +283,7 @@ contains
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, variance
     type            (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, node
+    !$GLC attributes unused :: self, time, variance, node
 
     zhangHuiRateNonCrossing=0.0d0
     call Galacticus_Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})

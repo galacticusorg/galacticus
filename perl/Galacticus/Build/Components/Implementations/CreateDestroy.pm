@@ -92,7 +92,7 @@ sub Implementation_Creation {
 	grep {! $_->{'attributes'}->{'isVirtual'}} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) 
 	) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
     }
     # Initialize the parent class.
@@ -203,7 +203,7 @@ sub Implementation_Finalization {
 	  &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) 	
 	) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
     }
     # Destroy the parent type.
@@ -304,7 +304,7 @@ sub Implementation_Builder {
     # Build the function code.
     if ( $code::member->{'name'} eq "null" ) {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, componentDefinition
+!$GLC attributes unused :: self, componentDefinition
 CODE
     } else {
 	# Initialize the component.

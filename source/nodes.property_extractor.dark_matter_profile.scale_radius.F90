@@ -46,7 +46,7 @@ contains
     implicit none
     type (nodePropertyExtractorDarkMatterProfileScaleRadius)                :: self
     type (inputParameters                                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorDarkMatterProfileScaleRadius()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                                         ), intent(inout), target   :: node
     type (multiCounter                                     ), intent(inout), optional :: instance
     class(nodeComponentDarkMatterProfile                   ), pointer                 :: darkMatterProfile
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     darkMatterProfile                   => node             %darkMatterProfile()
     darkMatterProfileScaleRadiusExtract =  darkMatterProfile%scale            ()
@@ -72,7 +72,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileScaleRadiusType=outputAnalysisPropertyTypeLinear
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusName
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileScaleRadiusName=var_str('darkMatterProfileScaleRadius')
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusDescription
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileScaleRadiusDescription=var_str('The scale radius of the dark matter profile.')
     return
@@ -105,7 +105,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileScaleRadiusUnitsInSI=megaParsec
     return

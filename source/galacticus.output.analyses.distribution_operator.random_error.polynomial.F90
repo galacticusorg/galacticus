@@ -111,7 +111,7 @@ contains
     double precision                                                     , intent(in   ) :: propertyValue
     type            (treeNode                                           ), intent(inout) :: node
     integer                                                                              :: i
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     randomErrorPolynomialRootVariance=0.0d0
     do i=1,size(self%coefficient)

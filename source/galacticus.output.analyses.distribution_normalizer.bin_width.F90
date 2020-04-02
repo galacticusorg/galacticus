@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerBinWidth()
     return
@@ -57,7 +57,7 @@ contains
     double precision                                              , intent(inout), dimension(:,:) :: covariance
     double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
     integer         (c_size_t                                    )                                :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     distribution=+distribution            &
          &        /(                      &

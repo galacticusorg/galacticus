@@ -134,7 +134,7 @@ contains
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout) :: self
     double precision                                         , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     velocityDispersionElementCount=self%elementCount_
     return
@@ -172,7 +172,7 @@ contains
     logical                                                                               :: scaleIsZero
     type            (fgsl_function                          )                             :: integrandFunction
     type            (fgsl_integration_workspace             )                             :: integrationWorkspace
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(velocityDispersionExtract(self%elementCount_))
     radiusVirial                                         =  0.0d0
@@ -351,7 +351,7 @@ contains
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
     integer                                                                               :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(velocityDispersionNames(self%elementCount_))
     do i=1,size(self%radii)
@@ -369,7 +369,7 @@ contains
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
     integer                                                                               :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(velocityDispersionDescriptions(self%elementCount_))
     do i=1,size(self%radii)
@@ -389,7 +389,7 @@ contains
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)               :: self
     double precision                                         , intent(in   )               :: time
     integer                                                                                :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(velocityDispersionUnitsInSI(self%elementCount_))
     do i=1,size(self%radii)
@@ -405,7 +405,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVelocityDispersion), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     velocityDispersionType=outputAnalysisPropertyTypeLinear
     return

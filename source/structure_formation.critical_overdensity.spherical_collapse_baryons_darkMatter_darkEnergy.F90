@@ -207,7 +207,7 @@ contains
     logical                                                                   , intent(in   ), optional :: collapsing
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_     , interpolator
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -237,7 +237,7 @@ contains
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_                   , interpolator   , &
          &                                                                                                 interpolatorRateOfChange
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -270,7 +270,7 @@ contains
     double precision                                                          , intent(in   ), optional :: mass
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -287,7 +287,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent=.true.
     return
@@ -297,7 +297,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent=.false.
     return

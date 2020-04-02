@@ -62,7 +62,7 @@ contains
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateScalar
     double precision                                                                                                      :: rootVariance
-    !GCC$ attributes unused :: outputIndex, propertyType
+    !$GLC attributes unused :: outputIndex, propertyType
 
     rootVariance=self%rootVariance(propertyValue,node)
     if     (                               &
@@ -92,7 +92,7 @@ contains
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     randomErrorOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

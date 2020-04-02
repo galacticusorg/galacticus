@@ -590,7 +590,7 @@ contains
     !% Specifies that this task does not require the main output file.
     implicit none
     class(taskMergerTreeFileBuilder), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mergerTreeFileBuilderRequiresOutputFile=.false.
     return

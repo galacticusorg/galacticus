@@ -42,7 +42,7 @@ contains
     implicit none
     type(posteriorSampleStateInitializePriorRandom)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStateInitializePriorRandom()
     return
@@ -60,7 +60,7 @@ contains
          &                                                                                                           logPosterior
     double precision                                                          , dimension(size(modelParameters_)) :: state
     integer                                                                                                       :: j
-    !GCC$ attributes unused ::  self, modelLikelihood
+    !$GLC attributes unused ::  self, modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0

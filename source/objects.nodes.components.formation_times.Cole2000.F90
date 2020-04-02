@@ -91,7 +91,7 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
     
     ! Check if this implementation is selected.
     if (defaultFormationTimeComponent%cole2000IsActive()) then
@@ -130,7 +130,7 @@ contains
     integer                               , intent(in   )          :: propertyType
     class    (nodeComponentFormationTime )               , pointer :: formationTime
     class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
-    !GCC$ attributes unused :: odeConverged
+    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -161,7 +161,7 @@ contains
     type (treeNode                  ), intent(inout) :: node
     class(nodeComponentFormationTime), pointer       :: formationTime
     class(nodeComponentBasic        ), pointer       :: basicFormation, basicParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     if (haloReformationOnPromotionOnly) then
        formationTime  => node              %formationTime()

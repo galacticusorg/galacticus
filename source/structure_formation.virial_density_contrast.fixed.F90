@@ -136,7 +136,7 @@ contains
     double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Set the density contrast.
     fixedDensityContrast=self%densityContrastValue
@@ -170,7 +170,7 @@ contains
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
     double precision                                                      :: epochTime
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Zero rate of change for fixed density contrast.
     fixedDensityContrastRateOfChange=0.0d0
@@ -196,7 +196,7 @@ contains
     double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: mass, time, expansionFactor, collapsing
 
     fixedTurnAroundOverVirialRadii=self%turnAroundOverVirialRadius
     return

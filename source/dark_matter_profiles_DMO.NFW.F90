@@ -423,7 +423,7 @@ contains
     class           (nodeComponentBasic            ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: radiusOverScaleRadius, scaleRadius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                 => node%basic            (                 )
     darkMatterProfile     => node%darkMatterProfile(autoCreate=.true.)
@@ -813,7 +813,7 @@ contains
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: concentration
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nfwAngularMomentumScaleFree=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
          &/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
@@ -827,7 +827,7 @@ contains
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: radius
     double precision                         , parameter     :: radiusSmall=1.0d-9
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (radius < radiusSmall) then
        ! Use a series expenasion solution for accuracy.
@@ -1070,7 +1070,7 @@ contains
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: concentration, radius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nfwDensityScaleFree=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
     return
@@ -1399,7 +1399,7 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusEnd                  , radiusStart
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (radius > radiusSmall) then
        ! Use the full solution.

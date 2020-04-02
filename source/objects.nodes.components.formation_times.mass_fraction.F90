@@ -76,7 +76,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultFormationTimeComponent%massFractionIsActive()) &
          call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeMassFraction')
@@ -106,7 +106,7 @@ contains
     type (treeNode                  ), intent(inout), target  :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime, formationTimeParent
     type (treeNode                  )               , pointer :: nodeParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     formationTime       => node      %formationTime()
     nodeParent          => node      %parent

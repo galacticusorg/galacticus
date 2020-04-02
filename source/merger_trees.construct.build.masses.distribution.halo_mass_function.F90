@@ -131,7 +131,7 @@ contains
     double precision                                                 , parameter     :: massZeroPoint=1.0d13
     class           (nodeComponentBasic                             ), pointer       :: basic
     type            (mergerTree                                     ), target        :: tree
-    !GCC$ attributes unused :: massMinimum, massMaximum
+    !$GLC attributes unused :: massMinimum, massMaximum
 
     ! Create a work node.
     tree %baseNode          => treeNode               (-1_kind_int8,tree)

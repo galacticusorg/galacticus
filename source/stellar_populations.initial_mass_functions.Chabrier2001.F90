@@ -269,7 +269,7 @@ contains
     implicit none
     class(initialMassFunctionChabrier2001), intent(inout) :: self
     type (varying_string                    )             :: chabrier2001Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     chabrier2001Label="Chabrier2001"
     return

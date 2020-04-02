@@ -57,7 +57,7 @@ sub Class_Dump_ASCII {
     };
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 call Galacticus_Display_Indent('{$class->{'name'}}: {$padding}generic')
 call Galacticus_Display_Unindent('done')
 CODE
@@ -382,7 +382,7 @@ sub Class_Output {
     push(@code::argumentsUnused,"outputInstance");
     if ( scalar(@code::argumentsUnused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(", ",@argumentsUnused)}
+!$GLC attributes unused :: {join(", ",@argumentsUnused)}
 CODE
     }
     # Iterate over class member implementations.
@@ -488,7 +488,7 @@ sub Class_Post_Output {
 	type        => "void",
 	name        => $code::class->{'name'}."PostOutput",
 	description => "Perform post-output processing of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
-	content     => "!GCC\$ attributes unused :: self, time\n",
+	content     => "!\$GLC attributes unused :: self, time\n",
 	variables   =>
 	    [
 	     {

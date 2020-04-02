@@ -153,7 +153,7 @@ contains
     logical                                                                          , intent(in   ), optional :: collapsing
     logical                                                                                                    :: collapsingActual
     double precision                                                                                           :: timeActual
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -191,7 +191,7 @@ contains
     logical                                                                          , intent(in   ), optional :: collapsing
     logical                                                                                                    :: collapsingActual
     double precision                                                                                           :: timeActual
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -229,7 +229,7 @@ contains
     logical                                                                          , intent(in   ), optional :: collapsing
     logical                                                                                                    :: remakeTable
     double precision                                                                                           :: time_
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Check if we need to recompute our table.

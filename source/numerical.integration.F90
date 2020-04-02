@@ -147,7 +147,7 @@ contains
     real(c_double)        :: integrandWrapper
     real(c_double), value :: x
     type(c_ptr   ), value :: parameterPointer
-    !GCC$ attributes unused :: parameterPointer
+    !$GLC attributes unused :: parameterPointer
 
     integrandWrapper=currentIntegrand(x)
     return
@@ -169,7 +169,7 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
     type   (c_ptr     ), value :: file       , reason
     integer(kind=c_int), value :: errorNumber, line
-    !GCC$ attributes unused :: reason, file, line
+    !$GLC attributes unused :: reason, file, line
 
     errorStatusGlobal=errorNumber
     return

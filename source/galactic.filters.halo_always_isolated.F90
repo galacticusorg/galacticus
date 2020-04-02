@@ -44,7 +44,7 @@ contains
     implicit none
     type(galacticFilterHaloAlwaysIsolated)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     if (.not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                                           &
          & call Galacticus_Error_Report                                                                                                         &
@@ -67,7 +67,7 @@ contains
     class(galacticFilterHaloAlwaysIsolated), intent(inout)         :: self
     type (treeNode                        ), intent(inout), target :: node
     class(nodeComponentMergingStatistics  ), pointer               :: mergingStatistics
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mergingStatistics        => node             %mergingStatistics        (autoCreate=.true.)
     haloAlwaysIsolatedPasses =  mergingStatistics%nodeHierarchyLevelMaximum(                 ) == 0

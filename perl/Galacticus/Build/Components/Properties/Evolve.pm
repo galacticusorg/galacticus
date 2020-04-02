@@ -65,7 +65,7 @@ sub Build_Count_Functions {
     $code::typePrefix = $class->{'name'}.ucfirst($member->{'name'});
     if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 {$typePrefix.ucfirst($property->{'name'})}Count=1
 CODE
     } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
@@ -157,7 +157,7 @@ sub Build_Rate_Get_Functions {
     # Build the function.
     if ( scalar(@code::argumentsUnused) > 0 ) {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@argumentsUnused)}
+!$GLC attributes unused :: {join(",",@argumentsUnused)}
 CODE
     }
     $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
@@ -289,7 +289,7 @@ sub Build_Rate_Functions {
 	if ( &isIntrinsic($code::property->{'data'}->{'type'}) );
     # Build the function.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(",",@argumentsUnused)}
+!$GLC attributes unused :: {join(",",@argumentsUnused)}
 CODE
     $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
@@ -512,7 +512,7 @@ sub Build_Auto_Create_Rate_Functions {
     };
     # Build the function.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 ! No specific component exists, so we must interrupt and create one unless the rate is zero.
 CODE
     if ( $code::property->{'data'}->{'rank'} == 0 ) {
@@ -595,7 +595,7 @@ sub Build_Scale_Functions {
 	if ( ! &isIntrinsic($code::property->{'data'}->{'type'}) );
     # Build the function.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
     $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
@@ -667,7 +667,7 @@ sub Build_Inactive_Functions {
 	if ( ! &isIntrinsic($code::property->{'data'}->{'type'}) );
     # Build the function.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 CODE
     $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {

@@ -118,7 +118,7 @@ contains
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
@@ -138,7 +138,7 @@ contains
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_     , expansionFactor_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                          &
@@ -158,7 +158,7 @@ contains
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     kitayamaSuto1996GradientMass=0.0d0
     return
@@ -168,7 +168,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kitayamaSuto1996IsMassDependent=.false.
     return
@@ -178,7 +178,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kitayamaSuto1996IsNodeDependent=.false.
     return

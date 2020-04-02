@@ -42,7 +42,7 @@ contains
     implicit none
     type(massFunctionIncompletenessComplete)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=massFunctionIncompletenessComplete()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass
-    !GCC$ attributes unused :: self, mass
+    !$GLC attributes unused :: self, mass
 
     completeCompleteness=1.0d0
     return

@@ -951,7 +951,7 @@ contains
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter       )                , intent(in   ) :: outputInstance
     integer                                                              :: i
-    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, outputInstance
+    !$GLC attributes unused :: integerProperty, integerBufferCount, integerBuffer, outputInstance
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -1003,7 +1003,7 @@ contains
     class           (stellarLuminosities), intent(in   ) :: self
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision                     , intent(in   ) :: time
-    !GCC$ attributes unused :: self, integerPropertyCount
+    !$GLC attributes unused :: self, integerPropertyCount
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -1040,7 +1040,7 @@ contains
     character       (len=*              )              , intent(in   ) :: comment                , prefix
     double precision                                   , intent(in   ) :: unitsInSI
     integer                                                            :: i
-    !GCC$ attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI,
+    !$GLC attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI,
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -1755,19 +1755,18 @@ contains
   !# <galacticusStateStoreTask>
   !#  <unitName>Stellar_Luminosities_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine Stellar_Luminosities_State_Store(stateFile,fgslStateFile,stateOperationID)
+  subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
     !% Write the luminosities state to file.
-    use            :: FGSL              , only : fgsl_file
     use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t                 , c_ptr
     use            :: ISO_Varying_String, only : operator(//)             , var_str
     use            :: String_Handling   , only : operator(//)
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperationID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    integer                           :: i
-    !GCC$ attributes unused :: fgslStateFile, stateOperationID
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    integer                          :: i
+    !$GLC attributes unused :: gslStateFile, stateOperationID
 
     call Galacticus_Display_Indent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     write (stateFile) luminositiesInitialized
@@ -1791,11 +1790,10 @@ contains
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Stellar_Luminosities_State_Restore</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine Stellar_Luminosities_State_Restore(stateFile,fgslStateFile,stateOperationID)
+  subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the luminosities state from the file.
-    use            :: FGSL                                  , only : fgsl_file
     use            :: Galacticus_Display                    , only : Galacticus_Display_Indent                   , Galacticus_Display_Message                       , Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
+    use, intrinsic :: ISO_C_Binding                         , only : c_size_t                                    , c_ptr
     use            :: ISO_Varying_String                    , only : operator(//)                                , var_str
     use            :: Instruments_Filters                   , only : Filter_Get_Index
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
@@ -1803,10 +1801,10 @@ contains
     implicit none
     integer                                                   , intent(in   ) :: stateFile
     integer(c_size_t                                         ), intent(in   ) :: stateOperationID
-    type   (fgsl_file                                        ), intent(in   ) :: fgslStateFile
+    type   (c_ptr                                            ), intent(in   ) :: gslStateFile
     class  (stellarPopulationSpectraPostprocessorBuilderClass), pointer       :: stellarPopulationSpectraPostprocessorBuilder_
     integer                                                                   :: i
-    !GCC$ attributes unused :: fgslStateFile, stateOperationID
+    !$GLC attributes unused :: gslStateFile, stateOperationID
 
     call Galacticus_Display_Indent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     read (stateFile) luminositiesInitialized

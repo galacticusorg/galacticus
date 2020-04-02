@@ -93,7 +93,7 @@ contains
     integer                                                          , intent(inout), optional :: propertyType
     integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
     integer                                                                                    :: i
-    !GCC$ attributes unused :: outputIndex, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyType, node
 
     systmtcPolynomialOperate=propertyValue
     do i=1,size(self%coefficient)

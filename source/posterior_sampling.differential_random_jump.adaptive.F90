@@ -45,7 +45,7 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpAdaptive)                 :: self
     type(inputParameters                              ), intent(inout)  :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpAdaptive()
     return
@@ -61,7 +61,7 @@ contains
     double precision                                               , dimension(size(modelParameters_))                :: adaptiveSample
     double precision                                               , dimension(size(modelParameters_))                :: parameterRange
     integer                                                                                                           :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the current range of each parameter.
     parameterRange=mpiSelf%maxval(simulationState%get())-mpiSelf%minval(simulationState%get())

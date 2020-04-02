@@ -79,7 +79,7 @@ contains
     class           (posteriorSampleStateClass                    ), intent(inout), dimension(:) :: temperedStates
     double precision                                               , intent(in   ), dimension(:) :: temperatures
     class           (posteriorSampleConvergenceClass              ), intent(inout)               :: simulationConvergence
-    !GCC$ attributes unused :: temperedStates, temperatures, simulationState, simulationConvergence
+    !$GLC attributes unused :: temperedStates, temperatures, simulationState, simulationConvergence
 
     fixedExponent=self%exponentValue
     return

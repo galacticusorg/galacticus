@@ -83,7 +83,7 @@ contains
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     virialPropertiesElementCount=2
     return
@@ -97,7 +97,7 @@ contains
     type            (treeNode                             ), intent(inout), target      :: node
     double precision                                       , intent(in   )              :: time
     type            (multiCounter                         ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
@@ -113,7 +113,7 @@ contains
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesNames(2))
     virialPropertiesNames=[                                         &
@@ -129,7 +129,7 @@ contains
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesDescriptions(2))
     virialPropertiesDescriptions=[                                                                 &
@@ -147,7 +147,7 @@ contains
     double precision                                       , dimension(:) , allocatable :: virialPropertiesUnitsInSI
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-   !GCC$ attributes unused :: self, time
+   !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesUnitsInSI(2))
     virialPropertiesUnitsInSI=[            &
@@ -162,7 +162,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVirialProperties), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     virialPropertiesType=outputAnalysisPropertyTypeLinear
     return

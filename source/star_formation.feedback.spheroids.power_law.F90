@@ -109,7 +109,7 @@ contains
     double precision                                        , intent(in   ) :: rateEnergyInput , rateStarFormation
     class           (nodeComponentSpheroid                 ), pointer       :: spheroid
     double precision                                                        :: velocitySpheroid
-    !GCC$ attributes unused :: rateStarFormation
+    !$GLC attributes unused :: rateStarFormation
 
     ! Get spheroid circular velocity.
     spheroid         => node    %spheroid()
@@ -135,7 +135,7 @@ contains
     implicit none
     class(starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
     type (treeNode                              ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     powerLawVelocityCharacteristic=self%velocityCharacteristic_
     return

@@ -314,7 +314,7 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   integer                                        , intent(inout), optional :: status
   double precision                                                         :: componentMass
   type            (coordinateSpherical          )                          :: position
-  !GCC$ attributes unused :: status
+  !$GLC attributes unused :: status
 
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Potential=0.0d0

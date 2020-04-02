@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolRecFast)                :: self
     type(inputParameters     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolRecFast()
     return
@@ -56,7 +56,7 @@ contains
     class  (taskBuildToolRecFast), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     type   (varying_string      )                          :: recfastPath, recfastVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call Galacticus_Display_Indent ('Begin task: RecFast tool build')
     call Interface_RecFast_Initialize(recfastPath,recfastVersion,static=.true.)
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolRecFast), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolRecFastRequiresOutputFile=.false.
     return

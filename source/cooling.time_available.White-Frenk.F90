@@ -126,7 +126,7 @@ contains
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply return unit rate.
     whiteFrenk1991TimeAvailableIncreaseRate=1.0d0

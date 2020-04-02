@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeEvolverNonEvolving)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeEvolverNonEvolving()
     return
@@ -63,7 +63,7 @@ contains
     integer         (kind_int8                   ), optional         , intent(in   ) :: systemClockMaximum
     integer         (omp_lock_kind               ), optional         , intent(inout) :: initializationLock
     type            (mergerTree                  )          , pointer                :: currentTree
-    !GCC$ attributes unused :: self, deadlockReporting, systemClockMaximum
+    !$GLC attributes unused :: self, deadlockReporting, systemClockMaximum
 
     if (present(status)) status=errorStatusSuccess
     suspendTree   =  .false.

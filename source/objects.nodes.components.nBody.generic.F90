@@ -97,7 +97,7 @@ contains
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentNBodyGeneric   )                :: nbodyComponent
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultNBodyComponent%genericIsActive()) then
@@ -119,7 +119,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultNBodyComponent%genericIsActive()) &
          call nodePromotionEvent%attach(defaultNBodyComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentNBodyGeneric')
@@ -149,7 +149,7 @@ contains
     type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentNBody)               , pointer :: nBodyParent, nBody
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     nBody       => node      %nBody ()
     nodeParent  => node      %parent
@@ -170,7 +170,7 @@ contains
     type     (varying_string           ), allocatable, dimension(:) :: propertyNamesTmp
     logical                                                         :: nameExists
     integer                                                         :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for prior existance of the property.
     !$omp critical(nbodyGenericAccess)
@@ -212,7 +212,7 @@ contains
     type     (varying_string           ), allocatable, dimension(:) :: propertyNamesTmp
     logical                                                         :: nameExists
     integer                                                         :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for prior existance of the property.
     !$omp critical(nbodyGenericAccess)
@@ -301,7 +301,7 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: i
-    !GCC$ attributes unused :: node, time
+    !$GLC attributes unused :: node, time
 
 
     !$omp critical(nbodyGenericAccess)
@@ -336,7 +336,7 @@ contains
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: node, time
+    !$GLC attributes unused :: node, time
 
     !$omp critical(nbodyGenericAccess)
     if (allocated(propertyNamesInteger)) integerPropertyCount=integerPropertyCount+size(propertyNamesInteger)
@@ -349,8 +349,7 @@ contains
   !#  <unitName>Node_Component_NBody_Generic_Output</unitName>
   !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use :: Galacticus_Nodes, only : nodeComponentNBody, treeNode
     use :: Kind_Numbers    , only : kind_int8
@@ -367,7 +366,7 @@ contains
     integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
     double precision                    , allocatable  , dimension(:) :: propertyValuesReal
     integer                                                           :: i
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     nBody => node%nBody()
     !$omp critical(nbodyGenericAccess)

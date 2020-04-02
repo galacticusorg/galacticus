@@ -42,7 +42,7 @@ contains
     implicit none
     type(starFormationExpulsiveFeedbackDisksZero)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=starFormationExpulsiveFeedbackDisksZero()
     return
@@ -54,7 +54,7 @@ contains
     class           (starFormationExpulsiveFeedbackDisksZero), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     double precision                                         , intent(in   ) :: rateEnergyInput, rateStarFormation
-    !GCC$ attributes unused :: self, node, rateEnergyInput, rateStarFormation
+    !$GLC attributes unused :: self, node, rateEnergyInput, rateStarFormation
 
     zeroOutflowRate=0.0d0
     return

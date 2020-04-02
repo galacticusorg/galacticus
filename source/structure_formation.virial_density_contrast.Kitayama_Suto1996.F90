@@ -86,7 +86,7 @@ contains
     double precision                                       , intent(in   ), optional :: time               , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: omegaf
-    !GCC$ attributes unused :: self, mass
+    !$GLC attributes unused :: self, mass
 
     omegaf=max(0.0d0,1.0d0/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
     kitayamaSuto1996DensityContrast=18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0)
@@ -102,7 +102,7 @@ contains
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: omegaf
-    !GCC$ attributes unused :: self, mass
+    !$GLC attributes unused :: self, mass
 
     omegaf=max(0.0d0,1.0d0/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
     kitayamaSuto1996DensityContrastRateOfChange=                                                 &

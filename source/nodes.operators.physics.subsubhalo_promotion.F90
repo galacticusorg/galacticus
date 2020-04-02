@@ -88,7 +88,7 @@ contains
     double precision                                 , dimension(3)           :: positionSatellite
     double precision                                                          :: radiusSatellite  , massBoundHost, &
          &                                                                       massEnclosedHost
-    !GCC$ attributes unused :: self, odeConverged
+    !$GLC attributes unused :: self, odeConverged
     
     ! Return if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

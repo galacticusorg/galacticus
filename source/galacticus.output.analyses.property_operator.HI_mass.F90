@@ -86,7 +86,7 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex
+    !$GLC attributes unused :: propertyType, outputIndex
 
     if (.not.present(node)) call Galacticus_Error_Report('node must be provided'//{introspection:location})
     hiMassOperate=+propertyValue                                                                                                &

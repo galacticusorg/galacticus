@@ -26,7 +26,7 @@
      !% Implementation of an output times class which reads a list of output times from a parameter.
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     double precision                         , allocatable, dimension(:) :: times              , redshifts
+     double precision                         , allocatable, dimension(:) :: times                        , redshifts
    contains
      final     ::                 listDestructor
      procedure :: count        => listCount
@@ -122,7 +122,7 @@ contains
     implicit none
     type(outputTimesList), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"          />
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine listDestructor
 

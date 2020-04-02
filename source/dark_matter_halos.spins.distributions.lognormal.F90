@@ -94,7 +94,7 @@ contains
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     logNormalSample=exp(                                                             &
          &              +self%median                                                 &

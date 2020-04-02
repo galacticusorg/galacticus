@@ -32,7 +32,7 @@ module Merger_Tree_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    ! Nothing to do.
   !#    return
   !#   </code>
@@ -44,7 +44,7 @@ module Merger_Tree_Operators
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, tree
+  !#    !$GLC attributes unused :: self, tree
   !#    ! Nothing to do.
   !#    return
   !#   </code>
@@ -54,7 +54,7 @@ module Merger_Tree_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    ! Nothing to do.
   !#    return
   !#   </code>
@@ -64,7 +64,7 @@ module Merger_Tree_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    ! Nothing to do.
   !#    return
   !#   </code>

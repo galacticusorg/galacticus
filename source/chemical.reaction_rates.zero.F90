@@ -43,7 +43,7 @@ contains
     implicit none
     type(chemicalReactionRateZero)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=chemicalReactionRateZero()
     return
@@ -58,7 +58,7 @@ contains
     class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (chemicalAbundances      ), intent(inout) :: chemicalRates
     type            (treeNode                ), intent(inout) :: node
-    !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation, node
+    !$GLC attributes unused :: self, chemicalDensity, temperature, radiation, node
 
     call chemicalRates%reset()
     return

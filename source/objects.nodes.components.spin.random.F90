@@ -173,7 +173,7 @@ contains
     type (treeNode          ), pointer       :: nodeParent
     class(nodeComponentSpin ), pointer       :: spinParent , spin
     class(nodeComponentBasic), pointer       :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Ensure that the spin component is of the random class.
     spin        => node     %spin  ()

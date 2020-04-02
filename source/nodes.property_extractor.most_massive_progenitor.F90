@@ -48,7 +48,7 @@ contains
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMostMassiveProgenitor()
     return
@@ -79,7 +79,7 @@ contains
     class           (nodeComponentBasic                        ), pointer                 :: basicCurrent
     type            (mergerTreeWalkerIsolatedNodes             )                          :: treeWalker
     double precision                                                                      :: massMostMassiveProgenitor
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     ! Find the root node in the tree.
     nodeCurrent => node
@@ -115,7 +115,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorType=outputAnalysisPropertyTypeLinear
     return
@@ -126,7 +126,7 @@ contains
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorName
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorName=var_str('isMostMassiveProgenitor')
     return
@@ -137,7 +137,7 @@ contains
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorDescription
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorDescription=var_str('Flag indicating if this node is the most massive progenitor in its tree at this time.')
     return

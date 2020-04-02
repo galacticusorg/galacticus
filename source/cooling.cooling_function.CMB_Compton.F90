@@ -99,7 +99,7 @@ contains
          &                                                                                             /speedLight                        &
          &                                                                                             /ergs
     double precision                                           :: temperatureCosmicMicrowaveBackground
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, chemicalDensities
 
     ! Find the cosmic microwave background radiation field.
     temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)
@@ -131,7 +131,7 @@ contains
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass      ), intent(inout) :: radiation
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, chemicalDensities
 
     ! Slope depends only on the behavior of electron density with density.
     cmbComptonCoolingFunctionDensityLogSlope=+self%chemicalState_%electronDensityDensityLogSlope(                       &
@@ -156,7 +156,7 @@ contains
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass      ), intent(inout) :: radiation
     double precision                                           :: temperatureCosmicMicrowaveBackground
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, chemicalDensities
 
     ! Find the cosmic microwave background radiation field.
     temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)

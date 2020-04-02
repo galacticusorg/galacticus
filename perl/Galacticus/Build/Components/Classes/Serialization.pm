@@ -50,7 +50,7 @@ sub Class_Serialize_ASCII {
     };
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 call Galacticus_Display_Indent('{$class->{'name'}}: {$padding}generic')
 call Galacticus_Display_Unindent('done')
 CODE

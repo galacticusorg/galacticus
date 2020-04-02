@@ -43,7 +43,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorMadau1995)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorMadau1995()
     return
@@ -61,7 +61,7 @@ contains
     integer                                                                                   :: iLine
     double precision                                                                          :: continuumFactor                                                                                                               , emissionFactor                  , &
          &                                                                                       opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then

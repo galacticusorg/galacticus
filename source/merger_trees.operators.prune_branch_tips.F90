@@ -43,7 +43,7 @@ contains
     implicit none
     type   (mergerTreeOperatorPruneBranchTips)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeOperatorPruneBranchTips()
     return
@@ -58,7 +58,7 @@ contains
     type (mergerTree                       ), intent(inout), target  :: tree
     type (treeNode                         )               , pointer :: node      , nodeWork, nodeDestroy
     type (mergerTreeWalkerIsolatedNodes    )                         :: treeWalker
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))

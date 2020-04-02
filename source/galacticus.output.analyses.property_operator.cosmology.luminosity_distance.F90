@@ -144,7 +144,7 @@ contains
     type            (treeNode                                       ), intent(inout), optional :: node
     integer                                                          , intent(inout), optional :: propertyType
     integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, node
+    !$GLC attributes unused :: propertyType, node
 
     ! Validate.
     if (.not.present(outputIndex)) call Galacticus_Error_Report('ouputIndex is required'//{introspection:location})

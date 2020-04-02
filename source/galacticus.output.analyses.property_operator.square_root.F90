@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorSquareRoot)                :: squareRootConstructorParameters
     type(inputParameters                         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     squareRootConstructorParameters=outputAnalysisPropertyOperatorSquareRoot()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                                ), intent(inout), optional :: node
     integer                                                   , intent(inout), optional :: propertyType
     integer         (c_size_t                                ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, outputIndex, propertyType, node
 
     if (propertyValue < 0.0d0) call Galacticus_Error_Report('domain error: x∈[0,∞)'//{introspection:location})
     squareRootOperate=sqrt(propertyValue)

@@ -215,7 +215,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011A=self%aValue
     return
@@ -226,7 +226,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011P=self%pValue
     return
@@ -237,7 +237,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011Q=self%qValue
     return
@@ -248,7 +248,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011Normalization=self%normalizationValue
     return

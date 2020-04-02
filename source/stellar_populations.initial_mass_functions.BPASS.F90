@@ -43,7 +43,7 @@ contains
     implicit none
     type(initialMassFunctionBPASS)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBPASS()
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class(initialMassFunctionBPASS), intent(inout) :: self
     type (varying_string          )                :: bpassLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bpassLabel="BPASS"
     return

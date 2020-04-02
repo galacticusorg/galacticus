@@ -357,7 +357,7 @@ contains
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
     type            (rootFinder                            ), intent(inout) :: finder
     double precision                                        , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(ludlow2016FormationTimeRoot        )

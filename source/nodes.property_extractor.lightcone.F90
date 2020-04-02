@@ -167,7 +167,7 @@ contains
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout) :: self
     double precision                                , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     lightconeElementCount=self%elementCount_
     return
@@ -186,7 +186,7 @@ contains
     type            (treeNode                      ), intent(inout), target      :: node
     double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     if (.not.present(instance)) call Galacticus_Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
@@ -261,7 +261,7 @@ contains
     type            (varying_string                ), dimension(:) , allocatable :: lightconeNames
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
     double precision                                , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(lightconeNames(self%elementCount_))
     lightconeNames=self%names_
@@ -274,7 +274,7 @@ contains
     type            (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
     double precision                                , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(lightconeDescriptions(self%elementCount_))
     lightconeDescriptions=self%descriptions_
@@ -287,7 +287,7 @@ contains
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
     double precision                                , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(lightconeUnitsInSI(self%elementCount_))
     lightconeUnitsInSI=self%unitsInSI_
@@ -299,7 +299,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLightcone), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lightconeType=outputAnalysisPropertyTypeLinear
     return

@@ -87,7 +87,7 @@ contains
     type (treeNode                                 ), intent(inout), target   :: node
     type (multiCounter                             ), intent(inout), optional :: instance
     class(nodeComponentBasic                       ), pointer                 :: basic
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     basic                       => node              %basic()
     redshiftLastIsolatedExtract =  self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
@@ -103,7 +103,7 @@ contains
     implicit none
     type (varying_string                           )                :: redshiftLastIsolatedName
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     redshiftLastIsolatedName=var_str('redshiftLastIsolated')
     return
@@ -114,7 +114,7 @@ contains
     implicit none
     type (varying_string                           )                :: redshiftLastIsolatedDescription
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     redshiftLastIsolatedDescription=var_str('The redshift of the epoch at which the galaxy was last isolated.')
     return
@@ -124,7 +124,7 @@ contains
     !% Return the units of the last isolated redshift property in the SI system.
     implicit none
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     redshiftLastIsolatedUnitsInSI=0.0d0
     return
@@ -135,7 +135,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     redshiftLastIsolatedType=outputAnalysisPropertyTypeLinear
     return

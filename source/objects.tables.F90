@@ -1155,7 +1155,7 @@ contains
     integer                                       , intent(in   ), optional :: table
     logical                                       , intent(in   ), optional :: precise
     integer                                                                 :: i           , tableActual
-    !GCC$ attributes unused :: precise
+    !$GLC attributes unused :: precise
 
     tableActual=1
     if (present(table)) tableActual=table
@@ -1505,7 +1505,7 @@ contains
     double precision                                 , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
     double precision                                 , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_Linear_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integration weights not supported'//{introspection:location})
@@ -1601,7 +1601,7 @@ contains
     double precision                                     , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction    ), intent(in   )           , pointer, optional :: integrand
     double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_NonUniform_Linear_Logarithmic_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integrand is not linear in y'//{introspection:location})
@@ -2191,7 +2191,7 @@ contains
     double precision                                 , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
     double precision                                 , dimension(size(self%xv))                    :: Table_Linear_Monotone_CSpline_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_Linear_Monotone_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integration weights not supported'//{introspection:location})

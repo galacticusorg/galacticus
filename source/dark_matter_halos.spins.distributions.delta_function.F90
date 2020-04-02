@@ -82,7 +82,7 @@ contains
     !% distribution class.
     implicit none
     type(haloSpinDistributionDeltaFunction), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     deltaFunctionSample=self%spin
     return
@@ -106,7 +106,7 @@ contains
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     deltaFunctionDistribution=0.0d0
     call Galacticus_Error_Report('distribution function can not be evaluated'//{introspection:location})

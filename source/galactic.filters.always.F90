@@ -42,7 +42,7 @@ contains
     implicit none
     type(galacticFilterAlways)                :: alwaysConstructorParameters
     type(inputParameters     ), intent(in   ) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     alwaysConstructorParameters=galacticFilterAlways()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(galacticFilterAlways), intent(inout)         :: self
     type (treeNode            ), intent(inout), target :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     alwaysPasses=.true.
     return

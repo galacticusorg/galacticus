@@ -86,7 +86,7 @@ contains
     double precision                                , intent(in   )            :: time , mass
     type            (treeNode                      ), intent(inout) , optional :: node
     double precision                                                           :: sigma, alpha
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= self%time .or. mass /= self%mass) then

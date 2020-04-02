@@ -132,11 +132,12 @@ sub Process_FunctionClass {
 		modules     =>
 		    [
 		     {
-			 name => "FGSL",
-			 only => [ "fgsl_file" ]
+			 name      => "ISO_C_Binding",
+			 intrinsic => 1              ,
+			 only      => [ "c_ptr" ]
 		     }
 		    ],
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
 	    };
 	    $methods{'stateRestore'} =
 	    {
@@ -146,11 +147,12 @@ sub Process_FunctionClass {
 		modules     =>
 		    [
 		     {
-			 name => "FGSL",
-			 only => [ "fgsl_file" ]
+			 name      => "ISO_C_Binding",
+			 intrinsic => 1              ,
+			 only      => [ "c_ptr" ]
 		     }
 		    ],
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
 	    };
 	    # Add auto-hook function.
 	    $methods{'autoHook'} =
@@ -158,7 +160,7 @@ sub Process_FunctionClass {
 		description => "Insert any event hooks required by this object.",
 		type        => "void",
 		pass        => "yes",
-		code        => "!GCC\$ attributes unused :: self\n\n! Nothing to do by default.\n"
+		code        => "!\$GLC attributes unused :: self\n\n! Nothing to do by default.\n"
 	    };
 	    if ( exists($directive->{'autoHook'}) ) {
 		foreach my $module ( &List::ExtraUtils::as_array($directive->{'autoHook'}->{'modules'}) ) {
@@ -189,7 +191,6 @@ sub Process_FunctionClass {
 	    my %addSubParameters;
 	    my $addLabel         = 0;
 	    my $descriptorUsed   = 0;
-	    $descriptorCode .= "logical :: includeMethod_\n";
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -524,8 +525,11 @@ sub Process_FunctionClass {
 		}
 	    }
 	    $descriptorCode .= "end select\n";
-	    $descriptorCode  = " !GCC\$ attributes unused :: descriptor, includeMethod, includeMethod_\n".$descriptorCode
-		unless ( $descriptorUsed );
+	    if ( $descriptorUsed ) {
+		$descriptorCode = "logical :: includeMethod_\n".$descriptorCode;
+	    } else {
+		$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeMethod\n".$descriptorCode;
+	    }
  	    $descriptorCode  = "type(inputParameters) :: ".join(",",keys(%addSubParameters))."\n".$descriptorCode
 		if ( %addSubParameters );
  	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
@@ -783,7 +787,7 @@ CODE
 	    if ( $parametersPresent ) {
 		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
 	    } else {
-		$allowedParametersCode = "!GCC\$ attributes unused :: self, allowedParameters, sourceName\n";
+		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n";
 	    }
 	    $methods{'allowedParameters'} =
 	    {
@@ -1460,13 +1464,13 @@ CODE
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
-	    my %stateStoreModules   = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL,only:fgsl_file" => 1, "ISO_C_Binding" => 1 );
-	    my %stateRestoreModules = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL,only:fgsl_file" => 1, "ISO_C_Binding" => 1 );
+	    my %stateStoreModules   = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+	    my %stateRestoreModules = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
 	    my @inputUnusedVariables;
 	    my $allocatablesFound = 0;
 	    my $dimensionalsFound = 0;
-	    my $fgslStateFileUsed = 0;
+	    my $gslStateFileUsed  = 0;
 	    my $stateFileUsed     = 0;
 	    my $labelUsed         = 0;
 	    $rankMaximum          = 0;
@@ -1540,15 +1544,21 @@ CODE
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
 					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-					    $outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,stateOperationID)\n";
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile,stateOperationID)\n";
-					    $stateFileUsed     = 1;
-					    $fgslStateFileUsed = 1;
+					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+					    $stateFileUsed    = 1;
+					    $gslStateFileUsed = 1;
 					}
 				    } elsif (
 					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
@@ -1613,16 +1623,28 @@ CODE
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
-						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    }
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
-					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
+					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
+					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
 					    for(my $i=1;$i<=$rank;++$i) {
 						$outputCode .= (" " x ($rank+1-$i))."end do\n";
 						$inputCode  .= (" " x ($rank+1-$i))."end do\n";
@@ -1633,8 +1655,8 @@ CODE
 						$outputCode .= "  write (stateFile) .false.\n";
 						$outputCode .= " end if\n";
 					    }
-					    $stateFileUsed      = 1;
-					    $fgslStateFileUsed  = 1;
+					    $stateFileUsed    = 1;
+					    $gslStateFileUsed = 1;
 					}
 				    }
 				} else {
@@ -1656,7 +1678,13 @@ CODE
 					    $labelUsed          = 1;
 					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
 					    $outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
 					    $outputCode        .= "  write (stateFile) .true.\n";
@@ -1754,15 +1782,21 @@ CODE
 				$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 				$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 				$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				#  <description>
+				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				#  </description>
+				# </workaround>
+				$outputCode .= "   write (label,'(i16)') 0\n";
+				#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				$outputCode .= "  end select\n";
 				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
 				$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-				$outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,stateOperationID)\n";
-				$inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile,stateOperationID)\n";
-				$stateFileUsed     = 1;
-				$fgslStateFileUsed = 1;
+				$outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+				$inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+				$stateFileUsed    = 1;
+				$gslStateFileUsed = 1;
 			    }
 			} elsif (
 			    (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
@@ -1826,16 +1860,28 @@ CODE
 				if ( $declaration->{'intrinsic'} eq "class" ) {
 				    $outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 				    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				    $outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				    #  <description>
+				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				    #  </description>
+				    # </workaround>
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				    $outputCode .= "  end select\n";
 				} else {
-				    $outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
+				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				    #  <description>
+				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				    #  </description>
+				    # </workaround>
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
 				}
 				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
 				$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
-				$inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,fgslStateFile)\n";
-				$outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,fgslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
+				$inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile)\n";
+				$outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
 				for(my $i=1;$i<=$rank;++$i) {
 				    $outputCode .= (" " x ($rank+1-$i))."end do\n";
 				    $inputCode  .= (" " x ($rank+1-$i))."end do\n";
@@ -1846,8 +1892,8 @@ CODE
 				    $outputCode .= "  write (stateFile) .false.\n";
 				    $outputCode .= " end if\n";
 				}
-				$stateFileUsed      = 1;
-				$fgslStateFileUsed  = 1;
+				$stateFileUsed    = 1;
+				$gslStateFileUsed = 1;
 			    }
 			}
 		    } else {
@@ -1869,7 +1915,13 @@ CODE
 				$labelUsed          = 1;
 				$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
 				$outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-				$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				#  <description>
+				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				#  </description>
+				# </workaround>
+				$outputCode .= "   write (label,'(i16)') 0\n";
+				#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 				$outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode        .= "  end if\n";
 				$outputCode        .= "  write (stateFile) .true.\n";
@@ -1926,15 +1978,21 @@ CODE
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
 					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-					    $outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,stateOperationID)\n";
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile,stateOperationID)\n";
-					    $stateFileUsed     = 1;
-					    $fgslStateFileUsed = 1;
+					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+					    $stateFileUsed    = 1;
+					    $gslStateFileUsed = 1;
 					}
 				    } elsif (
 					(
@@ -2005,16 +2063,28 @@ CODE
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
-						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    }
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
-					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
+					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
+					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
 					    for(my $i=1;$i<=$rank;++$i) {
 						$outputCode .= (" " x ($rank+1-$i))."end do\n";
 						$inputCode  .= (" " x ($rank+1-$i))."end do\n";
@@ -2025,8 +2095,8 @@ CODE
 						$outputCode .= "  write (stateFile) .false.\n";
 						$outputCode .= " end if\n";
 					    }
-					    $stateFileUsed      = 1;
-					    $fgslStateFileUsed  = 1;
+					    $stateFileUsed    = 1;
+					    $gslStateFileUsed = 1;
 					}
 				    }
 				} else {
@@ -2048,7 +2118,13 @@ CODE
 					    $labelUsed          = 1;
 					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
 					    $outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
 					    $outputCode        .= "  write (stateFile) .true.\n";
@@ -2119,7 +2195,13 @@ CODE
 		    foreach ( @staticVariables ) {
 			$labelUsed       = 1;
 			$stateStoreCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-			$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
+			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+			#  <description>
+			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+			#  </description>
+			# </workaround>
+			$stateStoreCode .= "   write (label,'(i16)') 0\n";
+			#$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
 			$stateStoreCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			$stateStoreCode .= " end if\n";
 		    }
@@ -2148,37 +2230,36 @@ CODE
 	    $stateRestoreCode .= "end select\n";
 	    $stateRestoreCode .= "call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)\n";
 	    $stateRestoreCode .= "return\n";
-	    unless ( $fgslStateFileUsed ) {
-		push(@outputUnusedVariables,"fgslStateFile");
-		push(@inputUnusedVariables ,"fgslStateFile");
+	    unless ( $gslStateFileUsed ) {
+		push(@outputUnusedVariables,"gslStateFile");
+		push(@inputUnusedVariables ,"gslStateFile");
 	    }
 	    unless ( $stateFileUsed     ) {
 		push(@outputUnusedVariables,"stateFile"    );
 		push(@inputUnusedVariables ,"stateFile"    );
 	    }
-	    push(@outputUnusedVariables,"label")
-		unless ( $labelUsed );
 	    $stateStoreCode   =
 		($rankMaximum > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n" : "").
-		(@outputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
+		(@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
 		$stateStoreCode  ;
 	    $stateRestoreCode =
 		($rankMaximum > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n" : "").
-		(@inputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@inputUnusedVariables)."\n" : "").
+		(@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables)."\n" : "").
 		$stateRestoreCode;
 	    if ( $allocatablesFound ) {
 		$stateRestoreCode = ($dimensionalsFound ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
 		    ($allocatablesFound ? "logical                                      :: wasAllocated\n" : "").
 		    $stateRestoreCode;
 	    }
-	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode  ;
+	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
+                 if ( $labelUsed );
 	    $methods{'stateStore'} =
 	    {
 		description => "Store the state of this object to file.",
 		type        => "void",
 		pass        => "yes",
 		modules     => join(" ",keys(%stateStoreModules)),
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateStoreCode
 	    };
 	    $methods{'stateRestore'} =
@@ -2187,7 +2268,7 @@ CODE
 		type        => "void",
 		pass        => "yes",
 		modules     => join(" ",keys(%stateRestoreModules)),
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateRestoreCode
 	    };
 	    # Initialize structure that will hold all generated code.
@@ -3053,21 +3134,20 @@ CODE
 	    $modulePostContains->{'content'} .= "  !# <galacticusStateStoreTask>\n";
 	    $modulePostContains->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoStateStore</unitName>\n";
 	    $modulePostContains->{'content'} .= "  !# </galacticusStateStoreTask>\n";
-	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateStore(stateFile,fgslStateFile,stateOperationID)\n";
+	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateStore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    !% Store the state to file.\n";
-	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t\n";
-	    $modulePostContains->{'content'} .= "    use            :: FGSL              , only : fgsl_file\n";
+	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
 	    $modulePostContains->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
 	    $modulePostContains->{'content'} .= "    implicit none\n";
-	    $modulePostContains->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
-	    $modulePostContains->{'content'} .= "    integer(c_size_t ), intent(in   ) :: stateOperationID\n";
-	    $modulePostContains->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	    $modulePostContains->{'content'} .= "    integer          , intent(in   ) :: stateFile\n";
+	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
+	    $modulePostContains->{'content'} .= "    type   (c_ptr   ), intent(in   ) :: gslStateFile\n";
 	    $modulePostContains->{'content'} .= "    if (associated(".$directive->{'name'}."Default)) then\n";
 	    $modulePostContains->{'content'} .= "     write (stateFile) .true.\n";
 	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('storing default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
-	    $modulePostContains->{'content'} .= "     call ".$directive->{'name'}."Default%stateStore(stateFile,fgslStateFile,stateOperationID)\n";
+	    $modulePostContains->{'content'} .= "     call ".$directive->{'name'}."Default%stateStore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
 	    $modulePostContains->{'content'} .= "     write (stateFile) .false.\n";
 	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
@@ -3077,24 +3157,23 @@ CODE
 	    $modulePostContains->{'content'} .= "  !# <galacticusStateRetrieveTask>\n";
 	    $modulePostContains->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoStateRetrieve</unitName>\n";
 	    $modulePostContains->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
-	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateRetrieve(stateFile,fgslStateFile,stateOperationID)\n";
+	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateRetrieve(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    !% Retrieve the state from file.\n";
-	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t\n";
-	    $modulePostContains->{'content'} .= "    use            :: FGSL              , only : fgsl_file\n";
+	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
 	    $modulePostContains->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
 	    $modulePostContains->{'content'} .= "    implicit none\n";
-	    $modulePostContains->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
-	    $modulePostContains->{'content'} .= "    integer(c_size_t ), intent(in   ) :: stateOperationID\n";
-	    $modulePostContains->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	    $modulePostContains->{'content'} .= "    integer          , intent(in   ) :: stateFile\n";
+	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
+	    $modulePostContains->{'content'} .= "    type   (c_ptr   ), intent(in   ) :: gslStateFile\n";
 	    $modulePostContains->{'content'} .= "    class  (".$directive->{'name'}."Class), pointer :: default\n";
 	    $modulePostContains->{'content'} .= "    logical                                         :: initialized\n\n";
 	    $modulePostContains->{'content'} .= "    read (stateFile) initialized\n";
 	    $modulePostContains->{'content'} .= "    if (initialized) then\n";
 	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('restoring default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "     default => ".$directive->{'name'}."()\n";
-	    $modulePostContains->{'content'} .= "     call default%stateRestore(stateFile,fgslStateFile,stateOperationID)\n";
+	    $modulePostContains->{'content'} .= "     call default%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
 	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "    end if\n";
@@ -3141,17 +3220,14 @@ CODE
 		    $argumentCode .= " :: self\n";
 		}
 		my $separator = "";
-		my $unusedCode = "if (sizeof(self)<0.and.sizeof(self)>0) then\nend if\n";
+                my @unusedVariables = ( "self" );
 		foreach my $argument ( @arguments ) {
 		    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
 		    $argumentList .= $separator.$variables;
 		    $argumentCode .= "      ".$argument."\n";
 		    $separator     = ",";
 		    my $declaration = &Fortran::Utils::Unformat_Variables($argument);
-		    foreach ( @{$declaration->{'variables'}} ) {
-			my $function = $declaration->{'intrinsic'} eq "procedure" ? "loc" : "sizeof";
-			$unusedCode .= "if (".$function."(".$_.")<0.and.".$function."(".$_.")>0) then\nend if\n";
-		    }
+		    push(@unusedVariables,@{$declaration->{'variables'}});
 		}
 		my $type;
 		my $category;
@@ -3203,6 +3279,7 @@ CODE
 		$modulePostContains->{'content'} .= "      implicit none\n";
 		$modulePostContains->{'content'} .= $argumentCode;
 		$modulePostContains->{'content'} .= $self;
+		$modulePostContains->{'content'} .= "!\$GLC attributes unused :: ".join(", ",@unusedVariables)."\n";
 		if ( exists($method->{'code'}) ) {
 		    my $code = "      ".$method->{'code'};
 		    $code =~ s/\n/\n      /g;
@@ -3233,8 +3310,6 @@ CODE
 			$modulePostContains->{'content'} .= $setValue."\n";
 		    }
 		    $modulePostContains->{'content'} .= "      return\n";
-		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
-		    $modulePostContains->{'content'} .= $unusedCode;
 		}
 		$modulePostContains->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
@@ -3336,16 +3411,12 @@ CODE
 	    open(my $docHndl,">doc/methods/".$directive->{'name'}.".tex");
 	    print $docHndl $documentation;
 	    close($docHndl);
-	    # Insert into tree.
-	    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
-	    # To allow processing of "GCC attributes unused" directives by our preprocessor (since GCC does not support them yet),
-	    # we parse and process our generated code here, before serializing it back into the original node. Should we need to
-	    # retain this behavior permanently it would be cleaner to just generate the code as text (i.e. not in a node), then
-	    # parse into a tree and unshift() it to the start of the postcontains array.
+	    # Insert into tree.	  
+            ## To allow processing of directives by our preprocessor, we parse and process our generated code here, before
+            ## serializing it back into the original node.
 	    my $treeTmp = &Galacticus::Build::SourceTree::ParseCode ($modulePostContains->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
 	    &Galacticus::Build::SourceTree::ProcessTree($treeTmp);
 	    $modulePostContains->{'content'} = &Galacticus::Build::SourceTree::Serialize($treeTmp);
-	    # </workaround>
 	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,$codeContent->{'module'}->{'preContains' });
 	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'},$codeContent->{'module'}->{'interfaces'  });
 	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},$codeContent->{'module'}->{'postContains'});

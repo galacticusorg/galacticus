@@ -142,7 +142,7 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
   double precision                                                                                                   :: gradient
   character       (len=8                                           )                                                 :: label
   type            (varying_string                                  )                                                 :: message
-  !GCC$ attributes unused :: simulationState
+  !$GLC attributes unused :: simulationState
 
   ! Should we consider updating the exponent?
   levelCount=size(temperedStates)

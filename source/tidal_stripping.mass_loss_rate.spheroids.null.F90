@@ -43,7 +43,7 @@ contains
     implicit none
     type(tidalStrippingSpheroidsNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=tidalStrippingSpheroidsNull()
     return
@@ -54,7 +54,7 @@ contains
     implicit none
     class(tidalStrippingSpheroidsNull), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     nullRateMassLoss=0.0d0
     return

@@ -44,7 +44,7 @@ contains
     implicit none
     type(blackHoleBinaryMergerRezzolla2008)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryMergerRezzolla2008()
     return
@@ -66,7 +66,7 @@ contains
     double precision                                                   :: blackHoleMass1             , blackHoleMass2             , blackHoleSpin1                 , &
          &                                                                blackHoleSpin2             , massRatio                  , orbitalAngularMomentum         , &
          &                                                                symmetricMassRatio         , argumentSqrt
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for case of two zero-mass black holes.
     if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then

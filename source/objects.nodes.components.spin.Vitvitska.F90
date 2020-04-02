@@ -399,7 +399,7 @@ contains
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentSpin )               , pointer :: spinParent , spin
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spin        => node      %spin  ()
     nodeParent  => node      %parent
@@ -432,7 +432,7 @@ contains
     class           (nodeComponentSpin)               , pointer :: spin
     double precision                                            :: spinMagnitude     , spinGrowthRate
     double precision                   , dimension(3)           :: spinVector
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

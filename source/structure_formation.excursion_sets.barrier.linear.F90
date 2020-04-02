@@ -88,7 +88,7 @@ contains
     double precision                           , intent(in   ) :: variance, time
     type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute, node
+    !$GLC attributes unused :: time, rateCompute, node
 
     linearBarrier=+self%coefficientConstant          &
          &        +self%coefficientLinear  *variance
@@ -102,7 +102,7 @@ contains
     double precision                           , intent(in   ) :: variance   , time
     type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute, node
+    !$GLC attributes unused :: variance, time, rateCompute, node
 
     linearBarrierGradient=+self%coefficientLinear
     return

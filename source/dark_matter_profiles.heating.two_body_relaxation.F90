@@ -235,7 +235,7 @@ contains
     type (treeNode                                 ), intent(inout) :: node
     class(darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentBasic                       ), pointer       :: basic
-    !GCC$ attributes unused :: self, darkMatterProfileDMO_
+    !$GLC attributes unused :: self, darkMatterProfileDMO_
 
     basic                                           => node %basic()
     twoBodyRelaxationSpecificEnergyIsEverywhereZero =  basic%time () <= self%timeStart

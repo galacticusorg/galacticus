@@ -51,7 +51,7 @@ sub Class_Initialization {
 	    ]
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 
 call Galacticus_Error_Report('can not initialize a generic component'//\{introspection:location\})
 CODE
@@ -86,7 +86,7 @@ sub Class_Finalization {
 	    ]
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 
 ! Nothing to do.
 CODE
@@ -132,7 +132,7 @@ sub Class_Builder {
 	    ]
 	};
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, componentDefinition
+!$GLC attributes unused :: self, componentDefinition
 
 call Galacticus_Error_Report('can not build a generic component'//\{introspection:location\})
 CODE

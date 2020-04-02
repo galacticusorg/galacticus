@@ -136,7 +136,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskNBodyAnalyze), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nbodyAnalyzeRequiresOutputFile=.false.
     return

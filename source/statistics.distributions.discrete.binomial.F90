@@ -161,7 +161,7 @@ contains
     !% Return the minimum possible value in a binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     binomialMinimum=0
     return
@@ -171,7 +171,7 @@ contains
     !% Return the maximum possible value in a binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     binomialMaximum=self%countTrials
     return

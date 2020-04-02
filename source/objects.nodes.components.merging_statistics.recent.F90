@@ -263,7 +263,7 @@ contains
     class(*                             ), intent(inout)          :: self
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     mergingStatisticsParent => node%parent%mergingStatistics()
     mergingStatistics       => node       %mergingStatistics()
@@ -283,9 +283,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output_Names</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
+  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
@@ -295,7 +293,7 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
+    !$GLC attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        integerProperty=integerProperty+1
@@ -317,7 +315,7 @@ contains
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: doublePropertyCount, time
+    !$GLC attributes unused :: doublePropertyCount, time
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) integerPropertyCount=integerPropertyCount+1
     return
@@ -327,8 +325,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerBuffer&
-       &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
     use :: Kind_Numbers    , only : kind_int8
@@ -343,7 +340,7 @@ contains
     type            (multiCounter                  ), intent(inout)                   :: instance
     class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatistics
     integer                                         , dimension(outputCount)          :: mergerIncrement
-    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
+    !$GLC attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        ! Store the properties.

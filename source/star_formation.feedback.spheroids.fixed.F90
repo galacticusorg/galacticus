@@ -78,7 +78,7 @@ contains
     class           (starFormationFeedbackSpheroidsFixed), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
     double precision                                     , intent(in   ) :: rateEnergyInput, rateStarFormation
-    !GCC$ attributes unused :: node, rateStarFormation
+    !$GLC attributes unused :: node, rateStarFormation
 
     fixedOutflowRate=+self%fraction                          &
          &           *rateEnergyInput                        &

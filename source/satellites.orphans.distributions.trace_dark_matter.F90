@@ -102,7 +102,7 @@ contains
     type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: fraction
     type            (treeNode                                  ), pointer       :: nodeHost
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nodeHost                        => node%parent
     traceDarkMatterInverseCMFRadial =  Galactic_Structure_Radius_Enclosing_Mass(                                 &

@@ -275,7 +275,7 @@ contains
 #else
     integer                                 , allocatable, dimension(:), intent(inout) :: values
     class           ({Type¦label}ScalarHash)                           , intent(in   ) :: thisHash
-    !GCC$ attributes unused :: thisHash, values
+    !$GLC attributes unused :: thisHash, values
 
     call Galacticus_Error_Report('values method is not supported for generic hashes'//{introspection:location})
 #endif

@@ -42,7 +42,7 @@ contains
     implicit none
     type   (nbodyOperatorNull)                :: self
     type   (inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nbodyOperatorNull()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(nbodyOperatorNull), intent(inout) :: self
     type (nBodyData        ), intent(inout) :: simulation
-    !GCC$ attributes unused :: self, simulation
+    !$GLC attributes unused :: self, simulation
 
     ! Nothing to do.
     return

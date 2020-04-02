@@ -142,7 +142,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
     return
@@ -154,7 +154,7 @@ contains
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
@@ -169,7 +169,7 @@ contains
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     double precision                                                             :: redshift, logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -248,7 +248,7 @@ contains
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
     return
@@ -276,7 +276,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
     return

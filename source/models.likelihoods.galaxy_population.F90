@@ -187,7 +187,7 @@ contains
     integer         (kind_int8                                ), external                      :: Evaluator_Create_
     double precision                                           , external                      :: Evaluator_Evaluate_
     external                                                                                   :: Evaluator_Destroy_
-    !GCC$ attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
+    !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
     ! Switch verbosity level.
     verbosityLevel=Galacticus_Verbosity_Level()
@@ -432,7 +432,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine galaxyPopulationFunctionChanged
@@ -449,7 +449,7 @@ contains
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
     double precision                                           , intent(in   )               :: temperature          , logLikelihoodCurrent, &
          &                                                                                      logPriorCurrent      , logPriorProposed
-    !GCC$ attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent
+    !$GLC attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent
 
     ! Likelihood will not be evaluated if the proposed prior is impossible.
     galaxyPopulationWillEvaluate=(logPriorProposed > logImpossible)

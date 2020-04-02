@@ -35,7 +35,7 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
-    !GCC$ attributes unused :: y
+    !$GLC attributes unused :: y
 
     dydx(1)=sin(x)
     ODE_Set_1=FGSL_Success
@@ -47,7 +47,7 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
-    !GCC$ attributes unused :: y
+    !$GLC attributes unused :: y
 
     dfdy(1)=0.0d0
     dfdx(1)=cos(x)
@@ -60,7 +60,7 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
-    !GCC$ attributes unused :: x
+    !$GLC attributes unused :: x
 
     dydx(1)=       y(2)
     dydx(2)=-1.0d0*y(1)
@@ -73,7 +73,7 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
-    !GCC$ attributes unused :: x, y
+    !$GLC attributes unused :: x, y
 
     dfdy(1  )=+0.0d0
     dfdy(2  )=+1.0d0
@@ -92,7 +92,7 @@ contains
     double precision, intent(in   ), dimension(nz        ) :: z0
     logical         , intent(inout), dimension(        : ) :: e
     double precision, intent(  out), dimension(nz,size(x)) :: dzdx
-    !GCC$ attributes unused :: x, dydx, z0
+    !$GLC attributes unused :: x, dydx, z0
 
     if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)
     if (e(2)) dzdx(2,:)=1.0d0/sqrt(1.0d0+y(2,:)**2)

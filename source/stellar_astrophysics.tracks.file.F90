@@ -320,7 +320,7 @@ contains
          &                                                                  iMetallicity
     integer         (c_size_t         )                                  :: jAge                           , jMetallicity, &
          &                                                                  jMass
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fileInterpolate=0.0d0
     do iMetallicity=1,2
