@@ -30,9 +30,9 @@ module Node_Component_Scale_Virial_Theorem
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize    , &
-       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Promote          , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set          , &
+       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize       , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set          , &
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize, Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize, &
-       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize
+       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -123,13 +123,14 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize(parameters)
     !% Initializes the tree node scale dark matter profile module.
-    use Input_Parameters                  , only : inputParameters                  , inputParameter
-    use Galacticus_Nodes                  , only : defaultDarkMatterProfileComponent
-    use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
-    use Dark_Matter_Profiles              , only : darkMatterProfile
-    use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale
-    use Virial_Orbits                     , only : virialOrbit
-    use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolution
+    use :: Events_Hooks                      , only : nodePromotionEvent               , openMPThreadBindingAtLevel
+    use :: Input_Parameters                  , only : inputParameters                  , inputParameter
+    use :: Galacticus_Nodes                  , only : defaultDarkMatterProfileComponent
+    use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
+    use :: Dark_Matter_Profiles              , only : darkMatterProfile
+    use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScale
+    use :: Virial_Orbits                     , only : virialOrbit
+    use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolution
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -139,6 +140,7 @@ contains
        !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
        !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
        !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
+       call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentDarkMatterProfileVirialTheorem')
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize
@@ -148,7 +150,8 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize()
     !% Uninitializes the tree node scale dark matter profile module.
-    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
@@ -157,7 +160,8 @@ contains
        !# <objectDestructor name="darkMatterHaloScale_"         />
        !# <objectDestructor name="virialOrbit_"                 />
        !# <objectDestructor name="mergerTreeMassResolution_"    />
-    end if
+        call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+   end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
 
@@ -420,32 +424,37 @@ contains
                 end if
                 radiusScale=finder%find(rootGuess=radiusScaleChild)
              end if
-             call darkMatterProfile%scaleSet(radiusScale)
+             call darkMatterProfile%scaleSet(radiusScale)             
           end do
-       end if
-       ! Check if this node is the primary progenitor.
-       if (node%isPrimaryProgenitor()) then
-          ! It is, so compute the scale radius growth rate.
-          ! Now compute the growth rate.
-          basic       =>  node              %basic()
-          basicParent =>  node       %parent%basic()
-          deltaTime   =  +basicParent       %time () &
-               &         -basic             %time ()
-          if (deltaTime > 0.0d0) then
-             darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
-             call darkMatterProfile%scaleGrowthRateSet(                                  &
-                  &                                    (                                 &
-                  &                                      darkMatterProfileParent%scale() &
-                  &                                     -darkMatterProfile      %scale() &
-                  &                                    )                                 &
-                  &                                    /deltaTime                        &
-                  &                                   )
-          else
-             call darkMatterProfile%scaleGrowthRateSet(0.0d0)
-          end if
-       else
-          ! It is not, so set scale radius growth rate to zero.
-          call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
+          ! Walk the tree again to set growth rates.
+          treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
+          do while (treeWalker%next(nodeWork))
+             darkMatterProfile => nodeWork%darkMatterProfile()
+             ! Check if this node is the primary progenitor.
+             if (nodeWork%isPrimaryProgenitor()) then
+                ! It is, so compute the scale radius growth rate.
+                ! Now compute the growth rate.
+                basic       =>  nodeWork          %basic()
+                basicParent =>  nodeWork   %parent%basic()
+                deltaTime   =  +basicParent       %time () &
+                     &         -basic             %time ()
+                if (deltaTime > 0.0d0) then
+                   darkMatterProfileParent => nodeWork%parent%darkMatterProfile()
+                   call darkMatterProfile%scaleGrowthRateSet(                                  &
+                        &                                    (                                 &
+                        &                                     +darkMatterProfileParent%scale() &
+                        &                                     -darkMatterProfile      %scale() &
+                        &                                    )                                 &
+                        &                                    /deltaTime                        &
+                        &                                   )
+                else
+                   call darkMatterProfile%scaleGrowthRateSet(0.0d0)
+                end if
+             else
+                ! It is not, so set scale radius growth rate to zero.
+                call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
+             end if
+          end do
        end if
     end if
     return
@@ -462,24 +471,23 @@ contains
     return
   end function radiusScaleRoot
   
-  !# <nodePromotionTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Promote</unitName>
-  !# </nodePromotionTask>
-  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Promote(node)
+  subroutine nodePromotion(self,node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem, nodeComponentBasic
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
+    class(*                             ), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
     class(nodeComponentBasic            )               , pointer :: basicParent            , basic
+    !GCC$ attributes unused :: self
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale class.
     select type (darkMatterProfile)
-       class is (nodeComponentDarkMatterProfileVirialTheorem)
+    class is (nodeComponentDarkMatterProfileVirialTheorem)
        darkMatterProfileParent => node%parent%darkMatterProfile()
        basic                   => node       %basic            ()
        basicParent             => node%parent%basic            ()
@@ -490,7 +498,7 @@ contains
        call darkMatterProfile%scaleGrowthRateSet(darkMatterProfileParent%scaleGrowthRate())
     end select
     return
-  end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Promote
+  end subroutine nodePromotion
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set</unitName>
