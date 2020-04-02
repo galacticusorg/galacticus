@@ -33,7 +33,7 @@ module Galactic_Filters
   !#   <description>Return true if the given {\normalfont \ttfamily node} passes the filter.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
 

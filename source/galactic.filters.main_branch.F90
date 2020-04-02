@@ -51,8 +51,8 @@ contains
   logical function mainBranchPasses(self,node)
     !% Implement a galactic filter which passes only main branch halos.
     implicit none
-    class(galacticFilterMainBranch), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class(galacticFilterMainBranch), intent(inout)         :: self
+    type (treeNode                ), intent(inout), target :: node
     !GCC$ attributes unused :: self
 
     mainBranchPasses=node%isOnMainBranch()

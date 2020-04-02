@@ -64,9 +64,9 @@ contains
     !% Implement a galactic filter which passes only isolated halos.
     use :: Galacticus_Nodes, only : nodeComponentMergingStatistics
     implicit none
-    class(galacticFilterHaloAlwaysIsolated), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: node
-    class(nodeComponentMergingStatistics  ), pointer       :: mergingStatistics
+    class(galacticFilterHaloAlwaysIsolated), intent(inout)         :: self
+    type (treeNode                        ), intent(inout), target :: node
+    class(nodeComponentMergingStatistics  ), pointer               :: mergingStatistics
     !GCC$ attributes unused :: self
 
     mergingStatistics        => node             %mergingStatistics        (autoCreate=.true.)

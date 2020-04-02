@@ -76,8 +76,8 @@ contains
   logical function notPasses(self,node)
     !% Implement a not galactic filter.
     implicit none
-    class(galacticFilterNot), intent(inout) :: self
-    type (treeNode         ), intent(inout) :: node
+    class(galacticFilterNot), intent(inout)         :: self
+    type (treeNode         ), intent(inout), target :: node
 
     notPasses=.not.self%galacticFilter_%passes(node)
     return

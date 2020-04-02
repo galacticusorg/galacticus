@@ -94,9 +94,9 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
-    class(galacticFilterHaloMass), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
-    class(nodeComponentBasic    ), pointer       :: basic
+    class(galacticFilterHaloMass), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node
+    class(nodeComponentBasic    ), pointer               :: basic
 
     basic          =>                                                                                  node %basic()
     haloMassPasses =   Dark_Matter_Profile_Mass_Definition(                                                           &

@@ -97,12 +97,12 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
     use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
     implicit none
-    class           (galacticFilterStellarAbsoluteMagnitudes), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: node
-    class           (nodeComponentBasic                     ), pointer       :: basic
-    double precision                                                         :: time       , luminosity, &
-         &                                                                      abMagnitude
-    integer                                                                  :: iLuminosity
+    class           (galacticFilterStellarAbsoluteMagnitudes), intent(inout)         :: self
+    type            (treeNode                               ), intent(inout), target :: node
+    class           (nodeComponentBasic                     ), pointer               :: basic
+    double precision                                                                 :: time       , luminosity, &
+         &                                                                              abMagnitude
+    integer                                                                          :: iLuminosity
 
     ! Get the basic component.
     basic => node%basic()

@@ -74,9 +74,9 @@ contains
     !% Implement a  basic mass high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(galacticFilterBasicMass), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
-    class(nodeComponentBasic     ), pointer       :: basic
+    class(galacticFilterBasicMass), intent(inout)         :: self
+    type (treeNode               ), intent(inout), target :: node
+    class(nodeComponentBasic     ), pointer               :: basic
 
     basic           => node %basic        ()
     basicMassPasses =  basic%mass         () &

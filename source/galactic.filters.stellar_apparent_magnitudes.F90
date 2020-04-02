@@ -114,14 +114,14 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
     use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
     implicit none
-    class           (galacticFilterStellarApparentMagnitudes), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: node
-    class           (nodeComponentBasic                     ), pointer       :: basic
-    double precision                                         , parameter     :: expansionFactorTolerance=1.0d-6
-    double precision                                                         :: time                           , luminosity     , &
-         &                                                                      abMagnitude                    , expansionFactor, &
-         &                                                                      distanceModulus
-    integer                                                                  :: iLuminosity
+    class           (galacticFilterStellarApparentMagnitudes), intent(inout)         :: self
+    type            (treeNode                               ), intent(inout), target :: node
+    class           (nodeComponentBasic                     ), pointer               :: basic
+    double precision                                         , parameter             :: expansionFactorTolerance=1.0d-6
+    double precision                                                                 :: time                           , luminosity     , &
+         &                                                                              abMagnitude                    , expansionFactor, &
+         &                                                                              distanceModulus
+    integer                                                                          :: iLuminosity
 
     ! Get the basic component.
     basic => node%basic()

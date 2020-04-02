@@ -76,10 +76,10 @@ contains
     !% Implement a  stellar mass high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterSpheroidStellarMass), intent(inout) :: self
-    type            (treeNode                         ), intent(inout) :: node
-    class           (nodeComponentSpheroid            ), pointer       :: spheroid
-    double precision                                                   :: spheroidStellarMass
+    class           (galacticFilterSpheroidStellarMass), intent(inout)         :: self
+    type            (treeNode                         ), intent(inout), target :: node
+    class           (nodeComponentSpheroid            ), pointer               :: spheroid
+    double precision                                                           :: spheroidStellarMass
 
     spheroid                  =>  node    %spheroid   ()
     spheroidStellarMass       =  +spheroid%massStellar()
