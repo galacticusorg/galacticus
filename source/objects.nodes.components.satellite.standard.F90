@@ -198,6 +198,7 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
   !#  <after>darkMatterProfile</after>
+  !#  <after>spin</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
     !% Initialize the standard satellite component.
@@ -380,8 +381,10 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Standard_Create(node)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, &
-          &                         treeNode
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic           , nodeComponentSatellite, nodeComponentSatelliteStandard, &
+         &                          treeNode
+    use :: Kepler_Orbits   , only : keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta      , keplerOrbitPhi                , &
+         &                          keplerOrbitVelocityRadial, keplerOrbitVelocityTangential
     implicit none
     type            (treeNode              ), intent(inout) :: node
     type            (treeNode              ), pointer       :: hostNode
@@ -422,7 +425,15 @@ contains
        else
           hostNode => node%parent%firstChild
        end if
-       orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
+       ! Test if the orbit is already defined. (This can happen if some other component requested the orbit during its initialization.)
+       orbit=satellite%virialOrbitValue()
+       if (orbit%isDefined()) then
+          ! The orbit has been previous defined, reset derived properties.
+          call orbit%reset(keep=[keplerOrbitMasses,keplerOrbitRadius,keplerOrbitTheta,keplerOrbitPhi,keplerOrbitVelocityRadial,keplerOrbitVelocityTangential])
+       else
+          ! The orbit is not previously defined, so choose an orbit now.
+          orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
+       end if
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
