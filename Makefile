@@ -69,6 +69,7 @@ FCFLAGS += -fopenmp
 
 # C compiler flags:
 CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
+export CFLAGS
 
 # C++ compiler flags:
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}

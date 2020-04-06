@@ -41,7 +41,7 @@ sub Process_GSLConstant {
 	    print $tmpSource " printf(\"%.*e\", OP_LDBL_Digs - 1, ".$node->{'directive'}->{'gslSymbol'}.");\n";
 	    print $tmpSource "}\n";
 	    close($tmpSource);
-	    system($ENV{'CCOMPILER'}." -o ".$tmpExecFileName." ".$tmpSourceFileName);
+	    system($ENV{'CCOMPILER'}." -o ".$tmpExecFileName." ".$tmpSourceFileName." ".$ENV{'CFLAGS'});
 	    die("Galacticus::Build::SourceTree::Process::GSLConstants: failed to compile")
 		unless ( $? == 0 );
 	    open(my $gslPipe,$tmpExecFileName."|");
