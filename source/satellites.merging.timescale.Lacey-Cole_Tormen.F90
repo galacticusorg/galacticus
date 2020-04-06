@@ -67,15 +67,12 @@ contains
     class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
     type            (keplerOrbit                                  ), intent(inout) :: orbit
-    type            (treeNode                                     ), pointer       :: hostNode
     double precision                                               , parameter     :: orbitalFactorDistributionSigma=+0.26d0                   !   Cole et al. (2000).
     double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                   !   Cole et al. (2000).
     double precision                                                               :: log10OrbitalFactor                    , randomDeviate, &
          &                                                                            orbitalFactor
     !$GLC attributes unused :: orbit
 
-    ! Find the host node.
-    hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
     randomDeviate     =+orbitalFactorDistributionSigma                              &
          &             *node%hostTree%randomNumberGenerator_%standardNormalSample()

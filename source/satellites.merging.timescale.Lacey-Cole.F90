@@ -106,9 +106,13 @@ contains
     type            (treeNode                               ), pointer       :: nodeHost
     double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                      radialScale                  , velocityScale
-
+    
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
@@ -139,10 +143,19 @@ contains
     ! Find the host node.
     nodeHost => node%parent
     ! Compute mass ratio.
-    basic     =>  node     %basic()
-    basicHost =>  nodeHost %basic()
-    massRatio =  +basicHost%mass () &
-         &       /basic    %mass ()
+    basic     => node    %basic()
+    basicHost => nodeHost%basic()
+    if (node%isSatellite()) then
+       ! Node is already a satellite in its host - compute the mass ratio directly.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    else
+       ! Node is not yet a satellite in its host - correct the host mass to what it will be after the node becomes a satellite in the
+       ! host.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    +1.0d0
+    end if
     ! Check for a greater than unity mass ratio.
     if (massRatio <= 1.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.

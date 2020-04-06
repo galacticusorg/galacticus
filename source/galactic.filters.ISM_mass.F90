@@ -74,11 +74,11 @@ contains
     !% Implement an ismMass-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterISMMass), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    class           (nodeComponentDisk    ), pointer       :: disk
-    class           (nodeComponentSpheroid), pointer       :: spheroid
-    double precision                                       :: ismMass
+    class           (galacticFilterISMMass), intent(inout)         :: self
+    type            (treeNode             ), intent(inout), target :: node
+    class           (nodeComponentDisk    ), pointer               :: disk
+    class           (nodeComponentSpheroid), pointer               :: spheroid
+    double precision                                               :: ismMass
 
     disk          => node    %disk    ()
     spheroid      => node    %spheroid()

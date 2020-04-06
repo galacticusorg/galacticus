@@ -51,8 +51,8 @@ contains
   logical function haloNotIsolatedPasses(self,node)
     !% Implement a galactic filter which passes only isolated halos.
     implicit none
-    class(galacticFilterHaloNotIsolated), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    class(galacticFilterHaloNotIsolated), intent(inout)         :: self
+    type (treeNode                     ), intent(inout), target :: node
     !$GLC attributes unused :: self
 
     haloNotIsolatedPasses=node%isSatellite()

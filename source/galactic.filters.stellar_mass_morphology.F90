@@ -75,11 +75,11 @@ contains
     !% Implement a stellar mass-weighted morphology high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterStellarMassMorphology), intent(inout) :: self
-    type            (treeNode                           ), intent(inout) :: node
-    class           (nodeComponentDisk                  ), pointer       :: disk
-    class           (nodeComponentSpheroid              ), pointer       :: spheroid
-    double precision                                                     :: stellarMass
+    class           (galacticFilterStellarMassMorphology), intent(inout)         :: self
+    type            (treeNode                           ), intent(inout), target :: node
+    class           (nodeComponentDisk                  ), pointer               :: disk
+    class           (nodeComponentSpheroid              ), pointer               :: spheroid
+    double precision                                                             :: stellarMass
 
     disk              => node    %disk       ()
     spheroid          => node    %spheroid   ()

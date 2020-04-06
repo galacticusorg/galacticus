@@ -51,8 +51,8 @@ contains
   logical function alwaysPasses(self,node)
     !% Implement an always-pass galactic filter.
     implicit none
-    class(galacticFilterAlways), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
+    class(galacticFilterAlways), intent(inout)         :: self
+    type (treeNode            ), intent(inout), target :: node
     !$GLC attributes unused :: self, node
 
     alwaysPasses=.true.

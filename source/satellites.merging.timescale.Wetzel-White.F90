@@ -103,12 +103,25 @@ contains
     !$GLC attributes unused :: self, orbit
 
     ! Find the host node.
-    nodeHost  =>  node     %parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Compute mass ratio.
-    basic     =>  node     %basic ()
-    basicHost =>  nodeHost %basic ()
-    massRatio =  +basicHost%mass  () &
-         &       /basic    %mass  ()
+    basic     => node    %basic ()
+    basicHost => nodeHost%basic ()
+    if (node%isSatellite()) then
+       ! Node is already a satellite in its host - compute the mass ratio directly.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    else
+       ! Node is not yet a satellite in its host - correct the host mass to what it will be after the node becomes a satellite in the
+       ! host.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    +1.0d0
+    end if
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
     wetzelWhite2010TimeUntilMerging=+self%timescaleMultiplier                               &
          &                          *timeScaleNormalization                                 &

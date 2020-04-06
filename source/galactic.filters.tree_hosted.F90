@@ -51,8 +51,8 @@ contains
   logical function treeHostedPasses(self,node)
     !% Implement a galactic filter which passes only main branch halos.
     implicit none
-    class(galacticFilterTreeHosted), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class(galacticFilterTreeHosted), intent(inout)         :: self
+    type (treeNode                ), intent(inout), target :: node
     !$GLC attributes unused :: self
 
     treeHostedPasses=associated(node%hostTree)

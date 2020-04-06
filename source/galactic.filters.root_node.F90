@@ -51,8 +51,8 @@ contains
   logical function rootNodePasses(self,node)
     !% Implement a galactic filter which passes only main branch halos.
     implicit none
-    class(galacticFilterRootNode), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
+    class(galacticFilterRootNode), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node
     !$GLC attributes unused :: self
 
     rootNodePasses=.not.associated(node%parent)

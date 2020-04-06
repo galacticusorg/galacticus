@@ -330,6 +330,8 @@ sub SubmitJobs {
 		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
 		my $nodes    = 1;
 		my $ppn      = 1;
+		$ppn   = $pbsConfig->{'ppn'  }
+		    if ( exists($pbsConfig->{'ppn'  }) );
 		$ppn   = $arguments  {'ppn'  }
 		    if ( exists($arguments  {'ppn'  }) );
 		$nodes = $arguments  {'nodes'}
@@ -375,7 +377,7 @@ sub SubmitJobs {
 		    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
-		my $mpi = exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes";
+		my $mpi = (exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes") || (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes");
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
 		print $scriptFile ($mpi ? "mpirun --bynode -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";

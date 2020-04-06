@@ -50,9 +50,9 @@ contains
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass            ), pointer                     :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass                      ), pointer                     :: nodePropertyExtractor_
     double precision                                                  , allocatable  , dimension(:) :: a
-    double precision                                                                                :: b                               , massParticle
+    double precision                                                                                :: b                     , massParticle
 
     allocate(a(parameters%count('a')))
     !# <inputParameter>
@@ -90,8 +90,8 @@ contains
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     double precision                                                  , intent(in   ), dimension(:) :: a
-    double precision                                                  , intent(in   )               :: b                               , massParticle
-    class           (nodePropertyExtractorClass            ), intent(in   ), target       :: nodePropertyExtractor_
+    double precision                                                  , intent(in   )               :: b                     , massParticle
+    class           (nodePropertyExtractorClass                      ), intent(in   ), target       :: nodePropertyExtractor_
     !# <constructorAssign variables="a, b, massParticle, *nodePropertyExtractor_"/>
 
     select type (nodePropertyExtractor_)
@@ -124,7 +124,7 @@ contains
     nbodyMassPropertyType         =+self%nodePropertyExtractor_%type   (    )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
-       nbodyMassPropertyValue     =                            extractor_%extract(node)
+       nbodyMassPropertyValue     =                  extractor_%extract(node)
     class default
        nbodyMassPropertyValue     =+0.0d0
     end select

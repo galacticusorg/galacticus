@@ -77,10 +77,10 @@ contains
     !% Implement a filter which rejects halos that formed too recently.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
-    class(galacticFilterFormationTime), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    class(nodeComponentBasic         ), pointer       :: basic
-    class(nodeComponentFormationTime ), pointer       :: formationTime
+    class(galacticFilterFormationTime), intent(inout)         :: self
+    type (treeNode                   ), intent(inout), target :: node
+    class(nodeComponentBasic         ), pointer               :: basic
+    class(nodeComponentFormationTime ), pointer               :: formationTime
 
     basic               =>   node         %basic        ()
     formationTime       =>   node         %formationTime()

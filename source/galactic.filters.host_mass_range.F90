@@ -78,9 +78,9 @@ contains
     !% Implement a filter which passes nodes with host halo basic mass in a specified range.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(galacticFilterHostMassRange), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    class(nodeComponentBasic         ), pointer       :: basic
+    class(galacticFilterHostMassRange), intent(inout)         :: self
+    type (treeNode                   ), intent(inout), target :: node
+    class(nodeComponentBasic         ), pointer               :: basic
 
     if (node%isSatellite()) then
        basic => node%parent%basic()

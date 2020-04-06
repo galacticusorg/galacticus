@@ -103,9 +103,9 @@ contains
   logical function allPasses(self,node)
     !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``all'' operations.
     implicit none
-    class(galacticFilterAll), intent(inout) :: self
-    type (treeNode         ), intent(inout) :: node
-    type (filterList       ), pointer       :: filter_
+    class(galacticFilterAll), intent(inout)         :: self
+    type (treeNode         ), intent(inout), target :: node
+    type (filterList       ), pointer               :: filter_
 
     ! Assume the node passes initially. Iterate through filters and evaluate each one. If any one evaluates to false, exit the
     ! iteration.

@@ -76,10 +76,10 @@ contains
     !% Implement a low-pass filter for time since the last major node merger.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    class(galacticFilterNodeMajorMergerRecent), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    class(nodeComponentBasic                 ), pointer       :: basic
-    class(nodeComponentMergingStatistics     ), pointer       :: mergingStatistics
+    class(galacticFilterNodeMajorMergerRecent), intent(inout)         :: self
+    type (treeNode                           ), intent(inout), target :: node
+    class(nodeComponentBasic                 ), pointer               :: basic
+    class(nodeComponentMergingStatistics     ), pointer               :: mergingStatistics
 
     basic                       =>   node             %basic              ()
     mergingStatistics           =>   node             %mergingStatistics  ()

@@ -80,8 +80,8 @@ contains
   logical function lightconePasses(self,node)
     !% Implement a lightcone geometry galactic filter.
     implicit none
-    class(galacticFilterLightcone), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
+    class(galacticFilterLightcone), intent(inout)         :: self
+    type (treeNode               ), intent(inout), target :: node
 
     lightconePasses=self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)
     return

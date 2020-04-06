@@ -389,6 +389,7 @@ contains
     double precision                                                  , parameter                               :: massRatioBuffer                                =1.0d-01
     integer                                                           , parameter                               :: covarianceBinomialBinsPerDecade                =2
     double precision                                                  , parameter                               :: covarianceBinomialMassHaloMinimum              =3.0d+11, covarianceBinomialMassHaloMaximum=1.0d15
+    logical                                                           , parameter                               :: allowSelf                                      =.false.
     double precision                                                  , allocatable            , dimension(:  ) :: massRatios
     double precision                                                  , allocatable            , dimension(:,:) :: outputWeight
     type            (galacticFilterAll                               ), pointer                                 :: galacticFilter_
@@ -457,14 +458,14 @@ contains
     else
        nullify(galacticFilterHaloAlwaysIsolated_)
     end if
-    !# <referenceConstruct                             object="galacticFilterHaloIsolated_"      constructor="galacticFilterHaloIsolated  (                                                                                 )"/>
-    !# <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterHaloMass      (massParentMinimum*massRatioMinimum*massRatioBuffer,virialDensityContrast_        )"/>
-    !# <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterHaloMass      (massParentMinimum                                 ,virialDensityContrast_        )"/>
-    !# <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterHaloMass      (massParentMaximum                                 ,virialDensityContrast_        )"/>
-    !# <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                 )"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                   )"/>
-    !# <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,self%galacticFilterParentMass_)"/>
-    !# <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                         )"/>
+    !# <referenceConstruct                             object="galacticFilterHaloIsolated_"      constructor="galacticFilterHaloIsolated  (                                                                                           )"/>
+    !# <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterHaloMass      (massParentMinimum*massRatioMinimum*massRatioBuffer          ,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterHaloMass      (massParentMinimum                                           ,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterHaloMass      (massParentMaximum                                           ,virialDensityContrast_        )"/>
+    !# <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                           )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                             )"/>
+    !# <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,allowSelf,self%galacticFilterParentMass_)"/>
+    !# <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                                   )"/>
     ! Build a node property extractor which gives the ratio of the progenitor and parent halo masses.
     allocate(     nodePropertyExtractorMassProgenitor_)
     allocate(self%nodePropertyExtractorMassParent_    )

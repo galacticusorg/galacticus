@@ -28,6 +28,24 @@ module Kepler_Orbits
   ! Effective infinite radius used for apocenters in unbound orbits.
   double precision, parameter :: radiusEffectiveInfinity=huge(1.0d0)
 
+  !# <enumeration>
+  !#  <name>keplerOrbit</name>
+  !#  <description>Properties of Kepler orbit objects.</description>
+  !#  <entry label="masses"            />
+  !#  <entry label="radius"            />
+  !#  <entry label="theta"             />
+  !#  <entry label="phi"               />
+  !#  <entry label="epsilon"           />
+  !#  <entry label="radiusPericenter"  />
+  !#  <entry label="radiusApocenter"   />
+  !#  <entry label="velocityRadial"    />
+  !#  <entry label="velocityTangential"/>
+  !#  <entry label="energy"            />
+  !#  <entry label="angularMomentum"   />
+  !#  <entry label="eccentricity"      />
+  !#  <entry label="semiMajorAxis"     />
+  !# </enumeration>
+
   type keplerOrbit
      !% The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
      !% parameters to another where possible. The orbitting bodies (a satellite orbitting around its host) are treated as point
@@ -90,9 +108,9 @@ module Kepler_Orbits
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>reset</method>
-     !@     <description>Resets an orbit to a null state.</description>
+     !@     <description>Resets orbit properties. If the optional {\normalfont \ttfamily keep} argument is provided and listed properties will \emph{not} be reset.</description>
      !@     <type>\void</type>
-     !@     <arguments></arguments>
+     !@     <arguments>\intone\ [keep]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>destroy</method>
@@ -657,22 +675,32 @@ contains
     return
   end subroutine Kepler_Orbits_Read_Raw
 
-  subroutine Kepler_Orbits_Reset(orbit)
+  subroutine Kepler_Orbits_Reset(orbit,keep)
     !% Reset an orbit to a null state.
     implicit none
-    class(keplerOrbit), intent(inout) :: orbit
+    class  (keplerOrbit), intent(inout)                         :: orbit
+    integer             , intent(in   ), dimension(:), optional :: keep
+    integer             , allocatable  , dimension(:)           :: keep_
 
+    ! Set list of properties to keep.
+    if (present(keep)) then
+       keep_=keep
+    else
+       allocate(keep_(0))
+    end if
     ! Simply specify that no properties have been set as yet.
-    orbit%massesIsSet            =.false.
-    orbit%radiusIsSet            =.false.
-    orbit%radiusPericenterIsSet  =.false.
-    orbit%radiusApocenterIsSet   =.false.
-    orbit%velocityRadialIsSet    =.false.
-    orbit%velocityTangentialIsSet=.false.
-    orbit%angularMomentumIsSet   =.false.
-    orbit%energyIsSet            =.false.
-    orbit%eccentricityIsSet      =.false.
-    orbit%semimajorAxisIsSet     =.false.
+    if (.not.any(keep_ == keplerOrbitMasses            )) orbit%massesIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitRadius            )) orbit%radiusIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitRadiusPericenter  )) orbit%radiusPericenterIsSet  =.false.
+    if (.not.any(keep_ == keplerOrbitRadiusApocenter   )) orbit%radiusApocenterIsSet   =.false.
+    if (.not.any(keep_ == keplerOrbitVelocityRadial    )) orbit%velocityRadialIsSet    =.false.
+    if (.not.any(keep_ == keplerOrbitVelocityTangential)) orbit%velocityTangentialIsSet=.false.
+    if (.not.any(keep_ == keplerOrbitAngularMomentum   )) orbit%angularMomentumIsSet   =.false.
+    if (.not.any(keep_ == keplerOrbitEnergy            )) orbit%energyIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitEccentricity      )) orbit%eccentricityIsSet      =.false.
+    if (.not.any(keep_ == keplerOrbitSemiMajorAxis     )) orbit%semimajorAxisIsSet     =.false.
+    if (.not.any(keep_ == keplerOrbitTheta             )) orbit%thetaIsSet             =.false.
+    if (.not.any(keep_ == keplerOrbitPhi               )) orbit%phiIsSet               =.false.
     return
   end subroutine Kepler_Orbits_Reset
 

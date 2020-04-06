@@ -104,12 +104,12 @@ contains
     !% Implement an starFormationRate-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterStarFormationRate), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    class           (nodeComponentDisk              ), pointer       :: disk
-    class           (nodeComponentSpheroid          ), pointer       :: spheroid
-    double precision                                                 :: starFormationRate         , stellarMass, &
-         &                                                              starFormationRateThreshold
+    class           (galacticFilterStarFormationRate), intent(inout)         :: self
+    type            (treeNode                       ), intent(inout), target :: node
+    class           (nodeComponentDisk              ), pointer               :: disk
+    class           (nodeComponentSpheroid          ), pointer               :: spheroid
+    double precision                                                         :: starFormationRate         , stellarMass, &
+         &                                                                      starFormationRateThreshold
 
     disk                      => node    %disk             ()
     spheroid                  => node    %spheroid         ()

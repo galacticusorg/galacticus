@@ -74,11 +74,11 @@ contains
     !% Implement a  stellar mass high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterStellarMass), intent(inout) :: self
-    type            (treeNode                 ), intent(inout) :: node
-    class           (nodeComponentDisk        ), pointer       :: disk
-    class           (nodeComponentSpheroid    ), pointer       :: spheroid
-    double precision                                           :: stellarMass
+    class           (galacticFilterStellarMass), intent(inout)         :: self
+    type            (treeNode                 ), intent(inout), target :: node
+    class           (nodeComponentDisk        ), pointer               :: disk
+    class           (nodeComponentSpheroid    ), pointer               :: spheroid
+    double precision                                                   :: stellarMass
 
     disk              => node    %disk       ()
     spheroid          => node    %spheroid   ()

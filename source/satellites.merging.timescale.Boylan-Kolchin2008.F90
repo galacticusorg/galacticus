@@ -117,7 +117,11 @@ contains
     !$GLC attributes unused :: self
 
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
@@ -144,10 +148,17 @@ contains
        orbitalCircularity=0.0d0
        call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
-    ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    basic => node%basic()
-    basicHost => nodeHost%basic()
-    massRatio=basicHost%mass()/basic%mass()-1.0d0
+    ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
+    basic     =>  node     %basic()
+    basicHost =>  nodeHost %basic()
+    if (node%isSatellite()) then
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    -1.0d0
+    else
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    end if
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
        boylanKolchin2008TimeUntilMerging=0.0d0
