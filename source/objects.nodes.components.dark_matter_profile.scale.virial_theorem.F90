@@ -179,7 +179,7 @@ contains
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: growthRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -481,7 +481,7 @@ contains
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
     class(nodeComponentBasic            )               , pointer :: basicParent            , basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
