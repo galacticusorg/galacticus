@@ -68,7 +68,6 @@ module Node_Component_Satellite_Standard
   !#     <type>keplerOrbit</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
-  !#     <output condition="[[satelliteOutputVirialOrbit]]" comment="Virial orbital parameters of the satellite node."/>
   !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>

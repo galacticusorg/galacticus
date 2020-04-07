@@ -31,19 +31,22 @@ module Kepler_Orbits
   !# <enumeration>
   !#  <name>keplerOrbit</name>
   !#  <description>Properties of Kepler orbit objects.</description>
-  !#  <entry label="masses"            />
-  !#  <entry label="radius"            />
-  !#  <entry label="theta"             />
-  !#  <entry label="phi"               />
-  !#  <entry label="epsilon"           />
-  !#  <entry label="radiusPericenter"  />
-  !#  <entry label="radiusApocenter"   />
-  !#  <entry label="velocityRadial"    />
-  !#  <entry label="velocityTangential"/>
-  !#  <entry label="energy"            />
-  !#  <entry label="angularMomentum"   />
-  !#  <entry label="eccentricity"      />
-  !#  <entry label="semiMajorAxis"     />
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="masses"             />
+  !#  <entry label="hostMass"           />
+  !#  <entry label="specificReducedMass"/>
+  !#  <entry label="radius"             />
+  !#  <entry label="theta"              />
+  !#  <entry label="phi"                />
+  !#  <entry label="epsilon"            />
+  !#  <entry label="radiusPericenter"   />
+  !#  <entry label="radiusApocenter"    />
+  !#  <entry label="velocityRadial"     />
+  !#  <entry label="velocityTangential" />
+  !#  <entry label="energy"             />
+  !#  <entry label="angularMomentum"    />
+  !#  <entry label="eccentricity"       />
+  !#  <entry label="semiMajorAxis"      />
   !# </enumeration>
 
   type keplerOrbit
